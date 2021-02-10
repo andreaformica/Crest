@@ -7,12 +7,14 @@ import hep.crest.data.handlers.PayloadHandler;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.IovId;
 import hep.crest.data.pojo.Tag;
+import hep.crest.data.repositories.IovDirImpl;
 import hep.crest.data.repositories.IovDirectoryImplementation;
 import hep.crest.data.repositories.IovGroupsImpl;
 import hep.crest.data.repositories.IovRepository;
 import hep.crest.data.repositories.PayloadDataBaseCustom;
 import hep.crest.data.repositories.PayloadDataDBImpl;
 import hep.crest.data.repositories.PayloadDirectoryImplementation;
+import hep.crest.data.repositories.TagDirImpl;
 import hep.crest.data.repositories.TagDirectoryImplementation;
 import hep.crest.data.repositories.TagMetaDBImpl;
 import hep.crest.data.repositories.TagRepository;
@@ -258,6 +260,61 @@ public class RepositoryDBTests {
         assertThat(pdtolist.size()).isNotNegative();
 
     }
+
+    @Test
+    public void testDirectoriesImpl() throws Exception {
+        final TagDirImpl tagrepo = new TagDirImpl(
+                new DirectoryUtilities(), mapper);
+        final TagDto tdto = DataGenerator.generateTagDto("A-TEST-02", "test");
+        Tag entity = mapper.map(tdto, Tag.class);
+        log.info("Tag to be stored: {}", entity);
+        final Tag savedtag = tagrepo.save(entity);
+        final Tag loadedtag = tagrepo.findOne("A-TEST-02");
+        assertThat(loadedtag.getName()).isEqualTo(savedtag.getName());
+        final List<Tag> taglist = tagrepo.findByNameLike("A-TEST.*");
+        assertThat(taglist.size()).isPositive();
+
+        final List<Tag> alltaglist = tagrepo.findAll();
+        assertThat(alltaglist.size()).isPositive();
+
+        final PayloadDirectoryImplementation pyldrepo = new PayloadDirectoryImplementation(
+                new DirectoryUtilities());
+        final Instant now = Instant.now();
+        final Date time = new Date(now.toEpochMilli());
+        final PayloadDto pdto = DataGenerator.generatePayloadDto("anotherhash", "some content",
+                "sinfo", "test", time);
+        pyldrepo.save(pdto);
+
+        final PayloadDto loadedp = pyldrepo.find("anotherhash");
+        assertThat(loadedp).isNotNull();
+
+        final IovDirImpl iovrepo = new IovDirImpl(
+                new DirectoryUtilities(), mapper);
+        final IovDto idto = DataGenerator.generateIovDto("anotherhash", "A-TEST-02",
+                new BigDecimal(22222L));
+        Iov ioventity = mapper.map(idto, Iov.class);
+        iovrepo.save(ioventity);
+        assertThat(tdto).isNotNull();
+
+        final TagDto tdto3 = DataGenerator.generateTagDto("A-TEST-03", "test");
+        Tag tagentity3 = mapper.map(idto, Tag.class);
+        final Tag savedtag3 = tagrepo.save(tagentity3);
+
+        final IovDto idto1 = DataGenerator.generateIovDto("anotherhash3", "A-TEST-03",
+                new BigDecimal(22224L));
+        final IovDto idto2 = DataGenerator.generateIovDto("anotherhash4", "A-TEST-03",
+                new BigDecimal(32224L));
+        final List<IovDto> dtolist = new ArrayList<>();
+        dtolist.add(idto1);
+        dtolist.add(idto2);
+        for (IovDto d : dtolist) {
+            Iov e = mapper.map(d, Iov.class);
+            iovrepo.save(e);
+        }
+        final List<Iov> savedilist = iovrepo.findByIdTagName("A-TEST-03");
+        assertThat(savedilist.size()).isPositive();
+    }
+
 
     @Test
     public void testDirectories() throws Exception {

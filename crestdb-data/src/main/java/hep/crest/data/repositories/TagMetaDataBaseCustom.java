@@ -17,7 +17,6 @@
  **/
 package hep.crest.data.repositories;
 
-import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.swagger.model.TagMetaDto;
 
 /**
@@ -46,8 +45,6 @@ public interface TagMetaDataBaseCustom {
      * @param entity
      *            the TagMetaDto
      * @return Either the entity which has been saved or null.
-     * @throws CdbServiceException
-     *             It should in reality not throw any exception
      */
     TagMetaDto save(TagMetaDto entity);
 
@@ -55,8 +52,6 @@ public interface TagMetaDataBaseCustom {
      * @param entity
      *            the TagMetaDto
      * @return Either the entity which has been updated or null.
-     * @throws CdbServiceException
-     *             It should in reality not throw any exception
      */
     TagMetaDto update(TagMetaDto entity);
 

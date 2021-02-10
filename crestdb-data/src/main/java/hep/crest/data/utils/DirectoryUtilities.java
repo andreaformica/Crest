@@ -1,6 +1,18 @@
 package hep.crest.data.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.pojo.Tag;
+import hep.crest.swagger.model.TagMetaDto;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.utils.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -16,21 +28,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.GZIPOutputStream;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.utils.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import hep.crest.data.exceptions.CdbServiceException;
-
 /**
  * An utility class to deal with disk based storage.
  *
  * @author formica
- *
  */
 public class DirectoryUtilities {
 
@@ -43,6 +44,10 @@ public class DirectoryUtilities {
      * Name of the tag file.
      */
     private static final String TAG_FILE = "tag.json";
+    /**
+     * Name of the tag file.
+     */
+    private static final String TAG_META_FILE = "tagmeta.json";
     /**
      * Name of the iov file.
      */
@@ -75,8 +80,7 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param basedir
-     *            the Base directory
+     * @param basedir the Base directory
      */
     public DirectoryUtilities(String basedir) {
         locbasedir = basedir;
@@ -90,8 +94,7 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param mapper
-     *            the ObjectMapper
+     * @param mapper the ObjectMapper
      * @return
      */
     public void setMapper(ObjectMapper mapper) {
@@ -127,33 +130,36 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param tagname
-     *            the String
-     * @throws CdbServiceException
-     *             If an Exception occurred
+     * @param tagname the String
      * @return Path
+     * @throws CdbServiceException If an Exception occurred
      */
     public Path getTagPath(String tagname) {
         return this.getTagPath(locbasedir, tagname);
     }
 
     /**
-     * @param tagname
-     *            the String
-     * @throws CdbServiceException
-     *             If an Exception occurred
+     * @param tagname the String
      * @return Path
+     * @throws CdbServiceException If an Exception occurred
      */
     public Path getTagFilePath(String tagname) {
         return this.getTagFilePath(locbasedir, tagname);
     }
 
     /**
-     * @param tagname
-     *            the String
-     * @throws CdbServiceException
-     *             If an Exception occurred
+     * @param tagname the String
      * @return Path
+     * @throws CdbServiceException If an Exception occurred
+     */
+    public Path getTagMetaFilePath(String tagname) {
+        return this.getTagFilePath(locbasedir, tagname);
+    }
+
+    /**
+     * @param tagname the String
+     * @return Path
+     * @throws CdbServiceException If an Exception occurred
      */
     public Path getIovFilePath(String tagname) {
         return this.getIovFilePath(locbasedir, tagname);
@@ -174,8 +180,7 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param name
-     *            the String
+     * @param name the String
      * @return Path
      * @throws CdbServiceException If an Exception occurred
      */
@@ -184,24 +189,19 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param name
-     *            the String
+     * @param name the String
      * @return Path
-     * @throws CdbServiceException
-     *             If an Exception occurred
+     * @throws CdbServiceException If an Exception occurred
      */
     public Path createIfNotexistsIov(String name) {
         return createIfNotexistsIov(locbasedir, name);
     }
 
     /**
-     * @param basedir
-     *            the String
-     * @param tagname
-     *            the String
-     * @throws CdbServiceException
-     *             If an Exception occurred
+     * @param basedir the String
+     * @param tagname the String
      * @return Path
+     * @throws CdbServiceException If an Exception occurred
      */
     public Path getTagPath(String basedir, String tagname) {
         final Path tagpath = Paths.get(basedir, tagname);
@@ -212,13 +212,10 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param basedir
-     *            the String
-     * @param tagname
-     *            the String
-     * @throws CdbServiceException
-     *             If an Exception occurred
+     * @param basedir the String
+     * @param tagname the String
      * @return Path
+     * @throws CdbServiceException If an Exception occurred
      */
     public Path getTagFilePath(String basedir, String tagname) {
         final Path tagpath = getTagPath(basedir, tagname);
@@ -230,13 +227,26 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param basedir
-     *            the String
-     * @param tagname
-     *            the String
-     * @throws CdbServiceException
-     *             If an Exception occurred
+     * @param basedir the String
+     * @param tagname the String
      * @return Path
+     * @throws CdbServiceException If an Exception occurred
+     */
+    public Path getTagMetaFilePath(String basedir, String tagname) {
+        final Path tagpath = getTagPath(basedir, tagname);
+        final Path tagfilepath = Paths.get(tagpath.toString(), TAG_META_FILE);
+        if (!tagfilepath.toFile().exists()) {
+            throw new CdbServiceException("DirectoryUtility: cannot find tag meta file for tag name " + tagname);
+        }
+        return tagfilepath;
+    }
+
+
+    /**
+     * @param basedir the String
+     * @param tagname the String
+     * @return Path
+     * @throws CdbServiceException If an Exception occurred
      */
     public Path getIovFilePath(String basedir, String tagname) {
         final Path tagpath = getTagPath(basedir, tagname);
@@ -248,8 +258,7 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param basedir
-     *            the String
+     * @param basedir the String
      * @return List<String>
      */
     public List<String> getTagDirectories(String basedir) {
@@ -268,8 +277,7 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param basedir
-     *            the String
+     * @param basedir the String
      * @return Path
      */
     public Path getBasePath(String basedir) {
@@ -289,8 +297,7 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param basedir
-     *            the String
+     * @param basedir the String
      * @return Path
      */
     public Path getPayloadPath(String basedir) {
@@ -310,10 +317,8 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param basedir
-     *            the String
-     * @param name
-     *            the String
+     * @param basedir the String
+     * @param name    the String
      * @return Path
      * @throws CdbServiceException If an Exception occurred
      */
@@ -341,13 +346,10 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param basedir
-     *            the String
-     * @param name
-     *            the String
+     * @param basedir the String
+     * @param name    the String
      * @return Path
-     * @throws CdbServiceException
-     *             If an Exception occurred
+     * @throws CdbServiceException If an Exception occurred
      */
     public Path createIfNotexistsIov(String basedir, String name) {
         if (name == null) {
@@ -372,8 +374,7 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param hash
-     *            the String
+     * @param hash the String
      * @return String
      */
     public String hashdir(String hash) {
@@ -381,10 +382,8 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param apath
-     *            the Path
-     * @param filename
-     *            the String
+     * @param apath    the Path
+     * @param filename the String
      * @return Boolean
      */
     public Boolean existsFile(Path apath, String filename) {
@@ -396,17 +395,15 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param source
-     *            the String
-     * @param outdir
-     *            the String
+     * @param source the String
+     * @param outdir the String
      * @return String
      */
     public String createTarFile(String source, String outdir) {
         final String outtarfile = outdir.concat(".tar.gz");
         try (FileOutputStream fos = new FileOutputStream(outtarfile);
-                GZIPOutputStream gos = new GZIPOutputStream(new BufferedOutputStream(fos));
-                TarArchiveOutputStream tarOs = new TarArchiveOutputStream(gos);) {
+             GZIPOutputStream gos = new GZIPOutputStream(new BufferedOutputStream(fos));
+             TarArchiveOutputStream tarOs = new TarArchiveOutputStream(gos);) {
             // Using input name to create output name
             final File folder = new File(source);
             final File[] fileNames = folder.listFiles();
@@ -424,15 +421,73 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param tOut
-     *            the TarArchiveOutputStream
-     * @param path
-     *            the String
-     * @param base
-     *            the String
-     * @throws IOException
-     *             If an Exception occurred
+     * @param tagfilepath the Path
+     * @return Tag
+     */
+    public Tag readTagFile(Path tagfilepath) {
+        final StringBuilder buf = new StringBuilder();
+        try (BufferedReader reader = Files.newBufferedReader(tagfilepath, getCharset())) {
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                log.debug("Reading line from file {}", line);
+                buf.append(line);
+            }
+            final String jsonstring = buf.toString();
+            final Tag readValue = getMapper().readValue(jsonstring, Tag.class);
+            log.debug("Parsed json to get tag object {} with field {} " + " and description {}",
+                    readValue, readValue.getName(), readValue.getDescription());
+            return readValue;
+        }
+        catch (final IOException e) {
+            log.error("Error in reading tag file from path {}: {}", tagfilepath, e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * @param tagfilepath the Path
+     * @return TagMetaDto
+     */
+    public TagMetaDto readTagMetaFile(Path tagfilepath) {
+        final StringBuilder buf = new StringBuilder();
+        try (BufferedReader reader = Files.newBufferedReader(tagfilepath, getCharset())) {
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                log.debug("Reading line from file {}", line);
+                buf.append(line);
+            }
+            final String jsonstring = buf.toString();
+            final TagMetaDto readValue = getMapper().readValue(jsonstring, TagMetaDto.class);
+            log.debug("Parsed json to get tag object {} with field {} " + " and description {}",
+                    readValue, readValue.getTagName(), readValue.getDescription());
+            return readValue;
+        }
+        catch (final IOException e) {
+            log.error("Error in reading tag file from path {}: {}", tagfilepath, e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * @param jsonstr  the String
+     * @param filepath the Path
+     * @throws CdbServiceException If an Exception occurred
+     */
+    public void writeTagFile(String jsonstr, Path filepath) {
+        try (BufferedWriter writer = Files.newBufferedWriter(filepath, getCharset())) {
+            writer.write(jsonstr);
+        }
+        catch (final IOException x) {
+            throw new CdbServiceException("Cannot write " + jsonstr + " in JSON file", x);
+        }
+    }
+
+    /**
+     * @param tOut the TarArchiveOutputStream
+     * @param path the String
+     * @param base the String
      * @return
+     * @throws IOException If an Exception occurred
      */
     private void addFileToTarGz(TarArchiveOutputStream tOut, String path, String base)
             throws IOException {
