@@ -3,6 +3,7 @@ package hep.crest.data.repositories;
 import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.utils.DirectoryUtilities;
+import hep.crest.swagger.model.TagDto;
 import ma.glasnost.orika.MapperFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,13 +65,14 @@ public class TagDirImpl implements ITagCrud {
                 if (!filepath.toFile().exists()) {
                     Files.createFile(filepath);
                 }
-                final String jsonstr = dirtools.getMapper().writeValueAsString(entity);
+                TagDto dto = mapper.map(entity, TagDto.class);
+                final String jsonstr = dirtools.getMapper().writeValueAsString(dto);
                 writeTagFile(jsonstr, filepath);
                 return entity;
             }
         }
         catch (final RuntimeException | IOException x) {
-            log.error("Cannot save tag dto {} : {}", entity, x.getMessage());
+            log.error("Cannot save tag {} : {}", entity, x.getMessage());
         }
         return null;
     }
@@ -160,10 +162,10 @@ public class TagDirImpl implements ITagCrud {
                 buf.append(line);
             }
             final String jsonstring = buf.toString();
-            final Tag readValue = dirtools.getMapper().readValue(jsonstring, Tag.class);
-            log.debug("Parsed json to get tag object {} with field {} " + " and description {}",
-                    readValue, readValue.getName(), readValue.getDescription());
-            return readValue;
+            final TagDto readValue = dirtools.getMapper().readValue(jsonstring, TagDto.class);
+            final Tag entity = mapper.map(readValue, Tag.class);
+            log.debug("Parsed json to get tag object {} ", entity);
+            return entity;
         }
         catch (final IOException e) {
             log.error("Error in reading tag file from path {}: {}", tagfilepath, e.getMessage());

@@ -33,9 +33,9 @@ public interface IIovCrud extends IIovQuery {
      *
      * @param tag
      * @param entitylist the Iov list to save.
-     * @return Iterable<Iov>.
+     * @return int
      */
-    Iterable<Iov> saveAll(String tag, Iterable<Iov> entitylist);
+    int saveAll(String tag, Iterable<Iov> entitylist);
 
     /**
      * Set directory utilities.

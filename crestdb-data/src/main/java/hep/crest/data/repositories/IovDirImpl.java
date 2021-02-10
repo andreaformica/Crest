@@ -39,7 +39,7 @@ public class IovDirImpl implements IIovCrud {
     /**
      * Logger.
      */
-    private static final Logger log = LoggerFactory.getLogger(IovDirectoryImplementation.class);
+    private static final Logger log = LoggerFactory.getLogger(IovDirImpl.class);
 
     /**
      * Directory utilities.
@@ -127,13 +127,12 @@ public class IovDirImpl implements IIovCrud {
     public Iov findBySinceAndTagNameAndHash(String name, BigDecimal since, String hash) {
         try {
             List<IovDto> iovdtoList = readJsonFromFile(name);
-            for (IovDto dto : iovdtoList) {
-                if (dto.getTagName().equalsIgnoreCase(name)
-                    && dto.getSince().equals(since)
-                    && dto.getPayloadHash().equalsIgnoreCase(hash)) {
-                    return mapper.map(dto, Iov.class);
-                }
-            }
+            List<Iov> iovlist = iovdtoList.stream()
+                    .filter(s -> (s.getTagName().equals(name) && s.getSince().equals(since)
+                                  && s.getPayloadHash().equals(hash)))
+                    .map(s -> mapper.map(s, Iov.class))
+                    .collect(Collectors.toList());
+            return iovlist.get(0);
         }
         catch (final RuntimeException e) {
             log.error("Exception searching iov for tag {}, hash {}, since {} : {}", name, hash, since, e);
@@ -335,9 +334,8 @@ public class IovDirImpl implements IIovCrud {
                     .collect(Collectors.toList());
             dtolist.sort(Comparator.comparing(IovDto::getSince));
             // FIXME: this is probably inefficient for large number of iovs...to be checked
-            final String jsonstr = dirtools.getMapper().writeValueAsString(iovlist);
+            final String jsonstr = dirtools.getMapper().writeValueAsString(dtolist);
             writeIovFile(jsonstr, iovfilepath);
-
             return entity;
         }
         catch (final RuntimeException | JsonProcessingException x) {
@@ -351,25 +349,28 @@ public class IovDirImpl implements IIovCrud {
      *            the String
      * @param iovlist
      *            the Iterable<Iov>
-     * @return List<Iov>
+     * @return int
      */
-    public Iterable<Iov> saveAll(String tagname, Iterable<Iov> iovlist) {
+    public int saveAll(String tagname, Iterable<Iov> iovlist) {
 
         try {
             if (iovlist == null) {
                 log.error("Cannot save empty iov list for tag {}", tagname);
-                return new ArrayList<>();
+                return -1;
             }
             // FIXME: this is probably inefficient for large number of iovs...to be checked
-            final String jsonstr = dirtools.getMapper().writeValueAsString(iovlist);
+            List<IovDto> dtolist = StreamSupport.stream(iovlist.spliterator(), false)
+                    .map(s -> mapper.map(s, IovDto.class))
+                    .collect(Collectors.toList());
+            final String jsonstr = dirtools.getMapper().writeValueAsString(dtolist);
             final Path iovfilepath = dirtools.createIfNotexistsIov(tagname);
             writeIovFile(jsonstr, iovfilepath);
-            return iovlist;
+            return dtolist.size();
         }
         catch (final IOException | CdbServiceException x) {
             log.error("Cannot save iov list for tag {} : {}", tagname, x);
         }
-        return new ArrayList<>();
+        return 0;
     }
 
     /**

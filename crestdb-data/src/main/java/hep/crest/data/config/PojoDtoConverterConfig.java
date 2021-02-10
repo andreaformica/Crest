@@ -1,14 +1,5 @@
 package hep.crest.data.config;
 
-import java.sql.SQLException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.GlobalTagMap;
 import hep.crest.data.pojo.Iov;
@@ -28,6 +19,14 @@ import ma.glasnost.orika.MapperFacade;
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.MappingContext;
 import ma.glasnost.orika.impl.DefaultMapperFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.sql.SQLException;
 
 /**
  * @author formica
@@ -95,7 +94,8 @@ public class PojoDtoConverterConfig {
      */
     protected void initIovMap(MapperFactory mapperFactory) {
         mapperFactory.classMap(Iov.class, IovDto.class).field("id.since", "since")
-                .field("id.insertionTime", "insertionTime").field("payloadHash", "payloadHash")
+                .field("id.insertionTime", "insertionTime")
+                .field("payloadHash", "payloadHash")
                 .register();
     }
 
