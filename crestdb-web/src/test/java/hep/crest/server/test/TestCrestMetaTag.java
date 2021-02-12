@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.pojo.Tag;
 import hep.crest.server.exceptions.AlreadyExistsPojoException;
+import hep.crest.server.services.TagMetaService;
 import hep.crest.server.services.TagService;
 import hep.crest.swagger.model.TagDto;
 import hep.crest.swagger.model.TagMetaDto;
@@ -46,7 +47,10 @@ public class TestCrestMetaTag {
 
     @Autowired
     private TagService tagservice;
-    
+
+    @Autowired
+    private TagMetaService tagmetaservice;
+
     @Autowired
     @Qualifier("jacksonMapper")
     private ObjectMapper mapper;
@@ -70,7 +74,7 @@ public class TestCrestMetaTag {
         final TagMetaDto metadto = DataGenerator.generateTagMetaDto("SVC-TAG-01", "test meta info", new Date(now.toEpochMilli()));
       
         try {
-            final TagMetaDto saved = tagservice.insertTagMeta(metadto);
+            final TagMetaDto saved = tagmetaservice.insertTagMeta(metadto);
             assertThat(saved).isNotNull();
         }
         catch (AlreadyExistsPojoException e) {
