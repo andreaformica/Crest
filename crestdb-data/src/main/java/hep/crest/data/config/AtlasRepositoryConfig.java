@@ -1,9 +1,13 @@
 package hep.crest.data.config;
 
+import hep.crest.data.repositories.ITagMetaCrud;
 import hep.crest.data.repositories.TagMetaDBImpl;
 import hep.crest.data.repositories.TagMetaDataBaseCustom;
+import hep.crest.data.repositories.TagMetaDirImpl;
 import hep.crest.data.repositories.TagMetaPostgresImpl;
 import hep.crest.data.repositories.TagMetaSQLITEImpl;
+import hep.crest.data.utils.DirectoryUtilities;
+import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -76,4 +80,17 @@ public class AtlasRepositoryConfig {
         }
         return bean;
     }
+
+    /**
+     * @param mapper
+     * @return ITagMetaCrud
+     */
+    @Bean(name = "fsmetarepository")
+    public ITagMetaCrud tagmetadirectoryRepository(@Qualifier("mapper") MapperFacade mapper) {
+        // Initialize directory utilities.
+        final DirectoryUtilities du = new DirectoryUtilities(cprops.getDumpdir());
+        final TagMetaDirImpl mdi = new TagMetaDirImpl(du, mapper);
+        return mdi;
+    }
+
 }

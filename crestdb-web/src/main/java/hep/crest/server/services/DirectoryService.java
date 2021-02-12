@@ -9,13 +9,14 @@ import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.IIovCrud;
 import hep.crest.data.repositories.ITagCrud;
+import hep.crest.data.repositories.ITagMetaCrud;
 import hep.crest.data.repositories.PayloadDirectoryImplementation;
 import hep.crest.data.utils.DirectoryUtilities;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.exceptions.NotExistsPojoException;
 import hep.crest.swagger.model.IovDto;
 import hep.crest.swagger.model.PayloadDto;
-import hep.crest.swagger.model.TagDto;
+import hep.crest.swagger.model.TagMetaDto;
 import ma.glasnost.orika.MapperFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +56,12 @@ public class DirectoryService {
      * Repository.
      */
     @Autowired
+    @Qualifier("fsmetarepository")
+    private ITagMetaCrud fsmetarepository;
+    /**
+     * Repository.
+     */
+    @Autowired
     @Qualifier("fsiovrepository")
     private IIovCrud fsiovrepository;
     /**
@@ -84,6 +91,11 @@ public class DirectoryService {
      */
     @Autowired
     private PayloadService pyldservice;
+    /**
+     * Service.
+     */
+    @Autowired
+    private TagMetaService tagmetaservice;
 
     /**
      * Properties.
@@ -101,22 +113,39 @@ public class DirectoryService {
     /**
      * @param tagname
      *            the String
-     * @return TagDto
+     * @param path
+     * @return Tag
      */
-    public TagDto getTag(String tagname) {
+    public Tag getTag(String tagname, String path) {
+        DirectoryUtilities du = null;
+        if (!"none".equals(path)) {
+            du = new DirectoryUtilities(path);
+        }
+        else {
+            du = new DirectoryUtilities();
+        }
+        fstagrepository.setDirtools(du);
         Tag atag = fstagrepository.findOne(tagname);
-        return mapper.map(atag, TagDto.class);
+        return atag;
     }
 
     /**
-     * @param dto
-     *            the TagDto
-     * @return TagDto or null.
+     * @param entity
+     *            the Tag
+     * @param path
+     * @return Tag or null.
      */
-    public TagDto insertTag(TagDto dto) {
-        Tag t = mapper.map(dto, Tag.class);
-        Tag saved = fstagrepository.save(t);
-        return mapper.map(saved, TagDto.class);
+    public Tag insertTag(Tag entity, String path) {
+        DirectoryUtilities du = null;
+        if (!"none".equals(path)) {
+            du = new DirectoryUtilities(path);
+        }
+        else {
+            du = new DirectoryUtilities();
+        }
+        fstagrepository.setDirtools(du);
+        Tag saved = fstagrepository.save(entity);
+        return saved;
     }
 
     /**
@@ -126,7 +155,7 @@ public class DirectoryService {
      */
     public List<IovDto> listIovs(String tagname) {
         try {
-            List<Iov> iovlist =  fsiovrepository.findByIdTagName(tagname);
+            List<Iov> iovlist = fsiovrepository.findByIdTagName(tagname);
             return edh.entityToDtoList(iovlist, IovDto.class);
         }
         catch (final CdbServiceException e) {
@@ -169,12 +198,15 @@ public class DirectoryService {
         final DirectoryUtilities du = new DirectoryUtilities(outdir);
         try {
             fstagrepository.setDirtools(du);
+            fsmetarepository.setDirtools(du);
             fsiovrepository.setDirtools(du);
             fspayloadrepository.setDirtools(du);
 
             final Tag seltag = tagservice.findOne(tagname);
             final Iterable<Iov> iovlist = iovservice.selectSnapshotByTag(tagname, snapshot);
             fstagrepository.save(seltag);
+            final TagMetaDto mdto = tagmetaservice.findMeta(tagname);
+            fsmetarepository.save(mdto);
             fsiovrepository.saveAll(tagname, iovlist);
             int counter = 0;
             for (final Iov iov : iovlist) {

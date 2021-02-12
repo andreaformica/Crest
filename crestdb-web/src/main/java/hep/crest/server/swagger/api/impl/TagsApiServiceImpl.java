@@ -7,6 +7,7 @@ import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.exceptions.AlreadyExistsPojoException;
 import hep.crest.server.exceptions.NotExistsPojoException;
+import hep.crest.server.services.TagMetaService;
 import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.api.NotFoundException;
 import hep.crest.server.swagger.api.TagsApiService;
@@ -71,6 +72,11 @@ public class TagsApiServiceImpl extends TagsApiService {
      */
     @Autowired
     private TagService tagService;
+    /**
+     * Service.
+     */
+    @Autowired
+    private TagMetaService tagMetaService;
     /**
      * Mapper.
      */
@@ -257,7 +263,7 @@ public class TagsApiServiceImpl extends TagsApiService {
         try {
             final Tag tag = tagService.findOne(name);
             log.debug("Add meta information to tag {}", name);
-            final TagMetaDto saved = tagService.insertTagMeta(body);
+            final TagMetaDto saved = tagMetaService.insertTagMeta(body);
             return Response.created(info.getRequestUri()).entity(saved).build();
         }
         catch (final AlreadyExistsPojoException e) {
@@ -285,7 +291,7 @@ public class TagsApiServiceImpl extends TagsApiService {
     public Response findTagMeta(String name, SecurityContext securityContext, UriInfo info) throws NotFoundException {
         this.log.info("TagRestController processing request to find tag metadata for name " + name);
         try {
-            final TagMetaDto dto = tagService.findMeta(name);
+            final TagMetaDto dto = tagMetaService.findMeta(name);
             if (dto == null) {
                 log.debug("Entity not found for name " + name);
                 return rfh.notFoundPojo("findTagMeta error: cannot find meta for tag " + name);
@@ -312,7 +318,7 @@ public class TagsApiServiceImpl extends TagsApiService {
             throws NotFoundException {
         log.info("TagRestController processing request for updating a tag meta information");
         try {
-            final TagMetaDto dto = tagService.findMeta(name);
+            final TagMetaDto dto = tagMetaService.findMeta(name);
             if (dto == null) {
                 log.debug("Cannot update meta data on null tag meta entity for {}", name);
                 final String message = "TagMeta " + name + " not found...";
@@ -333,7 +339,7 @@ public class TagsApiServiceImpl extends TagsApiService {
                     dto.setTagInfo(body.get(key));
                 }
             }
-            final TagMetaDto saved = tagService.updateTagMeta(dto);
+            final TagMetaDto saved = tagMetaService.updateTagMeta(dto);
             return Response.ok(info.getRequestUri()).entity(saved).build();
         }
         catch (final RuntimeException e) {

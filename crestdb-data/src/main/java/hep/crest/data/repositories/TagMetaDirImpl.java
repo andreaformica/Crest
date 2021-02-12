@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 
-public class TagMetaDirImpl implements TagMetaDataBaseCustom {
+public class TagMetaDirImpl implements ITagMetaCrud {
     /**
      * Logger.
      */

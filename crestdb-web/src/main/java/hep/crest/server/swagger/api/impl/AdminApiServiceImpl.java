@@ -4,6 +4,7 @@ import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.server.exceptions.NotExistsPojoException;
 import hep.crest.server.services.GlobalTagService;
+import hep.crest.server.services.TagMetaService;
 import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.api.AdminApiService;
 import hep.crest.server.swagger.api.NotFoundException;
@@ -47,6 +48,12 @@ public class AdminApiServiceImpl extends AdminApiService {
      */
     @Autowired
     private TagService tagService;
+
+    /**
+     * Service.
+     */
+    @Autowired
+    private TagMetaService tagMetaService;
 
     /**
      * Mapper.
@@ -94,15 +101,14 @@ public class AdminApiServiceImpl extends AdminApiService {
             // Remove the tag with name.
             TagMetaDto metadto;
             try {
-                metadto = tagService.findMeta(name);
+                metadto = tagMetaService.findMeta(name);
                 if (metadto != null) {
-                    tagService.removeTagMeta(name);
+                    tagMetaService.removeTagMeta(name);
                 }
             }
             catch (CdbServiceException e) {
                 log.warn("No meta information available for the tag {}", name);
             }
-
             tagService.removeTag(name);
             return Response.ok().build();
         }
