@@ -187,4 +187,5 @@ public class TagService {
         tagRepository.deleteById(name);
         log.debug("Removed entity: {}", name);
     }
+
 }
