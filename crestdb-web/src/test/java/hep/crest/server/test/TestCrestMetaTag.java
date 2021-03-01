@@ -115,7 +115,5 @@ public class TestCrestMetaTag {
                 .postForEntity("/crestapi/tags/"+dto.getName()+"/meta", metadto, TagMetaDto.class);
         log.info("Received response: {}", response1);
         assertThat(response1.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-
     }
-
 }
