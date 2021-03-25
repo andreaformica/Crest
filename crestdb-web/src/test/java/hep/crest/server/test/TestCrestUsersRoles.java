@@ -4,7 +4,6 @@ import hep.crest.data.security.pojo.CrestRoles;
 import hep.crest.data.security.pojo.CrestUser;
 import hep.crest.data.security.pojo.RoleRepository;
 import hep.crest.data.security.pojo.UserRepository;
-import hep.crest.server.security.UserResource;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -72,18 +71,5 @@ public class TestCrestUsersRoles {
         final CrestRoles grolentity = new CrestRoles("guru_1", "ROLE_GURU");
         log.info("Store request for role: " + grolentity);
         roleRepository.save(grolentity);
-    }
-
-    @Test
-    public void userResourceTest() {
-        UserResource resource = new UserResource();
-        resource.setId("user");
-        resource.setUsername("crest");
-        resource.setPassword("guessit");
-        assertThat(resource.toString().length()).isPositive();
-        assertThat(resource.getId()).isEqualTo("user");
-        assertThat(resource.getUsername()).isEqualTo("crest");
-        assertThat(resource.getPassword()).isEqualTo("guessit");
-        assertThat(resource.hashCode()).isNotZero();
     }
 }

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import hep.crest.data.config.CrestProperties;
 import hep.crest.server.filters.AuthorizationFilter;
 import hep.crest.server.swagger.api.FoldersApi;
+import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -99,4 +100,8 @@ public class ServicesConfig {
         return slr;
     }
 
+    @Bean
+    public KeycloakSpringBootConfigResolver keycloakConfigResolver() {
+        return new KeycloakSpringBootConfigResolver();
+    }
 }
