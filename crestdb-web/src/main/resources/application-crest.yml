@@ -8,9 +8,10 @@ caching:
     runtype_groupsize: 100    # expressed in run numbers
 keycloak:
     realm: svom-fsc
-    auth-server-url: https://admin.svom.eu/keycloak/
+    auth-server-url: ${crest.keycloak.url}
     ssl-required: external
-    resource: FSC_VHFMGR
-    credentials.secret: 0aeb2bea-28cb-4c97-9ae1-c8b17cb0aaf7
+    resource: ${crest.keycloak.resource}
+    credentials.secret: ${crest.keycloak.secret}
     use-resource-role-mappings: true
+    principal-attribute: ${crest.keycloak.principal}
     bearer-only: true

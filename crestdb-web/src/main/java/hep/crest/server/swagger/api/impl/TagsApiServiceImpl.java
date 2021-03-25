@@ -101,8 +101,10 @@ public class TagsApiServiceImpl extends TagsApiService {
             // Create a tag.
             Tag entity = mapper.map(body, Tag.class);
             final Tag saved = tagService.insertTag(entity);
+            log.debug("Created tag {}", saved);
             TagDto dto = mapper.map(saved, TagDto.class);
             // Response is 201.
+            log.debug("Created tag DTO {}", dto);
             return Response.created(info.getRequestUri()).entity(dto).build();
         }
         catch (final AlreadyExistsPojoException e) {

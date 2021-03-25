@@ -9,6 +9,7 @@ buildscript {
 }
 plugins {
     id "org.sonarqube" version "3.0"
+    id "org.openapi.generator" version "5.0.1"
     id 'org.hidetake.swagger.generator' version '2.9.0'
     id 'jacoco'
 }
@@ -38,6 +39,19 @@ dependencies {
 }
 
 // Task to generate sources in build output directory
+openApiGenerate {
+    generatorName = "jaxrs-jersey"
+    inputSpec = "$rootDir/swagger_schemas/swagger/yaml/crestdb_full.yaml".toString()
+    outputDir = "$rootDir/api-generated".toString()
+    templateDir = "$rootDir/swagger_schemas/swagger/templates/java/JavaJaxRs/openApi-5.0.1".toString()
+    apiPackage = "hep.crest.server.swagger.api"
+    modelPackage = "hep.crest.swagger.model"
+    configOptions = [
+            dateLibrary: "java8",
+            hideGenerationTimestamp: "true",
+    ]
+}
+
 convertSwagger2markup {
 	swaggerInput file("swagger_schemas/swagger/json/crestdb_full.json").getAbsolutePath()
 	outputDir file("build/asciidoc")

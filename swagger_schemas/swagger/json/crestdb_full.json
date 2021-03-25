@@ -192,7 +192,7 @@
 				],
 				"summary": "Read a tag from filesystem. If the tag does not exists dump it.",
 				"description": "This method allows to dump a tag on filesystem.",
-				"operationId": "findTag",
+				"operationId": "findFsTag",
 				"consumes": [
 					"application/json"
 				],

@@ -11,6 +11,6 @@ keycloak:
     auth-server-url: https://admin.svom.eu/keycloak/
     ssl-required: external
     resource: FSC_VHFMGR
-    credentials.secret: 0aeb2bea-28cb-4c97-9ae1-c8b17cb0aaf7
+    credentials.secret: some-secret
     use-resource-role-mappings: true
     bearer-only: true
