@@ -63,15 +63,17 @@ public class TagSecurityAspect {
             log.warn("security checks are disabled in this configuration....");
             retVal = pjp.proceed();
         }
-        // Check the authentication.
-        final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String clientid = getUserId(auth);
-        if (entity.getName().startsWith(clientid) || entity.getName().startsWith("TEST")) {
-            retVal = pjp.proceed();
-        }
         else {
-            log.warn("Cannot insert tag {} for clientid {}", entity, clientid);
-            throw new NotAuthorizedException("You cannot write tag " + entity.getName());
+            // Check the authentication.
+            final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String clientid = getUserId(auth);
+            if (entity.getName().startsWith(clientid) || entity.getName().startsWith("TEST")) {
+                retVal = pjp.proceed();
+            }
+            else {
+                log.warn("Cannot insert tag {} for clientid {}", entity, clientid);
+                throw new NotAuthorizedException("You cannot write tag " + entity.getName());
+            }
         }
         return retVal;
     }
