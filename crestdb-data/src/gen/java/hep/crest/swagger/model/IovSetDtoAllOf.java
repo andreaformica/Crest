@@ -16,10 +16,7 @@ package hep.crest.swagger.model;
 import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import hep.crest.swagger.model.CrestBaseResponse;
-import hep.crest.swagger.model.GenericMap;
-import hep.crest.swagger.model.PayloadTagInfoDto;
-import hep.crest.swagger.model.PayloadTagInfoSetDtoAllOf;
+import hep.crest.swagger.model.IovDto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.ArrayList;
@@ -29,24 +26,48 @@ import javax.validation.constraints.*;
 import javax.validation.Valid;
 
 /**
- * An PayloadTagInfoSet containing PayloadTagInfoDto objects.
+ * IovSetDtoAllOf
  */
-@ApiModel(description = "An PayloadTagInfoSet containing PayloadTagInfoDto objects.")
 @JsonPropertyOrder({
-  PayloadTagInfoSetDto.JSON_PROPERTY_RESOURCES
+  IovSetDtoAllOf.JSON_PROPERTY_FORMAT,
+  IovSetDtoAllOf.JSON_PROPERTY_RESOURCES
 })
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
-public class PayloadTagInfoSetDto extends CrestBaseResponse  {
+public class IovSetDtoAllOf   {
+  public static final String JSON_PROPERTY_FORMAT = "format";
+  @JsonProperty(JSON_PROPERTY_FORMAT)
+  private String format = "IovSetDto";
+
   public static final String JSON_PROPERTY_RESOURCES = "resources";
   @JsonProperty(JSON_PROPERTY_RESOURCES)
-  private List<PayloadTagInfoDto> resources = null;
+  private List<IovDto> resources = null;
 
-  public PayloadTagInfoSetDto resources(List<PayloadTagInfoDto> resources) {
+  public IovSetDtoAllOf format(String format) {
+    this.format = format;
+    return this;
+  }
+
+  /**
+   * Get format
+   * @return format
+   **/
+  @JsonProperty("format")
+  @ApiModelProperty(value = "")
+  
+  public String getFormat() {
+    return format;
+  }
+
+  public void setFormat(String format) {
+    this.format = format;
+  }
+
+  public IovSetDtoAllOf resources(List<IovDto> resources) {
     this.resources = resources;
     return this;
   }
 
-  public PayloadTagInfoSetDto addResourcesItem(PayloadTagInfoDto resourcesItem) {
+  public IovSetDtoAllOf addResourcesItem(IovDto resourcesItem) {
     if (this.resources == null) {
       this.resources = new ArrayList<>();
     }
@@ -61,11 +82,11 @@ public class PayloadTagInfoSetDto extends CrestBaseResponse  {
   @JsonProperty("resources")
   @ApiModelProperty(value = "")
   @Valid 
-  public List<PayloadTagInfoDto> getResources() {
+  public List<IovDto> getResources() {
     return resources;
   }
 
-  public void setResources(List<PayloadTagInfoDto> resources) {
+  public void setResources(List<IovDto> resources) {
     this.resources = resources;
   }
 
@@ -78,22 +99,23 @@ public class PayloadTagInfoSetDto extends CrestBaseResponse  {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    PayloadTagInfoSetDto payloadTagInfoSetDto = (PayloadTagInfoSetDto) o;
-    return Objects.equals(this.resources, payloadTagInfoSetDto.resources) &&
-        super.equals(o);
+    IovSetDtoAllOf iovSetDtoAllOf = (IovSetDtoAllOf) o;
+    return Objects.equals(this.format, iovSetDtoAllOf.format) &&
+        Objects.equals(this.resources, iovSetDtoAllOf.resources);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(resources, super.hashCode());
+    return Objects.hash(format, resources);
   }
 
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class PayloadTagInfoSetDto {\n");
-    sb.append("    ").append(toIndentedString(super.toString())).append("\n");
+    sb.append("class IovSetDtoAllOf {\n");
+    
+    sb.append("    format: ").append(toIndentedString(format)).append("\n");
     sb.append("    resources: ").append(toIndentedString(resources)).append("\n");
     sb.append("}");
     return sb.toString();

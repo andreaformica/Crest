@@ -38,6 +38,8 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -267,8 +269,9 @@ public class IovGroupsImpl implements IovGroupsCustom {
         return jdbcTemplate.query(sql,
                 new Object[] {name, name, since, snapshot, until, snapshot}, (rs, num) -> {
                     final IovPayloadDto entity = new IovPayloadDto();
+                    Instant inst = Instant.ofEpochMilli(rs.getTimestamp("INSERTION_TIME").getTime());
                     entity.setSince(rs.getBigDecimal("SINCE"));
-                    entity.setInsertionTime(rs.getTimestamp("INSERTION_TIME"));
+                    entity.setInsertionTime(inst.atOffset(ZoneOffset.UTC));
                     entity.setPayloadHash(rs.getString("PAYLOAD_HASH"));
                     entity.setVersion(rs.getString("VERSION"));
                     entity.setObjectType(rs.getString("OBJECT_TYPE"));

@@ -16,67 +16,53 @@ package hep.crest.swagger.model;
 import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import hep.crest.swagger.model.RunLumiInfoDto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.util.ArrayList;
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import javax.validation.constraints.*;
 import javax.validation.Valid;
 
 /**
- * TagSummaryDto
+ * RunLumiSetDtoAllOf
  */
 @JsonPropertyOrder({
-  TagSummaryDto.JSON_PROPERTY_TAGNAME,
-  TagSummaryDto.JSON_PROPERTY_NIOVS
+  RunLumiSetDtoAllOf.JSON_PROPERTY_RESOURCES
 })
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
-public class TagSummaryDto   {
-  public static final String JSON_PROPERTY_TAGNAME = "tagname";
-  @JsonProperty(JSON_PROPERTY_TAGNAME)
-  private String tagname;
+public class RunLumiSetDtoAllOf   {
+  public static final String JSON_PROPERTY_RESOURCES = "resources";
+  @JsonProperty(JSON_PROPERTY_RESOURCES)
+  private List<RunLumiInfoDto> resources = null;
 
-  public static final String JSON_PROPERTY_NIOVS = "niovs";
-  @JsonProperty(JSON_PROPERTY_NIOVS)
-  private Long niovs;
+  public RunLumiSetDtoAllOf resources(List<RunLumiInfoDto> resources) {
+    this.resources = resources;
+    return this;
+  }
 
-  public TagSummaryDto tagname(String tagname) {
-    this.tagname = tagname;
+  public RunLumiSetDtoAllOf addResourcesItem(RunLumiInfoDto resourcesItem) {
+    if (this.resources == null) {
+      this.resources = new ArrayList<>();
+    }
+    this.resources.add(resourcesItem);
     return this;
   }
 
   /**
-   * Get tagname
-   * @return tagname
+   * Get resources
+   * @return resources
    **/
-  @JsonProperty("tagname")
+  @JsonProperty("resources")
   @ApiModelProperty(value = "")
-  
-  public String getTagname() {
-    return tagname;
+  @Valid 
+  public List<RunLumiInfoDto> getResources() {
+    return resources;
   }
 
-  public void setTagname(String tagname) {
-    this.tagname = tagname;
-  }
-
-  public TagSummaryDto niovs(Long niovs) {
-    this.niovs = niovs;
-    return this;
-  }
-
-  /**
-   * Get niovs
-   * @return niovs
-   **/
-  @JsonProperty("niovs")
-  @ApiModelProperty(value = "")
-  
-  public Long getNiovs() {
-    return niovs;
-  }
-
-  public void setNiovs(Long niovs) {
-    this.niovs = niovs;
+  public void setResources(List<RunLumiInfoDto> resources) {
+    this.resources = resources;
   }
 
 
@@ -88,24 +74,22 @@ public class TagSummaryDto   {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    TagSummaryDto tagSummaryDto = (TagSummaryDto) o;
-    return Objects.equals(this.tagname, tagSummaryDto.tagname) &&
-        Objects.equals(this.niovs, tagSummaryDto.niovs);
+    RunLumiSetDtoAllOf runLumiSetDtoAllOf = (RunLumiSetDtoAllOf) o;
+    return Objects.equals(this.resources, runLumiSetDtoAllOf.resources);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(tagname, niovs);
+    return Objects.hash(resources);
   }
 
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class TagSummaryDto {\n");
+    sb.append("class RunLumiSetDtoAllOf {\n");
     
-    sb.append("    tagname: ").append(toIndentedString(tagname)).append("\n");
-    sb.append("    niovs: ").append(toIndentedString(niovs)).append("\n");
+    sb.append("    resources: ").append(toIndentedString(resources)).append("\n");
     sb.append("}");
     return sb.toString();
   }

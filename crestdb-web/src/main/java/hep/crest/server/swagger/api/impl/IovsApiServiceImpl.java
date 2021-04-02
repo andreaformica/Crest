@@ -188,6 +188,7 @@ public class IovsApiServiceImpl extends IovsApiService {
 
             // Loop over resources uploaded.
             for (final IovDto iovDto : iovlist) {
+                log.debug("Create iov from dto {}", iovDto);
                 // Verify if tagname should be taken inside the iovdto.
                 if (!"unknown".equals(tagName)
                     && (iovDto.getTagName() == null || !iovDto.getTagName().equals(tagName))) {
@@ -200,6 +201,7 @@ public class IovsApiServiceImpl extends IovsApiService {
                             msg);
                     return Response.status(Response.Status.NOT_ACCEPTABLE).entity(resp).build();
                 }
+                log.debug("Iov tag is {}", iovDto.getTagName());
                 // Create new iov.
                 Iov entity = mapper.map(iovDto, Iov.class);
                 entity.setTag(new Tag(iovDto.getTagName()));

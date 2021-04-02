@@ -51,7 +51,6 @@ public class DataGenerator {
     
     public static GlobalTagDto generateGlobalTagDto(String name) {
         final Instant now = Instant.now();
-        final Date snapshotTime = new Date(now.toEpochMilli());
         final GlobalTagDto entity = new GlobalTagDto();
         entity.name(name);
         entity.description("A test global tag "+name);
@@ -60,7 +59,7 @@ public class DataGenerator {
         entity.type("T");
         entity.workflow("none");
         entity.validity(new BigDecimal(0L));
-        entity.snapshotTime(snapshotTime);
+        entity.snapshotTime(now.atOffset(ZoneOffset.UTC));
         return entity;
     }
 
@@ -147,8 +146,10 @@ public class DataGenerator {
     public static RunInfoDto generateRunInfoDto(Date start, Date end, BigDecimal run) {
         final RunInfoDto dto = new RunInfoDto();
         dto.setRunNumber(run);
-        dto.setEndTime(end);
-        dto.setStartTime(start);
+        Instant ist = start.toInstant();
+        Instant ien = start.toInstant();
+        dto.setEndTime(ien.atOffset(ZoneOffset.UTC));
+        dto.setStartTime(ist.atOffset(ZoneOffset.UTC));
         return dto;
     }
 

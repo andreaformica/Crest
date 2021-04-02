@@ -110,7 +110,7 @@ public class FsApiServiceImpl extends FsApiService {
     }
 
     @Override
-    public Response findTag(@NotNull String tagname, @NotNull String reqid, SecurityContext securityContext,
+    public Response findFsTag(@NotNull String tagname, @NotNull String reqid, SecurityContext securityContext,
                             UriInfo info)
             throws NotFoundException {
         log.info("FileSystemRestController processing request for request id {} and tag {} ", reqid, tagname);

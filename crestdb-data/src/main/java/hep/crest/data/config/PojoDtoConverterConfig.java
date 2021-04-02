@@ -4,6 +4,9 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
+import hep.crest.data.config.converters.DateToOffDateTimeConverter;
+import hep.crest.data.config.converters.TimestampToOffDateTimeConverter;
+import ma.glasnost.orika.converter.ConverterFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +52,9 @@ public class PojoDtoConverterConfig {
     @Bean(name = "mapperFactory")
     public MapperFactory createOrikaMapperFactory() {
         final MapperFactory mapperFactory = new DefaultMapperFactory.Builder().build();
+        ConverterFactory converterFactory = mapperFactory.getConverterFactory();
+        converterFactory.registerConverter(new DateToOffDateTimeConverter());
+        converterFactory.registerConverter(new TimestampToOffDateTimeConverter());
         this.initGlobalTagMap(mapperFactory);
         this.initGlobalTagMapsMap(mapperFactory);
         this.initTagMap(mapperFactory);

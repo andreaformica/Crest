@@ -184,7 +184,8 @@ public class IovDirImpl implements IIovCrud {
                     iovdtoList.stream().filter(s -> s.getTagName().equalsIgnoreCase(name))
                             .filter(s -> s.getSince().compareTo(since) >= 0)
                             .filter(s -> s.getSince().compareTo(until) <= 0)
-                            .filter(s -> s.getInsertionTime().before(snapshot)).collect(Collectors.toList());
+                            .filter(s -> Date.from(s.getInsertionTime().toInstant())
+                                    .before(snapshot)).collect(Collectors.toList());
             final List<Iov> entitylist = StreamSupport.stream(selectedList.spliterator(), false)
                     .map(s -> mapper.map(s, Iov.class))
                     .collect(Collectors.toList());

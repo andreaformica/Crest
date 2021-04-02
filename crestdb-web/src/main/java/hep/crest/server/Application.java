@@ -2,27 +2,23 @@ package hep.crest.server;
 
 import io.undertow.servlet.api.SecurityConstraint;
 import io.undertow.servlet.api.WebResourceCollection;
+import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.embedded.undertow.UndertowDeploymentInfoCustomizer;
 import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpMethod;
-import org.springframework.web.context.ContextLoaderListener;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import java.util.Arrays;
 
 /**
@@ -33,7 +29,7 @@ import java.util.Arrays;
 @EnableJpaRepositories("hep.crest.data")
 @EntityScan("hep.crest.data")
 @ComponentScan("hep.crest")
-public class Application extends SpringBootServletInitializer {
+public class Application {
 
     /**
      * Logger.
@@ -59,6 +55,19 @@ public class Application extends SpringBootServletInitializer {
 
         };
     }
+
+//    @Override
+//    public void onStartup(ServletContext servletContext)
+//            throws ServletException {
+//
+//        AnnotationConfigWebApplicationContext context
+//                = new AnnotationConfigWebApplicationContext();
+//
+//        servletContext.addListener(new ContextLoaderListener(context));
+//        servletContext.setInitParameter(
+//                "contextConfigLocation", "hep.crest.server");
+//    }
+
 
     /**
      * Customizer for Web server (undertow).
@@ -101,16 +110,13 @@ public class Application extends SpringBootServletInitializer {
         }
     }
 
-    @Override
-    public void onStartup(ServletContext servletContext)
-            throws ServletException {
-
-        AnnotationConfigWebApplicationContext context
-                = new AnnotationConfigWebApplicationContext();
-
-        servletContext.addListener(new ContextLoaderListener(context));
-        servletContext.setInitParameter(
-                "contextConfigLocation", "hep.crest.server");
+    /**
+     * Resolve configuration.
+     * @return KeycloakSpringBootConfigResolver
+     */
+    @Bean
+    public KeycloakSpringBootConfigResolver keycloakConfigResolver() {
+        return new KeycloakSpringBootConfigResolver();
     }
 
     /**
@@ -119,6 +125,6 @@ public class Application extends SpringBootServletInitializer {
      * @return
      */
     public static void main(String[] args) {
-        new Application().configure(new SpringApplicationBuilder(Application.class)).run(args);
+        SpringApplication.run(Application.class, args);
     }
 }
