@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Date;
 
 import hep.crest.data.pojo.GlobalTag;
@@ -132,7 +133,8 @@ public class DataGenerator {
         final PayloadDto dto = new PayloadDto();
         final byte[] bindata = payloaddata.getBytes();
         final byte[] binstinfo = stinfo.getBytes();
-        dto.insertionTime(it).data(bindata).hash(hash).objectType(objtype)
+        Instant inst = Instant.ofEpochMilli(it.getTime());
+        dto.insertionTime(inst.atOffset(ZoneOffset.UTC)).data(bindata).hash(hash).objectType(objtype)
                 .streamerInfo(binstinfo).version("v1");
         dto.size(bindata.length);
         return dto;

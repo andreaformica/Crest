@@ -220,7 +220,7 @@ public class TestCrestIov {
         // a 500, because of the constraint violation.
         final ResponseEntity<String> iovresp3 = this.testRestTemplate
                 .postForEntity("/crestapi/iovs/storebatch", setdto, String.class);
-        log.info("Received response: " + iovresp3);
+        log.info("Received response 3: " + iovresp3);
         assertThat(iovresp3.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
 
         // Check without tagname in iovs
@@ -238,7 +238,7 @@ public class TestCrestIov {
 
         final ResponseEntity<String> iovresp4 = this.testRestTemplate
                 .postForEntity("/crestapi/iovs/storebatch", setdto3, String.class);
-        log.info("Received response: " + iovresp4);
+        log.info("Received response 4: " + iovresp4);
         assertThat(iovresp4.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
         // Check without tagname at all
@@ -254,8 +254,8 @@ public class TestCrestIov {
 
         final ResponseEntity<String> iovresp5 = this.testRestTemplate
                 .postForEntity("/crestapi/iovs/storebatch", setdto4, String.class);
-        log.info("Received response: " + iovresp5);
-        assertThat(iovresp5.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        log.info("Received response 5: " + iovresp5);
+        assertThat(iovresp5.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 
     }
 
@@ -311,7 +311,7 @@ public class TestCrestIov {
     public void testB_findiovApi() throws Exception {
 
         final Long now = Instant.now().toEpochMilli();
-
+        log.info("Test methods to find iovs in different ways");
         sendrequest("/crestapi/iovs?by=tagname:SB-TAG-IOV-01,insertiontime>0", HttpMethod.GET, null, new IovSetDto());
         sendrequest("/crestapi/iovs/getSize?tagname=SB-TAG-IOV-01&snapshot=0", HttpMethod.GET, null,
                 new CrestBaseResponse());
@@ -378,6 +378,7 @@ public class TestCrestIov {
      */
     protected void sendrequest(String url, HttpMethod method, HttpEntity entity, CrestBaseResponse ok)
             throws JsonProcessingException {
+        log.debug("Use request url {}", url);
         final ResponseEntity<String> resp = this.testRestTemplate
                 .exchange(url, method, entity, String.class);
         {

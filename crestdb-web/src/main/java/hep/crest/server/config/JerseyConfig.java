@@ -15,6 +15,7 @@ import io.swagger.jaxrs.config.BeanConfig;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletProperties;
+import org.springframework.stereotype.Component;
 
 /**
  * Jersey configuration.
@@ -23,6 +24,7 @@ import org.glassfish.jersey.servlet.ServletProperties;
  * @author formica
  *
  */
+@Component
 public class JerseyConfig extends ResourceConfig {
 
     /**
@@ -52,7 +54,7 @@ public class JerseyConfig extends ResourceConfig {
      */
     public void init() {
         // Register components where DI is needed
-        this.configureSwagger();
+        // this.configureSwagger();
     }
 
     /**

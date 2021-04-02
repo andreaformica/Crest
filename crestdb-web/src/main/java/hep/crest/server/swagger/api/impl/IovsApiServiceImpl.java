@@ -367,6 +367,7 @@ public class IovsApiServiceImpl extends IovsApiService {
             throws NotFoundException {
         log.info("IovRestController processing request for iovs groups using tag name {}", tagname);
         try {
+
             // Search for tag in order to load the time type:
             final Tag tagentity = tagService.findOne(tagname);
 
@@ -446,7 +447,8 @@ public class IovsApiServiceImpl extends IovsApiService {
     @Override
     public Response selectIovs(String xCrestQuery, String tagname, String since, String until,
                                Long snapshot, SecurityContext securityContext, UriInfo info, Request request,
-                               HttpHeaders headers) throws NotFoundException {
+                               HttpHeaders headers)
+            throws NotFoundException {
         log.info(
                 "IovRestController processing request for iovs using tag name {} and range {} - {} ",
                 tagname, since, until);

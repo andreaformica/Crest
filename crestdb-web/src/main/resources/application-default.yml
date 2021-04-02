@@ -10,12 +10,16 @@ server:
     servlet.path: /    
     connection-timeout: 60s
 spring:
+    config:
+      use-legacy-processing: true
     profiles:
       include: crest
     security:
       strategy: MODE_INHERITABLETHREADLOCAL
     jersey:
       application-path: ${crest.api.name}
+      servlet:
+        load-on-startup: 1
     datasource:
       jdbc-url: jdbc:h2:${crest.dbfile};DB_CLOSE_ON_EXIT=FALSE
       driverClassName: org.h2.Driver

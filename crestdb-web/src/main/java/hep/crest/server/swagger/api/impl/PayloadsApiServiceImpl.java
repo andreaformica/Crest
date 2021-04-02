@@ -1,5 +1,6 @@
 package hep.crest.server.swagger.api.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.data.config.CrestProperties;
 import hep.crest.data.exceptions.CdbServiceException;
@@ -158,19 +159,19 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      * javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response createPayloadMultiForm(InputStream fileInputStream,
-                                           FormDataContentDisposition fileDetail, FormDataBodyPart payload,
+    public Response createPayloadMultiForm(FormDataBodyPart fileBodypart, String payload,
                                            SecurityContext securityContext, UriInfo info) throws NotFoundException {
         this.log.info("PayloadRestController processing request to upload payload from stream");
         // PayloadDto payload = new PayloadDto();
         PayloadDto payloaddto = null;
         try {
             // Assume the FormDataBodyPart is a JSON string.
-            payload.setMediaType(MediaType.APPLICATION_JSON_TYPE);
             // Get the DTO.
-            payloaddto = payload.getValueAs(PayloadDto.class);
+            payloaddto = jacksonMapper.readValue(payload, PayloadDto.class);
             log.debug("Received body json " + payloaddto);
             // Create the payload taking binary content from the input stream.
+            FormDataContentDisposition fileDetail = fileBodypart.getFormDataContentDisposition();
+            InputStream fileInputStream = fileBodypart.getValueAs(InputStream.class);
             final PayloadDto saved = payloadService.insertPayloadAndInputStream(payloaddto,
                     fileInputStream);
             return Response.created(info.getRequestUri()).entity(saved).build();
@@ -180,7 +181,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             final String msg = "Hash duplication error for payload resource " + payloaddto.toString();
             return rfh.alreadyExistsPojo("Payload hash exists: " + msg);
         }
-        catch (final CdbServiceException | NullPointerException e) {
+        catch (final CdbServiceException | NullPointerException | JsonProcessingException e) {
             // Exception, send 500.
             final String msg = "Error creating payload resource : " + e.getCause();
             return rfh.internalError("createPayloadMultiForm error: " + msg);
@@ -298,8 +299,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      * java.lang.String, java.math.BigDecimal, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response storePayloadWithIovMultiForm(InputStream fileInputStream,
-                                                 FormDataContentDisposition fileDetail, String tag, BigDecimal since,
+    public Response storePayloadWithIovMultiForm(FormDataBodyPart fileBodypart , String tag, BigDecimal since,
                                                  String format,
                                                  String objectType, String version, BigDecimal endtime,
                                                  String streamerInfo,
@@ -310,6 +310,9 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 + "format {}",
                 tag, since, format);
         try {
+            FormDataContentDisposition fileDetail = fileBodypart.getFormDataContentDisposition();
+            InputStream fileInputStream = fileBodypart.getValueAs(InputStream.class);
+
             // Store payload with multi form
             if (fileDetail == null) {
                 throw new IOException("Cannot upload payload: form is missing the file field");
@@ -402,21 +405,18 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      * javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response uploadPayloadBatchWithIovMultiForm(List<FormDataBodyPart> filesbodyparts,
-                                                       FormDataContentDisposition filesDetail, String tag,
-                                                       FormDataBodyPart iovsetupload,
+    public Response uploadPayloadBatchWithIovMultiForm(List<FormDataBodyPart> filesBodypart , String tag,
+                                                       String iovsetupload,
                                                        String xCrestPayloadFormat, String objectType, String version,
                                                        BigDecimal endtime, String streamerInfo,
                                                        SecurityContext securityContext,
                                                        UriInfo info) throws NotFoundException {
         this.log.info(
-                "PayloadRestController processing request to upload payload batch in tag {} with multi-iov {} and "
-                + "body {}",
-                tag, filesbodyparts.size(), iovsetupload.getValue());
-        iovsetupload.setMediaType(MediaType.APPLICATION_JSON_TYPE);
+                "PayloadRestController processing request to upload payload batch in tag {} with multi-iov ",
+                tag);
         try {
             // Read input FormData as an IovSet object.
-            final IovSetDto dto = iovsetupload.getValueAs(IovSetDto.class);
+            final IovSetDto dto = jacksonMapper.readValue(iovsetupload,IovSetDto.class);
             log.info("Batch insertion of {} iovs using file formatted in {}", dto.getSize(),
                     dto.getFormat());
             // Add object type.
@@ -431,8 +431,9 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             if (xCrestPayloadFormat == null) {
                 xCrestPayloadFormat = "FILE";
             }
+
             // Check that number of files is not too much.
-            if (filesbodyparts.size() > MAX_FILE_UPLOAD) {
+            if (filesBodypart.size() > MAX_FILE_UPLOAD) {
                 final String msg = "Too many files attached to the request...> MAX_FILE_UPLOAD = "
                                    + MAX_FILE_UPLOAD;
                 throw new IOException(msg);
@@ -440,7 +441,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             // Only the payload format FILE is allowed here.
             // This was created to eventually merge with other methods later on.
             if (xCrestPayloadFormat.equals("FILE")) {
-                final IovSetDto outdto = storeIovs(dto, tag, objectType, version, streamerInfo, filesbodyparts);
+                final IovSetDto outdto = storeIovs(dto, tag, objectType, version, streamerInfo, filesBodypart);
                 return Response.created(info.getRequestUri()).entity(outdto).build();
             }
             else {
@@ -476,7 +477,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      * javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response storePayloadBatchWithIovMultiForm(String tag, FormDataBodyPart iovsetupload,
+    public Response storePayloadBatchWithIovMultiForm(String tag, String iovsetupload,
                                                       String xCrestPayloadFormat, String objectType, String version,
                                                       BigDecimal endtime, String streamerInfo,
                                                       SecurityContext securityContext,
@@ -484,10 +485,10 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         this.log.info(
                 "PayloadRestController processing request to store payload batch in tag {} with multi-iov",
                 tag);
-        iovsetupload.setMediaType(MediaType.APPLICATION_JSON_TYPE);
         try {
             // Read the FormData as a IovSet object.
-            final IovSetDto dto = iovsetupload.getValueAs(IovSetDto.class);
+            final IovSetDto dto = jacksonMapper.readValue(iovsetupload,IovSetDto.class);
+
             log.info("Batch insertion of {} iovs using file formatted in {}", dto.getSize(),
                     dto.getFormat());
             // Add object type.

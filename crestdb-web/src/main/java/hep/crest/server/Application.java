@@ -18,7 +18,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpMethod;
+import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 import java.util.Arrays;
 
 /**
@@ -95,6 +99,18 @@ public class Application extends SpringBootServletInitializer {
             constraint.addWebResourceCollection(traceWebresource);
             deploymentInfo.addSecurityConstraint(constraint);
         }
+    }
+
+    @Override
+    public void onStartup(ServletContext servletContext)
+            throws ServletException {
+
+        AnnotationConfigWebApplicationContext context
+                = new AnnotationConfigWebApplicationContext();
+
+        servletContext.addListener(new ContextLoaderListener(context));
+        servletContext.setInitParameter(
+                "contextConfigLocation", "hep.crest.server");
     }
 
     /**

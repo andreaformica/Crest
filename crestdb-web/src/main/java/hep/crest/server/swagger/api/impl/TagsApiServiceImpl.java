@@ -28,6 +28,7 @@ import javax.ws.rs.core.UriInfo;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
@@ -128,7 +129,7 @@ public class TagsApiServiceImpl extends TagsApiService {
      * javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response updateTag(String name, GenericMap body, SecurityContext securityContext,
+    public Response updateTag(String name, Map<String, String> body, SecurityContext securityContext,
                               UriInfo info) throws NotFoundException {
         log.info("TagRestController processing request for updating a tag");
         try {

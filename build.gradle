@@ -9,7 +9,7 @@ buildscript {
 }
 plugins {
     id "org.sonarqube" version "3.0"
-    id "org.openapi.generator" version "5.0.1"
+    id "org.openapi.generator" version "5.1.0"
     id 'org.hidetake.swagger.generator' version '2.9.0'
     id 'jacoco'
 }
@@ -43,7 +43,7 @@ openApiGenerate {
     generatorName = "jaxrs-jersey"
     inputSpec = "$rootDir/swagger_schemas/swagger/yaml/crestdb_full.yaml".toString()
     outputDir = "$rootDir/api-generated".toString()
-    templateDir = "$rootDir/swagger_schemas/swagger/templates/java/JavaJaxRs/openApi-5.0.1".toString()
+    templateDir = "$rootDir/swagger_schemas/swagger/templates/java/JavaJaxRs/openApi-5.1.0".toString()
     apiPackage = "hep.crest.server.swagger.api"
     modelPackage = "hep.crest.swagger.model"
     configOptions = [
@@ -84,6 +84,9 @@ configurations.compile.each {
 }
 
 allprojects {
+    sourceCompatibility = 11
+    targetCompatibility = 11
+
     apply plugin: 'maven'
     apply plugin: 'jacoco'
     apply plugin: 'java'
@@ -173,6 +176,7 @@ subprojects {
         implementation "com.fasterxml.jackson.core:jackson-annotations:$jackson_version"
         implementation "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
         implementation "com.fasterxml.jackson.datatype:jackson-datatype-joda:$jackson_version"
+        implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson_version"
 
         // DATABASES
         //implementation group: 'com.oracle', name: 'ojdbc7', version:'12.1.0.2'

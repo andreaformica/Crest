@@ -1,6 +1,8 @@
 package hep.crest.data.config;
 
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,12 +112,13 @@ public class PojoDtoConverterConfig {
                     @Override
                     public void mapAtoB(Payload a, PayloadDto b, MappingContext context) {
                         try {
+                            Instant it = Instant.ofEpochMilli(a.getInsertionTime().getTime());
                             b.hash(a.getHash()).version(a.getVersion())
                                     .objectType(a.getObjectType())
                                     .data(a.getData().getBytes(1, (int) a.getData().length()))
                                     .streamerInfo(a.getStreamerInfo().getBytes(1,
                                             (int) a.getStreamerInfo().length()))
-                                    .size(a.getSize()).insertionTime(a.getInsertionTime());
+                                    .size(a.getSize()).insertionTime(it.atOffset(ZoneOffset.UTC));
                         }
                         catch (final SQLException e) {
                             log.error("SQL exception in mapping pojo and dto for payload...: {}",

@@ -1,22 +1,26 @@
 package hep.crest.server.config;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import hep.crest.data.config.CrestProperties;
-import hep.crest.server.filters.AuthorizationFilter;
-import hep.crest.server.swagger.api.FoldersApi;
-import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
+import hep.crest.data.serializers.CustomTimeDeserializer;
+import hep.crest.data.serializers.CustomTimeSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.Locale;
 
 /**
@@ -38,54 +42,26 @@ public class ServicesConfig {
     @Autowired
     private CrestProperties cprops;
 
-    /**
-     * Activate configuration only on some profiles. This will add API classes like
-     * RunInfo and Monitoring.
-     *
-     * @return JerseyConfig
-     */
-    @Profile({ "ssl", "cmsprep", "oracle", "test" })
-    @Bean(name = "jerseyConfig")
-    public JerseyConfig getJerseyResource() {
-        final JerseyConfig jc = new JerseyConfig();
-        // Register APIs for monitoring.
-        jc.jerseyregister(FoldersApi.class);
-        if (!"none".equals(cprops.getSecurity())) {
-            // Register authorization filter.
-            jc.jerseyregister(AuthorizationFilter.class);
-        }
-        jc.init();
-        return jc;
-    }
 
-    /**
-     * Activate configuration for test or local profiles. Used also for SVOM.
-     *
-     * @return JerseyConfig
-     */
-    @Profile({ "default", "sqlite", "postgres", "mysql", "pgsvom" })
-    @Bean(name = "jerseyConfig")
-    public JerseyConfig getJerseyDefaultResource() {
-        final JerseyConfig jc = new JerseyConfig();
-        if (!"none".equals(cprops.getSecurity())) {
-            // Register authorization filter.
-            jc.jerseyregister(AuthorizationFilter.class);
-        }
-        jc.init();
-        return jc;
-    }
-
-    /**
-     * The jackson mapper.
-     *
-     * @return ObjectMapper
-     */
     @Bean(name = "jacksonMapper")
     public ObjectMapper getJacksonMapper() {
-        final ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-        // Disable the serialization features for DATEs.
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                // date/time
+                .appendPattern("yyyy-MM-dd HH:mm:ss")
+                // optional fraction of seconds (from 0 to 9 digits)
+                .optionalStart().appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true).optionalEnd()
+                // offset
+                .appendPattern("xxx")
+                // create formatter
+                .toFormatter();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false);
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.setDateFormat(new StdDateFormat());
+        JavaTimeModule module = new JavaTimeModule();
+        module.addSerializer(OffsetDateTime.class, new CustomTimeSerializer(formatter));
+        module.addDeserializer(OffsetDateTime.class, new CustomTimeDeserializer(formatter));
+        mapper.registerModule(module);
         return mapper;
     }
     
@@ -100,8 +76,8 @@ public class ServicesConfig {
         return slr;
     }
 
-    @Bean
-    public KeycloakSpringBootConfigResolver keycloakConfigResolver() {
-        return new KeycloakSpringBootConfigResolver();
-    }
+//    @Bean
+//    public KeycloakSpringBootConfigResolver keycloakConfigResolver() {
+//        return new KeycloakSpringBootConfigResolver();
+//    }
 }

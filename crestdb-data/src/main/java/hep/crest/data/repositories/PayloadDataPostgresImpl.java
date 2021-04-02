@@ -33,7 +33,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Calendar;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 /**
  * An implementation for requests using Postgres database.
@@ -124,9 +125,9 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
      * @throws CdbServiceException If an Exception occurred
      */
     protected void execute(InputStream is, InputStream sis, String sql, PayloadDto entity) {
-        final Calendar calendar = Calendar.getInstance();
-        final java.sql.Date inserttime = new java.sql.Date(calendar.getTime().getTime());
-        entity.setInsertionTime(calendar.getTime());
+        Instant now = Instant.now();
+        final java.sql.Date inserttime = new java.sql.Date(now.toEpochMilli());
+        entity.setInsertionTime(now.atOffset(ZoneOffset.UTC));
 
         try (Connection conn = super.getDs().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);) {
