@@ -33,6 +33,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
@@ -185,7 +187,9 @@ public class IovsApiServiceImpl extends IovsApiService {
             // Prepare the iov list to insert and a list representing iovs really inserted.
             final List<IovDto> iovlist = dto.getResources();
             final List<IovDto> savedList = new ArrayList<>();
-
+            if (iovlist == null) {
+                throw new BadRequestException("Cannot store null list of iovs");
+            }
             // Loop over resources uploaded.
             for (final IovDto iovDto : iovlist) {
                 log.debug("Create iov from dto {}", iovDto);
@@ -220,6 +224,11 @@ public class IovsApiServiceImpl extends IovsApiService {
             // Exception. Send a 404.
             log.error("Api method storeBatchIovMultiForm tag not found {}", tagName);
             return rfh.notFoundPojo("Tag not found: " + tagName);
+        }
+        catch (final ClientErrorException e) {
+            // Exception. Send a 406.
+            log.error("Api method storeBatchIovMultiForm bad request for {}", tagName);
+            return rfh.badRequest(e.getMessage());
         }
         catch (final RuntimeException e) {
             // Exception. Send a 500.
