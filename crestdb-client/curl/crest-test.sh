@@ -40,8 +40,11 @@ EOF
 
 function get_data() {
   echo "Execute $1 : get data of type $2 from server using search $3"
-
-  resp=`curl -X GET -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$2?by=$3"`
+  if [ ${token} == "" ]; then
+     resp=`curl -X GET -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$2?by=$3"`
+  else
+     resp=`curl -X GET -H "Authorization: Bearer ${token}" -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$2?by=$3"`
+  fi  
   echo "Received response "
   echo $resp | json_pp
 }

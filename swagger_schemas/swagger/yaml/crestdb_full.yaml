@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: '2.0'
+  version: 'cms-v0'
   title: CrestDB REST API
   description: Crest Rest Api to manage conditions data.
   contact:
