@@ -7,6 +7,8 @@ server:
   servlet.path: /
   connection-timeout: 60s
 spring:
+  config:
+    use-legacy-processing: true
   profiles:
       include: crest
   security:

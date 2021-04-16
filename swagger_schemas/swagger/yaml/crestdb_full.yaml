@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: 'cms-v0'
+  version: '2.0'
   title: CrestDB REST API
   description: Crest Rest Api to manage conditions data.
   contact:
@@ -233,10 +233,10 @@ paths:
       parameters:
         - in: body
           name: body
-          description: 'A json string that is used to construct one or more runinfodto object: { run: xxx, ... }'
+          description: 'A json string that is used to construct a list of runlumiinfodto object: { run: xxx, ... }'
           required: true
           schema:
-            $ref: '#/definitions/RunInfoSetDto'
+            $ref: '#/definitions/RunLumiSetDto'
       responses:
         '200':
           description: successful operation
@@ -274,15 +274,15 @@ paths:
           format: int32
         - name: sort
           in: query
-          description: 'sort: the sort pattern {runNumber:ASC}'
+          description: 'sort: the sort pattern {since:ASC}'
           required: false
           type: string
-          default: 'runNumber:ASC'
+          default: 'since:ASC'
       responses:
         '200':
           description: successful operation
           schema:
-            $ref: '#/definitions/RunInfoSetDto'
+            $ref: '#/definitions/RunLumiSetDto'
   /runinfo/select:
     get:
       tags:
@@ -296,13 +296,13 @@ paths:
       parameters:
         - name: from
           in: query
-          description: 'from: the starting time or run'
+          description: 'from: the starting time or run-lumi'
           required: false
           type: string
           default: none
         - name: to
           in: query
-          description: 'to: the ending time or run'
+          description: 'to: the ending time or run-lumi'
           required: false
           type: string
           default: none
@@ -322,7 +322,7 @@ paths:
         '200':
           description: successful operation
           schema:
-            $ref: '#/definitions/RunInfoSetDto'
+            $ref: '#/definitions/RunLumiSetDto'
   /globaltagmaps:
     post:
       tags:
@@ -518,13 +518,13 @@ paths:
           description: 'record:  the record string {}'
           required: false
           type: string
-          default: 'none'
+          default: none
         - name: label
           in: query
           description: 'label:  the label string {}'
           required: false
           type: string
-          default: 'none'
+          default: none
       responses:
         '200':
           description: successful operation
@@ -545,7 +545,7 @@ paths:
           description: 'you need a mandatory tagname:xxxx. Additional field can be since or insertionTime rules.'
           required: true
           type: string
-          default: 'none'
+          default: none
         - name: page
           in: query
           description: 'page: the page number {0}'
@@ -569,7 +569,7 @@ paths:
         - in: header
           name: dateformat
           description: 'The format of the input time fields: {yyyyMMdd''T''HHmmssX | ms} DEFAULT: ms (so it is a long). Used for insertionTime comparaison.'
-          default: 'ms'
+          default: ms
           type: string
       responses:
         '200':
@@ -636,7 +636,7 @@ paths:
           description: 'tagname: the tag name {none}'
           required: true
           type: string
-          default: 'none'
+          default: none
         - name: snapshot
           in: query
           description: 'snapshot: the snapshot time {0}'
@@ -664,7 +664,7 @@ paths:
           description: 'tagname: the tag name {none}'
           required: true
           type: string
-          default: 'none'
+          default: none
       responses:
         '200':
           description: successful operation
@@ -685,7 +685,7 @@ paths:
           description: 'tagname: the tag name {none}'
           required: true
           type: string
-          default: 'none'
+          default: none
         - name: snapshot
           in: query
           description: 'snapshot: the snapshot time {0}'
@@ -711,14 +711,14 @@ paths:
         - in: header
           name: X-Crest-Query
           description: 'The query type. The header parameter X-Crest-Query can be : groups (default) or ranges (include previous since).'
-          default: 'groups'
+          default: groups
           type: string
         - name: tagname
           in: query
           description: 'tagname: the tag name {none}'
           required: false
           type: string
-          default: 'none'
+          default: none
         - name: since
           in: query
           description: 'since: the since time as a string {0}'
@@ -730,7 +730,7 @@ paths:
           description: 'until: the until time as a string {INF}'
           required: false
           type: string
-          default: 'INF'
+          default: INF
         - name: snapshot
           in: query
           description: 'snapshot: the snapshot time {0}'
@@ -983,10 +983,7 @@ paths:
           in: formData
           description: The files to upload
           required: true
-          type: array
-          items:
-            type: string
-            format: binary
+          type: file
         - name: tag
           in: formData
           description: The tag name
@@ -1231,6 +1228,80 @@ paths:
           description: successful operation
           schema:
             $ref: '#/definitions/TagDto'
+  '/tags/{name}/meta':
+    get:
+      tags:
+        - tags
+      summary: Finds a TagMetaDto by name
+      description: This method will search for a tag metadata with the given name. Only one tag should be returned.
+      operationId: findTagMeta
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - name: name
+          in: path
+          description: 'name: the tag name'
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/TagMetaSetDto'
+    post:
+      tags:
+        - tags
+      summary: Create a TagMeta in the database.
+      description: 'This method allows to insert a TagMeta.Arguments: TagMetaDto should be provided in the body as a JSON file.'
+      operationId: createTagMeta
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: name
+          in: path
+          description: 'name: the tag name'
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: 'A json string that is used to construct a tagmetadto object: { tagName: xxx, ... }'
+          required: true
+          schema:
+            $ref: '#/definitions/TagMetaDto'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/TagMetaDto'
+    put:
+      tags:
+        - tags
+      summary: Update a TagMetaDto by name
+      description: 'This method will search for a tag with the given name, and update its content for the provided body fields. Only the following fields can be updated: description, timeType, objectTime, endOfValidity, lastValidatedTime.'
+      operationId: updateTagMeta
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - name: name
+          in: path
+          description: 'name: the tag name'
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: 'A json string that is used to construct a map of updatable fields: { description: xxx, ... }'
+          required: true
+          schema:
+            $ref: '#/definitions/GenericMap'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/TagMetaDto'
 definitions:
   HTTPResponse:
     description: general response object that can be used for POST and PUT methods
@@ -1306,7 +1377,7 @@ definitions:
     properties:
       since:
         type: number
-      run:
+      runNumber:
         type: number
       lb:
         type: number
@@ -1314,17 +1385,6 @@ definitions:
         type: number
       endtime:
         type: number
-  RunInfoDto:
-    type: object
-    properties:
-      runNumber:
-        type: number
-      startTime:
-        type: string
-        format: date-time
-      endTime:
-        type: string
-        format: date-time
   GlobalTagMapDto:
     type: object
     properties:
@@ -1401,6 +1461,24 @@ definitions:
         type: string
         format: date-time
       modificationTime:
+        type: string
+        format: date-time
+  TagMetaDto:
+    type: object
+    properties:
+      tagName:
+        type: string
+      description:
+        type: string
+      chansize:
+        type: integer
+        format: int32
+      colsize:
+        type: integer
+        format: int32
+      tagInfo:
+        type: string
+      insertionTime:
         type: string
         format: date-time
   IovDto:
@@ -1485,6 +1563,18 @@ definitions:
             type: array
             items:
               $ref: '#/definitions/TagDto'
+  TagMetaSetDto:
+    description: An Set containing TagMetaDto objects.
+    allOf:
+      - $ref: '#/definitions/CrestBaseResponse'
+      - properties:
+          format:
+            type: string
+            default: TagMetaSetDto
+          resources:
+            type: array
+            items:
+              $ref: '#/definitions/TagMetaDto'
   PayloadSetDto:
     description: An Set containing PayloadDto objects.
     allOf:
@@ -1539,18 +1629,6 @@ definitions:
             type: array
             items:
               $ref: '#/definitions/RunLumiInfoDto'
-  RunInfoSetDto:
-    description: An RunInfoSet containing RunInfoDto objects.
-    allOf:
-      - $ref: '#/definitions/CrestBaseResponse'
-      - properties:
-          format:
-            type: string
-            default: RunInfoSetDto
-          resources:
-            type: array
-            items:
-              $ref: '#/definitions/RunInfoDto'
   PayloadTagInfoSetDto:
     description: An PayloadTagInfoSet containing PayloadTagInfoDto objects.
     allOf:

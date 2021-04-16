@@ -2,7 +2,6 @@ package hep.crest.server;
 
 import io.undertow.servlet.api.SecurityConstraint;
 import io.undertow.servlet.api.WebResourceCollection;
-import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -56,19 +55,6 @@ public class Application {
         };
     }
 
-//    @Override
-//    public void onStartup(ServletContext servletContext)
-//            throws ServletException {
-//
-//        AnnotationConfigWebApplicationContext context
-//                = new AnnotationConfigWebApplicationContext();
-//
-//        servletContext.addListener(new ContextLoaderListener(context));
-//        servletContext.setInitParameter(
-//                "contextConfigLocation", "hep.crest.server");
-//    }
-
-
     /**
      * Customizer for Web server (undertow).
      *
@@ -108,15 +94,6 @@ public class Application {
             constraint.addWebResourceCollection(traceWebresource);
             deploymentInfo.addSecurityConstraint(constraint);
         }
-    }
-
-    /**
-     * Resolve configuration.
-     * @return KeycloakSpringBootConfigResolver
-     */
-    @Bean
-    public KeycloakSpringBootConfigResolver keycloakConfigResolver() {
-        return new KeycloakSpringBootConfigResolver();
     }
 
     /**
