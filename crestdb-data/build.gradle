@@ -1,6 +1,8 @@
 plugins {
   	id 'checkstyle'
-    id 'org.springframework.boot' version '2.3.1.RELEASE'
+    //id 'org.springframework.boot' version '2.3.1.RELEASE'
+    id 'org.springframework.boot' version '2.4.4'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 }
 description = 'JPA package for persistency'
 
@@ -45,8 +47,9 @@ dependencies {
     implementation group: 'org.apache.commons', name: 'commons-compress', version: '1.15'
     implementation group: 'ma.glasnost.orika', name: 'orika-core', version: orika_version
     
-	testCompile("org.springframework.boot:spring-boot-starter-test") 
-	testImplementation 'org.testcontainers:postgresql:1.15.0-rc2'
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.1.0")
+    testImplementation 'org.testcontainers:postgresql:1.15.0-rc2'
 }
 
 jar {

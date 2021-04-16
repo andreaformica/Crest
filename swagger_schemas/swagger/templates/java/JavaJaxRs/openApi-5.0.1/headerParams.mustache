@@ -1,0 +1,7 @@
+{{#isHeaderParam}}@ApiParam(value = "{{{description}}}" {{#required}},required=true{{/required}}{{#allowableValues}}, {{> allowableValues }}{{/allowableValues}}{{#defaultValue}}, defaultValue={{!
+            }}{{^isString}}"{{/isString}}{{!
+            }}{{#isString}}{{#isEnum}}"{{/isEnum}}{{/isString}}{{!
+            }}{{{defaultValue}}}{{!
+            }}{{^isString}}"{{/isString}}{{!
+            }}{{#isString}}{{#isEnum}}"{{/isEnum}}{{/isString}}{{!
+            }}{{/defaultValue}})@HeaderParam("{{baseName}}") {{{dataType}}} {{paramName}}{{/isHeaderParam}}
