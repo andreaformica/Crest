@@ -219,10 +219,10 @@ public class TestCrestTag {
         }
         final ResponseEntity<String> respupdnull = this.testRestTemplate
                 .exchange("/crestapi/tags/" + dto1.getName(), HttpMethod.PUT, null, String.class);
-        assertThat(respupdnull.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(respupdnull.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 
         final ResponseEntity<String> respupdnotexist = this.testRestTemplate
-                .exchange("/crestapi/tags/NOT-THERE", HttpMethod.PUT, null, String.class);
+                .exchange("/crestapi/tags/NOT-THERE", HttpMethod.PUT, updrequest, String.class);
         assertThat(respupdnotexist.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 
         final ResponseEntity<String> resp1null = this.testRestTemplate

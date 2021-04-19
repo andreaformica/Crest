@@ -1,5 +1,7 @@
 package hep.crest.data.config;
 
+import hep.crest.data.config.converters.DateToOffDateTimeConverter;
+import hep.crest.data.config.converters.TimestampToOffDateTimeConverter;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.GlobalTagMap;
 import hep.crest.data.pojo.Iov;
@@ -18,6 +20,7 @@ import ma.glasnost.orika.CustomMapper;
 import ma.glasnost.orika.MapperFacade;
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.MappingContext;
+import ma.glasnost.orika.converter.ConverterFactory;
 import ma.glasnost.orika.impl.DefaultMapperFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,10 +30,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 /**
  * @author formica
- *
  */
 @Configuration
 public class PojoDtoConverterConfig {
@@ -46,6 +50,9 @@ public class PojoDtoConverterConfig {
     @Bean(name = "mapperFactory")
     public MapperFactory createOrikaMapperFactory() {
         final MapperFactory mapperFactory = new DefaultMapperFactory.Builder().build();
+        ConverterFactory converterFactory = mapperFactory.getConverterFactory();
+        converterFactory.registerConverter(new DateToOffDateTimeConverter());
+        converterFactory.registerConverter(new TimestampToOffDateTimeConverter());
         this.initGlobalTagMap(mapperFactory);
         this.initGlobalTagMapsMap(mapperFactory);
         this.initTagMap(mapperFactory);
@@ -57,8 +64,7 @@ public class PojoDtoConverterConfig {
     }
 
     /**
-     * @param mapperFactory
-     *            the MapperFactory
+     * @param mapperFactory the MapperFactory
      * @return
      */
     protected void initGlobalTagMap(MapperFactory mapperFactory) {
@@ -67,8 +73,7 @@ public class PojoDtoConverterConfig {
     }
 
     /**
-     * @param mapperFactory
-     *            the MapperFactory
+     * @param mapperFactory the MapperFactory
      * @return
      */
     protected void initGlobalTagMapsMap(MapperFactory mapperFactory) {
@@ -78,8 +83,7 @@ public class PojoDtoConverterConfig {
     }
 
     /**
-     * @param mapperFactory
-     *            the MapperFactory
+     * @param mapperFactory the MapperFactory
      * @return
      */
     protected void initTagMap(MapperFactory mapperFactory) {
@@ -88,8 +92,7 @@ public class PojoDtoConverterConfig {
     }
 
     /**
-     * @param mapperFactory
-     *            the MapperFactory
+     * @param mapperFactory the MapperFactory
      * @return
      */
     protected void initIovMap(MapperFactory mapperFactory) {
@@ -100,8 +103,7 @@ public class PojoDtoConverterConfig {
     }
 
     /**
-     * @param mapperFactory
-     *            the MapperFactory
+     * @param mapperFactory the MapperFactory
      * @return
      */
     protected void initPayloadMap(MapperFactory mapperFactory) {
@@ -110,12 +112,13 @@ public class PojoDtoConverterConfig {
                     @Override
                     public void mapAtoB(Payload a, PayloadDto b, MappingContext context) {
                         try {
+                            Instant it = Instant.ofEpochMilli(a.getInsertionTime().getTime());
                             b.hash(a.getHash()).version(a.getVersion())
                                     .objectType(a.getObjectType())
                                     .data(a.getData().getBytes(1, (int) a.getData().length()))
                                     .streamerInfo(a.getStreamerInfo().getBytes(1,
                                             (int) a.getStreamerInfo().length()))
-                                    .size(a.getSize()).insertionTime(a.getInsertionTime());
+                                    .size(a.getSize()).insertionTime(it.atOffset(ZoneOffset.UTC));
                         }
                         catch (final SQLException e) {
                             log.error("SQL exception in mapping pojo and dto for payload...: {}",
@@ -126,8 +129,7 @@ public class PojoDtoConverterConfig {
     }
 
     /**
-     * @param mapperFactory
-     *            the MapperFactory
+     * @param mapperFactory the MapperFactory
      * @return
      */
     protected void initRunLumiInfoMap(MapperFactory mapperFactory) {
@@ -136,8 +138,7 @@ public class PojoDtoConverterConfig {
     }
 
     /**
-     * @param mapperFactory
-     *            the MapperFactory
+     * @param mapperFactory the MapperFactory
      * @return
      */
     protected void initFolderMap(MapperFactory mapperFactory) {
@@ -145,8 +146,7 @@ public class PojoDtoConverterConfig {
     }
 
     /**
-     * @param mapperFactory
-     *            the MapperFactory
+     * @param mapperFactory the MapperFactory
      * @return MapperFacade
      */
     @Bean(name = "mapper")

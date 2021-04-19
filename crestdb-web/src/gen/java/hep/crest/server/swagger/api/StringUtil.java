@@ -1,6 +1,6 @@
 package hep.crest.server.swagger.api;
 
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2018-01-14T18:09:32.330+01:00")
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class StringUtil {
   /**
    * Check if the given array contains the given value (with case-insensitive comparison).

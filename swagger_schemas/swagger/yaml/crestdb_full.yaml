@@ -983,7 +983,10 @@ paths:
           in: formData
           description: The files to upload
           required: true
-          type: file
+          type: array
+          items:
+            type: string
+            format: binary
         - name: tag
           in: formData
           description: The tag name
@@ -1625,6 +1628,9 @@ definitions:
     allOf:
       - $ref: '#/definitions/CrestBaseResponse'
       - properties:
+          format:
+            type: string
+            default: RunLumiSetDto
           resources:
             type: array
             items:

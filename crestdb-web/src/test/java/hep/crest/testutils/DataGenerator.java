@@ -26,6 +26,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Date;
 
 /**
@@ -51,7 +52,6 @@ public class DataGenerator {
     
     public static GlobalTagDto generateGlobalTagDto(String name) {
         final Instant now = Instant.now();
-        final Date snapshotTime = new Date(now.toEpochMilli());
         final GlobalTagDto entity = new GlobalTagDto();
         entity.name(name);
         entity.description("A test global tag "+name);
@@ -60,7 +60,7 @@ public class DataGenerator {
         entity.type("T");
         entity.workflow("none");
         entity.validity(new BigDecimal(0L));
-        entity.snapshotTime(snapshotTime);
+        entity.snapshotTime(now.atOffset(ZoneOffset.UTC));
         return entity;
     }
 
@@ -130,14 +130,16 @@ public class DataGenerator {
         final PayloadDto dto = new PayloadDto();
         final byte[] bindata = new String(payloaddata).getBytes();
         final byte[] binstinfo = new String(stinfo).getBytes();
-        dto.insertionTime(new Date()).data(bindata).hash(hash).objectType(objtype)
+        Instant inst = Instant.now();
+        dto.insertionTime(inst.atOffset(ZoneOffset.UTC)).data(bindata).hash(hash).objectType(objtype)
                 .streamerInfo(binstinfo).version("v1");
         return dto;
     }
 
     public static TagMetaDto generateTagMetaDto(String tagname, String taginfodata, Date it) {
         final TagMetaDto dto = new TagMetaDto();
-        dto.tagName(tagname).chansize(1).colsize(5).tagInfo(taginfodata).insertionTime(it);
+        Instant inst = Instant.ofEpochMilli(it.getTime());
+        dto.tagName(tagname).chansize(1).colsize(5).tagInfo(taginfodata).insertionTime(inst.atOffset(ZoneOffset.UTC));
         dto.description("Test tag meta");
         return dto;
     }

@@ -18,7 +18,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Calendar;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 /**
  * General base class for repository implementations.
@@ -89,16 +90,17 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
             // OID and not the byte[]
             // Temporarely, try to create a postgresql implementation of this class.
 
-            return jdbcTemplate.queryForObject(sql, new Object[]{id}, (rs, num) -> {
+            return jdbcTemplate.queryForObject(sql, (rs, num) -> {
                 final TagMetaDto entity = new TagMetaDto();
+                Instant inst = Instant.ofEpochMilli(rs.getTimestamp("INSERTION_TIME").getTime());
                 entity.setTagName(rs.getString("TAG_NAME"));
                 entity.setDescription(rs.getString("DESCRIPTION"));
                 entity.setChansize(rs.getInt("CHANNEL_SIZE"));
                 entity.setColsize(rs.getInt("COLUMN_SIZE"));
-                entity.setInsertionTime(rs.getDate("INSERTION_TIME"));
+                entity.setInsertionTime(inst.atOffset(ZoneOffset.UTC));
                 entity.setTagInfo(getBlob(rs, "TAG_INFO"));
                 return entity;
-            });
+            }, id);
         }
         catch (final Exception e) {
             log.warn("Could not find entry for tag name {}", id);
@@ -115,15 +117,16 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
             final String tablename = this.tablename();
             final String sql = TagMetaRequests.getFindMetaQuery(tablename);
 
-            return jdbcTemplate.queryForObject(sql, new Object[]{id}, (rs, num) -> {
+            return jdbcTemplate.queryForObject(sql, (rs, num) -> {
                 final TagMetaDto entity = new TagMetaDto();
+                Instant inst = Instant.ofEpochMilli(rs.getTimestamp("INSERTION_TIME").getTime());
                 entity.setTagName(rs.getString("TAG_NAME"));
                 entity.setDescription(rs.getString("DESCRIPTION"));
                 entity.setChansize(rs.getInt("CHANNEL_SIZE"));
                 entity.setColsize(rs.getInt("COLUMN_SIZE"));
-                entity.setInsertionTime(rs.getDate("INSERTION_TIME"));
+                entity.setInsertionTime(inst.atOffset(ZoneOffset.UTC));
                 return entity;
-            });
+            }, id);
         }
         catch (final Exception e) {
             log.warn("Could not find entry for tag {}", id);
@@ -140,9 +143,9 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
      */
     protected void execute(InputStream is, String sql, TagMetaDto entity) {
 
-        final Calendar calendar = Calendar.getInstance();
-        final java.sql.Date inserttime = new java.sql.Date(calendar.getTime().getTime());
-        entity.setInsertionTime(calendar.getTime());
+        Instant now = Instant.now();
+        final java.sql.Date inserttime = new java.sql.Date(now.toEpochMilli());
+        entity.setInsertionTime(now.atOffset(ZoneOffset.UTC));
 
         if (is != null) {
             final byte[] blob = PayloadHandler.getBytesFromInputStream(is);

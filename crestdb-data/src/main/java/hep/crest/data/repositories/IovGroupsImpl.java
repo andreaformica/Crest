@@ -38,6 +38,8 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -239,12 +241,12 @@ public class IovGroupsImpl implements IovGroupsCustom {
         // where TAG_NAME like ? GROUP BY TAG_NAME
         final String sql = "select TAG_NAME, COUNT(TAG_NAME) as NIOVS from " + tablename
                 + " where TAG_NAME like ? GROUP BY TAG_NAME";
-        return jdbcTemplate.query(sql, new Object[] {tagname}, (rs, num) -> {
+        return jdbcTemplate.query(sql, (rs, num) -> {
             final TagSummaryDto entity = new TagSummaryDto();
             entity.setTagname(rs.getString("TAG_NAME"));
             entity.setNiovs(rs.getLong("NIOVS"));
             return entity;
-        });
+        }, tagname);
     }
 
     /*
@@ -265,10 +267,11 @@ public class IovGroupsImpl implements IovGroupsCustom {
         final String sql = SqlRequests.getRangeIovPayloadQuery(tablename, payloadTablename());
         // Execute request.
         return jdbcTemplate.query(sql,
-                new Object[] {name, name, since, snapshot, until, snapshot}, (rs, num) -> {
+                (rs, num) -> {
                     final IovPayloadDto entity = new IovPayloadDto();
+                    Instant inst = Instant.ofEpochMilli(rs.getTimestamp("INSERTION_TIME").getTime());
                     entity.setSince(rs.getBigDecimal("SINCE"));
-                    entity.setInsertionTime(rs.getTimestamp("INSERTION_TIME"));
+                    entity.setInsertionTime(inst.atOffset(ZoneOffset.UTC));
                     entity.setPayloadHash(rs.getString("PAYLOAD_HASH"));
                     entity.setVersion(rs.getString("VERSION"));
                     entity.setObjectType(rs.getString("OBJECT_TYPE"));
@@ -276,7 +279,7 @@ public class IovGroupsImpl implements IovGroupsCustom {
                     entity.setStreamerInfo(getBlob(rs, "STREAMER_INFO"));
                     log.debug("create entity {}", entity);
                     return entity;
-                });
+                }, name, name, since, snapshot, until, snapshot);
     }
 
     /**

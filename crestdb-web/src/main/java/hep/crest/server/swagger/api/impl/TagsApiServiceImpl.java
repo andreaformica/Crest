@@ -31,6 +31,7 @@ import javax.ws.rs.core.UriInfo;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
@@ -130,7 +131,7 @@ public class TagsApiServiceImpl extends TagsApiService {
      * javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response updateTag(String name, GenericMap body, SecurityContext securityContext,
+    public Response updateTag(String name, Map<String, String> body, SecurityContext securityContext,
                               UriInfo info) throws NotFoundException {
         log.info("TagRestController processing request for updating a tag");
         try {
@@ -314,7 +315,7 @@ public class TagsApiServiceImpl extends TagsApiService {
      * @see hep.crest.server.swagger.api.TagsApiService#updateTagMeta(java.lang.String, hep.crest.swagger.model.GenericMap, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response updateTagMeta(String name, GenericMap body, SecurityContext securityContext, UriInfo info)
+    public Response updateTagMeta(String name, Map<String, String> body, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
         log.info("TagRestController processing request for updating a tag meta information");
         try {

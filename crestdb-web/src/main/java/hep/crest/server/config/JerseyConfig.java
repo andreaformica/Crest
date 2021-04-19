@@ -3,6 +3,7 @@ package hep.crest.server.config;
 import hep.crest.server.filters.CORSFilter;
 import hep.crest.server.filters.CacheControlFilter;
 import hep.crest.server.swagger.api.AdminApi;
+import hep.crest.server.swagger.api.FoldersApi;
 import hep.crest.server.swagger.api.FsApi;
 import hep.crest.server.swagger.api.GlobaltagmapsApi;
 import hep.crest.server.swagger.api.GlobaltagsApi;
@@ -15,6 +16,7 @@ import io.swagger.jaxrs.config.BeanConfig;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletProperties;
+import org.springframework.stereotype.Component;
 
 /**
  * Jersey configuration.
@@ -23,6 +25,7 @@ import org.glassfish.jersey.servlet.ServletProperties;
  * @author formica
  *
  */
+@Component
 public class JerseyConfig extends ResourceConfig {
 
     /**
@@ -34,6 +37,7 @@ public class JerseyConfig extends ResourceConfig {
         super.register(AdminApi.class);
         super.register(GlobaltagsApi.class);
         super.register(TagsApi.class);
+        super.register(FoldersApi.class);
         super.register(GlobaltagmapsApi.class);
         super.register(IovsApi.class);
         super.register(PayloadsApi.class);

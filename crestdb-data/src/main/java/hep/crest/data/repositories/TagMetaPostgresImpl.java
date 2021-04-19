@@ -34,7 +34,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Calendar;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 /**
  * @author formica
@@ -86,9 +87,9 @@ public class TagMetaPostgresImpl extends TagMetaGeneral implements TagMetaDataBa
      */
     @Override
     protected void execute(InputStream tis, String sql, TagMetaDto entity) {
-        final Calendar calendar = Calendar.getInstance();
-        final java.sql.Date inserttime = new java.sql.Date(calendar.getTime().getTime());
-        entity.setInsertionTime(calendar.getTime());
+        Instant now = Instant.now();
+        final java.sql.Date inserttime = new java.sql.Date(now.toEpochMilli());
+        entity.setInsertionTime(now.atOffset(ZoneOffset.UTC));
 
         try (Connection conn = super.getDs().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);) {

@@ -19,7 +19,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Calendar;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 /**
  * General base class for repository implementations.
@@ -138,18 +139,18 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
             // OID and not the byte[]
             // Temporarely, try to create a postgresql implementation of this class.
 
-            return jdbcTemplate.queryForObject(sql, new Object[]{id}, (rs, num) -> {
+            return jdbcTemplate.queryForObject(sql, (rs, num) -> {
                 final PayloadDto entity = new PayloadDto();
+                Instant inst = Instant.ofEpochMilli(rs.getTimestamp("INSERTION_TIME").getTime());
+                entity.setInsertionTime(inst.atOffset(ZoneOffset.UTC));
                 entity.setHash(rs.getString("HASH"));
                 entity.setObjectType(rs.getString("OBJECT_TYPE"));
                 entity.setVersion(rs.getString("VERSION"));
-                entity.setInsertionTime(rs.getDate("INSERTION_TIME"));
                 entity.setData(getBlob(rs, "DATA"));
                 entity.setStreamerInfo(getBlob(rs, "STREAMER_INFO"));
                 entity.setSize(rs.getInt("DATA_SIZE"));
-
                 return entity;
-            });
+            }, id);
         }
         catch (final DataAccessException e) {
             log.warn("Could not find entry for hash {}: {}", id, e);
@@ -173,17 +174,17 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
             final String tablename = this.tablename();
             final String sql = SqlRequests.getFindMetaQuery(tablename);
 
-            return jdbcTemplate.queryForObject(sql, new Object[]{id}, (rs, num) -> {
+            return jdbcTemplate.queryForObject(sql, (rs, num) -> {
                 final PayloadDto entity = new PayloadDto();
+                Instant inst = Instant.ofEpochMilli(rs.getTimestamp("INSERTION_TIME").getTime());
+                entity.setInsertionTime(inst.atOffset(ZoneOffset.UTC));
                 entity.setHash(rs.getString("HASH"));
                 entity.setObjectType(rs.getString("OBJECT_TYPE"));
                 entity.setVersion(rs.getString("VERSION"));
-                entity.setInsertionTime(rs.getDate("INSERTION_TIME"));
                 entity.setStreamerInfo(getBlob(rs, "STREAMER_INFO"));
                 entity.setSize(rs.getInt("DATA_SIZE"));
-
                 return entity;
-            });
+            }, id);
         }
         catch (final DataAccessException e) {
             log.warn("Could not find meta info entry for hash {}: {}", id, e.getMessage());
@@ -206,8 +207,9 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
             final String tablename = this.tablename();
 
             final String sql = SqlRequests.getFindDataQuery(tablename);
-            return jdbcTemplate.queryForObject(sql, new Object[]{id},
-                    (rs, num) -> getBlobAsStream(rs, "DATA")
+            return jdbcTemplate.queryForObject(sql,
+                    (rs, num) -> getBlobAsStream(rs, "DATA"),
+                    id
             );
         }
         catch (final DataAccessException e) {
@@ -243,9 +245,9 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
      */
     protected void execute(InputStream is, String sql, PayloadDto entity) {
 
-        final Calendar calendar = Calendar.getInstance();
-        final java.sql.Date inserttime = new java.sql.Date(calendar.getTime().getTime());
-        entity.setInsertionTime(calendar.getTime());
+        Instant now = Instant.now();
+        final java.sql.Date inserttime = new java.sql.Date(now.toEpochMilli());
+        entity.setInsertionTime(now.atOffset(ZoneOffset.UTC));
 
         if (is != null) {
             final byte[] blob = PayloadHandler.getBytesFromInputStream(is);

@@ -1,8 +1,14 @@
 package hep.crest.data.utils;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.pojo.Tag;
+import hep.crest.data.serializers.CustomTimeDeserializer;
+import hep.crest.data.serializers.CustomTimeSerializer;
 import hep.crest.swagger.model.TagMetaDto;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -22,6 +28,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -65,8 +75,7 @@ public class DirectoryUtilities {
     /**
      * Mapper.
      */
-    private ObjectMapper mapper = new ObjectMapper();
-
+    private ObjectMapper mapper = null;
     /**
      * Temporary default for base directory.
      */
@@ -90,6 +99,10 @@ public class DirectoryUtilities {
      * @return ObjectMapper
      */
     public ObjectMapper getMapper() {
+        if (mapper == null) {
+            log.debug("Creating jackson mapper in DirectoryUtilities");
+            mapper = getJacksonMapper();
+        }
         return mapper;
     }
 
@@ -264,7 +277,7 @@ public class DirectoryUtilities {
     public List<String> getTagDirectories(String basedir) {
         final Path basedirpath = Paths.get(basedir);
         List<Path> pfiles;
-        try (Stream<Path> pstream = Files.walk(basedirpath);) {
+        try (Stream<Path> pstream = Files.walk(basedirpath)) {
             pfiles = pstream.collect(Collectors.toList());
             return pfiles.stream().filter(s -> s.getFileName().toString().contains(TAG_FILE))
                     .map(x -> x.getName(x.getNameCount() - 2).toString())
@@ -403,7 +416,7 @@ public class DirectoryUtilities {
         final String outtarfile = outdir.concat(".tar.gz");
         try (FileOutputStream fos = new FileOutputStream(outtarfile);
              GZIPOutputStream gos = new GZIPOutputStream(new BufferedOutputStream(fos));
-             TarArchiveOutputStream tarOs = new TarArchiveOutputStream(gos);) {
+             TarArchiveOutputStream tarOs = new TarArchiveOutputStream(gos)) {
             // Using input name to create output name
             final File folder = new File(source);
             final File[] fileNames = folder.listFiles();
@@ -510,5 +523,29 @@ public class DirectoryUtilities {
                 }
             }
         }
+    }
+
+    /**
+     * @return ObjectMapper
+     */
+    private ObjectMapper getJacksonMapper() {
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                // date/time
+                .appendPattern("yyyy-MM-dd HH:mm:ss")
+                // optional fraction of seconds (from 0 to 9 digits)
+                .optionalStart().appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true).optionalEnd()
+                // offset
+                .appendPattern("xxx")
+                // create formatter
+                .toFormatter();
+        ObjectMapper jmapper = new ObjectMapper();
+        jmapper.configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false);
+        jmapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        jmapper.setDateFormat(new StdDateFormat());
+        JavaTimeModule module = new JavaTimeModule();
+        module.addSerializer(OffsetDateTime.class, new CustomTimeSerializer(formatter));
+        module.addDeserializer(OffsetDateTime.class, new CustomTimeDeserializer(formatter));
+        jmapper.registerModule(module);
+        return jmapper;
     }
 }
