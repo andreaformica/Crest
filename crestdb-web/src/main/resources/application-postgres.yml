@@ -5,8 +5,14 @@
 # ===============================
 # Defaults
 spring:
+    config:
+      use-legacy-processing: true
     profiles:
       include: crest
+    servlet:
+      multipart:
+        max-file-size: 50MB
+        max-request-size: 50MB
     jersey:
       application-path: ${crest.api.name}
     datasource:
