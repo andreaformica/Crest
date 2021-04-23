@@ -51,9 +51,9 @@ public class IovsApi  {
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = IovDto.class)
     })
-    public Response createIov(@ApiParam(value = "A json string that is used to construct a iovdto object: { name: xxx, ... }", required = true) @NotNull @Valid  IovDto body,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response createIov(@ApiParam(value = "") @Valid  IovDto iovDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.createIov(body, securityContext, info);
+        return delegate.createIov(iovDto, securityContext, info);
     }
     @GET
     
@@ -112,8 +112,15 @@ public class IovsApi  {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovSetDto.class)
     })
     public Response selectGroups(@ApiParam(value = "tagname: the tag name {none}", required = true, defaultValue =
-            "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname,@ApiParam(value = "snapshot"
-                                                                                                            + ": the snapshot time {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot")  Long snapshot,@Context SecurityContext securityContext,@Context UriInfo info, @Context Request request, @Context HttpHeaders headers)
+            "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname, @ApiParam(value = "snapshot"
+                                                                                                            + ": the "
+                                                                                                            +
+                                                                                                            "snapshot"
+                                                                                                            + " time "
+                                                                                                            + "{0}",
+            defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot")  Long snapshot,
+                                 @Context SecurityContext securityContext, @Context UriInfo info,
+                                 @Context Request request, @Context HttpHeaders headers)
     throws NotFoundException {
         return delegate.selectGroups(tagname, snapshot, securityContext, info, request, headers);
     }
@@ -132,12 +139,14 @@ public class IovsApi  {
     @GET
     @Path("/selectIovs")
     
-    @Produces({ "application/json" })
+    @Produces({ "application/json", "application/xml" })
     @io.swagger.annotations.ApiOperation(value = "Select iovs for a given tagname and in a given range.", notes = "This method allows to select a list of iovs in a tag, using a given range in time and (optionally) for a given snapshot time.Arguments: tagname={a tag name}, since={since time as string}, until={until time as string}, snapshot={snapshot time as long}", response = IovSetDto.class, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovSetDto.class)
     })
-    public Response selectIovs(@ApiParam(value = "The query type. The header parameter X-Crest-Query can be : groups (default) or ranges (include previous since)." , defaultValue="groups")@HeaderParam("X-Crest-Query") String xCrestQuery,@ApiParam(value = "tagname: the tag name {none}", defaultValue = "none") @DefaultValue("none") @QueryParam("tagname")  String tagname,@ApiParam(value = "since: the since time as a string {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("since")  String since,@ApiParam(value = "until: the until time as a string {INF}", defaultValue = "INF") @DefaultValue("INF") @QueryParam("until")  String until,@ApiParam(value = "snapshot: the snapshot time {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot")  Long snapshot,@Context SecurityContext securityContext,@Context UriInfo info, @Context Request request, @Context HttpHeaders headers)
+    public Response selectIovs(@ApiParam(value = "The query type. The header parameter X-Crest-Query can be : groups "
+                                                 + "(default) or ranges (include previous since)." , defaultValue=
+            "groups")@HeaderParam("X-Crest-Query") String xCrestQuery,@ApiParam(value = "tagname: the tag name {none}", defaultValue = "none") @DefaultValue("none") @QueryParam("tagname")  String tagname,@ApiParam(value = "since: the since time as a string {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("since")  String since,@ApiParam(value = "until: the until time as a string {INF}", defaultValue = "INF") @DefaultValue("INF") @QueryParam("until")  String until,@ApiParam(value = "snapshot: the snapshot time {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot")  Long snapshot,@Context SecurityContext securityContext,@Context UriInfo info, @Context Request request, @Context HttpHeaders headers)
     throws NotFoundException {
         return delegate.selectIovs(xCrestQuery, tagname, since, until, snapshot, securityContext, info, request, headers);
     }
@@ -161,8 +170,8 @@ public class IovsApi  {
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = IovSetDto.class)
     })
-    public Response storeBatchIovMultiForm(@ApiParam(value = "A json string that is used to construct a IovSetDto object.", required = true) @NotNull @Valid  IovSetDto body,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response storeBatchIovMultiForm(@ApiParam(value = "") @Valid  IovSetDto iovSetDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.storeBatchIovMultiForm(body, securityContext, info);
+        return delegate.storeBatchIovMultiForm(iovSetDto, securityContext, info);
     }
 }

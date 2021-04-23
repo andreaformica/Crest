@@ -15,7 +15,6 @@ EOF
 host=$1
 apiname=$2
 tagdata="$(generate_post_data)"
-apiname="crestapi"
 echo "Use data $tagdata"
 resp=`curl -X POST -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/tags" --data "${tagdata}"`
 echo "Received response $resp"

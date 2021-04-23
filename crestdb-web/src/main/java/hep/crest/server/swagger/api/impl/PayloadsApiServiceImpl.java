@@ -489,11 +489,11 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         try {
             // Read the FormData as a IovSet object.
             final IovSetDto dto = jacksonMapper.readValue(iovsetupload,IovSetDto.class);
-            log.info("Batch insertion of {} iovs using file formatted in {}", dto.getSize(),
-                    dto.getFormat());
+            log.info("Batch insertion of {} iovs using file represeting {} with format {}", dto.getSize(),
+                    dto.getFormat(), objectType);
             // Add object type.
             if (objectType == null) {
-                objectType = dto.getFormat();
+                objectType = dto.getDatatype();
             }
             // Add version.
             if (version == null) {

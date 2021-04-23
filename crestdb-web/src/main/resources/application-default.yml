@@ -10,8 +10,14 @@ server:
     servlet.path: /    
     connection-timeout: 60s
 spring:
+    config:
+      use-legacy-processing: true
     profiles:
       include: crest
+    servlet:
+      multipart:
+        max-file-size: 50MB
+        max-request-size: 50MB
     security:
       strategy: MODE_INHERITABLETHREADLOCAL
     jersey:

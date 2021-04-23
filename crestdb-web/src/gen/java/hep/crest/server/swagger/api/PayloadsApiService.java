@@ -24,7 +24,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.validation.constraints.*;
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public abstract class PayloadsApiService {
-    public abstract Response createPayload(PayloadDto body,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response createPayload(PayloadDto payloadDto,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response createPayloadMultiForm(FormDataBodyPart fileBodypart,String payload,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response getPayload(String hash,String xCrestPayloadFormat,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response getPayloadMetaInfo(String hash,SecurityContext securityContext, UriInfo info) throws NotFoundException;

@@ -69,8 +69,8 @@ public class AdminApi  {
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagDto.class)
     })
-    public Response updateGlobalTag(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "A json string that is used to construct a GlobalTagDto object: { name: xxx, ... }", required = true) @NotNull @Valid  GlobalTagDto body,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response updateGlobalTag(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "") @Valid  GlobalTagDto globalTagDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.updateGlobalTag(name, body, securityContext, info);
+        return delegate.updateGlobalTag(name, globalTagDto, securityContext, info);
     }
 }

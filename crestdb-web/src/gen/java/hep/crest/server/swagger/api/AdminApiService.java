@@ -21,5 +21,5 @@ import javax.validation.constraints.*;
 public abstract class AdminApiService {
     public abstract Response removeGlobalTag(String name,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response removeTag(String name,SecurityContext securityContext, UriInfo info) throws NotFoundException;
-    public abstract Response updateGlobalTag(String name,GlobalTagDto body,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response updateGlobalTag(String name,GlobalTagDto globalTagDto,SecurityContext securityContext, UriInfo info) throws NotFoundException;
 }

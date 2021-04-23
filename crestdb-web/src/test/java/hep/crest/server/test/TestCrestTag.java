@@ -185,6 +185,7 @@ public class TestCrestTag {
         }
 
         // Successfull find one tag resource
+        log.info("Find tag : {} ", dto1.getName());
         final ResponseEntity<String> resp1 = this.testRestTemplate
                 .exchange("/crestapi/tags/" + dto1.getName(), HttpMethod.GET, null, String.class);
         {
@@ -204,7 +205,7 @@ public class TestCrestTag {
         body.synchronization("blkp");
         body.payloadSpec("newspec");
         final HttpEntity<TagDto> updrequest = new HttpEntity<TagDto>(body);
-
+        log.info("Update tag : {} ", dto1.getName());
         final ResponseEntity<String> respupd = this.testRestTemplate
                 .exchange("/crestapi/tags/" + dto1.getName(), HttpMethod.PUT, updrequest, String.class);
         {
@@ -217,14 +218,16 @@ public class TestCrestTag {
             assertThat(ok).isNotNull();
             assertThat(ok.getSynchronization()).isEqualTo("blkp");
         }
+        log.info("Update tag with null body: {} ", dto1.getName());
         final ResponseEntity<String> respupdnull = this.testRestTemplate
                 .exchange("/crestapi/tags/" + dto1.getName(), HttpMethod.PUT, null, String.class);
         assertThat(respupdnull.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-
+        log.info("Update tag with wrong name : NOT-THERE ");
         final ResponseEntity<String> respupdnotexist = this.testRestTemplate
                 .exchange("/crestapi/tags/NOT-THERE", HttpMethod.PUT, updrequest, String.class);
         assertThat(respupdnotexist.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 
+        log.info("Find tag not existing : SOME-T ");
         final ResponseEntity<String> resp1null = this.testRestTemplate
                 .exchange("/crestapi/tags/SOME-T", HttpMethod.GET, null, String.class);
         {
@@ -232,6 +235,7 @@ public class TestCrestTag {
             assertThat(resp1null.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
 
+        log.info("Delete tag not existing : NOT-THERE ");
         final ResponseEntity<String> resprmnotthere = this.testRestTemplate
                 .exchange("/crestapi/admin/tags/NOT-THERE", HttpMethod.DELETE, null, String.class);
         {

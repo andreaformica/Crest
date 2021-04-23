@@ -50,9 +50,9 @@ public class PayloadsApi  {
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = PayloadDto.class)
     })
-    public Response createPayload(@ApiParam(value = "A json string that is used to construct a iovdto object: { name: xxx, ... }", required = true) @NotNull @Valid  PayloadDto body,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response createPayload(@ApiParam(value = "") @Valid  PayloadDto payloadDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.createPayload(body, securityContext, info);
+        return delegate.createPayload(payloadDto, securityContext, info);
     }
     @POST
     @Path("/upload")
@@ -63,14 +63,14 @@ public class PayloadsApi  {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = PayloadDto.class)
     })
     public Response createPayloadMultiForm(
- @FormDataParam("file") FormDataBodyPart fileBodypart ,@ApiParam(value = "Json body for payloaddto", required=true)@FormDataParam("payload")  String payload,@Context SecurityContext securityContext,@Context UriInfo info)
+ @FormDataParam("file") FormDataBodyPart fileBodypart ,@ApiParam(value = "", required=true)@FormDataParam("payload")  String payload,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
         return delegate.createPayloadMultiForm(fileBodypart, payload, securityContext, info);
     }
     @GET
     @Path("/{hash}")
     
-    @Produces({ "application/octet-stream", "application/json", "application/xml" })
+    @Produces({ "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Finds a payload resource associated to the hash.", notes = "This method retrieves a payload resource.Arguments: hash=<hash> the hash of the payload", response = String.class, tags={ "payloads", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = String.class)
@@ -94,38 +94,38 @@ public class PayloadsApi  {
     @POST
     @Path("/storebatch")
     @Consumes({ "multipart/form-data" })
-    @Produces({ "application/json" })
+    @Produces({ "application/json", "application/xml" })
     @io.swagger.annotations.ApiOperation(value = "Create many Payloads in the database, associated to a given iov since list and tag name.", notes = "This method allows to insert a Payload and an IOV. Arguments: tagname,stream,end time. The header parameter X-Crest-PayloadFormat can be : JSON (default) or TXT or BLOB", response = IovSetDto.class, tags={ "payloads", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = IovSetDto.class)
     })
-    public Response storePayloadBatchWithIovMultiForm(@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,@ApiParam(value = "", required=true)@FormDataParam("iovsetupload")  String iovsetupload,@ApiParam(value = "The format of the input data" , defaultValue="JSON")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,@ApiParam(value = "The payload objectType")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time to be used for protection at tag level")@FormDataParam("endtime")  BigDecimal endtime,@ApiParam(value = "The streamerInfo CLOB as a string")@FormDataParam("streamerInfo")  String streamerInfo,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response storePayloadBatchWithIovMultiForm(@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,@ApiParam(value = "The list of iovs as a set", required=true)@FormDataParam("iovsetupload")  String iovsetupload,@ApiParam(value = "The format of the input data" , defaultValue="FILE")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time")@FormDataParam("endtime")  BigDecimal endtime,@ApiParam(value = "The streamerInfo CLOB as a string")@FormDataParam("streamerInfo")  String streamerInfo,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
         return delegate.storePayloadBatchWithIovMultiForm(tag, iovsetupload, xCrestPayloadFormat, objectType, version, endtime, streamerInfo, securityContext, info);
     }
     @POST
     @Path("/store")
     @Consumes({ "multipart/form-data" })
-    @Produces({ "application/json" })
+    @Produces({ "application/json", "application/xml" })
     @io.swagger.annotations.ApiOperation(value = "Create a Payload in the database, associated to a given iov since and tag name.", notes = "This method allows to insert a Payload and an IOV. Arguments: since,tagname,stream,end time. The header parameter X-Crest-PayloadFormat can be : JSON (default) or TXT or BLOB", response = HTTPResponse.class, tags={ "payloads", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = HTTPResponse.class)
     })
     public Response storePayloadWithIovMultiForm(
- @FormDataParam("file") FormDataBodyPart fileBodypart ,@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,@ApiParam(value = "The since time", required=true)@FormDataParam("since")  BigDecimal since,@ApiParam(value = "The format of the input data" , defaultValue="JSON")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,@ApiParam(value = "The payload objectType")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time to be used for protection at tag level")@FormDataParam("endtime")  BigDecimal endtime,@ApiParam(value = "The streamerInfo CLOB as a string")@FormDataParam("streamerInfo")  String streamerInfo,@Context SecurityContext securityContext,@Context UriInfo info)
+ @FormDataParam("file") FormDataBodyPart fileBodypart ,@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,@ApiParam(value = "The since time", required=true)@FormDataParam("since")  BigDecimal since,@ApiParam(value = "The format of the input data" , defaultValue="JSON")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time")@FormDataParam("endtime")  BigDecimal endtime,@ApiParam(value = "The streamerInfo CLOB as a string")@FormDataParam("streamerInfo")  String streamerInfo,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
         return delegate.storePayloadWithIovMultiForm(fileBodypart, tag, since, xCrestPayloadFormat, objectType, version, endtime, streamerInfo, securityContext, info);
     }
     @POST
     @Path("/uploadbatch")
     @Consumes({ "multipart/form-data" })
-    @Produces({ "application/json" })
+    @Produces({ "application/json", "application/xml" })
     @io.swagger.annotations.ApiOperation(value = "Create many Payloads in the database, associated to a given iov since list and tag name.", notes = "This method allows to insert a Payload and an IOV. Arguments: tagname,stream,end time. The header parameter X-Crest-PayloadFormat can be : JSON (default) or TXT or BLOB", response = IovSetDto.class, tags={ "payloads", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = IovSetDto.class)
     })
     public Response uploadPayloadBatchWithIovMultiForm(
- @FormDataParam("files") List<FormDataBodyPart> filesBodypart ,@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,@ApiParam(value = "", required=true)@FormDataParam("iovsetupload")  String iovsetupload,@ApiParam(value = "The format of the input data" , defaultValue="FILE")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,@ApiParam(value = "The payload objectType")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time to be used for protection at tag level")@FormDataParam("endtime")  BigDecimal endtime,@ApiParam(value = "The streamerInfo CLOB as a string")@FormDataParam("streamerInfo")  String streamerInfo,@Context SecurityContext securityContext,@Context UriInfo info)
+ @FormDataParam("files") List<FormDataBodyPart> filesBodypart ,@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,@ApiParam(value = "The list of iovs", required=true)@FormDataParam("iovsetupload")  String iovsetupload,@ApiParam(value = "The format of the input data" , defaultValue="FILE")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time")@FormDataParam("endtime")  BigDecimal endtime,@ApiParam(value = "The streamerInfo CLOB as a string")@FormDataParam("streamerInfo")  String streamerInfo,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
         return delegate.uploadPayloadBatchWithIovMultiForm(filesBodypart, tag, iovsetupload, xCrestPayloadFormat, objectType, version, endtime, streamerInfo, securityContext, info);
     }

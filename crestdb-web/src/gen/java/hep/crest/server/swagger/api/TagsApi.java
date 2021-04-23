@@ -44,26 +44,26 @@ public class TagsApi  {
     @POST
     
     @Consumes({ "application/json" })
-    @Produces({ "application/json" })
+    @Produces({ "application/json", "application/xml" })
     @io.swagger.annotations.ApiOperation(value = "Create a Tag in the database.", notes = "This method allows to insert a Tag.Arguments: TagDto should be provided in the body as a JSON file.", response = TagDto.class, tags={ "tags", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagDto.class)
     })
-    public Response createTag(@ApiParam(value = "A json string that is used to construct a tagdto object: { name: xxx, ... }", required = true) @NotNull @Valid  TagDto body,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response createTag(@ApiParam(value = "") @Valid  TagDto tagDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.createTag(body, securityContext, info);
+        return delegate.createTag(tagDto, securityContext, info);
     }
     @POST
     @Path("/{name}/meta")
     @Consumes({ "application/json" })
-    @Produces({ "application/json" })
+    @Produces({ "application/json", "application/xml" })
     @io.swagger.annotations.ApiOperation(value = "Create a TagMeta in the database.", notes = "This method allows to insert a TagMeta.Arguments: TagMetaDto should be provided in the body as a JSON file.", response = TagMetaDto.class, tags={ "tags", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagMetaDto.class)
     })
-    public Response createTagMeta(@ApiParam(value = "name: the tag name", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "A json string that is used to construct a tagmetadto object: { tagName: xxx, ... }", required = true) @NotNull @Valid  TagMetaDto body,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response createTagMeta(@ApiParam(value = "name: the tag name", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "") @Valid  TagMetaDto tagMetaDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.createTagMeta(name, body, securityContext, info);
+        return delegate.createTagMeta(name, tagMetaDto, securityContext, info);
     }
     @GET
     @Path("/{name}")
@@ -103,26 +103,26 @@ public class TagsApi  {
     }
     @PUT
     @Path("/{name}")
-    
+    @Consumes({ "application/json" })
     @Produces({ "application/json", "application/xml" })
     @io.swagger.annotations.ApiOperation(value = "Update a TagDto by name", notes = "This method will search for a tag with the given name, and update its content for the provided body fields. Only the following fields can be updated: description, timeType, objectTime, endOfValidity, lastValidatedTime.", response = TagDto.class, tags={ "tags", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagDto.class)
     })
-    public Response updateTag(@ApiParam(value = "name: the tag name", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "A json string that is used to construct a map of updatable fields: { description: xxx, ... }", required = true) @NotNull @Valid  Map<String, String> body,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response updateTag(@ApiParam(value = "name: the tag name", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "") @Valid  Map<String, String> requestBody,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.updateTag(name, body, securityContext, info);
+        return delegate.updateTag(name, requestBody, securityContext, info);
     }
     @PUT
     @Path("/{name}/meta")
-    
+    @Consumes({ "application/json" })
     @Produces({ "application/json", "application/xml" })
     @io.swagger.annotations.ApiOperation(value = "Update a TagMetaDto by name", notes = "This method will search for a tag with the given name, and update its content for the provided body fields. Only the following fields can be updated: description, timeType, objectTime, endOfValidity, lastValidatedTime.", response = TagMetaDto.class, tags={ "tags", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagMetaDto.class)
     })
-    public Response updateTagMeta(@ApiParam(value = "name: the tag name", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "A json string that is used to construct a map of updatable fields: { description: xxx, ... }", required = true) @NotNull @Valid  Map<String, String> body,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response updateTagMeta(@ApiParam(value = "name: the tag name", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "") @Valid  Map<String, String> requestBody,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.updateTagMeta(name, body, securityContext, info);
+        return delegate.updateTagMeta(name, requestBody, securityContext, info);
     }
 }

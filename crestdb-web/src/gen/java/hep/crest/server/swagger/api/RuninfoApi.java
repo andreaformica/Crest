@@ -40,19 +40,19 @@ public class RuninfoApi  {
     @POST
     
     @Consumes({ "application/json" })
-    @Produces({ "application/json", "text/plain" })
-    @io.swagger.annotations.ApiOperation(value = "Create an entry for run information.", notes = "Run informations go into a separate table.", response = String.class, tags={ "runinfo", })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Create an entry for run information.", notes = "Run informations go into a separate table.", response = RunLumiSetDto.class, tags={ "runinfo", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = String.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = RunLumiSetDto.class)
     })
-    public Response createRunInfo(@ApiParam(value = "A json string that is used to construct a list of runlumiinfodto object: { run: xxx, ... }", required = true) @NotNull @Valid  RunLumiSetDto body,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response createRunInfo(@ApiParam(value = "") @Valid  RunLumiSetDto runLumiSetDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.createRunInfo(body, securityContext, info);
+        return delegate.createRunInfo(runLumiSetDto, securityContext, info);
     }
     @GET
     
     
-    @Produces({ "application/json", "application/xml" })
+    @Produces({ "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Finds a RunLumiInfoDto lists.", notes = "This method allows to perform search and sorting.Arguments: by=<pattern>, page={ipage}, size={isize}, sort=<sortpattern>. The pattern <pattern> is in the form <param-name><operation><param-value>       <param-name> is the name of one of the fields in the dto       <operation> can be [< : >] ; for string use only [:]        <param-value> depends on the chosen parameter. A list of this criteria can be provided       using comma separated strings for <pattern>.      The pattern <sortpattern> is <field>:[DESC|ASC]", response = RunLumiSetDto.class, tags={ "runinfo", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = RunLumiSetDto.class)
@@ -64,7 +64,7 @@ public class RuninfoApi  {
     @GET
     @Path("/select")
     
-    @Produces({ "application/json", "application/xml" })
+    @Produces({ "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Finds a RunLumiInfoDto lists using parameters.", notes = "This method allows to perform search.Arguments: from=<someformat>,to=<someformat>, format=<describe previous types>, page={ipage}, size={isize}, sort=<sortpattern>. The pattern <pattern> is in the form <param-name><operation><param-value>       <param-name> is the name of one of the fields in the dto       <operation> can be [< : >] ; for string use only [:]        <param-value> depends on the chosen parameter. A list of this criteria can be provided       using comma separated strings for <pattern>.      The pattern <sortpattern> is <field>:[DESC|ASC]", response = RunLumiSetDto.class, tags={ "runinfo", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = RunLumiSetDto.class)

@@ -41,7 +41,7 @@ public class FsApi  {
     @POST
     @Path("/tar")
     
-    @Produces({ "application/json", "text/plain" })
+    @Produces({ "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Dump a tag into filesystem and retrieve the tar file asynchronously.", notes = "This method allows to request a tar file from the server using a tag specified in input.", response = String.class, tags={ "fs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = String.class)
@@ -56,7 +56,7 @@ public class FsApi  {
     @POST
     @Path("/tag")
     
-    @Produces({ "application/json", "text/plain" })
+    @Produces({ "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Read a tag from filesystem. If the tag does not exists dump it.", notes = "This method allows to dump a tag on filesystem.", response = TagSetDto.class, tags={ "fs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagSetDto.class)

@@ -137,6 +137,9 @@ public class TagsApiServiceImpl extends TagsApiService {
         try {
             // Search tag.
             final Tag entity = tagService.findOne(name);
+            if (body == null) {
+                return rfh.badRequest("Cannot update tag " + entity.getName() + ": body is null");
+            }
             // Loop over map body keys.
             for (final String key : body.keySet()) {
                 if ("description".equals(key)) {

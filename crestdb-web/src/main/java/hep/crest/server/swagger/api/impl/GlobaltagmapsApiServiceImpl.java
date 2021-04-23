@@ -30,7 +30,8 @@ import java.util.List;
  *
  * @author formica
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-09-05T16:23:23.401+02:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-09-05T16:23"
+                                                                                                   + ":23.401+02:00")
 @Component
 public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
 
@@ -135,7 +136,7 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
             }
             List<GlobalTagMapDto> dtolist = edh.entityToDtoList(entitylist, GlobalTagMapDto.class);
             final CrestBaseResponse setdto = new GlobalTagMapSetDto().resources(dtolist).filter(filters)
-                    .format("GlobalTagMapSetDto").size((long) dtolist.size()).datatype("maps");
+                    .size((long) dtolist.size()).datatype("maps");
             Response.Status status = Response.Status.OK;
             return Response.status(status).entity(setdto).build();
         }
@@ -149,7 +150,7 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
 
     @Override
     public Response deleteGlobalTagMap(String name, @NotNull String label, @NotNull String tagname, String record,
-            SecurityContext securityContext, UriInfo info) throws NotFoundException {
+                                       SecurityContext securityContext, UriInfo info) throws NotFoundException {
         log.info("GlobalTagMapRestController processing request to delete map for GlobalTag name " + name);
         // Prepare filters
         final GenericMap filters = new GenericMap();
@@ -170,7 +171,7 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
             // Return the deleted list.
             List<GlobalTagMapDto> dtolist = edh.entityToDtoList(deletedlist, GlobalTagMapDto.class);
             final CrestBaseResponse setdto = new GlobalTagMapSetDto().resources(dtolist).filter(filters)
-                    .format("GlobalTagMapSetDto").size((long) dtolist.size()).datatype("maps");
+                    .size((long) dtolist.size()).datatype("maps");
             Response.Status status = Response.Status.OK;
             return Response.status(status).entity(setdto).build();
         }

@@ -23,11 +23,11 @@ import javax.ws.rs.core.UriInfo;
 import javax.validation.constraints.*;
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public abstract class TagsApiService {
-    public abstract Response createTag(TagDto body,SecurityContext securityContext, UriInfo info) throws NotFoundException;
-    public abstract Response createTagMeta(String name,TagMetaDto body,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response createTag(TagDto tagDto,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response createTagMeta(String name,TagMetaDto tagMetaDto,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response findTag(String name,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response findTagMeta(String name,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response listTags(String by,Integer page,Integer size,String sort,SecurityContext securityContext, UriInfo info) throws NotFoundException;
-    public abstract Response updateTag(String name,Map<String, String> body,SecurityContext securityContext, UriInfo info) throws NotFoundException;
-    public abstract Response updateTagMeta(String name,Map<String, String> body,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response updateTag(String name,Map<String, String> requestBody,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response updateTagMeta(String name,Map<String, String> requestBody,SecurityContext securityContext, UriInfo info) throws NotFoundException;
 }

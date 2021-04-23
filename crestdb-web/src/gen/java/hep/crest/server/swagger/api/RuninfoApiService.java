@@ -19,7 +19,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.validation.constraints.*;
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public abstract class RuninfoApiService {
-    public abstract Response createRunInfo(RunLumiSetDto body,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response createRunInfo(RunLumiSetDto runLumiSetDto,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response listRunInfo(String by,Integer page,Integer size,String sort,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response selectRunInfo(String from,String to,String format,String mode,SecurityContext securityContext, UriInfo info) throws NotFoundException;
 }

@@ -5,8 +5,9 @@ generate_post_data()
 {
   cat <<EOF
 {
-  "niovs": 2,
-  "format": "PYL",
+  "size": 2,
+  "datatype": "PYL",
+  "format": "IovSetDto",
   "resources":[
   { "since" : $since1, "payloadHash": "file:///tmp/newfile-01.txt"},
   { "since" : $since2, "payloadHash": "file:///tmp/newfile-02.txt"}
