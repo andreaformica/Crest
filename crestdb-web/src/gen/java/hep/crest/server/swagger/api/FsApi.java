@@ -21,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -41,7 +43,7 @@ public class FsApi  {
     @POST
     @Path("/tar")
     
-    @Produces({ "application/json", "text/plain" })
+    @Produces({ "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Dump a tag into filesystem and retrieve the tar file asynchronously.", notes = "This method allows to request a tar file from the server using a tag specified in input.", response = String.class, tags={ "fs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = String.class)
@@ -49,14 +51,14 @@ public class FsApi  {
     public Response buildTar(@ApiParam(value = "tagname: the tag name {none}", required = true,
             defaultValue = "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname,
                              @ApiParam(value = "snapshot: the snapshot time {0}", required = true,
-                                     defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot") @NotNull  Long snapshot,@Context SecurityContext securityContext,@Context UriInfo info, @Context HttpServletRequest request)
+                                     defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot") @NotNull  Long snapshot, @Context SecurityContext securityContext, @Context UriInfo info, @Context HttpServletRequest request)
     throws NotFoundException {
         return delegate.buildTar(tagname, snapshot, securityContext, info, request);
     }
     @POST
     @Path("/tag")
     
-    @Produces({ "application/json", "text/plain" })
+    @Produces({ "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Read a tag from filesystem. If the tag does not exists dump it.", notes = "This method allows to dump a tag on filesystem.", response = TagSetDto.class, tags={ "fs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagSetDto.class)

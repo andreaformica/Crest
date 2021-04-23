@@ -175,7 +175,7 @@ public class IovService {
                 snapshot, groupsize);
         final List<IovDto> iovlist = minsincelist.stream().map(s -> new IovDto().since(s))
                 .collect(Collectors.toList());
-        return new IovSetDto().resources(iovlist).size((long) iovlist.size()).format("IovSetDto");
+        return new IovSetDto().resources(iovlist).size((long) iovlist.size());
     }
 
     /**

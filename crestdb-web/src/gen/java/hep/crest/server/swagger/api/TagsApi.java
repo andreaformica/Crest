@@ -4,6 +4,7 @@ import hep.crest.swagger.model.*;
 import hep.crest.server.swagger.api.TagsApiService;
 
 import io.swagger.annotations.ApiParam;
+import io.swagger.jaxrs.*;
 
 import java.util.Map;
 import hep.crest.swagger.model.TagDto;
@@ -24,6 +25,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+
 import javax.ws.rs.*;
 import javax.validation.constraints.*;
 import javax.validation.Valid;
@@ -40,15 +42,14 @@ public class TagsApi  {
     @POST
     
     @Consumes({ "application/json" })
-    @Produces({ "application/json" })
+    @Produces({ "application/json", "application/xml" })
     @io.swagger.annotations.ApiOperation(value = "Create a Tag in the database.", notes = "This method allows to insert a Tag.Arguments: TagDto should be provided in the body as a JSON file.", response = TagDto.class, tags={ "tags", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagDto.class)
     })
-    public Response createTag(
-@ApiParam(value = "A json string that is used to construct a tagdto object: { name: xxx, ... }", required = true) @NotNull @Valid  TagDto body,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response createTag(@ApiParam(value = "") @Valid  TagDto tagDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.createTag(body, securityContext, info);
+        return delegate.createTag(tagDto, securityContext, info);
     }
     @GET
     @Path("/{name}")
@@ -58,8 +59,7 @@ public class TagsApi  {
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagSetDto.class)
     })
-    public Response findTag(@ApiParam(value = "name: the tag name", required = true) @PathParam("name") @NotNull  String name
-,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response findTag(@ApiParam(value = "name: the tag name", required = true) @PathParam("name") @NotNull  String name,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
         return delegate.findTag(name, securityContext, info);
     }
@@ -71,26 +71,20 @@ public class TagsApi  {
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagSetDto.class)
     })
-    public Response listTags(@ApiParam(value = "by: the search pattern {none}", defaultValue = "none") @DefaultValue("none") @QueryParam("by")  String by
-,@ApiParam(value = "page: the page number {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("page")  Integer page
-,@ApiParam(value = "size: the page size {1000}", defaultValue = "1000") @DefaultValue("1000") @QueryParam("size")  Integer size
-,@ApiParam(value = "sort: the sort pattern {name:ASC}", defaultValue = "name:ASC") @DefaultValue("name:ASC") @QueryParam("sort")  String sort
-,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response listTags(@ApiParam(value = "by: the search pattern {none}", defaultValue = "none") @DefaultValue("none") @QueryParam("by")  String by,@ApiParam(value = "page: the page number {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("page")  Integer page,@ApiParam(value = "size: the page size {1000}", defaultValue = "1000") @DefaultValue("1000") @QueryParam("size")  Integer size,@ApiParam(value = "sort: the sort pattern {name:ASC}", defaultValue = "name:ASC") @DefaultValue("name:ASC") @QueryParam("sort")  String sort,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
         return delegate.listTags(by, page, size, sort, securityContext, info);
     }
     @PUT
     @Path("/{name}")
-    
+    @Consumes({ "application/json" })
     @Produces({ "application/json", "application/xml" })
     @io.swagger.annotations.ApiOperation(value = "Update a TagDto by name", notes = "This method will search for a tag with the given name, and update its content for the provided body fields. Only the following fields can be updated: description, timeType, objectTime, endOfValidity, lastValidatedTime.", response = TagDto.class, tags={ "tags", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagDto.class)
     })
-    public Response updateTag(@ApiParam(value = "name: the tag name", required = true) @PathParam("name") @NotNull  String name
-,
-@ApiParam(value = "A json string that is used to construct a map of updatable fields: { description: xxx, ... }", required = true) @NotNull @Valid  Map<String, String> body,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response updateTag(@ApiParam(value = "name: the tag name", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "") @Valid  Map<String, String> requestBody,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.updateTag(name, body, securityContext, info);
+        return delegate.updateTag(name, requestBody, securityContext, info);
     }
 }

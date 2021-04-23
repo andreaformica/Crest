@@ -313,14 +313,13 @@ public class IovsApiServiceImpl extends IovsApiService {
                 size = iovService.getSizeByTag(tagname);
             }
             // Prepare the response set.
-            final CrestBaseResponse respdto = new CrestBaseResponse();
+            final CrestBaseResponse respdto = new IovSetDto();
             final GenericMap filters = new GenericMap();
             filters.put("tagName", tagname);
             filters.put("snapshot", snapshot.toString());
 
             // The size is filled in this response. There are no resources.
             respdto.size(size).datatype("count").filter(filters);
-            respdto.format("IovSetDto");
 
             // Send a response and status 200.
             return Response.ok().entity(respdto).build();
@@ -427,7 +426,6 @@ public class IovsApiServiceImpl extends IovsApiService {
             filters.put("snapshot", snapshot.toString());
             filters.put("groupsize", groupsize.toString());
             respdto.datatype("groups").filter(filters);
-            respdto.format("IovSetDto");
             // In the response set the cachecontrol flag as well.
             return Response.ok().entity(respdto).cacheControl(cc).lastModified(tagentity.getModificationTime()).build();
 
@@ -686,7 +684,6 @@ public class IovsApiServiceImpl extends IovsApiService {
             filters.put("since", rsince.toString());
             filters.put("until", runtil.toString());
             respdto.filter(filters);
-            respdto.format("IovPayloadSetDto");
             return Response.ok().entity(respdto).build();
         }
         catch (final NotExistsPojoException e) {
@@ -715,7 +712,6 @@ public class IovsApiServiceImpl extends IovsApiService {
         ((IovSetDto) respdto.datatype("iovs")).resources(dtolist)
                 .size((long) dtolist.size());
         respdto.filter(filters);
-        respdto.format("IovSetDto");
         return respdto;
     }
 

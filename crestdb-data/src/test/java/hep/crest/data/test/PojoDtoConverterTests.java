@@ -322,13 +322,13 @@ public class PojoDtoConverterTests {
         assertThat(dto1.toString().length()).isPositive();
         assertThat(dto1.hashCode()).isNotZero();
         final RunLumiSetDto setdto = new RunLumiSetDto();
-        setdto.datatype("runs").format("json");
+        setdto.datatype("runs");
         setdto.addResourcesItem(dto1);
         setdto.size(1L);
         assertThat(setdto.toString().length()).isPositive();
 
         final RunLumiSetDto setdto1 = new RunLumiSetDto();
-        setdto1.datatype("runs").format("json");
+        setdto1.datatype("runs");
         setdto1.addResourcesItem(dto1);
         setdto1.size(1L);
 
@@ -370,13 +370,13 @@ public class PojoDtoConverterTests {
         assertThat(dto1.toString().length()).isPositive();
         assertThat(dto1.hashCode()).isNotZero();
         final FolderSetDto setdto = new FolderSetDto();
-        setdto.datatype("folders").format("json");
+        setdto.datatype("folders");
         setdto.addResourcesItem(dto1);
         setdto.size(1L);
         assertThat(setdto.toString().length()).isPositive();
 
         final FolderSetDto setdto1 = new FolderSetDto();
-        setdto1.datatype("folders").format("json");
+        setdto1.datatype("folders");
         setdto1.addResourcesItem(dto1);
         setdto1.size(1L);
 

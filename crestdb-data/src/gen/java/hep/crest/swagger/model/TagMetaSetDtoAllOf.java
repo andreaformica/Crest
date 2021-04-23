@@ -16,10 +16,7 @@ package hep.crest.swagger.model;
 import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import hep.crest.swagger.model.CrestBaseResponse;
-import hep.crest.swagger.model.GenericMap;
-import hep.crest.swagger.model.PayloadDto;
-import hep.crest.swagger.model.PayloadSetDtoAllOf;
+import hep.crest.swagger.model.TagMetaDto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.ArrayList;
@@ -29,24 +26,23 @@ import javax.validation.constraints.*;
 import javax.validation.Valid;
 
 /**
- * An Set containing PayloadDto objects.
+ * TagMetaSetDtoAllOf
  */
-@ApiModel(description = "An Set containing PayloadDto objects.")
 @JsonPropertyOrder({
-  PayloadSetDto.JSON_PROPERTY_FORMAT,
-  PayloadSetDto.JSON_PROPERTY_RESOURCES
+  TagMetaSetDtoAllOf.JSON_PROPERTY_FORMAT,
+  TagMetaSetDtoAllOf.JSON_PROPERTY_RESOURCES
 })
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
-public class PayloadSetDto extends CrestBaseResponse  {
+public class TagMetaSetDtoAllOf   {
   public static final String JSON_PROPERTY_FORMAT = "format";
   @JsonProperty(JSON_PROPERTY_FORMAT)
-  private String format = "PayloadSetDto";
+  private String format = "TagMetaSetDto";
 
   public static final String JSON_PROPERTY_RESOURCES = "resources";
   @JsonProperty(JSON_PROPERTY_RESOURCES)
-  private List<PayloadDto> resources = null;
+  private List<TagMetaDto> resources = null;
 
-  public PayloadSetDto format(String format) {
+  public TagMetaSetDtoAllOf format(String format) {
     this.format = format;
     return this;
   }
@@ -66,12 +62,12 @@ public class PayloadSetDto extends CrestBaseResponse  {
     this.format = format;
   }
 
-  public PayloadSetDto resources(List<PayloadDto> resources) {
+  public TagMetaSetDtoAllOf resources(List<TagMetaDto> resources) {
     this.resources = resources;
     return this;
   }
 
-  public PayloadSetDto addResourcesItem(PayloadDto resourcesItem) {
+  public TagMetaSetDtoAllOf addResourcesItem(TagMetaDto resourcesItem) {
     if (this.resources == null) {
       this.resources = new ArrayList<>();
     }
@@ -86,11 +82,11 @@ public class PayloadSetDto extends CrestBaseResponse  {
   @JsonProperty("resources")
   @ApiModelProperty(value = "")
   @Valid 
-  public List<PayloadDto> getResources() {
+  public List<TagMetaDto> getResources() {
     return resources;
   }
 
-  public void setResources(List<PayloadDto> resources) {
+  public void setResources(List<TagMetaDto> resources) {
     this.resources = resources;
   }
 
@@ -103,23 +99,22 @@ public class PayloadSetDto extends CrestBaseResponse  {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    PayloadSetDto payloadSetDto = (PayloadSetDto) o;
-    return Objects.equals(this.format, payloadSetDto.format) &&
-        Objects.equals(this.resources, payloadSetDto.resources) &&
-        super.equals(o);
+    TagMetaSetDtoAllOf tagMetaSetDtoAllOf = (TagMetaSetDtoAllOf) o;
+    return Objects.equals(this.format, tagMetaSetDtoAllOf.format) &&
+        Objects.equals(this.resources, tagMetaSetDtoAllOf.resources);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(format, resources, super.hashCode());
+    return Objects.hash(format, resources);
   }
 
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class PayloadSetDto {\n");
-    sb.append("    ").append(toIndentedString(super.toString())).append("\n");
+    sb.append("class TagMetaSetDtoAllOf {\n");
+    
     sb.append("    format: ").append(toIndentedString(format)).append("\n");
     sb.append("    resources: ").append(toIndentedString(resources)).append("\n");
     sb.append("}");

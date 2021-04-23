@@ -135,7 +135,7 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
             }
             List<GlobalTagMapDto> dtolist = edh.entityToDtoList(entitylist, GlobalTagMapDto.class);
             final CrestBaseResponse setdto = new GlobalTagMapSetDto().resources(dtolist).filter(filters)
-                    .format("GlobalTagMapSetDto").size((long) dtolist.size()).datatype("maps");
+                    .size((long) dtolist.size()).datatype("maps");
             Response.Status status = Response.Status.OK;
             return Response.status(status).entity(setdto).build();
         }
@@ -170,7 +170,7 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
             // Return the deleted list.
             List<GlobalTagMapDto> dtolist = edh.entityToDtoList(deletedlist, GlobalTagMapDto.class);
             final CrestBaseResponse setdto = new GlobalTagMapSetDto().resources(dtolist).filter(filters)
-                    .format("GlobalTagMapSetDto").size((long) dtolist.size()).datatype("maps");
+                    .size((long) dtolist.size()).datatype("maps");
             Response.Status status = Response.Status.OK;
             return Response.status(status).entity(setdto).build();
         }

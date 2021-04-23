@@ -144,7 +144,7 @@ public class DataGenerator {
 
     public static RunLumiInfoDto generateRunLumiInfoDto(BigDecimal since, BigDecimal run, BigDecimal lb) {
         final RunLumiInfoDto dto = new RunLumiInfoDto();
-        dto.since(since).lb(lb).run(run);
+        dto.since(since).lb(lb).runNumber(run);
         dto.starttime(new BigDecimal(0L)).endtime(new BigDecimal(99L));
         return dto;
     }

@@ -7,7 +7,6 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.jaxrs.*;
 
 import hep.crest.swagger.model.GlobalTagMapDto;
-import hep.crest.swagger.model.GlobalTagMapSetDto;
 
 import java.util.Map;
 import java.util.List;
@@ -46,17 +45,17 @@ public class GlobaltagmapsApi  {
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = GlobalTagMapDto.class)
     })
-    public Response createGlobalTagMap(@ApiParam(value = "A json string that is used to construct a globaltagmapdto object: { globaltagname: xxx, ... }", required = true) @NotNull @Valid  GlobalTagMapDto body,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response createGlobalTagMap(@ApiParam(value = "") @Valid  GlobalTagMapDto globalTagMapDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.createGlobalTagMap(body, securityContext, info);
+        return delegate.createGlobalTagMap(globalTagMapDto, securityContext, info);
     }
     @DELETE
     @Path("/{name}")
     
-    @Produces({ "application/json", "application/xml" })
-    @io.swagger.annotations.ApiOperation(value = "Delete GlobalTagMapDto lists.", notes = "This method search for mappings using the global tag name and deletes all mappings.", response = GlobalTagMapSetDto.class, tags={ "globaltagmaps", })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Delete GlobalTagMapDto lists.", notes = "This method search for mappings using the global tag name and deletes all mappings.", response = GlobalTagMapDto.class, tags={ "globaltagmaps", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagMapSetDto.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagMapDto.class)
     })
     public Response deleteGlobalTagMap(@ApiParam(value = "the global tag name", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "label: the generic name labelling all tags of a certain kind.", required = true, defaultValue = "none") @DefaultValue("none") @QueryParam("label") @NotNull  String label,@ApiParam(value = "tagname: the name of the tag associated.", required = true, defaultValue = "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname,@ApiParam(value = "record: the record.") @QueryParam("record")  String record,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
@@ -65,10 +64,10 @@ public class GlobaltagmapsApi  {
     @GET
     @Path("/{name}")
     
-    @Produces({ "application/json", "application/xml" })
-    @io.swagger.annotations.ApiOperation(value = "Find GlobalTagMapDto lists.", notes = "This method search for mappings using the global tag name.", response = GlobalTagMapSetDto.class, tags={ "globaltagmaps", })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Find GlobalTagMapDto lists.", notes = "This method search for mappings using the global tag name.", response = GlobalTagMapDto.class, tags={ "globaltagmaps", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagMapSetDto.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagMapDto.class)
     })
     public Response findGlobalTagMap(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "If the mode is BackTrace then it will search for global tags containing the tag <name>" , defaultValue="Trace")@HeaderParam("X-Crest-MapMode") String xCrestMapMode,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {

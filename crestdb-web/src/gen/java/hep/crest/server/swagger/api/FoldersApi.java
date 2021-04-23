@@ -41,19 +41,19 @@ public class FoldersApi  {
     @POST
     
     @Consumes({ "application/json" })
-    @Produces({ "application/json", "text/plain" })
-    @io.swagger.annotations.ApiOperation(value = "Create an entry for folder information.", notes = "Folder informations go into a dedicated table.", response = String.class, tags={ "folders", })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Create an entry for folder information.", notes = "Folder informations go into a dedicated table.", response = FolderDto.class, tags={ "folders", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = String.class)
+        @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = FolderDto.class)
     })
-    public Response createFolder(@ApiParam(value = "A json string that is used to construct a folderdto object: { node: xxx, ... }", required = true) @NotNull @Valid  FolderDto body,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response createFolder(@ApiParam(value = "") @Valid  FolderDto folderDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.createFolder(body, securityContext, info);
+        return delegate.createFolder(folderDto, securityContext, info);
     }
     @GET
     
     
-    @Produces({ "application/json", "application/xml" })
+    @Produces({ "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Finds a FolderDto list.", notes = "This method allows to perform search and sorting.Arguments: by=<pattern>, sort=<sortpattern>. The pattern <pattern> is in the form <param-name><operation><param-value>       <param-name> is the name of one of the fields in the dto       <operation> can be [< : >] ; for string use only [:]        <param-value> depends on the chosen parameter. A list of this criteria can be provided       using comma separated strings for <pattern>.      The pattern <sortpattern> is <field>:[DESC|ASC]", response = FolderSetDto.class, tags={ "folders", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = FolderSetDto.class)

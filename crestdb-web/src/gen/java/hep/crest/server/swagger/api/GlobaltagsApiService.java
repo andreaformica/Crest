@@ -21,7 +21,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.validation.constraints.*;
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public abstract class GlobaltagsApiService {
-    public abstract Response createGlobalTag(GlobalTagDto body,String force,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response createGlobalTag(String force,GlobalTagDto body,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response findGlobalTag(String name,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response findGlobalTagFetchTags(String name,String record,String label,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response listGlobalTags(String by,Integer page,Integer size,String sort,SecurityContext securityContext, UriInfo info) throws NotFoundException;

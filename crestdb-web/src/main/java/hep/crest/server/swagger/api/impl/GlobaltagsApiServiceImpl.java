@@ -100,7 +100,7 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
      * javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response createGlobalTag(GlobalTagDto body, String force,
+    public Response createGlobalTag(String force, GlobalTagDto body,
                                     SecurityContext securityContext, UriInfo info) throws NotFoundException {
         log.info("GlobalTagRestController processing request for creating a global tag");
         try {

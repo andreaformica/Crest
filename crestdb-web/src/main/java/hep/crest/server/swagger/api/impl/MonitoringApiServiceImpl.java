@@ -77,7 +77,7 @@ public class MonitoringApiServiceImpl extends MonitoringApiService {
             // The dtolist should always be non null....
             // Create the PayloadTagInfoSet
             final CrestBaseResponse setdto = new PayloadTagInfoSetDto().resources(dtolist)
-                    .format("PayloadTagInfoSetDto").filter(filters).size(1L).datatype("payloadtaginfos");
+                    .filter(filters).size(1L).datatype("payloadtaginfos");
             // Return 200.
             return Response.ok().entity(setdto).build();
         }
