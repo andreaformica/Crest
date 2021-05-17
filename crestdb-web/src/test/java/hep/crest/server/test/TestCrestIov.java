@@ -192,7 +192,7 @@ public class TestCrestIov {
         iovdto.setSince(new BigDecimal(2000000L)); // change the since to have a new iov...
         final IovDto iovdto2 = DataGenerator.generateIovDto(pdto2.getHash(), tdto.getName(), new BigDecimal(2100000L));
         final IovSetDto setdto = new IovSetDto();
-        setdto.format("iovs").size(2L);
+        setdto.size(2L);
         final GenericMap filters = new GenericMap();
         filters.put("tagName", tdto.getName());
         setdto.datatype("iovs").filter(filters);
@@ -228,7 +228,7 @@ public class TestCrestIov {
         filters3.put("tagName", tdto.getName());
 
         final IovSetDto setdto3 = new IovSetDto();
-        setdto3.format("iovs").size(2L);
+        setdto3.size(2L);
         iovdto.tagName(null);
         iovdto2.tagName(null);
         iovdto.since(new BigDecimal(4000000L));
@@ -244,7 +244,7 @@ public class TestCrestIov {
         // Check without tagname at all
         final GenericMap filters4 = new GenericMap();
         final IovSetDto setdto4 = new IovSetDto();
-        setdto3.format("iovs").size(2L);
+        setdto3.size(2L);
         iovdto.tagName(null);
         iovdto2.tagName(null);
         iovdto.since(new BigDecimal(4000000L));

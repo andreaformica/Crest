@@ -6,12 +6,3 @@ caching:
     payloads_maxage: 604800    # expressed in seconds: 3600*24*7
     timetype_groupsize: 86400  # expressed in seconds: 3600*24
     runtype_groupsize: 100    # expressed in run numbers
-keycloak:
-    realm: svom-fsc
-    auth-server-url: ${crest.keycloak.url}
-    ssl-required: external
-    resource: ${crest.keycloak.resource}
-    credentials.secret: ${crest.keycloak.secret}
-    use-resource-role-mappings: true
-    principal-attribute: ${crest.keycloak.principal}
-    bearer-only: true

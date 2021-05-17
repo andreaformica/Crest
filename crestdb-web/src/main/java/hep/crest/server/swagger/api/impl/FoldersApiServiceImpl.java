@@ -140,7 +140,7 @@ public class FoldersApiServiceImpl extends FoldersApiService {
             final List<FolderDto> dtolist = edh.entityToDtoList(entitylist, FolderDto.class);
             Response.Status rstatus = Response.Status.OK;
             final CrestBaseResponse setdto = new FolderSetDto().resources(dtolist)
-                    .format("FodlerSetDto").size((long) dtolist.size()).datatype("folders");
+                    .size((long) dtolist.size()).datatype("folders");
             if (filters != null) {
                 setdto.filter(filters);
             }

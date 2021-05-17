@@ -22,6 +22,7 @@ import hep.crest.swagger.model.IovDto;
 import hep.crest.swagger.model.IovPayloadDto;
 import hep.crest.swagger.model.IovPayloadSetDto;
 import hep.crest.swagger.model.IovSetDto;
+import hep.crest.swagger.model.RespPage;
 import hep.crest.swagger.model.TagSummaryDto;
 import hep.crest.swagger.model.TagSummarySetDto;
 import ma.glasnost.orika.MapperFacade;
@@ -29,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
@@ -183,7 +185,7 @@ public class IovsApiServiceImpl extends IovsApiService {
         // Now start going through uploaded iovs.
         try {
             log.info("Batch insertion of {} iovs using file formatted in {} for tag {}",
-                    dto.getSize(), dto.getFormat(), tagName);
+                    dto.getSize(), tagName);
             // Prepare the iov list to insert and a list representing iovs really inserted.
             final List<IovDto> iovlist = dto.getResources();
             final List<IovDto> savedList = new ArrayList<>();
@@ -274,11 +276,16 @@ public class IovsApiServiceImpl extends IovsApiService {
                 wherepred = prh.buildWhere(filtering, by);
             }
             // Search for global tags using where conditions.
-            Iterable<Iov> entitylist = iovService.findAllIovs(wherepred, preq);
-            final List<IovDto> dtolist = edh.entityToDtoList(entitylist, IovDto.class);
+            Page<Iov> entitypage = iovService.findAllIovs(wherepred, preq);
+            RespPage respPage = new RespPage().size(entitypage.getSize())
+                    .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
+                    .number(entitypage.getNumber());
+
+            final List<IovDto> dtolist = edh.entityToDtoList(entitypage.toList(), IovDto.class);
             Response.Status rstatus = Response.Status.OK;
             // Prepare the Set.
             final CrestBaseResponse saveddto = buildEntityResponse(dtolist, filters);
+            saveddto.page(respPage);
             // Send a response and status 200.
             return Response.status(rstatus).entity(saveddto).build();
         }

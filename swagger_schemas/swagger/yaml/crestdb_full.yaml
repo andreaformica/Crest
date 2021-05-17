@@ -1279,6 +1279,23 @@ components:
         id:
           type: string
           description: Can be used to store the ID of the generated object
+    RespPage:
+      type: object
+      required:
+        - size
+        - totalElements
+        - totalPages
+        - number
+      properties:
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        number:
+          type: integer
     CrestBaseResponse:
       type: object
       properties:
@@ -1287,6 +1304,8 @@ components:
           format: int64
         datatype:
           type: string
+        page:
+          $ref: "#/components/schema/RespPage"
         filter:
           $ref: '#/components/schemas/GenericMap'
       discriminator:
@@ -1485,9 +1504,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
         - properties:
-            format:
-              type: string
-              default: TagSummarySetDto
             resources:
               type: array
               items:
@@ -1497,9 +1513,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
         - properties:
-            format:
-              type: string
-              default: IovSetDto
             resources:
               type: array
               items:
@@ -1509,9 +1522,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
         - properties:
-            format:
-              type: string
-              default: IovPayloadSetDto
             resources:
               type: array
               items:
@@ -1521,9 +1531,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
         - properties:
-            format:
-              type: string
-              default: TagSetDto
             resources:
               type: array
               items:
@@ -1533,9 +1540,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
         - properties:
-            format:
-              type: string
-              default: TagMetaSetDto
             resources:
               type: array
               items:
@@ -1545,9 +1549,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
         - properties:
-            format:
-              type: string
-              default: PayloadSetDto
             resources:
               type: array
               items:
@@ -1557,9 +1558,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
         - properties:
-            format:
-              type: string
-              default: GlobalTagMapSetDto
             resources:
               type: array
               items:
@@ -1569,9 +1567,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
         - properties:
-            format:
-              type: string
-              default: GlobalTagSetDto
             resources:
               type: array
               items:
@@ -1581,9 +1576,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
         - properties:
-            format:
-              type: string
-              default: FolderSetDto
             resources:
               type: array
               items:
@@ -1605,9 +1597,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
         - properties:
-            format:
-              type: string
-              default: RunInfoSetDto
             resources:
               type: array
               items:

@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -102,15 +104,13 @@ public class TagService {
      *            the Pageable
      * @return Iterable<Tag>
      */
-    public Iterable<Tag> findAllTags(Predicate qry, Pageable req) {
-        Iterable<Tag> entitylist = null;
+    public Page<Tag> findAllTags(Predicate qry, Pageable req) {
+        Page<Tag> entitylist = null;
+        if (req == null) {
+            req = PageRequest.of(0, 1000);
+        }
         if (qry == null) {
-            if (req == null) {
-                entitylist = tagRepository.findAll();
-            }
-            else {
-                entitylist = tagRepository.findAll(req);
-            }
+            entitylist = tagRepository.findAll(req);
         }
         else {
             entitylist = tagRepository.findAll(qry, req);

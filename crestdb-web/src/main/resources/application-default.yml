@@ -8,8 +8,10 @@
 server:
     port: 8090
     servlet.path: /    
-    connection-timeout: 60s
+    connection-timeout: 120s
 spring:
+    autoconfigure:
+      exclude: org.keycloak.adapters.springboot.KeycloakAutoConfiguration
     config:
       use-legacy-processing: true
     profiles:

@@ -12,6 +12,7 @@ import hep.crest.server.swagger.api.NotFoundException;
 import hep.crest.server.swagger.api.TagsApiService;
 import hep.crest.swagger.model.CrestBaseResponse;
 import hep.crest.swagger.model.GenericMap;
+import hep.crest.swagger.model.RespPage;
 import hep.crest.swagger.model.TagDto;
 import hep.crest.swagger.model.TagSetDto;
 import ma.glasnost.orika.MapperFacade;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
@@ -207,7 +209,7 @@ public class TagsApiServiceImpl extends TagsApiService {
             // Not found. Send a 404.
             log.warn("Api method findGlobalTag cannot find resource : {}", name);
             final CrestBaseResponse resp = new TagSetDto()
-                    .format("TagSetDto").filter(filters).size(0L).datatype("tags");
+                    .filter(filters).size(0L).datatype("tags");
             return rfh.emptyResultSet(resp);
         }
     }
@@ -235,11 +237,14 @@ public class TagsApiServiceImpl extends TagsApiService {
                 wherepred = prh.buildWhere(filtering, by);
             }
             // Retrieve tag list using filtering.
-            Iterable<Tag> entitylist = tagService.findAllTags(wherepred, preq);
-            List<TagDto> dtolist = edh.entityToDtoList(entitylist, TagDto.class);
+            Page<Tag> entitypage = tagService.findAllTags(wherepred, preq);
+            RespPage respPage = new RespPage().size(entitypage.getSize())
+                    .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
+                    .number(entitypage.getNumber());
+            List<TagDto> dtolist = edh.entityToDtoList(entitypage.toList(), TagDto.class);
             // Create the Set.
             final CrestBaseResponse setdto = new TagSetDto().resources(dtolist)
-                    .format("TagSetDto")
+                    .page(respPage)
                     .size((long) dtolist.size()).datatype("tags");
             if (filters != null) {
                 setdto.filter(filters);

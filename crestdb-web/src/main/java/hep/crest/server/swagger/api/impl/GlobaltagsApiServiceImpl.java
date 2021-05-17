@@ -15,6 +15,7 @@ import hep.crest.swagger.model.CrestBaseResponse;
 import hep.crest.swagger.model.GenericMap;
 import hep.crest.swagger.model.GlobalTagDto;
 import hep.crest.swagger.model.GlobalTagSetDto;
+import hep.crest.swagger.model.RespPage;
 import hep.crest.swagger.model.TagDto;
 import hep.crest.swagger.model.TagSetDto;
 import ma.glasnost.orika.MapperFacade;
@@ -22,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
@@ -151,14 +153,14 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
             log.debug("Found GlobalTag " + name);
             // Prepare response set.
             final CrestBaseResponse setdto = new GlobalTagSetDto().addResourcesItem(dto)
-                    .format("GlobalTagSetDto").filter(filters).size(1L).datatype("globaltags");
+                    .filter(filters).size(1L).datatype("globaltags");
             return Response.ok().entity(setdto).build();
         }
         catch (final NotExistsPojoException e) {
             // Not found. Send a 404.
             log.warn("Api method findGlobalTag cannot find resource : {}", name);
             final CrestBaseResponse resp = new GlobalTagSetDto()
-                    .format("GlobalTagSetDto").filter(filters).size(0L).datatype("globaltags");
+                    .filter(filters).size(0L).datatype("globaltags");
             return rfh.emptyResultSet(resp);
         }
     }
@@ -188,14 +190,14 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
             final long listsize = dtolist == null ? 0L : dtolist.size();
             log.debug("Found list of tags of length {}", listsize);
 
-            final CrestBaseResponse setdto = new TagSetDto().resources(dtolist).format("TagSetDto")
+            final CrestBaseResponse setdto = new TagSetDto().resources(dtolist)
                     .filter(filters).size(listsize).datatype("tags");
             return Response.ok().entity(setdto).build();
         }
         catch (final NotExistsPojoException e) {
             // This is triggered in case the GlobalTag was not found.
             log.warn("Api  method findGlobalTagFetchTags cannot find resources: {}", e);
-            final CrestBaseResponse setdto = new TagSetDto().format("TagSetDto")
+            final CrestBaseResponse setdto = new TagSetDto()
                     .filter(filters).size(0L).datatype("tags");
             return Response.status(Response.Status.OK).entity(setdto).build();
         }
@@ -225,11 +227,17 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
                 wherepred = prh.buildWhere(filtering, by);
             }
             // Search for global tags using where conditions.
-            final Iterable<GlobalTag> entitylist = globaltagService.findAllGlobalTags(wherepred, preq);
-            final List<GlobalTagDto> dtolist = edh.entityToDtoList(entitylist, GlobalTagDto.class);
+            final Page<GlobalTag> entitypage = globaltagService.findAllGlobalTags(wherepred, preq);
+            RespPage respPage = new RespPage().size(entitypage.getSize())
+                    .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
+                    .number(entitypage.getNumber());
+
+            final List<GlobalTagDto> dtolist = edh.entityToDtoList(entitypage.toList(), GlobalTagDto.class);
             final Response.Status rstatus = Response.Status.OK;
             final CrestBaseResponse setdto = new GlobalTagSetDto().resources(dtolist)
-                    .format("GlobalTagSetDto").size((long) dtolist.size()).datatype("globaltags");
+                    .size((long) dtolist.size())
+                    .page(respPage)
+                    .datatype("globaltags");
             if (filters != null) {
                 setdto.filter(filters);
             }

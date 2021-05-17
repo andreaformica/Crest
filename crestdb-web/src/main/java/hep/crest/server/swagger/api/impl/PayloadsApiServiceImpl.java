@@ -417,11 +417,10 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         try {
             // Read input FormData as an IovSet object.
             final IovSetDto dto = jacksonMapper.readValue(iovsetupload,IovSetDto.class);
-            log.info("Batch insertion of {} iovs using file formatted in {}", dto.getSize(),
-                    dto.getFormat());
+            log.info("Batch insertion of {} iovs using file formatted", dto.getSize());
             // Add object type.
             if (objectType == null) {
-                objectType = dto.getFormat();
+                objectType = dto.getDatatype();
             }
             // Add version.
             if (version == null) {
@@ -490,10 +489,10 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             final IovSetDto dto = jacksonMapper.readValue(iovsetupload,IovSetDto.class);
 
             log.info("Batch insertion of {} iovs using file formatted in {}", dto.getSize(),
-                    dto.getFormat());
+                    dto.getDatatype());
             // Add object type.
             if (objectType == null) {
-                objectType = dto.getFormat();
+                objectType = dto.getDatatype();
             }
             // Add version.
             if (version == null) {
@@ -547,7 +546,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             String filename = null;
             log.debug("Store from iovset the entry {}", piovDto);
             final Map<String, String> sinfomap = new HashMap<>();
-            sinfomap.put("format", dto.getFormat());
+            sinfomap.put("format", dto.getDatatype());
             sinfomap.put("insertionDate", new Date().toString());
             if (streamerInfo != null) {
                 sinfomap.put("streamerInfo", streamerInfo);

@@ -249,7 +249,7 @@ public class TestCrestPayload {
         final IovDto iovdto1 = DataGenerator.generateIovDto("file:///tmp/pyld1.json", tagname, new BigDecimal(2000000L));
         final IovDto iovdto2 = DataGenerator.generateIovDto("file:///tmp/pyld2.json", tagname, new BigDecimal(2100000L));
         final IovSetDto setdto = new IovSetDto();
-        setdto.format("json").size(2L);
+        setdto.size(2L);
         setdto.addResourcesItem(iovdto1).addResourcesItem(iovdto2);
         
         DataGenerator.generatePayloadData("/tmp/pyld1.json", "some content for file1");
@@ -273,7 +273,7 @@ public class TestCrestPayload {
         final IovDto iovdto3 = DataGenerator.generateIovDto("This will become a payload", tagname, new BigDecimal(3000000L));
         final IovDto iovdto4 = DataGenerator.generateIovDto("This will become another payload", tagname, new BigDecimal(3100000L));
         final IovSetDto setdto2 = new IovSetDto();
-        setdto2.format("txt").size(2L);
+        setdto2.size(2L);
         setdto2.addResourcesItem(iovdto3).addResourcesItem(iovdto4);
        
         log.info("Upload batch: {}", setdto2);

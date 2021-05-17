@@ -20,7 +20,6 @@ import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
-import java.time.temporal.ChronoField;
 import java.util.Locale;
 
 /**
@@ -45,15 +44,29 @@ public class ServicesConfig {
 
     @Bean(name = "jacksonMapper")
     public ObjectMapper getJacksonMapper() {
+//        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+//                // date/time
+//                .appendPattern("yyyy-MM-dd HH:mm:ss")
+//                // optional fraction of seconds (from 0 to 9 digits)
+//                .optionalStart().appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true).optionalEnd()
+//                // offset
+//                .appendPattern("xxx")
+//                // create formatter
+//                .toFormatter();
         DateTimeFormatter formatter = new DateTimeFormatterBuilder()
-                // date/time
-                .appendPattern("yyyy-MM-dd HH:mm:ss")
-                // optional fraction of seconds (from 0 to 9 digits)
-                .optionalStart().appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true).optionalEnd()
-                // offset
-                .appendPattern("xxx")
-                // create formatter
+                .parseCaseInsensitive()
+                .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                .optionalStart()
+                .appendPattern(".SSS")
+                .optionalEnd()
+                .optionalStart()
+                .appendZoneOrOffsetId()
+                .optionalEnd()
+                .optionalStart()
+                .appendOffset("+HHMM", "0000")
+                .optionalEnd()
                 .toFormatter();
+
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false);
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -75,9 +88,4 @@ public class ServicesConfig {
         slr.setDefaultLocale(Locale.US);
         return slr;
     }
-
-//    @Bean
-//    public KeycloakSpringBootConfigResolver keycloakConfigResolver() {
-//        return new KeycloakSpringBootConfigResolver();
-//    }
 }
