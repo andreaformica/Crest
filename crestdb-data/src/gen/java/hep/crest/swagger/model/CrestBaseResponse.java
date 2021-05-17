@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import hep.crest.swagger.model.GenericMap;
+import hep.crest.swagger.model.RespPage;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -31,6 +32,7 @@ import javax.validation.Valid;
 @JsonPropertyOrder({
   CrestBaseResponse.JSON_PROPERTY_SIZE,
   CrestBaseResponse.JSON_PROPERTY_DATATYPE,
+  CrestBaseResponse.JSON_PROPERTY_PAGE,
   CrestBaseResponse.JSON_PROPERTY_FILTER
 })
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "format", visible = true)
@@ -57,6 +59,10 @@ public class CrestBaseResponse   {
   public static final String JSON_PROPERTY_DATATYPE = "datatype";
   @JsonProperty(JSON_PROPERTY_DATATYPE)
   private String datatype;
+
+  public static final String JSON_PROPERTY_PAGE = "page";
+  @JsonProperty(JSON_PROPERTY_PAGE)
+  private RespPage page;
 
   public static final String JSON_PROPERTY_FILTER = "filter";
   @JsonProperty(JSON_PROPERTY_FILTER)
@@ -102,6 +108,26 @@ public class CrestBaseResponse   {
     this.datatype = datatype;
   }
 
+  public CrestBaseResponse page(RespPage page) {
+    this.page = page;
+    return this;
+  }
+
+  /**
+   * Get page
+   * @return page
+   **/
+  @JsonProperty("page")
+  @ApiModelProperty(value = "")
+  @Valid 
+  public RespPage getPage() {
+    return page;
+  }
+
+  public void setPage(RespPage page) {
+    this.page = page;
+  }
+
   public CrestBaseResponse filter(GenericMap filter) {
     this.filter = filter;
     return this;
@@ -134,12 +160,13 @@ public class CrestBaseResponse   {
     CrestBaseResponse crestBaseResponse = (CrestBaseResponse) o;
     return Objects.equals(this.size, crestBaseResponse.size) &&
         Objects.equals(this.datatype, crestBaseResponse.datatype) &&
+        Objects.equals(this.page, crestBaseResponse.page) &&
         Objects.equals(this.filter, crestBaseResponse.filter);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(size, datatype, filter);
+    return Objects.hash(size, datatype, page, filter);
   }
 
 
@@ -150,6 +177,7 @@ public class CrestBaseResponse   {
     
     sb.append("    size: ").append(toIndentedString(size)).append("\n");
     sb.append("    datatype: ").append(toIndentedString(datatype)).append("\n");
+    sb.append("    page: ").append(toIndentedString(page)).append("\n");
     sb.append("    filter: ").append(toIndentedString(filter)).append("\n");
     sb.append("}");
     return sb.toString();

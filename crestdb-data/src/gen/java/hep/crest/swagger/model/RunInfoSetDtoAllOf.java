@@ -29,38 +29,13 @@ import javax.validation.Valid;
  * RunInfoSetDtoAllOf
  */
 @JsonPropertyOrder({
-  RunInfoSetDtoAllOf.JSON_PROPERTY_FORMAT,
   RunInfoSetDtoAllOf.JSON_PROPERTY_RESOURCES
 })
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class RunInfoSetDtoAllOf   {
-  public static final String JSON_PROPERTY_FORMAT = "format";
-  @JsonProperty(JSON_PROPERTY_FORMAT)
-  private String format = "RunInfoSetDto";
-
   public static final String JSON_PROPERTY_RESOURCES = "resources";
   @JsonProperty(JSON_PROPERTY_RESOURCES)
   private List<RunInfoDto> resources = null;
-
-  public RunInfoSetDtoAllOf format(String format) {
-    this.format = format;
-    return this;
-  }
-
-  /**
-   * Get format
-   * @return format
-   **/
-  @JsonProperty("format")
-  @ApiModelProperty(value = "")
-  
-  public String getFormat() {
-    return format;
-  }
-
-  public void setFormat(String format) {
-    this.format = format;
-  }
 
   public RunInfoSetDtoAllOf resources(List<RunInfoDto> resources) {
     this.resources = resources;
@@ -100,13 +75,12 @@ public class RunInfoSetDtoAllOf   {
       return false;
     }
     RunInfoSetDtoAllOf runInfoSetDtoAllOf = (RunInfoSetDtoAllOf) o;
-    return Objects.equals(this.format, runInfoSetDtoAllOf.format) &&
-        Objects.equals(this.resources, runInfoSetDtoAllOf.resources);
+    return Objects.equals(this.resources, runInfoSetDtoAllOf.resources);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(format, resources);
+    return Objects.hash(resources);
   }
 
 
@@ -115,7 +89,6 @@ public class RunInfoSetDtoAllOf   {
     StringBuilder sb = new StringBuilder();
     sb.append("class RunInfoSetDtoAllOf {\n");
     
-    sb.append("    format: ").append(toIndentedString(format)).append("\n");
     sb.append("    resources: ").append(toIndentedString(resources)).append("\n");
     sb.append("}");
     return sb.toString();

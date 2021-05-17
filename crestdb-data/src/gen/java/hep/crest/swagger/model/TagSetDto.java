@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import hep.crest.swagger.model.CrestBaseResponse;
 import hep.crest.swagger.model.GenericMap;
+import hep.crest.swagger.model.RespPage;
 import hep.crest.swagger.model.TagDto;
 import hep.crest.swagger.model.TagSetDtoAllOf;
 import io.swagger.annotations.ApiModel;
@@ -33,38 +34,13 @@ import javax.validation.Valid;
  */
 @ApiModel(description = "An Set containing TagDto objects.")
 @JsonPropertyOrder({
-  TagSetDto.JSON_PROPERTY_FORMAT,
   TagSetDto.JSON_PROPERTY_RESOURCES
 })
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class TagSetDto extends CrestBaseResponse  {
-  public static final String JSON_PROPERTY_FORMAT = "format";
-  @JsonProperty(JSON_PROPERTY_FORMAT)
-  private String format = "TagSetDto";
-
   public static final String JSON_PROPERTY_RESOURCES = "resources";
   @JsonProperty(JSON_PROPERTY_RESOURCES)
   private List<TagDto> resources = null;
-
-  public TagSetDto format(String format) {
-    this.format = format;
-    return this;
-  }
-
-  /**
-   * Get format
-   * @return format
-   **/
-  @JsonProperty("format")
-  @ApiModelProperty(value = "")
-  
-  public String getFormat() {
-    return format;
-  }
-
-  public void setFormat(String format) {
-    this.format = format;
-  }
 
   public TagSetDto resources(List<TagDto> resources) {
     this.resources = resources;
@@ -104,14 +80,13 @@ public class TagSetDto extends CrestBaseResponse  {
       return false;
     }
     TagSetDto tagSetDto = (TagSetDto) o;
-    return Objects.equals(this.format, tagSetDto.format) &&
-        Objects.equals(this.resources, tagSetDto.resources) &&
+    return Objects.equals(this.resources, tagSetDto.resources) &&
         super.equals(o);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(format, resources, super.hashCode());
+    return Objects.hash(resources, super.hashCode());
   }
 
 
@@ -120,7 +95,6 @@ public class TagSetDto extends CrestBaseResponse  {
     StringBuilder sb = new StringBuilder();
     sb.append("class TagSetDto {\n");
     sb.append("    ").append(toIndentedString(super.toString())).append("\n");
-    sb.append("    format: ").append(toIndentedString(format)).append("\n");
     sb.append("    resources: ").append(toIndentedString(resources)).append("\n");
     sb.append("}");
     return sb.toString();

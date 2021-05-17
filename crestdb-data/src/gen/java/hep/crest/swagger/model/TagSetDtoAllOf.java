@@ -29,38 +29,13 @@ import javax.validation.Valid;
  * TagSetDtoAllOf
  */
 @JsonPropertyOrder({
-  TagSetDtoAllOf.JSON_PROPERTY_FORMAT,
   TagSetDtoAllOf.JSON_PROPERTY_RESOURCES
 })
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class TagSetDtoAllOf   {
-  public static final String JSON_PROPERTY_FORMAT = "format";
-  @JsonProperty(JSON_PROPERTY_FORMAT)
-  private String format = "TagSetDto";
-
   public static final String JSON_PROPERTY_RESOURCES = "resources";
   @JsonProperty(JSON_PROPERTY_RESOURCES)
   private List<TagDto> resources = null;
-
-  public TagSetDtoAllOf format(String format) {
-    this.format = format;
-    return this;
-  }
-
-  /**
-   * Get format
-   * @return format
-   **/
-  @JsonProperty("format")
-  @ApiModelProperty(value = "")
-  
-  public String getFormat() {
-    return format;
-  }
-
-  public void setFormat(String format) {
-    this.format = format;
-  }
 
   public TagSetDtoAllOf resources(List<TagDto> resources) {
     this.resources = resources;
@@ -100,13 +75,12 @@ public class TagSetDtoAllOf   {
       return false;
     }
     TagSetDtoAllOf tagSetDtoAllOf = (TagSetDtoAllOf) o;
-    return Objects.equals(this.format, tagSetDtoAllOf.format) &&
-        Objects.equals(this.resources, tagSetDtoAllOf.resources);
+    return Objects.equals(this.resources, tagSetDtoAllOf.resources);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(format, resources);
+    return Objects.hash(resources);
   }
 
 
@@ -115,7 +89,6 @@ public class TagSetDtoAllOf   {
     StringBuilder sb = new StringBuilder();
     sb.append("class TagSetDtoAllOf {\n");
     
-    sb.append("    format: ").append(toIndentedString(format)).append("\n");
     sb.append("    resources: ").append(toIndentedString(resources)).append("\n");
     sb.append("}");
     return sb.toString();

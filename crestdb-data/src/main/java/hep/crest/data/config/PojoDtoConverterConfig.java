@@ -71,8 +71,15 @@ public class PojoDtoConverterConfig {
      * @return
      */
     protected void initGlobalTagMap(MapperFactory mapperFactory) {
-        mapperFactory.classMap(GlobalTag.class, GlobalTagDto.class).exclude("globalTagMaps")
-                .byDefault().register();
+        mapperFactory.classMap(GlobalTag.class, GlobalTagDto.class).exclude("globalTagMaps").byDefault()
+                .customize(new CustomMapper<GlobalTag, GlobalTagDto>() {
+                    @Override
+                    public void mapAtoB(GlobalTag a, GlobalTagDto b, MappingContext context) {
+                        Long instimemilli = (a.getInsertionTime().getTime());
+                        Long snaptimemilli = (a.getSnapshotTime().getTime());
+                        b.insertionTimeMilli(instimemilli).snapshotTimeMilli(snaptimemilli);
+                    }
+                }).register();
     }
 
     /**

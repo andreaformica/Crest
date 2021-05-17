@@ -20,6 +20,7 @@ import hep.crest.swagger.model.CrestBaseResponse;
 import hep.crest.swagger.model.GenericMap;
 import hep.crest.swagger.model.GlobalTagMapDto;
 import hep.crest.swagger.model.GlobalTagMapSetDtoAllOf;
+import hep.crest.swagger.model.RespPage;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.ArrayList;
@@ -33,38 +34,13 @@ import javax.validation.Valid;
  */
 @ApiModel(description = "An GlobalTagMapSet containing GlobalTagMapDto objects.")
 @JsonPropertyOrder({
-  GlobalTagMapSetDto.JSON_PROPERTY_FORMAT,
   GlobalTagMapSetDto.JSON_PROPERTY_RESOURCES
 })
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class GlobalTagMapSetDto extends CrestBaseResponse  {
-  public static final String JSON_PROPERTY_FORMAT = "format";
-  @JsonProperty(JSON_PROPERTY_FORMAT)
-  private String format = "GlobalTagMapSetDto";
-
   public static final String JSON_PROPERTY_RESOURCES = "resources";
   @JsonProperty(JSON_PROPERTY_RESOURCES)
   private List<GlobalTagMapDto> resources = null;
-
-  public GlobalTagMapSetDto format(String format) {
-    this.format = format;
-    return this;
-  }
-
-  /**
-   * Get format
-   * @return format
-   **/
-  @JsonProperty("format")
-  @ApiModelProperty(value = "")
-  
-  public String getFormat() {
-    return format;
-  }
-
-  public void setFormat(String format) {
-    this.format = format;
-  }
 
   public GlobalTagMapSetDto resources(List<GlobalTagMapDto> resources) {
     this.resources = resources;
@@ -104,14 +80,13 @@ public class GlobalTagMapSetDto extends CrestBaseResponse  {
       return false;
     }
     GlobalTagMapSetDto globalTagMapSetDto = (GlobalTagMapSetDto) o;
-    return Objects.equals(this.format, globalTagMapSetDto.format) &&
-        Objects.equals(this.resources, globalTagMapSetDto.resources) &&
+    return Objects.equals(this.resources, globalTagMapSetDto.resources) &&
         super.equals(o);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(format, resources, super.hashCode());
+    return Objects.hash(resources, super.hashCode());
   }
 
 
@@ -120,7 +95,6 @@ public class GlobalTagMapSetDto extends CrestBaseResponse  {
     StringBuilder sb = new StringBuilder();
     sb.append("class GlobalTagMapSetDto {\n");
     sb.append("    ").append(toIndentedString(super.toString())).append("\n");
-    sb.append("    format: ").append(toIndentedString(format)).append("\n");
     sb.append("    resources: ").append(toIndentedString(resources)).append("\n");
     sb.append("}");
     return sb.toString();

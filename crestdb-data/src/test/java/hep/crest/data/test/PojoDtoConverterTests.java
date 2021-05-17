@@ -173,7 +173,6 @@ public class PojoDtoConverterTests {
         assertThat(dto1).isEqualTo(dto1bis);
         final GlobalTagSetDto setdto = new GlobalTagSetDto();
         setdto.datatype("globaltags");
-        setdto.format("JSON");
         setdto.addResourcesItem(dto1).addResourcesItem(dto2);
         assertThat(setdto.toString().length()).isPositive();
         assertThat(setdto.hashCode()).isNotZero();
@@ -185,7 +184,6 @@ public class PojoDtoConverterTests {
         }
         final GlobalTagSetDto setdto2 = new GlobalTagSetDto();
         setdto2.datatype("globaltags");
-        setdto2.format("JSON");
         setdto2.setResources(resources);
         assertThat(setdto2).isEqualTo(setdto);
     }
@@ -203,7 +201,6 @@ public class PojoDtoConverterTests {
 
         final GlobalTagMapSetDto setdto = new GlobalTagMapSetDto();
         setdto.datatype("maps");
-        setdto.format("JSON");
         setdto.addResourcesItem(dto1).addResourcesItem(dto2);
         assertThat(setdto.toString().length()).isPositive();
         assertThat(setdto.hashCode()).isNotZero();
@@ -215,7 +212,6 @@ public class PojoDtoConverterTests {
         }
         final GlobalTagMapSetDto setdto2 = new GlobalTagMapSetDto();
         setdto2.datatype("maps");
-        setdto2.format("JSON");
         setdto2.setResources(resources);
         assertThat(setdto2).isEqualTo(setdto);
     }
@@ -226,7 +222,6 @@ public class PojoDtoConverterTests {
         final IovDto dto2 = DataGenerator.generateIovDto("MYHASH2", "MT-02", new BigDecimal(2000L));
         final IovSetDto setdto = new IovSetDto();
         setdto.datatype("iovs");
-        setdto.format("JSON");
         setdto.addResourcesItem(dto1).addResourcesItem(dto2);
         assertThat(setdto.toString().length()).isPositive();
         assertThat(setdto.hashCode()).isNotZero();
@@ -238,7 +233,6 @@ public class PojoDtoConverterTests {
         }
         final IovSetDto setdto2 = new IovSetDto();
         setdto2.datatype("iovs");
-        setdto2.format("JSON");
         setdto2.setResources(resources);
         assertThat(setdto2).isEqualTo(setdto);
     }
@@ -249,7 +243,6 @@ public class PojoDtoConverterTests {
         final TagDto dto2 = DataGenerator.generateTagDto("MY-TAG-02", "time");
         final TagSetDto setdto = new TagSetDto();
         setdto.datatype("tags");
-        setdto.format("JSON");
         setdto.addResourcesItem(dto1).addResourcesItem(dto2);
         assertThat(setdto.toString().length()).isPositive();
         assertThat(setdto.hashCode()).isNotZero();
@@ -262,7 +255,6 @@ public class PojoDtoConverterTests {
         }
         final TagSetDto setdto2 = new TagSetDto();
         setdto2.datatype("tags");
-        setdto2.format("JSON");
         setdto2.setResources(resources);
         assertThat(setdto2).isEqualTo(setdto);
     }
@@ -274,7 +266,6 @@ public class PojoDtoConverterTests {
 
         final TagSummarySetDto setdto = new TagSummarySetDto();
         setdto.datatype("tags");
-        setdto.format("JSON");
         setdto.addResourcesItem(dto1).addResourcesItem(dto2);
         assertThat(setdto.toString().length()).isPositive();
         assertThat(setdto.hashCode()).isNotZero();
@@ -301,17 +292,14 @@ public class PojoDtoConverterTests {
         
         setdto.filter(filterm);
         setdto.addResourcesItem(dto1);
-        setdto.format("RunInfo");
-        
+
         final RunInfoSetDto setdto2 = new RunInfoSetDto();
         setdto2.filter(filterm);
         setdto2.datatype("RunInfoSetDto");
-        setdto2.format("RunInfo");
         setdto2.addResourcesItem(dto1);
         assertThat(setdto2).isEqualTo(setdto);
         assertThat(setdto.toString()).isNotNull();
         setdto2.filter(setdto.getFilter());
-        setdto2.format(setdto.getFormat());
     }
 
     @Test
@@ -399,7 +387,6 @@ public class PojoDtoConverterTests {
         assertThat(dto1.getHash()).isEqualTo(dto1bis.getHash());
         final PayloadSetDto setdto = new PayloadSetDto();
         setdto.datatype("payloads");
-        setdto.format("JSON");
         setdto.addResourcesItem(dto1);
         assertThat(setdto.toString().length()).isPositive();
         assertThat(setdto.hashCode()).isNotZero();
@@ -434,8 +421,7 @@ public class PojoDtoConverterTests {
         final IovPayloadSetDto psetdto = new IovPayloadSetDto();
         psetdto.addResourcesItem(ipdto1).addResourcesItem(ipdto2);
         psetdto.datatype("IovPayloadSetDto");
-        psetdto.format("iovpayloaddto");
-        
+
         assertThat(psetdto.getResources()).isNotNull();
         assertThat(ipdto1).isNotEqualTo(ipdto2);
         
@@ -445,8 +431,7 @@ public class PojoDtoConverterTests {
         final IovPayloadSetDto psetdto1 = new IovPayloadSetDto();
         psetdto1.resources(plist);
         psetdto1.setDatatype("IovPayloadSetDto");
-        psetdto1.setFormat("iovpayloaddto");
-        
+
         assertThat(psetdto).isEqualTo(psetdto1);
         assertThat(psetdto.toString().length()).isPositive();
     }

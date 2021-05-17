@@ -13,7 +13,7 @@ generate_globaltag_data()
 {
   "description": "A new global tag for testing",
   "validity": -1.0,
-  "name": "GT-TAG-01",
+  "name": "$1",
   "release": "v1",
   "snapshotTime": 0,
   "scenario": "data challenge",
@@ -52,13 +52,14 @@ function get_data() {
 function post_data() {
   echo "Using token ${token}"
   pdata=$2
-  if [ ${token} == "" ]; then
-     resp=`curl -X POST -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$1" --data "${pdata}"`  
+  if [ "${token}" == "" ]; then
+     echo "Request: curl -X POST -H \"Accept: application/json\" -H \"Content-Type: application/json\" \"${host}/${apiname}/$1\" --data \"${pdata}\""
+     resp=`curl -X POST -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$1" --data "${pdata}"`
   else
      echo "Request: curl -X POST -H \"Authorization: Bearer ${token}\" -H \"Accept: application/json\" -H \"Content-Type: application/json\" \"${host}/${apiname}/$1\" --data \"${pdata}\""
      resp=`curl -X POST -H "Authorization: Bearer ${token}" -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$1" --data "${pdata}"`
   fi
-  echo "Received response "
+  echo "Received response $resp"
   echo $resp | json_pp
 }
 
@@ -89,6 +90,12 @@ function create_tag() {
   echo "Upload ${tdata}"
   post_data "tags" "$tdata"
 }
+function create_globaltag() {
+  echo "Execute $1 : create global tag $2 "
+  tdata="$(generate_globaltag_data  $2)"
+  echo "Upload ${tdata}"
+  post_data "globaltags" "$tdata"
+}
 
 function multi_upload() {
   echo "Execute $1 : add data to tag $2 using an iov interval $3 to $4"
@@ -108,7 +115,7 @@ function multi_upload() {
     echo $(generate_multi_upload_data $tag)
 
   echo "Using token ${token}"
-  if [ ${token} == "" ]; then
+  if [ "${token}" == "" ]; then
     resp=`curl -X POST --form tag="${tag}" --form endtime=0 --form iovsetupload="$(generate_multi_upload_data)"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads/uploadbatch"`
   else
     resp=`curl -X POST -H "Authorization: Bearer ${token}" --form tag="${tag}" --form endtime=0 --form iovsetupload="$(generate_multi_upload_data)"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads/uploadbatch"`
@@ -124,9 +131,9 @@ echo "Use host = $host apiname $apiname"
 echo "Execute $3"
 
 #### this section should be uncommented for AUTH with keycloak
-token="${ACCESS_TOKEN}"
+##token="${ACCESS_TOKEN}"
 
-### token=
+token=
 
 if [ "$host" == "help" ]; then
   echo "$0 <host> <apiname> <command>"
