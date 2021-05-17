@@ -75,9 +75,18 @@ public class PojoDtoConverterConfig {
                 .customize(new CustomMapper<GlobalTag, GlobalTagDto>() {
                     @Override
                     public void mapAtoB(GlobalTag a, GlobalTagDto b, MappingContext context) {
-                        Long instimemilli = (a.getInsertionTime().getTime());
-                        Long snaptimemilli = (a.getSnapshotTime().getTime());
-                        b.insertionTimeMilli(instimemilli).snapshotTimeMilli(snaptimemilli);
+                        if (a.getInsertionTime() != null) {
+                            Long instimemilli = (a.getInsertionTime().getTime());
+                            b.insertionTimeMilli(instimemilli);
+                        }
+                        if (a.getSnapshotTime() != null) {
+                            Long snaptimemilli = (a.getSnapshotTime().getTime());
+                            b.snapshotTimeMilli(snaptimemilli);
+                        }
+                    }
+                    @Override
+                    public void mapBtoA(GlobalTagDto a, GlobalTag b, MappingContext context) {
+                        // ignore the millisec fields.
                     }
                 }).register();
     }

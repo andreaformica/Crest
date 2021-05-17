@@ -1304,6 +1304,8 @@ components:
           format: int64
         datatype:
           type: string
+        format:
+          type: string
         page:
           $ref: "#/components/schema/RespPage"
         filter:

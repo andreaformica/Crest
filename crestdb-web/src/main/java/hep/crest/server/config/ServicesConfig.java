@@ -20,6 +20,7 @@ import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.Locale;
 
 /**
@@ -55,16 +56,9 @@ public class ServicesConfig {
 //                .toFormatter();
         DateTimeFormatter formatter = new DateTimeFormatterBuilder()
                 .parseCaseInsensitive()
-                .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                .optionalStart()
-                .appendPattern(".SSS")
-                .optionalEnd()
-                .optionalStart()
-                .appendZoneOrOffsetId()
-                .optionalEnd()
-                .optionalStart()
-                .appendOffset("+HHMM", "0000")
-                .optionalEnd()
+                .appendPattern("yyyy-MM-dd'T'HH:mm:ss")
+                .optionalStart().appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true).optionalEnd()
+                .appendPattern("xxxx")
                 .toFormatter();
 
         ObjectMapper mapper = new ObjectMapper();

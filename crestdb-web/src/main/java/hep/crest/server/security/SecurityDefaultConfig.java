@@ -12,7 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.web.context.WebApplicationContext;
 
-@Profile("default")
+@Profile({"default", "test", "sqlite"})
 @Configuration
 @EnableWebSecurity
 public class SecurityDefaultConfig extends WebSecurityConfigurerAdapter {
@@ -21,7 +21,6 @@ public class SecurityDefaultConfig extends WebSecurityConfigurerAdapter {
         http.authorizeRequests().antMatchers("/**").permitAll();
         http.headers().frameOptions().disable();
         http.csrf().disable();
-
     }
 
     @Override
@@ -35,7 +34,6 @@ public class SecurityDefaultConfig extends WebSecurityConfigurerAdapter {
         AccessToken accessToken = new AccessToken();
         accessToken.setSubject("abc");
         accessToken.setName("Tester");
-
         return accessToken;
     }
 }

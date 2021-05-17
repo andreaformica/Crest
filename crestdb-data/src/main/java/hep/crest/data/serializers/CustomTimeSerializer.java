@@ -31,6 +31,8 @@ public class CustomTimeSerializer extends JsonSerializer<OffsetDateTime> {
     @Override
     public void serialize(OffsetDateTime value, JsonGenerator gen, SerializerProvider provider)
             throws IOException, JsonProcessingException {
+        System.out.println("========= ser : " + value.toString());
         gen.writeString(value.format(this.formatter));
+        System.out.println("========= string : " + value.format(this.formatter));
     }
 }

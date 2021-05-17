@@ -8,10 +8,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import hep.crest.data.serializers.CustomTimeDeserializer;
+import hep.crest.data.serializers.CustomTimeSerializer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -496,14 +505,37 @@ public class PojoDtoConverterTests {
     @Test
     public void testDeserializer() {
         final ObjectMapper locmapper = new ObjectMapper();
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                .parseCaseInsensitive()
+                .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                .optionalStart()
+                .appendPattern(".SSS")
+                .optionalEnd()
+                .optionalStart()
+                .appendZoneOrOffsetId()
+                .optionalEnd()
+                .optionalStart()
+                .appendOffset("+HHMM", "0000")
+                .optionalEnd()
+                .toFormatter();
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false);
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.setDateFormat(new StdDateFormat());
+        JavaTimeModule module = new JavaTimeModule();
+        module.addSerializer(OffsetDateTime.class, new CustomTimeSerializer(formatter));
+        module.addDeserializer(OffsetDateTime.class, new CustomTimeDeserializer(formatter));
+        mapper.registerModule(module);
+
 //        final SimpleModule module = new SimpleModule();
 //
 //        module.addDeserializer(Timestamp.class, new TimestampDeserializer());
 //        module.addDeserializer(byte[].class, new ByteArrayDeserializer());
         
         final String json = "{ \"data\" : \"VGhpcyBpcyBhIG5vcm1hbCB0ZXh0Cg==\", " +
-                "\"instime\" : \"2011-12-03T10:15:30+01:00\", " +
-                "\"insdate\" : \"2020-12-03T22:15:30+01:00\", " +
+                "\"instime\" : \"2011-12-03T10:15:30+0100\", " +
+                "\"insdate\" : \"2020-12-03T22:15:30+0100\", " +
                 "\"name\" : \"MyTest\"}";
         
         try {

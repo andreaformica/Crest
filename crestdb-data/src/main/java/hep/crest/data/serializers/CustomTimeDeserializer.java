@@ -31,6 +31,9 @@ public class CustomTimeDeserializer extends JsonDeserializer<OffsetDateTime> {
     @Override
     public OffsetDateTime deserialize(JsonParser parser, DeserializationContext context)
             throws IOException, JsonProcessingException {
-        return OffsetDateTime.parse(parser.getText(), this.formatter);
+        System.out.println("========= deser : " + parser.getText());
+        OffsetDateTime odt = OffsetDateTime.parse(parser.getText(), this.formatter);
+        System.out.println("========= odt : " + odt.toString());
+        return odt;
     }
 }
