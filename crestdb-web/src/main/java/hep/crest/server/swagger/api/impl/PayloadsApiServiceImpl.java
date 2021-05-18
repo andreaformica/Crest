@@ -6,6 +6,7 @@ import hep.crest.data.config.CrestProperties;
 import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.exceptions.PayloadEncodingException;
 import hep.crest.data.handlers.PayloadHandler;
+import hep.crest.data.pojo.Tag;
 import hep.crest.server.annotations.CacheControlCdb;
 import hep.crest.server.caching.CachingPolicyService;
 import hep.crest.server.exceptions.AlreadyExistsPojoException;
@@ -21,6 +22,7 @@ import hep.crest.swagger.model.IovDto;
 import hep.crest.swagger.model.IovSetDto;
 import hep.crest.swagger.model.PayloadDto;
 import hep.crest.swagger.model.PayloadSetDto;
+import hep.crest.swagger.model.TagDto;
 import ma.glasnost.orika.MapperFacade;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -48,6 +50,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -649,6 +652,51 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             final String msg = "Error retrieving payload from hash " + hash;
             log.error("getPayloadMetaInfo error: {}", msg);
             return rfh.internalError(msg);
+        }
+    }
+
+    @Override
+    public Response updatePayload(String hash, Map<String, String> body, SecurityContext securityContext,
+                                  UriInfo info)
+            throws NotFoundException {
+        this.log.info(
+                "PayloadRestController processing request for update payload meta information for {}",
+                hash);
+        try {
+            // Search payload.
+            PayloadDto entity = payloadService.getPayloadMetaInfo(hash);
+            String sinfo = null;
+            // Send a bad request if body is null.
+            if (body == null) {
+                return rfh.badRequest("Cannot update payload " + entity.getHash() + ": body is null");
+            }
+            // Loop over map body keys.
+            for (final String key : body.keySet()) {
+                if ("streamerInfo".equals(key)) {
+                    // Update description.
+                    sinfo = body.get(key);
+                }
+                else {
+                    log.warn("Ignored key {} in updatePayload: field does not exists", key);
+                }
+            }
+            int updated = payloadService.updatePayloadMetaInfo(hash, sinfo);
+            entity = payloadService.getPayloadMetaInfo(hash);
+            final PayloadSetDto psetdto = buildSet(entity, hash);
+            return Response.ok()
+                    .header("Content-type", MediaType.APPLICATION_JSON_TYPE.toString())
+                    .entity(psetdto).build();
+        }
+        catch (final NotExistsPojoException e) {
+            // Exception, tag not found, send 404.
+            final String message = "No payload resource has been found for " + hash;
+            return rfh.notFoundPojo("Cannot find hash: " + hash);
+        }
+        catch (final RuntimeException e) {
+            // Exception, send 500.
+            final String message = e.getMessage();
+            log.error("Api method updatePayload got exception {}", message);
+            return rfh.internalError("updatePayload error: " + message);
         }
     }
 

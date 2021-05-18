@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.io.File;
 import hep.crest.swagger.model.HTTPResponse;
 import hep.crest.swagger.model.IovSetDto;
+import java.util.Map;
 import hep.crest.swagger.model.PayloadDto;
 import hep.crest.swagger.model.PayloadSetDto;
 
@@ -115,6 +116,18 @@ public class PayloadsApi  {
  @FormDataParam("file") FormDataBodyPart fileBodypart ,@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,@ApiParam(value = "The since time", required=true)@FormDataParam("since")  BigDecimal since,@ApiParam(value = "The format of the input data" , defaultValue="JSON")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time")@FormDataParam("endtime")  BigDecimal endtime,@ApiParam(value = "The streamerInfo CLOB as a string")@FormDataParam("streamerInfo")  String streamerInfo,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
         return delegate.storePayloadWithIovMultiForm(fileBodypart, tag, since, xCrestPayloadFormat, objectType, version, endtime, streamerInfo, securityContext, info);
+    }
+    @PUT
+    @Path("/{hash}/meta")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json", "application/xml" })
+    @io.swagger.annotations.ApiOperation(value = "Update a streamerInfo in a payload", notes = "This method will get a payload from its hash, and update streamer info content for the provided body fields: streamerInfo.", response = PayloadSetDto.class, tags={ "payloads", })
+    @io.swagger.annotations.ApiResponses(value = {
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = PayloadSetDto.class)
+    })
+    public Response updatePayload(@ApiParam(value = "hash:  the hash of the payload", required = true) @PathParam("hash") @NotNull  String hash,@ApiParam(value = "") @Valid  Map<String, String> requestBody,@Context SecurityContext securityContext,@Context UriInfo info)
+    throws NotFoundException {
+        return delegate.updatePayload(hash, requestBody, securityContext, info);
     }
     @POST
     @Path("/uploadbatch")

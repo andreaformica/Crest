@@ -7,6 +7,8 @@
 spring:
     profiles:
       include: crest
+    autoconfigure:
+      exclude: org.keycloak.adapters.springboot.KeycloakAutoConfiguration
     jersey:
       application-path: ${crest.api.name}
     datasource:

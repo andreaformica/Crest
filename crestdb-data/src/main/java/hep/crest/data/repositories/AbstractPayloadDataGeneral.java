@@ -17,6 +17,7 @@ import javax.persistence.Table;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -278,6 +279,29 @@ public abstract class AbstractPayloadDataGeneral implements PayloadDataBaseCusto
             log.error("Cannot find payload with data for hash {}: {}", id, e);
         }
         return null;
+    }
+
+    /**
+     * The method does not access blob data.
+     *
+     * @param id           the String
+     * @param streamerInfo the String
+     * @return number of updated rows.
+     */
+    @Override
+    public int updateMetaInfo(String id, String streamerInfo) {
+        log.info("Update payload streamer info {} using JDBCTEMPLATE", id);
+        try {
+            final JdbcTemplate jdbcTemplate = new JdbcTemplate(ds);
+            final String tablename = this.tablename();
+
+            final String sql = SqlRequests.getUpdateMetaQuery(tablename);
+            return jdbcTemplate.update(sql, streamerInfo.getBytes(StandardCharsets.UTF_8), id);
+        }
+        catch (final DataAccessException e) {
+            log.error("Cannot update streamer info payload with data for hash {}: {}", id, e);
+        }
+        return 0;
     }
 
     /**

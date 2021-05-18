@@ -60,6 +60,17 @@ public interface PayloadDataBaseCustom {
     PayloadDto findMetaInfo(String id);
 
     /**
+     * The method does not access blob data.
+     *
+     * @param id
+     *            the String
+     * @param streamerInfo
+     *            the String
+     * @return The number of updated rows.
+     */
+    int updateMetaInfo(String id, String streamerInfo);
+
+    /**
      * @param entity
      *            the PayloadDto
      * @return Either the entity which has been saved or null.

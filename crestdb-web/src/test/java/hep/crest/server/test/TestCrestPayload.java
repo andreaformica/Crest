@@ -1,6 +1,7 @@
 package hep.crest.server.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hep.crest.swagger.model.GenericMap;
 import hep.crest.swagger.model.IovDto;
 import hep.crest.swagger.model.IovSetDto;
 import hep.crest.swagger.model.PayloadDto;
@@ -139,6 +140,20 @@ public class TestCrestPayload {
         {
             log.info("Retrieved meta payload {} ", dto1.getHash());
             assertThat(resp4.getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
+        // Update streamer info
+        log.info("Update streamer info on {}", dto1.getHash());
+        final GenericMap mapinfo = new GenericMap();
+        mapinfo.put("streamerInfo", dto1.getStreamerInfo()+"-modified");
+        final HttpEntity<GenericMap> requestupd = new HttpEntity<GenericMap>(
+                mapinfo, null);
+        // Now retrieve metadata only
+        final ResponseEntity<String> resp5 = this.testRestTemplate.exchange(
+                "/crestapi/payloads/" + dto1.getHash() + "/meta", HttpMethod.PUT, requestupd,
+                String.class);
+        {
+            log.info("Updated meta payload {} ", dto1.getHash());
+            assertThat(resp5.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
 
     }

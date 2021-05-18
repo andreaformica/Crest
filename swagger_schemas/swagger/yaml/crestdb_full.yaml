@@ -1135,6 +1135,34 @@ paths:
             application/xml:
               schema:
                 $ref: "#/components/schemas/PayloadSetDto"
+    put:
+      tags:
+        - payloads
+      summary: Update a streamerInfo in a payload
+      description: 'This method will get a payload from its hash, and update streamer info content for the provided body fields: streamerInfo.'
+      operationId: updatePayload
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericMap'
+      parameters:
+        - name: hash
+          in: path
+          description: 'hash:  the hash of the payload'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayloadSetDto"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/PayloadSetDto"
   /tags:
     get:
       tags:
