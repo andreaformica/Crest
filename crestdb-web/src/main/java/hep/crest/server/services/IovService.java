@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -118,13 +119,13 @@ public class IovService {
      *            the Predicate
      * @param req
      *            the Pageable
-     * @return Iterable<Iov>
+     * @return Page<Iov>
      */
-    public Iterable<Iov> findAllIovs(Predicate qry, Pageable req) {
+    public Page<Iov> findAllIovs(Predicate qry, Pageable req) {
+        Page<Iov> entitylist = null;
         if (req == null) {
-            throw new IllegalArgumentException("Pagination parameter are mandatory for IOVs");
+            req = PageRequest.of(0, 1000);
         }
-        Iterable<Iov> entitylist = null;
         if (qry == null) {
             entitylist = iovRepository.findAll(req);
         }
@@ -133,6 +134,7 @@ public class IovService {
         }
         return entitylist;
     }
+
 
     /**
      * @param tagname

@@ -29,38 +29,13 @@ import javax.validation.Valid;
  * FolderSetDtoAllOf
  */
 @JsonPropertyOrder({
-  FolderSetDtoAllOf.JSON_PROPERTY_FORMAT,
   FolderSetDtoAllOf.JSON_PROPERTY_RESOURCES
 })
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class FolderSetDtoAllOf   {
-  public static final String JSON_PROPERTY_FORMAT = "format";
-  @JsonProperty(JSON_PROPERTY_FORMAT)
-  private String format = "FolderSetDto";
-
   public static final String JSON_PROPERTY_RESOURCES = "resources";
   @JsonProperty(JSON_PROPERTY_RESOURCES)
   private List<FolderDto> resources = null;
-
-  public FolderSetDtoAllOf format(String format) {
-    this.format = format;
-    return this;
-  }
-
-  /**
-   * Get format
-   * @return format
-   **/
-  @JsonProperty("format")
-  @ApiModelProperty(value = "")
-  
-  public String getFormat() {
-    return format;
-  }
-
-  public void setFormat(String format) {
-    this.format = format;
-  }
 
   public FolderSetDtoAllOf resources(List<FolderDto> resources) {
     this.resources = resources;
@@ -100,13 +75,12 @@ public class FolderSetDtoAllOf   {
       return false;
     }
     FolderSetDtoAllOf folderSetDtoAllOf = (FolderSetDtoAllOf) o;
-    return Objects.equals(this.format, folderSetDtoAllOf.format) &&
-        Objects.equals(this.resources, folderSetDtoAllOf.resources);
+    return Objects.equals(this.resources, folderSetDtoAllOf.resources);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(format, resources);
+    return Objects.hash(resources);
   }
 
 
@@ -115,7 +89,6 @@ public class FolderSetDtoAllOf   {
     StringBuilder sb = new StringBuilder();
     sb.append("class FolderSetDtoAllOf {\n");
     
-    sb.append("    format: ").append(toIndentedString(format)).append("\n");
     sb.append("    resources: ").append(toIndentedString(resources)).append("\n");
     sb.append("}");
     return sb.toString();

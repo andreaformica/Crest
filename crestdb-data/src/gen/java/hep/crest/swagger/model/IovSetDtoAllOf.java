@@ -29,38 +29,13 @@ import javax.validation.Valid;
  * IovSetDtoAllOf
  */
 @JsonPropertyOrder({
-  IovSetDtoAllOf.JSON_PROPERTY_FORMAT,
   IovSetDtoAllOf.JSON_PROPERTY_RESOURCES
 })
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class IovSetDtoAllOf   {
-  public static final String JSON_PROPERTY_FORMAT = "format";
-  @JsonProperty(JSON_PROPERTY_FORMAT)
-  private String format = "IovSetDto";
-
   public static final String JSON_PROPERTY_RESOURCES = "resources";
   @JsonProperty(JSON_PROPERTY_RESOURCES)
   private List<IovDto> resources = null;
-
-  public IovSetDtoAllOf format(String format) {
-    this.format = format;
-    return this;
-  }
-
-  /**
-   * Get format
-   * @return format
-   **/
-  @JsonProperty("format")
-  @ApiModelProperty(value = "")
-  
-  public String getFormat() {
-    return format;
-  }
-
-  public void setFormat(String format) {
-    this.format = format;
-  }
 
   public IovSetDtoAllOf resources(List<IovDto> resources) {
     this.resources = resources;
@@ -100,13 +75,12 @@ public class IovSetDtoAllOf   {
       return false;
     }
     IovSetDtoAllOf iovSetDtoAllOf = (IovSetDtoAllOf) o;
-    return Objects.equals(this.format, iovSetDtoAllOf.format) &&
-        Objects.equals(this.resources, iovSetDtoAllOf.resources);
+    return Objects.equals(this.resources, iovSetDtoAllOf.resources);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(format, resources);
+    return Objects.hash(resources);
   }
 
 
@@ -115,7 +89,6 @@ public class IovSetDtoAllOf   {
     StringBuilder sb = new StringBuilder();
     sb.append("class IovSetDtoAllOf {\n");
     
-    sb.append("    format: ").append(toIndentedString(format)).append("\n");
     sb.append("    resources: ").append(toIndentedString(resources)).append("\n");
     sb.append("}");
     return sb.toString();

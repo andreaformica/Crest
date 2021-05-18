@@ -22,6 +22,7 @@ import hep.crest.swagger.model.IovDto;
 import hep.crest.swagger.model.IovPayloadDto;
 import hep.crest.swagger.model.IovPayloadSetDto;
 import hep.crest.swagger.model.IovSetDto;
+import hep.crest.swagger.model.RespPage;
 import hep.crest.swagger.model.TagSummaryDto;
 import hep.crest.swagger.model.TagSummarySetDto;
 import ma.glasnost.orika.MapperFacade;
@@ -29,10 +30,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
@@ -180,11 +184,14 @@ public class IovsApiServiceImpl extends IovsApiService {
         // This check is performed below.
         // Now start going through uploaded iovs.
         try {
-            log.info("Batch insertion of {} iovs using file formatted in {} for tag {}",
-                    dto.getSize(), dto.getFormat(), tagName);
+            log.info("Batch insertion of {} iovs using file for tag {}",
+                    dto.getSize(), tagName);
             // Prepare the iov list to insert and a list representing iovs really inserted.
             final List<IovDto> iovlist = dto.getResources();
             final List<IovDto> savedList = new ArrayList<>();
+            if (iovlist == null) {
+                throw new BadRequestException("Cannot store null list of iovs");
+            }
 
             // Loop over resources uploaded.
             for (final IovDto iovDto : iovlist) {
@@ -218,6 +225,11 @@ public class IovsApiServiceImpl extends IovsApiService {
             // Exception. Send a 404.
             log.error("Api method storeBatchIovMultiForm tag not found {}", tagName);
             return rfh.notFoundPojo("Tag not found: " + tagName);
+        }
+        catch (final ClientErrorException e) {
+            // Exception. Send a 406.
+            log.error("Api method storeBatchIovMultiForm bad request for {}", tagName);
+            return rfh.badRequest(e.getMessage());
         }
         catch (final RuntimeException e) {
             // Exception. Send a 500.
@@ -263,11 +275,16 @@ public class IovsApiServiceImpl extends IovsApiService {
                 wherepred = prh.buildWhere(filtering, by);
             }
             // Search for global tags using where conditions.
-            Iterable<Iov> entitylist = iovService.findAllIovs(wherepred, preq);
-            final List<IovDto> dtolist = edh.entityToDtoList(entitylist, IovDto.class);
+            Page<Iov> entitypage = iovService.findAllIovs(wherepred, preq);
+            RespPage respPage = new RespPage().size(entitypage.getSize())
+                    .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
+                    .number(entitypage.getNumber());
+
+            final List<IovDto> dtolist = edh.entityToDtoList(entitypage.toList(), IovDto.class);
             Response.Status rstatus = Response.Status.OK;
             // Prepare the Set.
             final CrestBaseResponse saveddto = buildEntityResponse(dtolist, filters);
+            saveddto.page(respPage);
             // Send a response and status 200.
             return Response.status(rstatus).entity(saveddto).build();
         }
@@ -672,7 +689,6 @@ public class IovsApiServiceImpl extends IovsApiService {
             filters.put("since", rsince.toString());
             filters.put("until", runtil.toString());
             respdto.filter(filters);
-            respdto.format("IovPayloadSetDto");
             return Response.ok().entity(respdto).build();
         }
         catch (final NotExistsPojoException e) {
@@ -701,7 +717,6 @@ public class IovsApiServiceImpl extends IovsApiService {
         ((IovSetDto) respdto.datatype("iovs")).resources(dtolist)
                 .size((long) dtolist.size());
         respdto.filter(filters);
-        respdto.format("IovSetDto");
         return respdto;
     }
 

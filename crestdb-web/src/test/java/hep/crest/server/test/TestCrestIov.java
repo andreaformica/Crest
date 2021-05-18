@@ -251,11 +251,11 @@ public class TestCrestIov {
         iovdto2.since(new BigDecimal(4100000L));
         setdto3.addResourcesItem(iovdto).addResourcesItem(iovdto2);
         setdto3.datatype("iovs").filter(filters4);
-
+        log.info("storebatch with missing tag name");
         final ResponseEntity<String> iovresp5 = this.testRestTemplate
                 .postForEntity("/crestapi/iovs/storebatch", setdto4, String.class);
         log.info("Received response: " + iovresp5);
-        assertThat(iovresp5.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(iovresp5.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 
     }
 

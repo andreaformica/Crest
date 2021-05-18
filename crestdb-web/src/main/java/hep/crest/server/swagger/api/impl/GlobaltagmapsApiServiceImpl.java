@@ -30,8 +30,6 @@ import java.util.List;
  *
  * @author formica
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-09-05T16:23"
-                                                                                                   + ":23.401+02:00")
 @Component
 public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
 

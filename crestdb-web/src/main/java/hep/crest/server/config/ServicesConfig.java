@@ -49,12 +49,13 @@ public class ServicesConfig {
     @Bean(name = "jacksonMapper")
     public ObjectMapper getJacksonMapper() {
         DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                .parseCaseInsensitive()
                 // date/time
-                .appendPattern("yyyy-MM-dd HH:mm:ss")
+                .appendPattern("yyyy-MM-dd'T'HH:mm:ss")
                 // optional fraction of seconds (from 0 to 9 digits)
                 .optionalStart().appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true).optionalEnd()
                 // offset
-                .appendPattern("xxx")
+                .appendPattern("xxxx")
                 // create formatter
                 .toFormatter();
         ObjectMapper mapper = new ObjectMapper();

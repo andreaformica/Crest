@@ -2,6 +2,7 @@ package hep.crest.server;
 
 import io.undertow.servlet.api.SecurityConstraint;
 import io.undertow.servlet.api.WebResourceCollection;
+import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -15,6 +16,7 @@ import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpMethod;
 
@@ -94,6 +96,11 @@ public class Application {
             constraint.addWebResourceCollection(traceWebresource);
             deploymentInfo.addSecurityConstraint(constraint);
         }
+    }
+    @Profile({"keycloak"})
+    @Bean
+    public KeycloakSpringBootConfigResolver keycloakConfigResolver() {
+        return new KeycloakSpringBootConfigResolver();
     }
 
     /**

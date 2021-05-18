@@ -13,6 +13,8 @@ import hep.crest.server.exceptions.NotExistsPojoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -45,23 +47,22 @@ public class GlobalTagService {
      *            the Predicate
      * @param req
      *            the Pageable
-     * @return List<GlobalTag>
+     * @return Page<GlobalTag>
      */
-    public Iterable<GlobalTag> findAllGlobalTags(Predicate qry, Pageable req) {
-        Iterable<GlobalTag> entitylist = null;
+    public Page<GlobalTag> findAllGlobalTags(Predicate qry, Pageable req) {
+        Page<GlobalTag> entitylist = null;
+        if (req == null) {
+            req = PageRequest.of(0, 1000);
+        }
         if (qry == null) {
-            if (req == null) {
-                entitylist = globalTagRepository.findAll();
-            }
-            else {
-                entitylist = globalTagRepository.findAll(req);
-            }
+            entitylist = globalTagRepository.findAll(req);
         }
         else {
             entitylist = globalTagRepository.findAll(qry, req);
         }
         return entitylist;
     }
+
 
     /**
      * @param globaltagname
