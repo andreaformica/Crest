@@ -12,7 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.web.context.WebApplicationContext;
 
-@Profile({"default", "test", "sqlite"})
+@Profile({"!keycloak"})
 @Configuration
 @EnableWebSecurity
 public class SecurityDefaultConfig extends WebSecurityConfigurerAdapter {

@@ -5,10 +5,10 @@
 # ===============================
 # Defaults
 spring:
+    config:
+      use-legacy-processing: true
     profiles:
       include: crest
-    autoconfigure:
-      exclude: org.keycloak.adapters.springboot.KeycloakAutoConfiguration
     jersey:
       application-path: ${crest.api.name}
     datasource:
