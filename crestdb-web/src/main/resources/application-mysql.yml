@@ -5,8 +5,10 @@
 # ===============================
 # Defaults
 spring:
+    config:
+      use-legacy-processing: true
     profiles: mysql
-    includes: default
+      include: crest
     jersey:
       application-path: /crestapi
     datasource:
