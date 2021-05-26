@@ -272,6 +272,12 @@ public class TagsApiServiceImpl extends TagsApiService {
         try {
             final Tag tag = tagService.findOne(name);
             log.debug("Add meta information to tag {}", name);
+            final TagMetaDto tmpt = tagMetaService.findMeta(name);
+            if (tmpt != null) {
+                log.debug("Cannot store tag meta {} : resource already exists.. ", name);
+                throw new AlreadyExistsPojoException(
+                        "Tag meta already exists for name " + name);
+            }
             final TagMetaDto saved = tagMetaService.insertTagMeta(body);
             return Response.created(info.getRequestUri()).entity(saved).build();
         }

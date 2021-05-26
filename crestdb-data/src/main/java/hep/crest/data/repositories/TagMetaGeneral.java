@@ -42,6 +42,7 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
     }
 
     @Override
+    @Transactional
     public TagMetaDto save(TagMetaDto entity) {
         TagMetaDto savedentity = null;
         try {
@@ -54,6 +55,7 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
     }
 
     @Override
+    @Transactional
     public TagMetaDto update(TagMetaDto entity) {
         TagMetaDto savedentity = null;
         try {
@@ -77,7 +79,6 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
     }
 
     @Override
-    @Transactional
     public TagMetaDto find(String id) {
         log.debug("Find tag meta {} using JDBCTEMPLATE", id);
         try {
@@ -89,7 +90,6 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
             // Be careful, this seems not to work with Postgres: probably getBlob loads an
             // OID and not the byte[]
             // Temporarely, try to create a postgresql implementation of this class.
-
             return jdbcTemplate.queryForObject(sql, (rs, num) -> {
                 final TagMetaDto entity = new TagMetaDto();
                 Instant inst = Instant.ofEpochMilli(rs.getTimestamp("INSERTION_TIME").getTime());
@@ -109,7 +109,6 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
     }
 
     @Override
-    @Transactional
     public TagMetaDto findMetaInfo(String id) {
         log.debug("Find tag meta info {} using JDBCTEMPLATE", id);
         try {

@@ -26,13 +26,14 @@ spring:
     jersey:
       application-path: ${crest.apiname}
     datasource:
-      url: jdbc:sqlite:${crest.dbfile}?cache=shared
+      url: jdbc:sqlite:${crest.dbfile}?cache=shared&mode=rwc&nolock=1
       driverClassName: org.sqlite.JDBC
       username: 
       password:
+      open_mode: 1
       hikari:
         connection-test-query: SELECT 1 
-        maximum-pool-size: 1
+        maximum-pool-size: 3
     jpa:
       properties:
         hibernate.dialect: hep.crest.data.dialect.SQLiteDialect

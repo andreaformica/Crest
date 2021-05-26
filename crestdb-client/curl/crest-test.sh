@@ -20,6 +20,20 @@ generate_globaltag_data()
 EOF
 }
 
+generate_tagmeta_data()
+{
+  cat <<EOF
+{
+   "description": "A new tag meta for testing",
+   "chansize": 1,
+   "colsize": 1,
+   "tagName": "$1",
+   "tagInfo": "{some json}",
+   "insertionTime": "2021-01-01T10:12:13+0000"
+}
+EOF
+}
+
 generate_tag_data()
 {
   cat <<EOF
@@ -75,7 +89,7 @@ generate_multi_upload_data()
   "filter" : { "tagName" : "$1"},
   "size": 2,
   "datatype" : "iovs",
-  "format": "PYL",
+  "format": "IovSetDto",
   "resources":[
   { "since" : $since1, "payloadHash": "file:///tmp/test-01.txt"},
   { "since" : $since2, "payloadHash": "file:///tmp/test-02.txt"}
@@ -89,7 +103,12 @@ function create_tag() {
   echo "Upload ${tdata}"
   post_data "tags" "$tdata"
 }
-
+function create_tagmeta() {
+  echo "Execute $1 : create tag meta $2 "
+  tdata="$(generate_tagmeta_data  $2)"
+  echo "Upload ${tdata}"
+  post_data "tags/$2/meta" "$tdata"
+}
 function create_globaltag() {
   echo "Execute $1 : create globaltag $2 "
   tdata="$(generate_globaltag_data  $2)"
@@ -137,6 +156,7 @@ if [ "$host" == "help" ]; then
   echo "get_data: <type> <search pattern>"
   echo "multi_upload: <tag> <iov-start> <iov-stop>"
   echo "create_tag: <tag>"
+  echo "create_tagmeta: <tag>"
   echo "create_globaltag: <gtag>"
   echo "map_tag_to_gtag: <tag> <gtag> <record> <label>"
 elif [[ "x$3" == "x" ]]; then
