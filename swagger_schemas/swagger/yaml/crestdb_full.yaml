@@ -1387,7 +1387,7 @@ components:
         format:
           type: string
         page:
-          $ref: "#/components/schema/RespPage"
+          $ref: "#/components/schemas/RespPage"
         filter:
           $ref: '#/components/schemas/GenericMap'
       discriminator:
