@@ -1,0 +1,78 @@
+components:
+  schemas:
+    TagSummaryDto:
+      type: object
+      properties:
+        tagname:
+          type: string
+        niovs:
+          type: integer
+          format: int64
+    TagDto:
+      type: object
+      properties:
+        name:
+          type: string
+        timeType:
+          type: string
+        payloadSpec:
+          type: string
+        synchronization:
+          type: string
+        description:
+          type: string
+        lastValidatedTime:
+          type: number
+        endOfValidity:
+          type: number
+        insertionTime:
+          type: string
+          format: date-time
+        modificationTime:
+          type: string
+          format: date-time
+    TagSetDto:
+      description: An Set containing TagDto objects.
+      allOf:
+        - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
+        - properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/TagDto'
+    TagSummarySetDto:
+      description: An Set containing TagSummaryDto objects.
+      allOf:
+        - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
+        - properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/TagSummaryDto'
+    TagMetaDto:
+      type: object
+      properties:
+        tagName:
+          type: string
+        description:
+          type: string
+        chansize:
+          type: integer
+          format: int32
+        colsize:
+          type: integer
+          format: int32
+        tagInfo:
+          type: string
+        insertionTime:
+          type: string
+          format: date-time
+    TagMetaSetDto:
+      description: An Set containing TagMetaDto objects.
+      allOf:
+        - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
+        - properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/TagMetaDto'

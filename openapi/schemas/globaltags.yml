@@ -1,0 +1,40 @@
+components:
+  schemas:
+    GlobalTagDto:
+      type: object
+      properties:
+        name:
+          type: string
+        validity:
+          type: number
+        description:
+          type: string
+        release:
+          type: string
+        insertionTime:
+          type: string
+          format: date-time
+        snapshotTime:
+          type: string
+          format: date-time
+        scenario:
+          type: string
+        workflow:
+          type: string
+        type:
+          type: string
+        snapshotTimeMilli:
+          type: integer
+          format: int64
+        insertionTimeMilli:
+          type: integer
+          format: int64
+    GlobalTagSetDto:
+      description: An GlobalTagSet containing GlobalTagDto objects.
+      allOf:
+        - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
+        - properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/GlobalTagDto'
