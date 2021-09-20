@@ -1,5 +1,6 @@
 package hep.crest.server.swagger.api;
 
+import hep.crest.server.swagger.api.impl.JAXRSContext;
 import hep.crest.swagger.model.*;
 import hep.crest.server.swagger.api.IovsApiService;
 
@@ -42,12 +43,20 @@ import javax.validation.Valid;
 public class IovsApi  {
    @Autowired
    private IovsApiService delegate;
+   @Context
+   protected Request request;
+   @Context
+   protected HttpHeaders headers;
+   @Autowired
+   protected JAXRSContext context;
 
     @POST
     
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Create a Iov in the database.", notes = "This method allows to insert a Iov.Arguments: IovDto should be provided in the body as a JSON file.", response = IovDto.class, tags={ "iovs", })
+    @io.swagger.annotations.ApiOperation(value = "Create a Iov in the database.", notes = "This method allows to insert a Iov.Arguments: IovDto should be provided in the body as a JSON file.", response = IovDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = IovDto.class)
     })
@@ -59,7 +68,9 @@ public class IovsApi  {
     
     
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Finds a IovDtos lists.", notes = "This method allows to perform search by tagname and sorting.Arguments: tagname={a tag name}, page={ipage}, size={isize},      sort=<pattern>, where pattern is <field>:[DESC|ASC]", response = IovSetDto.class, tags={ "iovs", })
+    @io.swagger.annotations.ApiOperation(value = "Finds a IovDtos lists.", notes = "This method allows to perform search by tagname and sorting.Arguments: tagname={a tag name}, page={ipage}, size={isize},      sort=<pattern>, where pattern is <field>:[DESC|ASC]", response = IovSetDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovSetDto.class)
     })
@@ -71,7 +82,9 @@ public class IovsApi  {
     @Path("/getSize")
     
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Get the number o iovs for the given tag.", notes = "This method allows to select the count of iovs in a tag. Also possible to get the size of snapshot, if the time added.Arguments: tagname={a tag name}, snapshotTime={snapshot time in milliseconds (Long) from epoch}", response = CrestBaseResponse.class, tags={ "iovs", })
+    @io.swagger.annotations.ApiOperation(value = "Get the number o iovs for the given tag.", notes = "This method allows to select the count of iovs in a tag. Also possible to get the size of snapshot, if the time added.Arguments: tagname={a tag name}, snapshotTime={snapshot time in milliseconds (Long) from epoch}", response = CrestBaseResponse.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = CrestBaseResponse.class)
     })
@@ -83,7 +96,9 @@ public class IovsApi  {
     @Path("/getSizeByTag")
     
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Get the number o iovs for tags matching pattern.", notes = "This method allows to select the count of iovs in a tag. Also possible to get the size of snapshot, if the time is added. Arguments: tagname={a tag name}", response = TagSummarySetDto.class, tags={ "iovs", })
+    @io.swagger.annotations.ApiOperation(value = "Get the number o iovs for tags matching pattern.", notes = "This method allows to select the count of iovs in a tag. Also possible to get the size of snapshot, if the time is added. Arguments: tagname={a tag name}", response = TagSummarySetDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagSummarySetDto.class)
     })
@@ -95,7 +110,9 @@ public class IovsApi  {
     @Path("/lastIov")
     
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Select last iov for a given tagname and before a given since.", notes = "This method allows to select the last iov in a tag, before a given time and (optionally) for a given snapshot time.Arguments: tagname={a tag name}, since={since time as string}, snapshot={snapshot time as long}", response = IovSetDto.class, tags={ "iovs", })
+    @io.swagger.annotations.ApiOperation(value = "Select last iov for a given tagname and before a given since.", notes = "This method allows to select the last iov in a tag, before a given time and (optionally) for a given snapshot time.Arguments: tagname={a tag name}, since={since time as string}, snapshot={snapshot time as long}", response = IovSetDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovSetDto.class)
     })
@@ -107,28 +124,25 @@ public class IovsApi  {
     @Path("/selectGroups")
     
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Select groups for a given tagname.", notes = "This method allows to select a list of groups.Arguments: tagname={a tag name}, snapshot={snapshot time as long}", response = IovSetDto.class, tags={ "iovs", })
+    @io.swagger.annotations.ApiOperation(value = "Select groups for a given tagname.", notes = "This method allows to select a list of groups.Arguments: tagname={a tag name}, snapshot={snapshot time as long}", response = IovSetDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovSetDto.class)
     })
-    public Response selectGroups(@ApiParam(value = "tagname: the tag name {none}", required = true, defaultValue =
-            "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname, @ApiParam(value = "snapshot"
-                                                                                                            + ": the "
-                                                                                                            +
-                                                                                                            "snapshot"
-                                                                                                            + " time "
-                                                                                                            + "{0}",
-            defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot")  Long snapshot,
-                                 @Context SecurityContext securityContext, @Context UriInfo info,
-                                 @Context Request request, @Context HttpHeaders headers)
+    public Response selectGroups(@ApiParam(value = "tagname: the tag name {none}", required = true, defaultValue = "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname,@ApiParam(value = "snapshot: the snapshot time {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot")  Long snapshot,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.selectGroups(tagname, snapshot, securityContext, info, request, headers);
+       context.setHttpHeaders(headers);
+       context.setRequest(request);
+        return delegate.selectGroups(tagname, snapshot, securityContext, info);
     }
     @GET
     @Path("/selectIovPayloads")
     
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Select iovs and payload meta info for a given tagname and in a given range.", notes = "This method allows to select a list of iovs+payload meta in a tag, using a given range in time and (optionally) for a given snapshot time.Arguments: tagname={a tag name}, since={since time as string}, until={until time as string}, snapshot={snapshot time as long}", response = IovPayloadSetDto.class, tags={ "iovs", })
+    @io.swagger.annotations.ApiOperation(value = "Select iovs and payload meta info for a given tagname and in a given range.", notes = "This method allows to select a list of iovs+payload meta in a tag, using a given range in time and (optionally) for a given snapshot time.Arguments: tagname={a tag name}, since={since time as string}, until={until time as string}, snapshot={snapshot time as long}", response = IovPayloadSetDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovPayloadSetDto.class)
     })
@@ -140,21 +154,25 @@ public class IovsApi  {
     @Path("/selectIovs")
     
     @Produces({ "application/json", "application/xml" })
-    @io.swagger.annotations.ApiOperation(value = "Select iovs for a given tagname and in a given range.", notes = "This method allows to select a list of iovs in a tag, using a given range in time and (optionally) for a given snapshot time.Arguments: tagname={a tag name}, since={since time as string}, until={until time as string}, snapshot={snapshot time as long}", response = IovSetDto.class, tags={ "iovs", })
+    @io.swagger.annotations.ApiOperation(value = "Select iovs for a given tagname and in a given range.", notes = "This method allows to select a list of iovs in a tag, using a given range in time and (optionally) for a given snapshot time.Arguments: tagname={a tag name}, since={since time as string}, until={until time as string}, snapshot={snapshot time as long}", response = IovSetDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovSetDto.class)
     })
-    public Response selectIovs(@ApiParam(value = "The query type. The header parameter X-Crest-Query can be : groups "
-                                                 + "(default) or ranges (include previous since)." , defaultValue=
-            "groups")@HeaderParam("X-Crest-Query") String xCrestQuery,@ApiParam(value = "tagname: the tag name {none}", defaultValue = "none") @DefaultValue("none") @QueryParam("tagname")  String tagname,@ApiParam(value = "since: the since time as a string {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("since")  String since,@ApiParam(value = "until: the until time as a string {INF}", defaultValue = "INF") @DefaultValue("INF") @QueryParam("until")  String until,@ApiParam(value = "snapshot: the snapshot time {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot")  Long snapshot,@Context SecurityContext securityContext,@Context UriInfo info, @Context Request request, @Context HttpHeaders headers)
+    public Response selectIovs(@ApiParam(value = "The query type. The header parameter X-Crest-Query can be : groups (default) or ranges (include previous since)." , defaultValue="groups")@HeaderParam("X-Crest-Query") String xCrestQuery,@ApiParam(value = "tagname: the tag name {none}", defaultValue = "none") @DefaultValue("none") @QueryParam("tagname")  String tagname,@ApiParam(value = "since: the since time as a string {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("since")  String since,@ApiParam(value = "until: the until time as a string {INF}", defaultValue = "INF") @DefaultValue("INF") @QueryParam("until")  String until,@ApiParam(value = "snapshot: the snapshot time {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot")  Long snapshot,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.selectIovs(xCrestQuery, tagname, since, until, snapshot, securityContext, info, request, headers);
+       context.setHttpHeaders(headers);
+       context.setRequest(request);
+        return delegate.selectIovs(xCrestQuery, tagname, since, until, snapshot, securityContext, info);
     }
     @GET
     @Path("/selectSnapshot")
     
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Select snapshot for a given tagname and insertion time.", notes = "This method allows to select a list of all iovs in a tag, using (optionally) a given snapshot time.Arguments: tagname={a tag name}, snapshot={snapshot time as long}", response = IovSetDto.class, tags={ "iovs", })
+    @io.swagger.annotations.ApiOperation(value = "Select snapshot for a given tagname and insertion time.", notes = "This method allows to select a list of all iovs in a tag, using (optionally) a given snapshot time.Arguments: tagname={a tag name}, snapshot={snapshot time as long}", response = IovSetDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovSetDto.class)
     })
@@ -166,7 +184,9 @@ public class IovsApi  {
     @Path("/storebatch")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Create many IOVs in the database, associated to a tag name.", notes = "This method allows to insert multiple IOVs. Arguments: tagname,end time.", response = IovSetDto.class, tags={ "iovs", })
+    @io.swagger.annotations.ApiOperation(value = "Create many IOVs in the database, associated to a tag name.", notes = "This method allows to insert multiple IOVs. Arguments: tagname,end time.", response = IovSetDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = IovSetDto.class)
     })

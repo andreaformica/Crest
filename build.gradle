@@ -28,6 +28,10 @@ ext {
     oltu_version = "1.0.1"
     orika_version = "1.5.1"
     querydsl_version = "4.2.1"
+    swaggerDirectory = "$rootDir/openapi".toString()
+    swaggerSpecDirectory =  "$swaggerDirectory".toString()
+    swaggerBundleDirectory = "$swaggerDirectory/bundle".toString()
+    swaggerJaxrsTemplateDirectory = "$swaggerDirectory/templates/java/JavaJaxRs/openApi-5.1.0".toString()
 }
 
 repositories {
@@ -37,21 +41,77 @@ repositories {
 dependencies {
     swaggerCodegen 'io.swagger:swagger-codegen-cli:2.3.1'
 }
+task openApiBundle {
+    // Bundle the openapi spec files together, to mitigate a bug with the main openapi generator
+    // Bug: https://github.com/OpenAPITools/openapi-generator/issues/1976
+    // For this to work, the swagger-cli (from the javascript world) needs to be installed
+    // with e.g: npm install -g @apidevtools/swagger-cli
+    inputs.files(fileTree(dir: swaggerSpecDirectory, include: '**/*.yml'))
+    outputs.file("$swaggerBundleDirectory/crestAtlasApi_all.yml".toString())
+    outputs.file("$swaggerBundleDirectory/admin_api.yml".toString())
+    outputs.file("$swaggerBundleDirectory/globaltags_api.yml".toString())
+    outputs.file("$swaggerBundleDirectory/tags_api.yml".toString())
+    outputs.file("$swaggerBundleDirectory/globaltagmaps_api.yml".toString())
+    outputs.file("$swaggerBundleDirectory/iovs_api.yml".toString())
+    outputs.file("$swaggerBundleDirectory/payloads_api.yml".toString())
+    outputs.file("$swaggerBundleDirectory/monitoring_api.yml".toString())
+    outputs.file("$swaggerBundleDirectory/runinfo_api.yml".toString())
 
-// Task to generate sources in build output directory
+    doLast {
+        exec {
+            workingDir swaggerSpecDirectory
+            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/crestApi_all.yml".toString(), "$swaggerSpecDirectory/crestAtlasApi_all.yml".toString()
+        }
+        exec {
+            workingDir swaggerSpecDirectory
+            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/admin_api.yml".toString(), "$swaggerSpecDirectory/admin_api.yml".toString()
+        }
+        exec {
+            workingDir swaggerSpecDirectory
+            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/globaltags_api.yml".toString(), "$swaggerSpecDirectory/globaltags_api.yml".toString()
+        }
+        exec {
+            workingDir swaggerSpecDirectory
+            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/tags_api.yml".toString(), "$swaggerSpecDirectory/tags_api.yml".toString()
+        }
+        exec {
+            workingDir swaggerSpecDirectory
+            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/globaltagmaps_api.yml".toString(), "$swaggerSpecDirectory/globaltagmaps_api.yml".toString()
+        }
+        exec {
+            workingDir swaggerSpecDirectory
+            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/iovs_api.yml".toString(), "$swaggerSpecDirectory/iovs_api.yml".toString()
+        }
+        exec {
+            workingDir swaggerSpecDirectory
+            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/payloads_api.yml".toString(), "$swaggerSpecDirectory/payloads_api.yml".toString()
+        }
+        exec {
+            workingDir swaggerSpecDirectory
+            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/runinfo_api.yml".toString(), "$swaggerSpecDirectory/atlasruninfo_api.yml".toString()
+        }
+        exec {
+            workingDir swaggerSpecDirectory
+            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/monitoring_api.yml".toString(), "$swaggerSpecDirectory/monitoring_api.yml".toString()
+        }
+    }
+}
 openApiGenerate {
     generatorName = "jaxrs-jersey"
-    inputSpec = "$rootDir/swagger_schemas/swagger/yaml/crestdb_full.yaml".toString()
-    outputDir = "$rootDir/api-generated".toString()
-    templateDir = "$rootDir/swagger_schemas/swagger/templates/java/JavaJaxRs/openApi-5.1.0".toString()
+    inputSpec = "$swaggerBundleDirectory/crestApi_all.yml".toString()
+    outputDir = "$projectDir/api-generated".toString()
+    templateDir = "$swaggerJaxrsTemplateDirectory".toString()
     apiPackage = "hep.crest.server.swagger.api"
     modelPackage = "hep.crest.swagger.model"
+//    globalProperties = [
+//            apis: "",
+//            models: ""
+//    ]
     configOptions = [
             dateLibrary: "java8",
             hideGenerationTimestamp: "true",
     ]
 }
-
 convertSwagger2markup {
 	swaggerInput file("swagger_schemas/swagger/json/crestdb_full.json").getAbsolutePath()
 	outputDir file("build/asciidoc")

@@ -17,7 +17,10 @@ public final class SqlRequests {
      * Insert.
      */
     private static final String INSERT_INTO = "INSERT INTO ";
-
+    /**
+     * Update.
+     */
+    private static final String UPDATE = "UPDATE ";
     /**
      * Private ctor.
      */
@@ -94,6 +97,16 @@ public final class SqlRequests {
         return INSERT_INTO + tablename
                + "(HASH, OBJECT_TYPE, VERSION, STREAMER_INFO, INSERTION_TIME,DATA_SIZE) "
                + " VALUES (?,?,?,?,?,?)";
+    }
+
+    /**
+     * @param tablename the String
+     * @return String
+     */
+    public static final String getUpdateMetaQuery(String tablename) {
+        return UPDATE + tablename
+               + " set STREAMER_INFO=? "
+               + WHERE_HASH;
     }
 
     /**

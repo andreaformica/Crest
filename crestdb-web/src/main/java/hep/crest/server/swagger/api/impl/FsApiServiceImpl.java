@@ -66,6 +66,11 @@ public class FsApiServiceImpl extends FsApiService {
     @Autowired
     @Qualifier("mapper")
     private MapperFacade mapper;
+    /**
+     * The context from the request.
+     */
+    @Autowired
+    private JAXRSContext context;
 
     /*
      * (non-Javadoc)
@@ -76,13 +81,14 @@ public class FsApiServiceImpl extends FsApiService {
      */
     @Override
     public Response buildTar(@NotNull String tagname, @NotNull Long snapshot,
-            SecurityContext securityContext, UriInfo info, HttpServletRequest request)
+            SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
         log.info("FileSystemRestController processing request for tag name " + tagname);
         try {
             // Find a tag using tagname in input.
             final Tag entity = tagService.findOne(tagname);
             log.debug("Found tag {}", entity.getName());
+            HttpServletRequest request = context.getHttpServletRequest();
             final String reqid = request.getSession().getId() + new Date().getTime();
             
             // Tag was found: load iovs for the given tag

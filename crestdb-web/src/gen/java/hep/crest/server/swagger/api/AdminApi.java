@@ -41,7 +41,9 @@ public class AdminApi  {
     @Path("/globaltags/{name}")
     
     
-    @io.swagger.annotations.ApiOperation(value = "Remove a GlobalTag from the database.", notes = "This method allows to remove a GlobalTag.Arguments: the name has to uniquely identify a global tag.", response = Void.class, tags={ "admin", })
+    @io.swagger.annotations.ApiOperation(value = "Remove a GlobalTag from the database.", notes = "This method allows to remove a GlobalTag.Arguments: the name has to uniquely identify a global tag.", response = Void.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "admin", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = Void.class)
     })
@@ -53,7 +55,9 @@ public class AdminApi  {
     @Path("/tags/{name}")
     
     
-    @io.swagger.annotations.ApiOperation(value = "Remove a Tag from the database.", notes = "This method allows to remove a Tag.Arguments: the name has to uniquely identify a tag.", response = Void.class, tags={ "admin", })
+    @io.swagger.annotations.ApiOperation(value = "Remove a Tag from the database.", notes = "This method allows to remove a Tag.Arguments: the name has to uniquely identify a tag.", response = Void.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "admin", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = Void.class)
     })
@@ -65,7 +69,9 @@ public class AdminApi  {
     @Path("/globaltags/{name}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Update a GlobalTag in the database.", notes = "This method allows to update a GlobalTag.Arguments: the name has to uniquely identify a global tag.", response = GlobalTagDto.class, tags={ "admin", })
+    @io.swagger.annotations.ApiOperation(value = "Update a GlobalTag in the database.", notes = "This method allows to update a GlobalTag.Arguments: the name has to uniquely identify a global tag.", response = GlobalTagDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "admin", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagDto.class)
     })

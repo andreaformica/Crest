@@ -650,6 +650,51 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         }
     }
 
+    @Override
+    public Response updatePayload(String hash, Map<String, String> body, SecurityContext securityContext,
+                                  UriInfo info)
+            throws NotFoundException {
+            this.log.info(
+                    "PayloadRestController processing request for update payload meta information for {}",
+                    hash);
+            try {
+                // Search payload.
+                PayloadDto entity = payloadService.getPayloadMetaInfo(hash);
+                String sinfo = null;
+                // Send a bad request if body is null.
+                if (body == null) {
+                    return rfh.badRequest("Cannot update payload " + entity.getHash() + ": body is null");
+                }
+                // Loop over map body keys.
+                for (final String key : body.keySet()) {
+                    if ("streamerInfo".equals(key)) {
+                        // Update description.
+                        sinfo = body.get(key);
+                    }
+                    else {
+                        log.warn("Ignored key {} in updatePayload: field does not exists", key);
+                    }
+                }
+                int updated = payloadService.updatePayloadMetaInfo(hash, sinfo);
+                entity = payloadService.getPayloadMetaInfo(hash);
+                final PayloadSetDto psetdto = buildSet(entity, hash);
+                return Response.ok()
+                        .header("Content-type", MediaType.APPLICATION_JSON_TYPE.toString())
+                        .entity(psetdto).build();
+            }
+            catch (final NotExistsPojoException e) {
+                // Exception, tag not found, send 404.
+                final String message = "No payload resource has been found for " + hash;
+                return rfh.notFoundPojo("Cannot find hash: " + hash);
+            }
+            catch (final RuntimeException e) {
+                // Exception, send 500.
+                final String message = e.getMessage();
+                log.error("Api method updatePayload got exception {}", message);
+                return rfh.internalError("updatePayload error: " + message);
+            }
+    }
+
     /**
      * @param mddto     the IovDto
      * @param bodyParts the List<FormDataBodyPart>

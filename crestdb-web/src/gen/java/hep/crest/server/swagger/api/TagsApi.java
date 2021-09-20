@@ -45,7 +45,9 @@ public class TagsApi  {
     
     @Consumes({ "application/json" })
     @Produces({ "application/json", "application/xml" })
-    @io.swagger.annotations.ApiOperation(value = "Create a Tag in the database.", notes = "This method allows to insert a Tag.Arguments: TagDto should be provided in the body as a JSON file.", response = TagDto.class, tags={ "tags", })
+    @io.swagger.annotations.ApiOperation(value = "Create a Tag in the database.", notes = "This method allows to insert a Tag.Arguments: TagDto should be provided in the body as a JSON file.", response = TagDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "tags", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagDto.class)
     })
@@ -57,7 +59,9 @@ public class TagsApi  {
     @Path("/{name}/meta")
     @Consumes({ "application/json" })
     @Produces({ "application/json", "application/xml" })
-    @io.swagger.annotations.ApiOperation(value = "Create a TagMeta in the database.", notes = "This method allows to insert a TagMeta.Arguments: TagMetaDto should be provided in the body as a JSON file.", response = TagMetaDto.class, tags={ "tags", })
+    @io.swagger.annotations.ApiOperation(value = "Create a TagMeta in the database.", notes = "This method allows to insert a TagMeta.Arguments: TagMetaDto should be provided in the body as a JSON file.", response = TagMetaDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "tags", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagMetaDto.class)
     })
@@ -69,7 +73,9 @@ public class TagsApi  {
     @Path("/{name}")
     
     @Produces({ "application/json", "application/xml" })
-    @io.swagger.annotations.ApiOperation(value = "Finds a TagDto by name", notes = "This method will search for a tag with the given name. Only one tag should be returned.", response = TagSetDto.class, tags={ "tags", })
+    @io.swagger.annotations.ApiOperation(value = "Finds a TagDto by name", notes = "This method will search for a tag with the given name. Only one tag should be returned.", response = TagSetDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "tags", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagSetDto.class)
     })
@@ -81,7 +87,9 @@ public class TagsApi  {
     @Path("/{name}/meta")
     
     @Produces({ "application/json", "application/xml" })
-    @io.swagger.annotations.ApiOperation(value = "Finds a TagMetaDto by name", notes = "This method will search for a tag metadata with the given name. Only one tag should be returned.", response = TagMetaSetDto.class, tags={ "tags", })
+    @io.swagger.annotations.ApiOperation(value = "Finds a TagMetaDto by name", notes = "This method will search for a tag metadata with the given name. Only one tag should be returned.", response = TagMetaSetDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "tags", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagMetaSetDto.class)
     })
@@ -93,7 +101,9 @@ public class TagsApi  {
     
     
     @Produces({ "application/json", "application/xml" })
-    @io.swagger.annotations.ApiOperation(value = "Finds a TagDtos lists.", notes = "This method allows to perform search and sorting.Arguments: by=<pattern>, page={ipage}, size={isize}, sort=<sortpattern>. The pattern <pattern> is in the form <param-name><operation><param-value>       <param-name> is the name of one of the fields in the dto       <operation> can be [< : >] ; for string use only [:]        <param-value> depends on the chosen parameter. A list of this criteria can be provided       using comma separated strings for <pattern>.      The pattern <sortpattern> is <field>:[DESC|ASC]", response = TagSetDto.class, tags={ "tags", })
+    @io.swagger.annotations.ApiOperation(value = "Finds a TagDtos lists.", notes = "This method allows to perform search and sorting.Arguments: by=<pattern>, page={ipage}, size={isize}, sort=<sortpattern>. The pattern <pattern> is in the form <param-name><operation><param-value>       <param-name> is the name of one of the fields in the dto       <operation> can be [< : >] ; for string use only [:]        <param-value> depends on the chosen parameter. A list of this criteria can be provided       using comma separated strings for <pattern>.      The pattern <sortpattern> is <field>:[DESC|ASC]", response = TagSetDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "tags", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagSetDto.class)
     })
@@ -105,7 +115,9 @@ public class TagsApi  {
     @Path("/{name}")
     @Consumes({ "application/json" })
     @Produces({ "application/json", "application/xml" })
-    @io.swagger.annotations.ApiOperation(value = "Update a TagDto by name", notes = "This method will search for a tag with the given name, and update its content for the provided body fields. Only the following fields can be updated: description, timeType, objectTime, endOfValidity, lastValidatedTime.", response = TagDto.class, tags={ "tags", })
+    @io.swagger.annotations.ApiOperation(value = "Update a TagDto by name", notes = "This method will search for a tag with the given name, and update its content for the provided body fields. Only the following fields can be updated: description, timeType, objectTime, endOfValidity, lastValidatedTime.", response = TagDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "tags", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagDto.class)
     })
@@ -117,7 +129,9 @@ public class TagsApi  {
     @Path("/{name}/meta")
     @Consumes({ "application/json" })
     @Produces({ "application/json", "application/xml" })
-    @io.swagger.annotations.ApiOperation(value = "Update a TagMetaDto by name", notes = "This method will search for a tag with the given name, and update its content for the provided body fields. Only the following fields can be updated: description, timeType, objectTime, endOfValidity, lastValidatedTime.", response = TagMetaDto.class, tags={ "tags", })
+    @io.swagger.annotations.ApiOperation(value = "Update a TagMetaDto by name", notes = "This method will search for a tag with the given name, and update its content for the provided body fields. Only the following fields can be updated: description, timeType, objectTime, endOfValidity, lastValidatedTime.", response = TagMetaDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "tags", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagMetaDto.class)
     })

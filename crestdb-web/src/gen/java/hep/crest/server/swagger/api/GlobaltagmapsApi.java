@@ -41,7 +41,9 @@ public class GlobaltagmapsApi  {
     
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Create a GlobalTagMap in the database.", notes = "This method allows to insert a GlobalTag.Arguments: GlobalTagMapDto should be provided in the body as a JSON file.", response = GlobalTagMapDto.class, tags={ "globaltagmaps", })
+    @io.swagger.annotations.ApiOperation(value = "Create a GlobalTagMap in the database.", notes = "This method allows to insert a GlobalTagMap.Arguments: GlobalTagMapDto should be provided in the body as a JSON file.", response = GlobalTagMapDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "globaltagmaps", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = GlobalTagMapDto.class)
     })
@@ -53,7 +55,9 @@ public class GlobaltagmapsApi  {
     @Path("/{name}")
     
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Delete GlobalTagMapDto lists.", notes = "This method search for mappings using the global tag name and deletes all mappings.", response = GlobalTagMapDto.class, tags={ "globaltagmaps", })
+    @io.swagger.annotations.ApiOperation(value = "Delete GlobalTagMapDto lists.", notes = "This method search for mappings using the global tag name and deletes all mappings.", response = GlobalTagMapDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "globaltagmaps", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagMapDto.class)
     })
@@ -65,7 +69,9 @@ public class GlobaltagmapsApi  {
     @Path("/{name}")
     
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Find GlobalTagMapDto lists.", notes = "This method search for mappings using the global tag name.", response = GlobalTagMapDto.class, tags={ "globaltagmaps", })
+    @io.swagger.annotations.ApiOperation(value = "Find GlobalTagMapDto lists.", notes = "This method search for mappings using the global tag name.", response = GlobalTagMapDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "globaltagmaps", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagMapDto.class)
     })

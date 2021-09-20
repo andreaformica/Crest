@@ -226,6 +226,29 @@ public class PayloadService {
     }
 
     /**
+     * @param hash
+     *            the String
+     * @param sinfo
+     *            the String
+     * @return int
+     * @throws CdbServiceException
+     *             If an Exception occurred
+     * @throws NotExistsPojoException
+     *             If object was not found
+     */
+    @Transactional
+    public int updatePayloadMetaInfo(String hash, String sinfo) {
+        int nrows = payloaddataRepository.updateMetaInfo(hash, sinfo);
+        if (nrows <= 0) {
+            throw new NotExistsPojoException("Cannot update payload meta data for hash " + hash);
+        }
+        else if (nrows > 1) {
+            throw new CdbServiceException("Too many rows updated...rollback");
+        }
+        return nrows;
+    }
+
+    /**
      *
      * @param filename
      * @param pdto
