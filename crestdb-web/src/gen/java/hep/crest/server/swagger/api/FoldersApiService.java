@@ -20,6 +20,6 @@ import javax.ws.rs.core.UriInfo;
 import javax.validation.constraints.*;
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public abstract class FoldersApiService {
-    public abstract Response createFolder(FolderDto body,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response createFolder(FolderDto folderDto,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response listFolders(String by,String sort,SecurityContext securityContext, UriInfo info) throws NotFoundException;
 }

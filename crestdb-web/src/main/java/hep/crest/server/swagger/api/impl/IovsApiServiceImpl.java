@@ -118,6 +118,11 @@ public class IovsApiServiceImpl extends IovsApiService {
     @Autowired
     private ResponseFormatHelper rfh;
 
+    /**
+     * The context from the request.
+     */
+    @Autowired
+    private JAXRSContext context;
     /*
      * (non-Javadoc)
      *
@@ -380,14 +385,15 @@ public class IovsApiServiceImpl extends IovsApiService {
      */
     @Override
     public Response selectGroups(@NotNull String tagname, Long snapshot,
-                                 SecurityContext securityContext, UriInfo info, Request request, HttpHeaders headers)
+                                 SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
         log.info("IovRestController processing request for iovs groups using tag name {}", tagname);
         try {
 
             // Search for tag in order to load the time type:
             final Tag tagentity = tagService.findOne(tagname);
-
+            HttpHeaders headers = context.getHttpHeaders();
+            Request request = context.getRequest();
             // Apply caching on iov groups selections.
             // Use cache service to detect if a tag was modified.
             final ResponseBuilder builder = cachesvc.verifyLastModified(request, tagentity);
@@ -462,8 +468,7 @@ public class IovsApiServiceImpl extends IovsApiService {
      */
     @Override
     public Response selectIovs(String xCrestQuery, String tagname, String since, String until,
-                               Long snapshot, SecurityContext securityContext, UriInfo info, Request request,
-                               HttpHeaders headers)
+                               Long snapshot, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
         log.info(
                 "IovRestController processing request for iovs using tag name {} and range {} - {} ",
@@ -473,6 +478,8 @@ public class IovsApiServiceImpl extends IovsApiService {
             // Search if tag exists.
             final Tag tagentity = tagService.findOne(tagname);
             log.debug("Found tag " + tagentity);
+            HttpHeaders headers = context.getHttpHeaders();
+            Request request = context.getRequest();
             // Apply caching on iov selections.
             // Use cache service to detect if a tag was modified.
             final ResponseBuilder builder = cachesvc.verifyLastModified(request, tagentity);

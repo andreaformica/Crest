@@ -51,7 +51,6 @@ import hep.crest.swagger.model.GlobalTagDto;
 import hep.crest.swagger.model.GlobalTagMapDto;
 import hep.crest.swagger.model.GlobalTagMapSetDto;
 import hep.crest.swagger.model.GlobalTagSetDto;
-import hep.crest.swagger.model.GroupDto;
 import hep.crest.swagger.model.HTTPResponse;
 import hep.crest.swagger.model.IovDto;
 import hep.crest.swagger.model.IovPayloadDto;
@@ -62,8 +61,6 @@ import hep.crest.swagger.model.PayloadSetDto;
 import hep.crest.swagger.model.PayloadTagInfoDto;
 import hep.crest.swagger.model.RunInfoDto;
 import hep.crest.swagger.model.RunInfoSetDto;
-import hep.crest.swagger.model.RunLumiInfoDto;
-import hep.crest.swagger.model.RunLumiSetDto;
 import hep.crest.swagger.model.TagDto;
 import hep.crest.swagger.model.TagSetDto;
 import hep.crest.swagger.model.TagSummaryDto;
@@ -312,29 +309,6 @@ public class PojoDtoConverterTests {
     }
 
     @Test
-    public void testRunInfoSetConverter() throws Exception {
-        final RunLumiInfoDto dto1 = DataGenerator.generateRunLumiInfoDto(new BigDecimal(2000L),
-                new BigDecimal(33333L), new BigDecimal(200L));
-
-        assertThat(dto1.toString().length()).isPositive();
-        assertThat(dto1.hashCode()).isNotZero();
-        final RunLumiSetDto setdto = new RunLumiSetDto();
-        setdto.datatype("runs");
-        setdto.addResourcesItem(dto1);
-        setdto.size(1L);
-        assertThat(setdto.toString().length()).isPositive();
-
-        final RunLumiSetDto setdto1 = new RunLumiSetDto();
-        setdto1.datatype("runs");
-        setdto1.addResourcesItem(dto1);
-        setdto1.size(1L);
-
-        assertThat(setdto).isEqualTo(setdto1);
-        assertThat(setdto.hashCode()).isNotZero();
-
-    }
-
-    @Test
     public void testFolderConverter() throws Exception {
         final FolderDto dto1 = DataGenerator.generateFolderDto("T0BLOB", "/MDT/T0BLOB",
                 "COOLOFL_MDT");
@@ -447,12 +421,6 @@ public class PojoDtoConverterTests {
 
     @Test
     public void testOtherDtos() throws Exception {
-        final List<BigDecimal> groups = new ArrayList<>();
-        groups.add(new BigDecimal(10L));
-        groups.add(new BigDecimal(100L));
-        final GroupDto dto = new GroupDto();
-        dto.groups(groups);
-        assertThat(dto.getGroups().size()).isPositive();
 
         final HTTPResponse resp = new HTTPResponse();
         resp.action("test");

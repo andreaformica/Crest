@@ -26,7 +26,6 @@ import hep.crest.swagger.model.GlobalTagMapDto;
 import hep.crest.swagger.model.IovDto;
 import hep.crest.swagger.model.PayloadDto;
 import hep.crest.swagger.model.RunInfoDto;
-import hep.crest.swagger.model.RunLumiInfoDto;
 import hep.crest.swagger.model.TagDto;
 import hep.crest.swagger.model.TagSummaryDto;
 
@@ -139,13 +138,6 @@ public class DataGenerator {
         dto.insertionTime(inst.atOffset(ZoneOffset.UTC)).data(bindata).hash(hash).objectType(objtype)
                 .streamerInfo(binstinfo).version("v1");
         dto.size(bindata.length);
-        return dto;
-    }
-
-    public static RunLumiInfoDto generateRunLumiInfoDto(BigDecimal since, BigDecimal run, BigDecimal lb) {
-        final RunLumiInfoDto dto = new RunLumiInfoDto();
-        dto.since(since).lb(lb).runNumber(run);
-        dto.starttime(new BigDecimal(0L)).endtime(new BigDecimal(99L));
         return dto;
     }
 
