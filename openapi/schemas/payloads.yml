@@ -1,0 +1,32 @@
+components:
+  schemas:
+    PayloadDto:
+      type: object
+      properties:
+        hash:
+          type: string
+        version:
+          type: string
+        objectType:
+          type: string
+        size:
+          type: integer
+          format: int32
+        data:
+          type: string
+          format: byte
+        streamerInfo:
+          type: string
+          format: byte
+        insertionTime:
+          type: string
+          format: date-time
+    PayloadSetDto:
+      description: An Set containing PayloadDto objects.
+      allOf:
+        - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
+        - properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/PayloadDto'

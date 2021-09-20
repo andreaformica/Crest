@@ -1,0 +1,47 @@
+components:
+  schemas:
+    RunInfoDto:
+      type: object
+      properties:
+        runNumber:
+          type: number
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+    RunLumiInfoDto:
+      type: object
+      properties:
+        since:
+          type: number
+        runNumber:
+          type: number
+        lb:
+          type: number
+        starttime:
+          type: number
+        endtime:
+          type: number
+    RunLumiSetDto:
+      description: An RunLumiSet containing RunLumiInfoDto objects.
+      allOf:
+        - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
+        - properties:
+            format:
+              type: string
+              default: RunLumiSetDto
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/RunLumiInfoDto'
+    RunInfoSetDto:
+      description: An RunInfoSet containing RunInfoDto objects.
+      allOf:
+        - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
+        - properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/RunInfoDto'
