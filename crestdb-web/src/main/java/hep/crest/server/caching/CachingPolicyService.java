@@ -88,7 +88,7 @@ public class CachingPolicyService {
      * @return ResponseBuilder
      */
     public ResponseBuilder verifyLastModified(Request request, Tag tagentity) {
-        final Date lastModified = tagentity.getModificationTime();
+        final Date lastModified = tagentity.modificationTime();
         log.debug("Use tag modification time {} and request {}", lastModified, request);
         final ResponseBuilder builder = request.evaluatePreconditions(lastModified);
         if (builder != null) {

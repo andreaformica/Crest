@@ -207,7 +207,7 @@ public class PayloadService {
             }
             String tagname = dto.getTagName();
             Iov entity = mapper.map(dto, Iov.class);
-            entity.setTag(new Tag(tagname));
+            entity.tag(new Tag().name(tagname));
             final Iov savediov = iovService.insertIov(entity);
             IovDto saveddto = mapper.map(savediov, IovDto.class);
             saveddto.tagName(tagname);

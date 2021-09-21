@@ -77,6 +77,7 @@ public class TagService {
             log.debug("Search for tag by Id...{}", id);
             final Optional<Tag> entity = tagRepository.findById(id);
             if (entity.isPresent()) {
+                log.debug("found...");
                 return entity.get();
             }
             throw new NotExistsPojoException(id);
@@ -128,11 +129,11 @@ public class TagService {
     @Transactional
     public Tag insertTag(Tag entity) {
         log.debug("Create Tag from {}", entity);
-        final Optional<Tag> tmpt = tagRepository.findById(entity.getName());
+        final Optional<Tag> tmpt = tagRepository.findById(entity.name());
         if (tmpt.isPresent()) {
             log.warn("Tag {} already exists.", tmpt.get());
             throw new AlreadyExistsPojoException(
-                    "Tag already exists for name " + entity.getName());
+                    "Tag already exists for name " + entity.name());
         }
         final Tag saved = tagRepository.save(entity);
         log.debug("Saved entity: {}", saved);
@@ -152,18 +153,16 @@ public class TagService {
     public Tag updateTag(Tag entity) {
         log.debug("Update tag from dto {}", entity
         );
-        final Optional<Tag> tmpt = tagRepository.findById(entity.getName());
+        final Optional<Tag> tmpt = tagRepository.findById(entity.name());
         if (!tmpt.isPresent()) {
             log.debug("Cannot update tag {} : resource does not exists.. ", entity);
-            throw new NotExistsPojoException("Tag does not exists for name " + entity.getName());
+            throw new NotExistsPojoException("Tag does not exists for name " + entity.name());
         }
         final Tag toupd = tmpt.get();
-        toupd.setDescription(entity.getDescription());
-        toupd.setObjectType(entity.getObjectType());
-        toupd.setSynchronization(entity.getSynchronization());
-        toupd.setEndOfValidity(entity.getEndOfValidity());
-        toupd.setLastValidatedTime(entity.getLastValidatedTime());
-        toupd.setTimeType(entity.getTimeType());
+        toupd.description(entity.description()).objectType(entity.objectType())
+                .synchronization(entity.synchronization()).endOfValidity(entity.endOfValidity())
+                .lastValidatedTime(entity.lastValidatedTime())
+                .timeType(entity.timeType());
         final Tag saved = tagRepository.save(toupd);
         log.debug("Updated entity: {}", saved);
         return saved;

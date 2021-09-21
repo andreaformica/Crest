@@ -116,11 +116,11 @@ public class TestCrestServices {
         final GlobalTag dto = DataGenerator.generateGlobalTag("TEST-GT");
         try {
             final GlobalTag saved = globaltagService.insertGlobalTag(dto);
-            saved.setDescription("this is an updated description");
+            saved.description("this is an updated description");
             final GlobalTag updated = globaltagService.updateGlobalTag(saved);
-            assertThat(updated.getDescription()).isNotEqualTo(dto.getDescription());
-            updated.setName("ANOTHER-NOTEXISTING-GT");
-            updated.setDescription("this should not be updated");
+            assertThat(updated.description()).isNotEqualTo(dto.description());
+            updated.name("ANOTHER-NOTEXISTING-GT");
+            updated.description("this should not be updated");
             globaltagService.updateGlobalTag(updated);
         }
         catch ( final AlreadyExistsPojoException e) {
@@ -137,11 +137,11 @@ public class TestCrestServices {
         try {
             final Tag entity = mapperFacade.map(dto, Tag.class);
             final Tag saved = tagService.insertTag(entity);
-            saved.setDescription("this is an updated tag description");
+            saved.description("this is an updated tag description");
             final Tag updated = tagService.updateTag(saved);
-            assertThat(updated.getDescription()).isNotEqualTo(dto.getDescription());
-            updated.setName("ANOTHER-UNEXISTING-TAG");
-            updated.setDescription("this should not be updated");
+            assertThat(updated.description()).isNotEqualTo(dto.getDescription());
+            updated.name("ANOTHER-UNEXISTING-TAG");
+            updated.description("this should not be updated");
             tagService.updateTag(updated);
         }
         catch ( final AlreadyExistsPojoException e) {
@@ -166,7 +166,7 @@ public class TestCrestServices {
         final IovDto iovdto = DataGenerator.generateIovDto("afakehashp10", "MY-TEST-01", new BigDecimal(1000L));
         try {
             final Iov ioventity = mapperFacade.map(iovdto, Iov.class);
-            ioventity.setTag(new Tag(iovdto.getTagName()));
+            ioventity.tag(new Tag().name(iovdto.getTagName()));
 
             iovService.insertIov(ioventity);
         }
@@ -193,9 +193,7 @@ public class TestCrestServices {
             final Tag tag = DataGenerator.generateTag("MY-TEST-FORMAP-01","time");
             final Tag ts = tagService.insertTag(tag);
             final GlobalTagMapId mapid = new GlobalTagMapId();
-            mapid.setGlobalTagName(gt.getName());
-            mapid.setLabel("somelabel");
-            mapid.setRecord("somerecord");
+            mapid.globalTagName(gt.name()).label("somelabel").record("somerecord");
             final GlobalTagMap entity = DataGenerator.generateMapping(gt, tag, mapid);
             final GlobalTagMap saved = globaltagmapService.insertGlobalTagMap(entity);
             assertThat(saved).isNotNull();
@@ -211,9 +209,7 @@ public class TestCrestServices {
             // We create a tag BUT without saveing it
             final Tag tag = DataGenerator.generateTag("MY-TEST-FORMAP-02","time");
             final GlobalTagMapId mapid = new GlobalTagMapId();
-            mapid.setGlobalTagName(gt.getName());
-            mapid.setLabel("somelabel");
-            mapid.setRecord("somerecord");
+            mapid.globalTagName(gt.name()).label("somelabel").record("somerecord");
             final GlobalTagMap entity = DataGenerator.generateMapping(gt, tag, mapid);
             final GlobalTagMap saved = globaltagmapService.insertGlobalTagMap(entity);
         }
@@ -226,9 +222,7 @@ public class TestCrestServices {
             final GlobalTag gt = DataGenerator.generateGlobalTag("TEST-GT-FORMAP-02");
             final Tag tag = DataGenerator.generateTag("MY-TEST-FORMAP-02","time");
             final GlobalTagMapId mapid = new GlobalTagMapId();
-            mapid.setGlobalTagName(gt.getName());
-            mapid.setLabel("somelabel");
-            mapid.setRecord("somerecord");
+            mapid.globalTagName(gt.name()).label("somelabel").record("somerecord");
             final GlobalTagMap entity = DataGenerator.generateMapping(gt, tag, mapid);
             final GlobalTagMap saved = globaltagmapService.insertGlobalTagMap(entity);
         }

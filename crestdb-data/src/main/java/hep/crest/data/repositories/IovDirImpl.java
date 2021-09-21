@@ -1,6 +1,3 @@
-/**
- *
- */
 package hep.crest.data.repositories;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -44,7 +41,7 @@ public class IovDirImpl implements IIovCrud {
     /**
      * Directory utilities.
      */
-    private DirectoryUtilities dirtools = null;
+    private DirectoryUtilities dirtools;
 
     /**
      * Mapper.
@@ -73,7 +70,7 @@ public class IovDirImpl implements IIovCrud {
     /**
      * Load iovs from JSON file.
      *
-     * @param tagname
+     * @param tagname The tag name.
      * @return List of IovDto
      */
     protected List<IovDto> readJsonFromFile(String tagname) {
@@ -207,11 +204,11 @@ public class IovDirImpl implements IIovCrud {
     public List<Iov> selectAtTime(String name, BigDecimal since, Date snapshot) {
         try {
             List<IovDto> iovdtoList = readJsonFromFile(name);
-            Long maxdiff = Long.MAX_VALUE;
-            Long closemin = since.longValue();
-            Long closemax = since.longValue();
+            long maxdiff = Long.MAX_VALUE;
+            long closemin = since.longValue();
+            long closemax = since.longValue();
             for (IovDto dto : iovdtoList) {
-                Long mindiff = Math.abs(dto.getSince().longValue() - since.longValue());
+                long mindiff = Math.abs(dto.getSince().longValue() - since.longValue());
                 if (mindiff < maxdiff) {
                     maxdiff = mindiff;
                     if (dto.getSince().longValue() > closemax) {
@@ -273,14 +270,14 @@ public class IovDirImpl implements IIovCrud {
     /**
      * Remove an iov using the Id.
      *
-     * @param id
+     * @param id the IovId.
      */
     @Override
     public void deleteById(IovId id) {
         try {
-            Predicate<Iov> isRemoved = item -> (item.getId().equals(id));
-            final Path iovfilepath = dirtools.createIfNotexistsIov(id.getTagName());
-            List<IovDto> iovdtoList = readJsonFromFile(id.getTagName());
+            Predicate<Iov> isRemoved = item -> (item.id().equals(id));
+            final Path iovfilepath = dirtools.createIfNotexistsIov(id.tagName());
+            List<IovDto> iovdtoList = readJsonFromFile(id.tagName());
             final List<Iov> entitylist = StreamSupport.stream(iovdtoList.spliterator(), false)
                     .map(s -> mapper.map(s, Iov.class))
                     .collect(Collectors.toList());
@@ -297,14 +294,14 @@ public class IovDirImpl implements IIovCrud {
     /**
      * Remove an iov using the entity.
      *
-     * @param entity
+     * @param entity the Iov entity.
      */
     @Override
     public void delete(Iov entity) {
         try {
             Predicate<Iov> isRemoved = item -> (item.equals(entity));
-            final Path iovfilepath = dirtools.createIfNotexistsIov(entity.getId().getTagName());
-            List<IovDto> iovdtoList = readJsonFromFile(entity.getId().getTagName());
+            final Path iovfilepath = dirtools.createIfNotexistsIov(entity.id().tagName());
+            List<IovDto> iovdtoList = readJsonFromFile(entity.id().tagName());
             final List<Iov> entitylist = StreamSupport.stream(iovdtoList.spliterator(), false)
                     .map(s -> mapper.map(s, Iov.class))
                     .collect(Collectors.toList());
@@ -326,7 +323,7 @@ public class IovDirImpl implements IIovCrud {
     @Override
     public Iov save(Iov entity) {
         try {
-            final String tagname = entity.getId().getTagName();
+            final String tagname = entity.id().tagName();
             final Path iovfilepath = dirtools.createIfNotexistsIov(tagname);
             final List<Iov> iovlist = this.findByIdTagName(tagname);
             iovlist.add(entity);

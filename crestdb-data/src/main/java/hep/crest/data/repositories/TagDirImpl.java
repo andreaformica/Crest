@@ -56,7 +56,7 @@ public class TagDirImpl implements ITagCrud {
      */
     @Override
     public Tag save(Tag entity) {
-        final String tagname = entity.getName();
+        final String tagname = entity.name();
         try {
             final Path tagpath = dirtools.createIfNotexistsTag(tagname);
             if (tagpath != null) {

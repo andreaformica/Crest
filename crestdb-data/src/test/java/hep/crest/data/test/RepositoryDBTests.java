@@ -245,7 +245,7 @@ public class RepositoryDBTests {
         log.info("Tag to be stored: {}", entity);
         final Tag savedtag = tagrepo.save(entity);
         final Tag loadedtag = tagrepo.findOne("A-TEST-02");
-        assertThat(loadedtag.getName()).isEqualTo(savedtag.getName());
+        assertThat(loadedtag.name()).isEqualTo(savedtag.name());
         final List<Tag> taglist = tagrepo.findByNameLike("A-TEST.*");
         assertThat(taglist.size()).isPositive();
 
@@ -272,7 +272,7 @@ public class RepositoryDBTests {
         final IovDto idto = DataGenerator.generateIovDto("anotherhash", "A-TEST-02",
                 new BigDecimal(22222L));
         Iov ioventity = mapper.map(idto, Iov.class);
-        ioventity.getId().setTagName(idto.getTagName());
+        ioventity.id().tagName(idto.getTagName());
         iovrepo.save(ioventity);
         assertThat(tdto).isNotNull();
 
@@ -291,7 +291,7 @@ public class RepositoryDBTests {
         dtolist.add(idto2);
         for (IovDto d : dtolist) {
             Iov e = mapper.map(d, Iov.class);
-            e.getId().setTagName(d.getTagName());
+            e.id().tagName(d.getTagName());
             iovrepo.save(e);
         }
         log.debug("Search iovs in tag A-TEST-03");

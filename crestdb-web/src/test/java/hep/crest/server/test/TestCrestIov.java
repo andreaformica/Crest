@@ -89,19 +89,19 @@ public class TestCrestIov {
             assertThat(saved).isNotNull();
             final IovDto iovdto0 = DataGenerator.generateIovDto("afakehashiov01", dto.getName(), new BigDecimal(0L));
             final Iov ioventity = mapperFacade.map(iovdto0, Iov.class);
-            ioventity.setTag(new Tag(iovdto0.getTagName()));
+            ioventity.tag(new Tag().name(iovdto0.getTagName()));
             iovservice.insertIov(ioventity);
             assertThat(iovservice.existsIov("SVC-TAG-02", new BigDecimal(0L), "afakehashiov01")).isTrue();
 
             final IovDto iovdto1 = DataGenerator.generateIovDto("afakehashiov01", dto.getName(),
                     new BigDecimal(3100000L));
             final Iov ioventity1 = mapperFacade.map(iovdto1, Iov.class);
-            ioventity1.setTag(new Tag(iovdto1.getTagName()));
+            ioventity1.tag(new Tag().name(iovdto1.getTagName()));
             iovservice.insertIov(ioventity1);
             final IovDto iovdto2 = DataGenerator.generateIovDto("afakehashiov01", dto.getName(),
                     new BigDecimal(4100000L));
             final Iov ioventity2 = mapperFacade.map(iovdto2, Iov.class);
-            ioventity2.setTag(new Tag(iovdto2.getTagName()));
+            ioventity2.tag(new Tag().name(iovdto2.getTagName()));
             iovservice.insertIov(ioventity2);
             final PageRequest preq = prh.createPageRequest(0, 100, "id.since:DESC");
             final Iterable<Iov> iovlist = iovservice.findAllIovs(null, preq);

@@ -304,28 +304,25 @@ public class QueryDslTests {
         tagrepository.save(tag2);
 
         final GlobalTagMapId id1 = new GlobalTagMapId();
-        id1.setGlobalTagName(gtag.getName());
-        id1.setLabel("MY-TEST");
-        id1.setRecord("aaa");
+        id1.globalTagName(gtag.name()).label("MY-TEST").record("aaa");
         final GlobalTagMap map1 = DataGenerator.generateMapping(gtag, tag1, id1);
 
         final GlobalTagMapId id2 = new GlobalTagMapId();
-        id2.setGlobalTagName(gtag.getName());
-        id2.setLabel("MY-SECOND");
-        id2.setRecord("bbb");
+        id2.globalTagName(gtag.name()).label("MY-SECOND").record("bbb");
+
         final GlobalTagMap map2 = DataGenerator.generateMapping(gtag, tag2, id2);
 
         tagmaprepository.save(map1);
         tagmaprepository.save(map2);
 
-        final List<GlobalTagMap> gmlist = tagmaprepository.findByGlobalTagName(gtag.getName());
+        final List<GlobalTagMap> gmlist = tagmaprepository.findByGlobalTagName(gtag.name());
         assertThat(gmlist.size()).isPositive();
 
-        final List<GlobalTagMap> gmlistbytag = tagmaprepository.findByTagName(tag1.getName());
+        final List<GlobalTagMap> gmlistbytag = tagmaprepository.findByTagName(tag1.name());
         assertThat(gmlistbytag.size()).isPositive();
 
         final List<GlobalTagMap> gmlistbygtaglabeltag =
-                tagmaprepository.findByGlobalTagNameAndLabelAndTagNameLike(gtag.getName(), "MY-TEST", "%");
+                tagmaprepository.findByGlobalTagNameAndLabelAndTagNameLike(gtag.name(), "MY-TEST", "%");
         assertThat(gmlistbygtaglabeltag.size()).isPositive();
     }
 

@@ -138,7 +138,7 @@ public class IovsApiServiceImpl extends IovsApiService {
             // Create a new IOV.
             String tagname = body.getTagName();
             Iov entity = mapper.map(body, Iov.class);
-            entity.setTag(new Tag(tagname));
+            entity.tag(new Tag().name(tagname));
             final Iov saved = iovService.insertIov(entity);
             IovDto dto = mapper.map(saved, IovDto.class);
             dto.tagName(tagname);
@@ -215,7 +215,7 @@ public class IovsApiServiceImpl extends IovsApiService {
                 log.debug("Iov tag is {}", iovDto.getTagName());
                 // Create new iov.
                 Iov entity = mapper.map(iovDto, Iov.class);
-                entity.setTag(new Tag(iovDto.getTagName()));
+                entity.tag(new Tag().name(iovDto.getTagName()));
                 final Iov saved = iovService.insertIov(entity);
                 IovDto saveddto = mapper.map(saved, IovDto.class);
                 saveddto.tagName(iovDto.getTagName());
@@ -405,7 +405,7 @@ public class IovsApiServiceImpl extends IovsApiService {
             }
             Long groupsize = null;
             // Get the time type to apply different group selections.
-            final String timetype = tagentity.getTimeType();
+            final String timetype = tagentity.timeType();
             if (timetype.equalsIgnoreCase("run")) {
                 // The iov is of type RUN. Use the group size from properties.
                 groupsize = new Long(cprops.getRuntypeGroupsize());
@@ -440,7 +440,7 @@ public class IovsApiServiceImpl extends IovsApiService {
             filters.put("groupsize", groupsize.toString());
             respdto.datatype("groups").filter(filters);
             // In the response set the cachecontrol flag as well.
-            return Response.ok().entity(respdto).cacheControl(cc).lastModified(tagentity.getModificationTime()).build();
+            return Response.ok().entity(respdto).cacheControl(cc).lastModified(tagentity.modificationTime()).build();
 
         }
         catch (final NotExistsPojoException e) {
@@ -531,7 +531,7 @@ public class IovsApiServiceImpl extends IovsApiService {
             filters.put("until", runtil.toString());
             final CrestBaseResponse respdto = buildEntityResponse(dtolist, filters);
             // Send the cache control in the response.
-            return Response.ok().entity(respdto).cacheControl(cc).lastModified(tagentity.getModificationTime()).build();
+            return Response.ok().entity(respdto).cacheControl(cc).lastModified(tagentity.modificationTime()).build();
         }
         catch (final NotExistsPojoException e) {
             // The tag was not found.

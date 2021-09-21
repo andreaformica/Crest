@@ -2,6 +2,13 @@ package hep.crest.data.pojo;
 // Generated Aug 2, 2016 3:50:25 PM by Hibernate Tools 3.2.2.GA
 
 import hep.crest.data.config.DatabasePropertyConfigurator;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.Column;
@@ -22,6 +29,12 @@ import java.util.Date;
 @Entity
 @Table(name = "IOV", schema = DatabasePropertyConfigurator.SCHEMA_NAME, uniqueConstraints = {
         @UniqueConstraint(columnNames = { "TAG_NAME", "SINCE", "PAYLOAD_HASH" }) })
+@Accessors(fluent = true)
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 public class Iov implements java.io.Serializable {
 
     /**
@@ -31,41 +44,6 @@ public class Iov implements java.io.Serializable {
     /**
      * The Iov ID.
      */
-    private IovId id;
-    /**
-     * The tag.
-     */
-    private Tag tag;
-    /**
-     * The payload hash.
-     */
-    private String payloadHash;
-
-    /**
-     * Default ctor.
-     */
-    public Iov() {
-    }
-
-    /**
-     * Complete ctor.
-     * 
-     * @param id
-     *            the IovId
-     * @param tag
-     *            the Tag
-     * @param payloadHash
-     *            the String
-     */
-    public Iov(IovId id, Tag tag, String payloadHash) {
-        this.id = id;
-        this.tag = tag;
-        this.payloadHash = payloadHash;
-    }
-
-    /**
-     * @return IovId
-     */
     @EmbeddedId
     @AttributeOverride(name = "tagName",
             column = @Column(name = "TAG_NAME", nullable = false, length = 100))
@@ -73,53 +51,19 @@ public class Iov implements java.io.Serializable {
             column = @Column(name = "SINCE", nullable = false, precision = 38, scale = 0))
     @AttributeOverride(name = "insertionTime",
             column = @Column(name = "INSERTION_TIME", nullable = false, length = 11))
-    public IovId getId() {
-        return this.id;
-    }
-
+    private IovId id;
     /**
-     * @param id
-     *            the IovId
-     * @return
-     */
-    public void setId(IovId id) {
-        this.id = id;
-    }
-
-    /**
-     * @return Tag
+     * The tag.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "TAG_NAME", nullable = false, insertable = false, updatable = false)
-    public Tag getTag() {
-        return this.tag;
-    }
-
+    @EqualsAndHashCode.Exclude
+    private Tag tag;
     /**
-     * @param tag
-     *            the Tag
-     * @return
-     */
-    public void setTag(Tag tag) {
-        this.tag = tag;
-    }
-
-    /**
-     * @return String
+     * The payload hash.
      */
     @Column(name = "PAYLOAD_HASH", nullable = false, length = 64)
-    public String getPayloadHash() {
-        return this.payloadHash;
-    }
-
-    /**
-     * @param payloadHash
-     *            the String
-     * @return
-     */
-    public void setPayloadHash(String payloadHash) {
-        this.payloadHash = payloadHash;
-    }
+    private String payloadHash;
 
     /**
      * Before insertion.
@@ -128,19 +72,9 @@ public class Iov implements java.io.Serializable {
      */
     @PrePersist
     public void prePersist() {
-        if (this.id.getInsertionTime() == null) {
+        if (this.id.insertionTime() == null) {
             final Timestamp now = new Timestamp(new Date().getTime());
-            this.id.setInsertionTime(now);
+            this.id.insertionTime(now);
         }
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return "Iov [id=" + id + ", tag=" + tag + ", payloadHash=" + payloadHash + "]";
     }
 }

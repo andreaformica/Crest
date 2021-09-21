@@ -66,7 +66,7 @@ public class IovSynchroAspect {
     @Around("execution(* hep.crest.server.services.IovService.insertIov(*)) && args(entity)")
     public Object checkSynchro(ProceedingJoinPoint pjp, Iov entity) throws Throwable {
         log.debug("Iov insertion should verify the tag synchronization type : {}",
-                entity.getTag().getName());
+                entity.tag().name());
         Object retVal = null;
         Boolean allowedOperation = false;
         // If there is no or weak security activated then set allowed to true.
@@ -78,7 +78,7 @@ public class IovSynchroAspect {
             // Check the authentication.
             final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             String clientid = getUserId(auth);
-            if (entity.getTag().getName().startsWith(clientid) || entity.getTag().getName().startsWith("TEST")) {
+            if (entity.tag().name().startsWith(clientid) || entity.tag().name().startsWith("TEST")) {
                 allowedOperation = true;
             }
         }
@@ -92,21 +92,21 @@ public class IovSynchroAspect {
             // Synchronization aspect is enabled.
             Tag tagentity = null;
             try {
-                tagentity = tagService.findOne(entity.getTag().getName());
+                tagentity = tagService.findOne(entity.tag().name());
                 // Get synchro type from tag.
-                final String synchro = tagentity.getSynchronization();
+                final String synchro = tagentity.synchronization();
                 // Synchro for single version type. Can only append IOVs.
                 if ("SV".equalsIgnoreCase(synchro)) {
                     log.warn("Can only append IOVs....");
                     Iov latest = null;
                     // Get latest IOV.
-                    latest = iovService.latest(tagentity.getName(), "now", "ms");
+                    latest = iovService.latest(tagentity.name(), "now", "ms");
                     if (latest == null) {
                         // No latest is present.
                         log.info("No iov could be retrieved");
                         acceptTime = true;
                     }
-                    else if (latest.getId().getSince().compareTo(entity.getId().getSince()) <= 0) {
+                    else if (latest.id().since().compareTo(entity.id().since()) <= 0) {
                         // Latest is before the new one.
                         log.info("IOV in insert has correct time respect to last IOV : {} > {}", entity, latest);
                         acceptTime = true;
@@ -135,7 +135,7 @@ public class IovSynchroAspect {
         else {
             log.warn("Not authorized, either you cannot write in this tag or synchro type is wrong: auth={} "
                      + "synchro={}", allowedOperation, acceptTime);
-            throw new NotAuthorizedException("You cannot write iov in tag " + entity.getTag().getName());
+            throw new NotAuthorizedException("You cannot write iov in tag " + entity.tag().name());
         }
         return retVal;
     }

@@ -39,14 +39,14 @@ public class DataGenerator {
         final Instant now = Instant.now();
         final Date snapshotTime = new Date(now.toEpochMilli());
         final GlobalTag entity = new GlobalTag();
-        entity.setName(name);
-        entity.setDescription("A test global tag "+name);
-        entity.setRelease("rel-1");
-        entity.setScenario("test");
-        entity.setType('T');
-        entity.setWorkflow("none");
-        entity.setValidity(new BigDecimal(0L));
-        entity.setSnapshotTime(snapshotTime);
+        entity.name(name);
+        entity.description("A test global tag "+name);
+        entity.release("rel-1");
+        entity.scenario("test");
+        entity.type('T');
+        entity.workflow("none");
+        entity.validity(new BigDecimal(0L));
+        entity.snapshotTime(snapshotTime);
         return entity;
     }
     
@@ -70,13 +70,11 @@ public class DataGenerator {
 
     public static Tag generateTag(String name, String ttype) {
         final Tag entity = new Tag();
-        entity.setName(name);
-        entity.setDescription("A test tag "+name);
-        entity.setEndOfValidity(new BigDecimal(-1L));
-        entity.setLastValidatedTime(new BigDecimal(-1L));
-        entity.setObjectType("type");
-        entity.setSynchronization("synchro");
-        entity.setTimeType(ttype);
+        entity.name(name).description("A test tag "+name).endOfValidity(new BigDecimal(-1L))
+        .lastValidatedTime(new BigDecimal(-1L))
+        .objectType("type")
+        .synchronization("synchro")
+        .timeType(ttype);
         return entity;
     }
     
@@ -94,9 +92,7 @@ public class DataGenerator {
 
     public static GlobalTagMap generateMapping(GlobalTag gt, Tag at, GlobalTagMapId id) {
         final GlobalTagMap entity = new GlobalTagMap();
-        entity.setId(id);
-        entity.setGlobalTag(gt);
-        entity.setTag(at);
+        entity.id(id).globalTag(gt).tag(at);
         return entity;
     }
     
@@ -111,9 +107,9 @@ public class DataGenerator {
 
     public static Payload generatePayload(String hash, String objtype) {
         final Payload entity = new Payload();
-        entity.setHash(hash);
-        entity.setObjectType(objtype);
-        entity.setVersion("v1");
+        entity.hash(hash);
+        entity.objectType(objtype);
+        entity.version("v1");
         return entity;
     }
 
@@ -125,7 +121,7 @@ public class DataGenerator {
 
     public static Iov generateIov(String hash, String tagname, BigDecimal since) {
         final IovId id = new IovId(tagname,since,new Date());
-        final Tag tag = new Tag(tagname);
+        final Tag tag = new Tag();
         final Iov entity = new Iov(id,tag,hash);
         return entity;
     }

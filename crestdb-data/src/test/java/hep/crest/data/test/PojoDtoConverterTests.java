@@ -85,7 +85,8 @@ public class PojoDtoConverterTests {
     public void testGlobalTagConverter() throws Exception {
         final GlobalTag entity = DataGenerator.generateGlobalTag("GT-02");
         final GlobalTagDto dto = mapper.map(entity, GlobalTagDto.class);
-        assertThat(entity.getName()).isEqualTo(dto.getName());
+        log.info("Convert entity to dto: {} -> {}", entity, dto);
+        assertThat(entity.name()).isEqualTo(dto.getName());
         assertThat(entity.toString().length()).isPositive();
         assertThat(dto.toString().length()).isPositive();
 
@@ -102,7 +103,7 @@ public class PojoDtoConverterTests {
     public void testTagConverter() throws Exception {
         final Tag entity = DataGenerator.generateTag("MT-02", "run");
         final TagDto dto = mapper.map(entity, TagDto.class);
-        assertThat(entity.getName()).isEqualTo(dto.getName());
+        assertThat(entity.name()).isEqualTo(dto.getName());
         assertThat(entity.toString().length()).isPositive();
         assertThat(dto.toString().length()).isPositive();
         assertThat(dto.hashCode()).isNotZero();
@@ -117,16 +118,16 @@ public class PojoDtoConverterTests {
         final GlobalTag gtag = DataGenerator.generateGlobalTag("MY-TEST-GT-03");
         final Tag tag1 = DataGenerator.generateTag("MY-TEST-02", "time");
         final GlobalTagMapId id1 = new GlobalTagMapId();
-        id1.setGlobalTagName(gtag.getName());
-        id1.setLabel("MY-TEST");
-        id1.setRecord("aaa");
+        id1.globalTagName(gtag.name());
+        id1.label("MY-TEST");
+        id1.record("aaa");
 
         final GlobalTagMap map1 = DataGenerator.generateMapping(gtag, tag1, id1);
         final GlobalTagMapDto dto = mapper.map(map1, GlobalTagMapDto.class);
         assertThat(dto.toString().length()).isPositive();
-        assertThat(dto.getGlobalTagName()).isEqualTo(gtag.getName());
+        assertThat(dto.getGlobalTagName()).isEqualTo(gtag.name());
 
-        final GlobalTagMapId id2 = new GlobalTagMapId(gtag.getName(), "aaa", "MY-TEST");
+        final GlobalTagMapId id2 = new GlobalTagMapId(gtag.name(), "aaa", "MY-TEST");
         assertThat(id2).isEqualTo(id1);
         assertThat(id2.hashCode()).isNotZero();
 
@@ -136,16 +137,16 @@ public class PojoDtoConverterTests {
     public void testIovConverter() throws Exception {
         final IovDto dto = DataGenerator.generateIovDto("MYHASH", "MT-02", new BigDecimal(1000L));
         final Iov entity = mapper.map(dto, Iov.class);
-        final IovId id = entity.getId();
-        assertThat(id.getSince()).isEqualTo(new BigDecimal(1000L));
+        final IovId id = entity.id();
+        assertThat(id.since()).isEqualTo(new BigDecimal(1000L));
         log.info("Id of iov is {}", id);
 
         final Iov geniov = DataGenerator.generateIov("MYHASH", "MT-02", new BigDecimal(1000L));
         log.info("Generated iov {}", geniov);
-        final IovId genid = geniov.getId();
+        final IovId genid = geniov.id();
         assertThat(genid).isNotNull();
 
-        assertThat(entity.getPayloadHash()).isEqualTo(dto.getPayloadHash());
+        assertThat(entity.payloadHash()).isEqualTo(dto.getPayloadHash());
         assertThat(entity.toString().length()).isPositive();
         assertThat(dto.toString().length()).isPositive();
         assertThat(dto.hashCode()).isNotZero();
@@ -160,7 +161,7 @@ public class PojoDtoConverterTests {
         final PayloadDto dto = DataGenerator.generatePayloadDto("myhash1", "mydata", "mystreamer",
                 "test", time);
         final Payload entity = DataGenerator.generatePayload("myhash1", "test");
-        assertThat(entity.getHash()).isEqualTo(dto.getHash());
+        assertThat(entity.hash()).isEqualTo(dto.getHash());
         assertThat(entity.toString().length()).isPositive();
         assertThat(dto.toString().length()).isPositive();
         assertThat(dto.hashCode()).isNotZero();

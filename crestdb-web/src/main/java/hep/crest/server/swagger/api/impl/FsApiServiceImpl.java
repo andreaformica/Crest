@@ -87,7 +87,7 @@ public class FsApiServiceImpl extends FsApiService {
         try {
             // Find a tag using tagname in input.
             final Tag entity = tagService.findOne(tagname);
-            log.debug("Found tag {}", entity.getName());
+            log.debug("Found tag {}", entity.name());
             HttpServletRequest request = context.getHttpServletRequest();
             final String reqid = request.getSession().getId() + new Date().getTime();
             
@@ -135,7 +135,7 @@ public class FsApiServiceImpl extends FsApiService {
             }
             else {
                 final Tag entity = tagService.findOne(tagname);
-                log.debug("Found tag {} in DB, dump it on file system.", entity.getName());
+                log.debug("Found tag {} in DB, dump it on file system.", entity.name());
                 dirsvc.insertTag(entity, outdir);
                 dto = mapper.map(entity, TagDto.class);
             }

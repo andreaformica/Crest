@@ -322,21 +322,21 @@ public class IovService {
     @Transactional(rollbackOn = {CdbServiceException.class})
     public Iov insertIov(Iov entity) {
         log.debug("Create iov from {}", entity);
-        final String tagname = entity.getTag().getName();
+        final String tagname = entity.tag().name();
         // The IOV is not yet stored. Verify that the tag exists before inserting it.
         final Optional<Tag> tg = tagRepository.findById(tagname);
         if (tg.isPresent()) {
             final Tag t = tg.get();
-            t.setModificationTime(new Date());
+            t.modificationTime(new Date());
             // Check if iov exists
-            if (existsIov(t.getName(), entity.getId().getSince(), entity.getPayloadHash())) {
+            if (existsIov(t.name(), entity.id().since(), entity.payloadHash())) {
                 log.warn("Iov already exists : {}", entity);
                 throw new AlreadyExistsIovException(entity.toString());
             }
             // Update the tag modification time
             final Tag updtag = tagRepository.save(t);
-            entity.setTag(updtag);
-            entity.getId().setTagName(updtag.getName());
+            entity.tag(updtag);
+            entity.id().tagName(updtag.name());
             log.debug("Storing iov entity {} in tag {}", entity, updtag);
             final Iov saved = iovRepository.save(entity);
             log.debug("Saved entity: {}", saved);

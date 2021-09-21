@@ -90,7 +90,6 @@ public class IovGroupsImpl implements IovGroupsCustom {
     /**
      * @param defaultTablename
      *            the String
-     * @return
      */
     public void setDefaultTablename(String defaultTablename) {
         if (this.defaultTablename == null) {

@@ -431,7 +431,7 @@ public class DirectoryUtilities {
             final String jsonstring = buf.toString();
             final Tag readValue = getMapper().readValue(jsonstring, Tag.class);
             log.debug("Parsed json to get tag object {} with field {} " + " and description {}",
-                    readValue, readValue.getName(), readValue.getDescription());
+                    readValue, readValue.name(), readValue.description());
             return readValue;
         }
         catch (final IOException e) {
