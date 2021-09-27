@@ -11,6 +11,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
 import org.keycloak.representations.AccessToken;
+import org.keycloak.representations.IDToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +89,7 @@ public class TagSecurityAspect {
         // Check the authentication.
         if (auth == null) {
             // No authentication is present. It will be used to reject the request.
-            log.debug(
+            log.warn(
                     "Stop execution....for the moment it only print this message...no action is taken");
         }
         else {
@@ -96,15 +97,17 @@ public class TagSecurityAspect {
             final Principal user = (Principal) auth.getPrincipal();
             if (user instanceof KeycloakPrincipal) {
                 KeycloakPrincipal<KeycloakSecurityContext> kp = (KeycloakPrincipal<KeycloakSecurityContext>) user;
-                //IDToken token = kp.getKeycloakSecurityContext().getIdToken();
-                AccessToken token = kp.getKeycloakSecurityContext().getToken();
+                // Use IDToken in Svom
+                IDToken token = kp.getKeycloakSecurityContext().getIdToken();
+                // Use AccessToken with CERN crest implementation
+                //AccessToken token = kp.getKeycloakSecurityContext().getToken();
                 log.debug("Found principal as Keycloak : {} - token {}!", kp, token);
                 if (token != null) {
                     log.debug("Got token for {}", token.getAudience()[0]);
                     Map<String, Object> otherClaims = token.getOtherClaims();
                     if (otherClaims != null) {
                         for (String key : otherClaims.keySet()) {
-                            log.debug("Found claim : {} = {}", key, otherClaims.get(key));
+                            log.info("Found claim : {} = {}", key, otherClaims.get(key));
                             if ("clientId".equals(key)) {
                                 clientid = (String) otherClaims.get(key);
                             }
@@ -112,7 +115,7 @@ public class TagSecurityAspect {
                     }
                 }
             }
-            log.debug("Tag insertion should verify the role for user : {} with clientid {}",
+            log.info("Tag insertion should verify the role for user : {} with clientid {}",
                     user == null ? "none" : user, clientid);
             log.debug("For the moment we print all roles and filter on one role as an example...");
             if (user != null) {
