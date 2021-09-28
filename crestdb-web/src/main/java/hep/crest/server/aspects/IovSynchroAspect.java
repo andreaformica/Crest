@@ -14,7 +14,6 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
-import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.IDToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -159,9 +158,7 @@ public class IovSynchroAspect {
             final Principal user = (Principal) auth.getPrincipal();
             if (user instanceof KeycloakPrincipal) {
                 KeycloakPrincipal<KeycloakSecurityContext> kp = (KeycloakPrincipal<KeycloakSecurityContext>) user;
-                // Use IDToken in Svom
                 IDToken token = kp.getKeycloakSecurityContext().getIdToken();
-                // Use AccessToken with CERN crest implementation
                 //AccessToken token = kp.getKeycloakSecurityContext().getToken();
                 log.debug("Found principal as Keycloak : {} - token {}!", kp, token);
                 if (token != null) {

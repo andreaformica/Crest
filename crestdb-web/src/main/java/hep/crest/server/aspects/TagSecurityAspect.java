@@ -10,7 +10,6 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
-import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.IDToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,6 +94,7 @@ public class TagSecurityAspect {
         else {
             // Retrieve user details.
             final Principal user = (Principal) auth.getPrincipal();
+            log.debug("Found user : {}", user);
             if (user instanceof KeycloakPrincipal) {
                 KeycloakPrincipal<KeycloakSecurityContext> kp = (KeycloakPrincipal<KeycloakSecurityContext>) user;
                 // Use IDToken in Svom
