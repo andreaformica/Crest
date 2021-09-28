@@ -14,7 +14,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
-import org.keycloak.representations.AccessToken;
+import org.keycloak.representations.IDToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -158,8 +158,8 @@ public class IovSynchroAspect {
             final Principal user = (Principal) auth.getPrincipal();
             if (user instanceof KeycloakPrincipal) {
                 KeycloakPrincipal<KeycloakSecurityContext> kp = (KeycloakPrincipal<KeycloakSecurityContext>) user;
-                //IDToken token = kp.getKeycloakSecurityContext().getIdToken();
-                AccessToken token = kp.getKeycloakSecurityContext().getToken();
+                IDToken token = kp.getKeycloakSecurityContext().getIdToken();
+                //AccessToken token = kp.getKeycloakSecurityContext().getToken();
                 log.debug("Found principal as Keycloak : {} - token {}!", kp, token);
                 if (token != null) {
                     log.debug("Got token for {}", token.getAudience()[0]);
