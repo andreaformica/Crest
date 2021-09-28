@@ -10,7 +10,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
-import org.keycloak.representations.IDToken;
+import org.keycloak.representations.AccessToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,14 +94,14 @@ public class TagSecurityAspect {
         else {
             // Retrieve user details.
             final Principal user = (Principal) auth.getPrincipal();
-            log.debug("Found user : {}", user);
             if (user instanceof KeycloakPrincipal) {
                 KeycloakPrincipal<KeycloakSecurityContext> kp = (KeycloakPrincipal<KeycloakSecurityContext>) user;
                 // Use IDToken in Svom
-                IDToken token = kp.getKeycloakSecurityContext().getIdToken();
+                //IDToken token = kp.getKeycloakSecurityContext().getIdToken();
                 // Use AccessToken with CERN crest implementation
-                //AccessToken token = kp.getKeycloakSecurityContext().getToken();
-                log.debug("Found principal as Keycloak : {} - token {}!", kp, token);
+                log.info("Keycloak principal: {}", kp);
+                AccessToken token = kp.getKeycloakSecurityContext().getToken();
+                log.debug("Found token : token {}!", token);
                 if (token != null) {
                     log.debug("Got token for {}", token.getAudience()[0]);
                     Map<String, Object> otherClaims = token.getOtherClaims();
