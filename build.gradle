@@ -117,6 +117,13 @@ openApiGenerate {
     ]
 }
 
+task buildCrestPythonClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask){
+    generatorName = "python"
+    inputSpec = "$swaggerBundleDirectory/crestApi_all.yml".toString()
+    outputDir = "$rootDir/pycrest".toString()
+    packageName = "hep.crest.client"
+}
+
 /*
 // Task to generate sources in build output directory
 openApiGenerate {
