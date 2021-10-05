@@ -22,6 +22,7 @@ import hep.crest.data.repositories.externals.SqlRequests;
 import hep.crest.swagger.model.PayloadDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,12 +30,14 @@ import javax.sql.DataSource;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
 
 /**
  * An implementation for requests using Postgres database.
@@ -132,8 +135,8 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
         try (Connection conn = super.getDs().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);) {
             conn.setAutoCommit(false);
-            final long oid = bhandler.getLargeObjectId(conn, is, entity);
-            final long sioid = bhandler.getLargeObjectId(conn, sis, null);
+            final long oid = bhandler.writeLargeObjectId(conn, is, entity);
+            final long sioid = bhandler.writeLargeObjectId(conn, sis, null);
 
             ps.setString(1, entity.getHash());
             ps.setString(2, entity.getObjectType());
@@ -160,6 +163,42 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
         }
     }
 
+    /**
+     * The method does not access blob data.
+     *
+     * @param id           the String
+     * @param streamerInfo the String
+     * @return number of updated rows.
+     */
+    @Override
+    @Transactional
+    public int updateMetaInfo(String id, String streamerInfo) {
+        log.info("Update payload streamer info {} using JDBCTEMPLATE (postgresql implementation)", id);
+        try (Connection conn = super.getDs().getConnection()) {
+            conn.setAutoCommit(false);
+            final JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDs());
+            final String tablename = this.tablename();
+
+            final String sql = SqlRequests.getUpdateMetaQuery(tablename);
+            final String sqlget = SqlRequests.getFindDataQuery(tablename);
+            // Retrieve oid
+            List<Long> oidlist = jdbcTemplate.query(sqlget,
+                    (rs, row) -> rs.getLong(1),
+                    new Object[]{id});
+            final InputStream sis = new ByteArrayInputStream(streamerInfo.getBytes(StandardCharsets.UTF_8));
+
+            if (oidlist != null && !oidlist.isEmpty()) {
+                Long oid = oidlist.get(0);
+                bhandler.updateLargeObjectId(conn, sis, oid);
+            }
+        }
+        catch (final DataAccessException | SQLException e) {
+            log.error("Cannot update streamer info payload with data for hash {}: {}", id, e);
+        }
+        return 0;
+    }
+
+
     @Override
     @Transactional
     public void delete(String id) {
@@ -168,12 +207,18 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
         final String sqlget = SqlRequests.getFindDataQuery(tablename);
         final String sql = SqlRequests.getDeleteQuery(tablename);
         log.info("Remove payload with hash {} using JDBC", id);
-        Long oid = jdbcTemplate.queryForObject(sqlget,
-                new Object[]{id},
-                (rs, row) -> rs.getLong(1));
-        jdbcTemplate.execute("select lo_unlink(" + oid + ")");
-        jdbcTemplate.update(sql, id);
-        log.debug("Entity removal done...");
+        List<Long> oidlist = jdbcTemplate.query(sqlget,
+                (rs, row) -> rs.getLong(1),
+                new Object[]{id});
+        if (oidlist != null && !oidlist.isEmpty()) {
+            Long oid = oidlist.get(0);
+            jdbcTemplate.execute("select lo_unlink(" + oid + ")");
+            jdbcTemplate.update(sql, id);
+            log.debug("Entity removal done...");
+        }
+        else {
+            log.warn("Cannot delete {}: entry not found", id);
+        }
     }
 
 }

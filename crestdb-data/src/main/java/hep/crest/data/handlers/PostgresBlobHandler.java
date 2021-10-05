@@ -40,7 +40,7 @@ public class PostgresBlobHandler {
      *            the PayloadDto
      * @return long
      */
-    public long getLargeObjectId(Connection conn, InputStream is, PayloadDto entity) {
+    public long writeLargeObjectId(Connection conn, InputStream is, PayloadDto entity) {
         // Open the large object for writing
         LargeObjectManager lobj = null;
         LargeObject obj = null;
@@ -86,6 +86,59 @@ public class PostgresBlobHandler {
             }
         }
         return LONGNULL;
+    }
+
+    /**
+     * This method is inspired to the postgres documentation on the JDBC driver. For
+     * reasons which are still not clear the select methods are working as they are.
+     *
+     * @param conn
+     *            the Connection
+     * @param is
+     *            the InputStream
+     * @param oid
+     *            the large object id
+     * @return
+     */
+    public void updateLargeObjectId(Connection conn, InputStream is, long oid) {
+        // Open the large object for writing
+        LargeObjectManager lobj = null;
+        LargeObject obj = null;
+        try {
+            lobj = conn.unwrap(org.postgresql.PGConnection.class).getLargeObjectAPI();
+            obj = lobj.open(oid, LargeObjectManager.WRITE);
+
+            // Copy the data from the file to the large object
+            final byte[] buf = new byte[2048];
+            int s = 0;
+            int tl = 0;
+            while ((s = is.read(buf, 0, 2048)) > 0) {
+                log.trace("Write into LargeObject ID {} nbytes {} ", oid, s);
+                obj.write(buf, 0, s);
+                tl += s;
+            }
+            // Close the large object
+            obj.close();
+            // This seems to be not needed or harmful: lobj . unlink( oid )
+            // unlink seems to be used to DELETE the BLOB.
+        }
+        catch (SQLException | IOException e) {
+            log.error("Exception in getting large object id: {}", e.getMessage());
+        }
+        finally {
+            try {
+                if (obj != null) {
+                    obj.close();
+                }
+                if (lobj != null) {
+                    lobj = null;
+                }
+            }
+            catch (final SQLException e) {
+                log.error("Error in closing result set : {}", e.getMessage());
+            }
+        }
+        return;
     }
 
     /**
