@@ -178,9 +178,7 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
             conn.setAutoCommit(false);
             final JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDs());
             final String tablename = this.tablename();
-
-            final String sql = SqlRequests.getUpdateMetaQuery(tablename);
-            final String sqlget = SqlRequests.getFindDataQuery(tablename);
+            final String sqlget = SqlRequests.getFindMetaQuery(tablename);
             // Retrieve oid
             List<Long> oidlist = jdbcTemplate.query(sqlget,
                     (rs, row) -> rs.getLong(1),
