@@ -23,12 +23,6 @@ public class PostgresBlobHandler {
     private static final Logger log = LoggerFactory.getLogger(PostgresBlobHandler.class);
 
     /**
-     * The null long.
-     */
-    private static final Long LONGNULL = null;
-
-
-    /**
      * This method is inspired to the postgres documentation on the JDBC driver. For
      * reasons which are still not clear the select methods are working as they are.
      *
@@ -40,7 +34,7 @@ public class PostgresBlobHandler {
      *            the PayloadDto
      * @return long
      */
-    public long writeLargeObjectId(Connection conn, InputStream is, PayloadDto entity) {
+    public long writeLargeObjectId(Connection conn, InputStream is, PayloadDto entity) throws SQLException {
         // Open the large object for writing
         LargeObjectManager lobj = null;
         LargeObject obj = null;
@@ -77,15 +71,12 @@ public class PostgresBlobHandler {
                 if (obj != null) {
                     obj.close();
                 }
-                if (lobj != null) {
-                    lobj = null;
-                }
             }
             catch (final SQLException e) {
                 log.error("Error in closing result set : {}", e.getMessage());
             }
         }
-        return LONGNULL;
+        throw new SQLException("Cannot write into LOB");
     }
 
     /**

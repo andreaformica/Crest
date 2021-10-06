@@ -54,7 +54,7 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
     /**
      * Create Blob handler for postgres.
      */
-    private PostgresBlobHandler bhandler = new PostgresBlobHandler();
+    private final PostgresBlobHandler bhandler = new PostgresBlobHandler();
 
     /**
      * @param ds the DataSource
@@ -79,9 +79,9 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
     @Override
     protected byte[] getBlob(ResultSet rs, String key) throws SQLException {
         byte[] buf = null;
-        Long oid = rs.getLong(key);
+        long oid = rs.getLong(key);
         log.info("Retrieve blob from oid {}", oid);
-        try (Connection conn = super.getDs().getConnection();) {
+        try (Connection conn = super.getDs().getConnection()) {
             conn.setAutoCommit(false);
             buf = bhandler.getlargeObj(oid, conn);
         }
@@ -124,7 +124,6 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
      * @param sis    the InputStream
      * @param sql    the String
      * @param entity the PayloadDto
-     * @return
      * @throws CdbServiceException If an Exception occurred
      */
     protected void execute(InputStream is, InputStream sis, String sql, PayloadDto entity) {
@@ -133,7 +132,7 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
         entity.setInsertionTime(now.atOffset(ZoneOffset.UTC));
 
         try (Connection conn = super.getDs().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             conn.setAutoCommit(false);
             final long oid = bhandler.writeLargeObjectId(conn, is, entity);
             final long sioid = bhandler.writeLargeObjectId(conn, sis, null);
@@ -179,13 +178,13 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
             final JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDs());
             final String tablename = this.tablename();
             final String sqlget = SqlRequests.getStreamerInfoQuery(tablename);
-            // Retrieve oid
+            // Retrieve oid to replace the content of the file.
             List<Long> oidlist = jdbcTemplate.query(sqlget,
                     (rs, row) -> rs.getLong(1),
                     new Object[]{id});
             final InputStream sis = new ByteArrayInputStream(streamerInfo.getBytes(StandardCharsets.UTF_8));
 
-            if (oidlist != null && !oidlist.isEmpty()) {
+            if (!oidlist.isEmpty()) {
                 Long oid = oidlist.get(0);
                 bhandler.updateLargeObjectId(conn, sis, oid);
             }
@@ -202,21 +201,36 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
     public void delete(String id) {
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDs());
         final String tablename = this.tablename();
-        final String sqlget = SqlRequests.getFindDataQuery(tablename);
         final String sql = SqlRequests.getDeleteQuery(tablename);
         log.info("Remove payload with hash {} using JDBC", id);
-        List<Long> oidlist = jdbcTemplate.query(sqlget,
-                (rs, row) -> rs.getLong(1),
-                new Object[]{id});
-        if (oidlist != null && !oidlist.isEmpty()) {
-            Long oid = oidlist.get(0);
-            jdbcTemplate.execute("select lo_unlink(" + oid + ")");
-            jdbcTemplate.update(sql, id);
-            log.debug("Entity removal done...");
-        }
-        else {
-            log.warn("Cannot delete {}: entry not found", id);
-        }
+        this.deleteOids(id);
+        jdbcTemplate.update(sql, id);
+        log.debug("Entity removal done...");
     }
 
+    /**
+     * Delete the underlying files provided the hash.
+     * It applies to Data and StreamerInfo.
+     * @param hash the payload hash.
+     */
+    protected void deleteOids(String hash) {
+        final JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDs());
+        final String tablename = this.tablename();
+        final String sqlget = SqlRequests.getFindDataQuery(tablename);
+        List<Long> oidlist = jdbcTemplate.query(sqlget,
+                (rs, row) -> rs.getLong(1),
+                new Object[]{hash});
+        if (!oidlist.isEmpty()) {
+            Long oid = oidlist.get(0);
+            jdbcTemplate.execute("select lo_unlink(" + oid + ")");
+        }
+        final String sqlmetaget = SqlRequests.getStreamerInfoQuery(tablename);
+        oidlist = jdbcTemplate.query(sqlmetaget,
+                (rs, row) -> rs.getLong(1),
+                new Object[]{hash});
+        if (!oidlist.isEmpty()) {
+            Long oid = oidlist.get(0);
+            jdbcTemplate.execute("select lo_unlink(" + oid + ")");
+        }
+    }
 }
