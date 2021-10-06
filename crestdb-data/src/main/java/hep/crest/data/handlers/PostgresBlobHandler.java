@@ -107,7 +107,7 @@ public class PostgresBlobHandler {
         try {
             lobj = conn.unwrap(org.postgresql.PGConnection.class).getLargeObjectAPI();
             obj = lobj.open(oid, LargeObjectManager.WRITE);
-
+            obj.truncate(0);
             // Copy the data from the file to the large object
             final byte[] buf = new byte[2048];
             int s = 0;
