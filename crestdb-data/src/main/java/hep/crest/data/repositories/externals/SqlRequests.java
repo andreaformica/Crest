@@ -69,6 +69,15 @@ public final class SqlRequests {
      * @param tablename the String
      * @return String
      */
+    public static final String getStreamerInfoQuery(String tablename) {
+        return "select STREAMER_INFO "
+               + " from " + tablename + WHERE_HASH;
+    }
+
+    /**
+     * @param tablename the String
+     * @return String
+     */
     public static final String getFindDataHashQuery(String tablename) {
         return "select HASH,DATA from " + tablename + WHERE_HASH;
     }
