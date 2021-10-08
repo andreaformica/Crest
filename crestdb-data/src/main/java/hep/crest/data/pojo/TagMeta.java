@@ -14,6 +14,8 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Data;
+import lombok.experimental.Accessors;
 import org.hibernate.annotations.Type;
 
 import hep.crest.data.config.DatabasePropertyConfigurator;
@@ -23,6 +25,8 @@ import hep.crest.data.config.DatabasePropertyConfigurator;
  */
 @Entity
 @Table(name = "TAG_META", schema = DatabasePropertyConfigurator.SCHEMA_NAME)
+@Data
+@Accessors(fluent = true)
 public class TagMeta implements java.io.Serializable {
 
     /**
@@ -32,133 +36,38 @@ public class TagMeta implements java.io.Serializable {
     /**
      * The tag name.
      */
+    @Id
+    @Column(name = "TAG_NAME", unique = true, nullable = false, length = 255)
     private String tagName;
     /**
      * The description.
      */
+    @Column(name = "DESCRIPTION", nullable = false, length = 512)
     private String description;
     /**
      * The number of channels.
      */
+    @Column(name = "CHANNEL_SIZE")
     private Integer chansize;
     /**
      * The number of columns in the payload.
      */
+    @Column(name = "COLUMN_SIZE")
     private Integer colsize;
     /**
      * The tag info json.
      */
+    @Column(name = "TAG_INFO", nullable = false)
+    @Lob
+    @Type(type = "org.hibernate.type.BlobType")
     private Blob tagInfo;
     /**
      * The insertion time.
      */
-    private Date insertionTime;
-
-    /**
-     * @return the tagName
-     */
-    @Id
-    @Column(name = "TAG_NAME", unique = true, nullable = false, length = 255)
-    public String getTagName() {
-        return tagName;
-    }
-
-    /**
-     * @param tagName
-     *            the tagName to set
-     */
-    public void setTagName(String tagName) {
-        this.tagName = tagName;
-    }
-
-    /**
-     * @return the description
-     */
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * @param description
-     *            the description to set
-     */
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    /**
-     * @return the chansize
-     */
-    @Column(name = "CHANNEL_SIZE")
-    public Integer getChansize() {
-        return chansize;
-    }
-
-    /**
-     * @param chansize
-     *            the chansize to set
-     */
-    public void setChansize(Integer chansize) {
-        this.chansize = chansize;
-    }
-
-    /**
-     * @return the colsize
-     */
-    @Column(name = "COLUMN_SIZE")
-    public Integer getColsize() {
-        return colsize;
-    }
-
-    /**
-     * @param colsize
-     *            the colsize to set
-     */
-    public void setColsize(Integer colsize) {
-        this.colsize = colsize;
-    }
-
-    /**
-     * @return Date
-     */
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "INSERTION_TIME", nullable = false, updatable = true, length = 11)
-    public Date getInsertionTime() {
-        if (insertionTime == null) {
-            return null;
-        }
-        return new Date(this.insertionTime.getTime());
-    }
+    private Date insertionTime;
 
-    /**
-     * @param insertionTime
-     *            the Date
-     * @return
-     */
-    public void setInsertionTime(Date insertionTime) {
-        if (insertionTime != null) {
-            this.insertionTime = new Date(insertionTime.getTime());
-        }
-    }
-
-    /**
-     * @return Blob
-     */
-    @Column(name = "TAG_INFO", nullable = false)
-    @Lob
-    @Type(type = "org.hibernate.type.BlobType")
-    public Blob getTagInfo() {
-        return this.tagInfo;
-    }
-
-    /**
-     * @param tagInfo
-     *            the Blob
-     * @return
-     */
-    public void setTagInfo(Blob tagInfo) {
-        this.tagInfo = tagInfo;
-    }
 
     /**
      * 

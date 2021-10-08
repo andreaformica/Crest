@@ -42,22 +42,25 @@ public class ServicesConfig {
     @Autowired
     private CrestProperties cprops;
 
-    /**
-     *
-     * @return ObjectMapper
-     */
+
     @Bean(name = "jacksonMapper")
     public ObjectMapper getJacksonMapper() {
+//        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+//                // date/time
+//                .appendPattern("yyyy-MM-dd HH:mm:ss")
+//                // optional fraction of seconds (from 0 to 9 digits)
+//                .optionalStart().appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true).optionalEnd()
+//                // offset
+//                .appendPattern("xxx")
+//                // create formatter
+//                .toFormatter();
         DateTimeFormatter formatter = new DateTimeFormatterBuilder()
                 .parseCaseInsensitive()
-                // date/time
                 .appendPattern("yyyy-MM-dd'T'HH:mm:ss")
-                // optional fraction of seconds (from 0 to 9 digits)
                 .optionalStart().appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true).optionalEnd()
-                // offset
                 .appendPattern("xxxx")
-                // create formatter
                 .toFormatter();
+
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false);
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -69,9 +72,6 @@ public class ServicesConfig {
         return mapper;
     }
 
-
-
-
     /**
      * @return LocaleResolver
      */
@@ -81,5 +81,4 @@ public class ServicesConfig {
         slr.setDefaultLocale(Locale.US);
         return slr;
     }
-
 }

@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class RepositorySqliteTests {
 
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
+    private static final Logger log = LoggerFactory.getLogger(RepositorySqliteTests.class);
 
     @Autowired
     private TagRepository tagrepository;
@@ -95,13 +95,12 @@ public class RepositorySqliteTests {
         assertThat(saved).isNotNull();
         final PayloadDto loaded = repobean.find("myhashsqlite1");
         assertThat(loaded.toString().length()).isPositive();
-
-        DataGenerator.generatePayloadData("/tmp/cdms/payloadatasqlite.blob", " for sqlite");
+        DataGenerator.generatePayloadData("/tmp/cdms/payloadatasqlite.blob"," for sqlite");
         final File f = new File("/tmp/cdms/payloadatasqlite.blob");
         InputStream ds = new BufferedInputStream(new FileInputStream(f));
 
         dto.hash("mynewhashsqlite1");
-        final PayloadDto savedfromblob = repobean.save(dto, ds);
+        final PayloadDto savedfromblob = repobean.save(dto,ds);
         assertThat(savedfromblob.toString().length()).isNotNegative();
         if (ds != null) {
             ds.close();
@@ -139,7 +138,7 @@ public class RepositorySqliteTests {
         final TagMetaDto savedmeta = tagmetarepobean.save(metadto);
         assertThat(savedmeta).isNotNull();
         assertThat(savedmeta.toString().length()).isPositive();
-        assertThat(savedmeta.getTagName()).isEqualTo(savedtag.getName());
+        assertThat(savedmeta.getTagName()).isEqualTo(savedtag.name());
 
         final TagMetaDto storedmeta = tagmetarepobean.find(savedmeta.getTagName());
         assertThat(storedmeta).isNotNull();
@@ -150,5 +149,4 @@ public class RepositorySqliteTests {
         final TagMetaDto deletedmeta = tagmetarepobean.find(updmeta.getTagName());
         assertThat(deletedmeta).isNull();
     }
-
 }

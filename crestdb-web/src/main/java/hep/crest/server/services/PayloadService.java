@@ -99,6 +99,29 @@ public class PayloadService {
     /**
      * @param hash
      *            the String
+     * @param sinfo
+     *            the String
+     * @return int
+     * @throws CdbServiceException
+     *             If an Exception occurred
+     * @throws NotExistsPojoException
+     *             If object was not found
+     */
+    @Transactional
+    public int updatePayloadMetaInfo(String hash, String sinfo) {
+        int nrows = payloaddataRepository.updateMetaInfo(hash, sinfo);
+        if (nrows <= 0) {
+            throw new NotExistsPojoException("Cannot update payload meta data for hash " + hash);
+        }
+        else if (nrows > 1) {
+            throw new CdbServiceException("Too many rows updated...rollback");
+        }
+        return nrows;
+    }
+
+    /**
+     * @param hash
+     *            the String
      * @return InputStream
      * @throws CdbServiceException
      *             If an Exception occurred
@@ -184,7 +207,8 @@ public class PayloadService {
             }
             String tagname = dto.getTagName();
             Iov entity = mapper.map(dto, Iov.class);
-            entity.setTag(new Tag(tagname));
+            entity.tag(new Tag().name(tagname));
+
             final Iov savediov = iovService.insertIov(entity);
             IovDto saveddto = mapper.map(savediov, IovDto.class);
             saveddto.tagName(tagname);
@@ -223,29 +247,6 @@ public class PayloadService {
             }
             log.debug("Removed temporary file");
         }
-    }
-
-    /**
-     * @param hash
-     *            the String
-     * @param sinfo
-     *            the String
-     * @return int
-     * @throws CdbServiceException
-     *             If an Exception occurred
-     * @throws NotExistsPojoException
-     *             If object was not found
-     */
-    @Transactional
-    public int updatePayloadMetaInfo(String hash, String sinfo) {
-        int nrows = payloaddataRepository.updateMetaInfo(hash, sinfo);
-        if (nrows <= 0) {
-            throw new NotExistsPojoException("Cannot update payload meta data for hash " + hash);
-        }
-        else if (nrows > 1) {
-            throw new CdbServiceException("Too many rows updated...rollback");
-        }
-        return nrows;
     }
 
     /**

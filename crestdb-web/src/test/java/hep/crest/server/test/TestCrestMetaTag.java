@@ -63,24 +63,17 @@ public class TestCrestMetaTag {
         final TagDto dto = DataGenerator.generateTagDto("SVC-TAG-01", "test");
         
         try {
+            log.info("Insert tag {}", dto);
             Tag entity = mapperFacade.map(dto, Tag.class);
             final Tag saved = tagservice.insertTag(entity);
             assertThat(saved).isNotNull();
-        }
-        catch (AlreadyExistsPojoException e) {
-            log.info("got exception of type {}",e.getClass());
-        }
 
-        final TagMetaDto metadto = DataGenerator.generateTagMetaDto("SVC-TAG-01", "test meta info", new Date(now.toEpochMilli()));
-      
-        try {
-            final TagMetaDto saved = tagmetaservice.insertTagMeta(metadto);
-            assertThat(saved).isNotNull();
+            log.info("Insert tag meta info associated to {}", saved);
+            final TagMetaDto metadto = DataGenerator.generateTagMetaDto("SVC-TAG-01", "test meta info", new Date(now.toEpochMilli()));
+            final TagMetaDto metasaved = tagmetaservice.insertTagMeta(metadto);
+            assertThat(metasaved).isNotNull();
         }
         catch (AlreadyExistsPojoException e) {
-            log.info("got exception of type {}",e.getClass());
-        }
-        catch (CdbServiceException e) {
             log.info("got exception of type {}",e.getClass());
         }
     }

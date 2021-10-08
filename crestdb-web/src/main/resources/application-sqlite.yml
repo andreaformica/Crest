@@ -26,11 +26,18 @@ spring:
     jersey:
       application-path: ${crest.apiname}
     datasource:
+<<<<<<< HEAD
       url: jdbc:sqlite:${crest.dbfile}?cache=shared&mode=rwc&nolock=1
       driverClassName: org.sqlite.JDBC
       username: 
       password:
       open_mode: 1
+=======
+      url: jdbc:sqlite:${crest.dbfile}?cache=shared
+      driverClassName: org.sqlite.JDBC
+      username: 
+      password:
+>>>>>>> cms-2021
       hikari:
         connection-test-query: SELECT 1 
         maximum-pool-size: 3
@@ -40,4 +47,8 @@ spring:
         hibernate.jdbc.fetch_size: 100
         hibernate.hbm2ddl.auto: update
         hibernate.show_sql: false
+<<<<<<< HEAD
         hibernate.ddl-auto: update
+=======
+        hibernate.ddl-auto: update
+>>>>>>> cms-2021

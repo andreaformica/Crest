@@ -108,8 +108,10 @@ public class TagsApiServiceImpl extends TagsApiService {
             // Create a tag.
             Tag entity = mapper.map(body, Tag.class);
             final Tag saved = tagService.insertTag(entity);
+            log.debug("Created tag {}", saved);
             TagDto dto = mapper.map(saved, TagDto.class);
             // Response is 201.
+            log.debug("Created tag DTO {}", dto);
             return Response.created(info.getRequestUri()).entity(dto).build();
         }
         catch (final AlreadyExistsPojoException e) {
@@ -139,31 +141,32 @@ public class TagsApiServiceImpl extends TagsApiService {
         try {
             // Search tag.
             final Tag entity = tagService.findOne(name);
+            // Send a bad request if body is null.
             if (body == null) {
-                return rfh.badRequest("Cannot update tag " + entity.getName() + ": body is null");
+                return rfh.badRequest("Cannot update tag " + entity.name() + ": body is null");
             }
             // Loop over map body keys.
             for (final String key : body.keySet()) {
                 if ("description".equals(key)) {
                     // Update description.
-                    entity.setDescription(body.get(key));
+                    entity.description(body.get(key));
                 }
                 else if (key == "timeType") {
-                    entity.setTimeType(body.get(key));
+                    entity.timeType(body.get(key));
                 }
                 else if (key == "lastValidatedTime") {
                     final BigDecimal val = new BigDecimal(body.get(key));
-                    entity.setLastValidatedTime(val);
+                    entity.lastValidatedTime(val);
                 }
                 else if (key == "endOfValidity") {
                     final BigDecimal val = new BigDecimal(body.get(key));
-                    entity.setEndOfValidity(val);
+                    entity.endOfValidity(val);
                 }
                 else if (key == "synchronization") {
-                    entity.setSynchronization(body.get(key));
+                    entity.synchronization(body.get(key));
                 }
                 else if (key == "payloadSpec") {
-                    entity.setObjectType(body.get(key));
+                    entity.objectType(body.get(key));
                 }
                 else {
                     log.warn("Ignored key {} in updateTag: field does not exists", key);

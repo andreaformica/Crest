@@ -46,10 +46,9 @@ import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@TestPropertySource(locations = "classpath:application-postgres.yml")
+@TestPropertySource(locations="classpath:application-postgres.yml")
 @ActiveProfiles("postgres")
 @ContextConfiguration(initializers = {RepositoryPostgresTests.Initializer.class})
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -59,9 +58,9 @@ public class RepositoryPostgresTests {
 
     @ClassRule
     public static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer("postgres:11.1")
-            .withDatabaseName("integration-tests-db")
-            .withUsername("sa")
-            .withPassword("sa");
+      .withDatabaseName("integration-tests-db")
+      .withUsername("sa")
+      .withPassword("sa");
 
     @Autowired
     private GlobalTagRepository globaltagrepository;
@@ -131,15 +130,14 @@ public class RepositoryPostgresTests {
         assertThat(saved).isNotNull();
 
     }
-
     @Test
     public void test2_Payload() throws Exception {
-        // This is a trick, we do not have a postgresql connection
+    // This is a trick, we do not have a postgresql connection
         //final PayloadDataBaseCustom repobean = new PayloadDataPostgresImpl(mainDataSource);
         final Instant now = Instant.now();
         final Date time = new Date(now.toEpochMilli());
         final PayloadDto dto = DataGenerator.generatePayloadDto("myhashpg1", "mydata", "mystreamer",
-                "test", time);
+                "test",time);
         log.info("Save payload {}", dto);
         if (dto.getSize() == null) {
             dto.setSize(dto.getData().length);
@@ -150,12 +148,12 @@ public class RepositoryPostgresTests {
         final PayloadDto loaded = repobean.find("myhashpg1");
         assertThat(loaded.toString().length()).isPositive();
 
-        DataGenerator.generatePayloadData("/tmp/cdms/payloadataspg.blob", " for postgres");
+        DataGenerator.generatePayloadData("/tmp/cdms/payloadataspg.blob"," for postgres");
         final File f = new File("/tmp/cdms/payloadataspg.blob");
         InputStream ds = new BufferedInputStream(new FileInputStream(f));
-
+        
         dto.hash("mynewhashpg1");
-        final PayloadDto savedfromblob = repobean.save(dto, ds);
+        final PayloadDto savedfromblob = repobean.save(dto,ds);
         assertThat(savedfromblob.toString().length()).isPositive();
         if (ds != null) {
             ds.close();
@@ -190,7 +188,7 @@ public class RepositoryPostgresTests {
         final TagMetaDto savedmeta = tagmetarepobean.save(metadto);
         assertThat(savedmeta).isNotNull();
         assertThat(savedmeta.toString().length()).isPositive();
-        assertThat(savedmeta.getTagName()).isEqualTo(savedtag.getName());
+        assertThat(savedmeta.getTagName()).isEqualTo(savedtag.name());
 
         final TagMetaDto storedmeta = tagmetarepobean.find(savedmeta.getTagName());
         assertThat(storedmeta).isNotNull();
@@ -202,5 +200,4 @@ public class RepositoryPostgresTests {
         final TagMetaDto deletedmeta = tagmetarepobean.find(updmeta.getTagName());
         assertThat(deletedmeta).isNull();
     }
-
 }

@@ -18,9 +18,10 @@ public final class SqlRequests {
      */
     private static final String INSERT_INTO = "INSERT INTO ";
     /**
-     * Update.
+     * Insert.
      */
     private static final String UPDATE = "UPDATE ";
+
     /**
      * Private ctor.
      */
@@ -61,6 +62,15 @@ public final class SqlRequests {
     public static final String getFindMetaQuery(String tablename) {
         return "select HASH,OBJECT_TYPE,VERSION,INSERTION_TIME,STREAMER_INFO, "
                + " DATA_SIZE from " + tablename + WHERE_HASH;
+    }
+
+    /**
+     * @param tablename the String
+     * @return String
+     */
+    public static final String getStreamerInfoQuery(String tablename) {
+        return "select STREAMER_INFO "
+               + " from " + tablename + WHERE_HASH;
     }
 
     /**

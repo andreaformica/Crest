@@ -210,7 +210,7 @@ public class DirectoryService {
             fsiovrepository.saveAll(tagname, iovlist);
             int counter = 0;
             for (final Iov iov : iovlist) {
-                final PayloadDto pyld = pyldservice.getPayload(iov.getPayloadHash());
+                final PayloadDto pyld = pyldservice.getPayload(iov.payloadHash());
                 fspayloadrepository.save(pyld);
                 counter++;
             }

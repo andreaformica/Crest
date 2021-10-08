@@ -89,19 +89,19 @@ public class TestCrestIov {
             assertThat(saved).isNotNull();
             final IovDto iovdto0 = DataGenerator.generateIovDto("afakehashiov01", dto.getName(), new BigDecimal(0L));
             final Iov ioventity = mapperFacade.map(iovdto0, Iov.class);
-            ioventity.setTag(new Tag(iovdto0.getTagName()));
+            ioventity.tag(new Tag().name(iovdto0.getTagName()));
             iovservice.insertIov(ioventity);
             assertThat(iovservice.existsIov("SVC-TAG-02", new BigDecimal(0L), "afakehashiov01")).isTrue();
 
             final IovDto iovdto1 = DataGenerator.generateIovDto("afakehashiov01", dto.getName(),
                     new BigDecimal(3100000L));
             final Iov ioventity1 = mapperFacade.map(iovdto1, Iov.class);
-            ioventity1.setTag(new Tag(iovdto1.getTagName()));
+            ioventity1.tag(new Tag().name(iovdto1.getTagName()));
             iovservice.insertIov(ioventity1);
             final IovDto iovdto2 = DataGenerator.generateIovDto("afakehashiov01", dto.getName(),
                     new BigDecimal(4100000L));
             final Iov ioventity2 = mapperFacade.map(iovdto2, Iov.class);
-            ioventity2.setTag(new Tag(iovdto2.getTagName()));
+            ioventity2.tag(new Tag().name(iovdto2.getTagName()));
             iovservice.insertIov(ioventity2);
             final PageRequest preq = prh.createPageRequest(0, 100, "id.since:DESC");
             final Iterable<Iov> iovlist = iovservice.findAllIovs(null, preq);
@@ -192,7 +192,7 @@ public class TestCrestIov {
         iovdto.setSince(new BigDecimal(2000000L)); // change the since to have a new iov...
         final IovDto iovdto2 = DataGenerator.generateIovDto(pdto2.getHash(), tdto.getName(), new BigDecimal(2100000L));
         final IovSetDto setdto = new IovSetDto();
-        setdto.format("iovs").size(2L);
+        setdto.size(2L);
         final GenericMap filters = new GenericMap();
         filters.put("tagName", tdto.getName());
         setdto.datatype("iovs").filter(filters);
@@ -220,7 +220,7 @@ public class TestCrestIov {
         // a 500, because of the constraint violation.
         final ResponseEntity<String> iovresp3 = this.testRestTemplate
                 .postForEntity("/crestapi/iovs/storebatch", setdto, String.class);
-        log.info("Received response: " + iovresp3);
+        log.info("Received response 3: " + iovresp3);
         assertThat(iovresp3.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
 
         // Check without tagname in iovs
@@ -228,7 +228,7 @@ public class TestCrestIov {
         filters3.put("tagName", tdto.getName());
 
         final IovSetDto setdto3 = new IovSetDto();
-        setdto3.format("iovs").size(2L);
+        setdto3.size(2L);
         iovdto.tagName(null);
         iovdto2.tagName(null);
         iovdto.since(new BigDecimal(4000000L));
@@ -238,13 +238,13 @@ public class TestCrestIov {
 
         final ResponseEntity<String> iovresp4 = this.testRestTemplate
                 .postForEntity("/crestapi/iovs/storebatch", setdto3, String.class);
-        log.info("Received response: " + iovresp4);
+        log.info("Received response 4: " + iovresp4);
         assertThat(iovresp4.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
         // Check without tagname at all
         final GenericMap filters4 = new GenericMap();
         final IovSetDto setdto4 = new IovSetDto();
-        setdto3.format("iovs").size(2L);
+        setdto3.size(2L);
         iovdto.tagName(null);
         iovdto2.tagName(null);
         iovdto.since(new BigDecimal(4000000L));
@@ -252,9 +252,10 @@ public class TestCrestIov {
         setdto3.addResourcesItem(iovdto).addResourcesItem(iovdto2);
         setdto3.datatype("iovs").filter(filters4);
         log.info("storebatch with missing tag name");
+
         final ResponseEntity<String> iovresp5 = this.testRestTemplate
                 .postForEntity("/crestapi/iovs/storebatch", setdto4, String.class);
-        log.info("Received response: " + iovresp5);
+        log.info("Received response 5: " + iovresp5);
         assertThat(iovresp5.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 
     }
@@ -311,7 +312,7 @@ public class TestCrestIov {
     public void testB_findiovApi() throws Exception {
 
         final Long now = Instant.now().toEpochMilli();
-
+        log.info("Test methods to find iovs in different ways");
         sendrequest("/crestapi/iovs?by=tagname:SB-TAG-IOV-01,insertiontime>0", HttpMethod.GET, null, new IovSetDto());
         sendrequest("/crestapi/iovs/getSize?tagname=SB-TAG-IOV-01&snapshot=0", HttpMethod.GET, null,
                 new CrestBaseResponse());
@@ -378,6 +379,7 @@ public class TestCrestIov {
      */
     protected void sendrequest(String url, HttpMethod method, HttpEntity entity, CrestBaseResponse ok)
             throws JsonProcessingException {
+        log.debug("Use request url {}", url);
         final ResponseEntity<String> resp = this.testRestTemplate
                 .exchange(url, method, entity, String.class);
         {

@@ -1,7 +1,7 @@
 variables:
     IMAGE: crest-service
-    VERSION: '0.2'
-    REGISTRY: 'svomtest.svom.eu:5543'
+    VERSION: '1.2'
+    REGISTRY: 'svomtest.svom.fr:5543'
 #    REGISTRY: 'svomtest.svom.fr:5543'
     CONTAINER_IMAGE: $REGISTRY/$IMAGE:$VERSION
     WEB_CONTAINER_IMAGE: $REGISTRY/crest-ui:$VERSION
@@ -67,7 +67,7 @@ stages:
 
 package_svom_application:
   stage: package_application
-  image: openjdk:11-jdk-alpine
+  image: adoptopenjdk:11-jdk-openj9
   script:
    - ./gradlew -g /cache/.gradle clean assemble -PwarName=crest.war
   allow_failure: false
@@ -76,7 +76,7 @@ package_svom_application:
     - ./crestdb-web/build/libs/crest.war
     expire_in: 1 week
   only:
-  - cms-v0
+  - cms-stable
 
 release:
   stage: release
@@ -89,22 +89,24 @@ release:
       - docker build --rm --tag=$CONTAINER_IMAGE --file Dockerfile .
       - docker push $CONTAINER_IMAGE
   only:
-  - cms-v0
+  - cms-stable
 
 webui:
   stage: webui
-  environment: dc0
-  tags:
-    - dc0-shell
+  image: docker:19.03.1
+  services:
+    - docker:19.03.1-dind
+  before_script:
+      - docker login -u svom -p $SVOMREGISTRYPSWD $REGISTRY
   script:
     - docker info
-    - docker build --tag=$WEB_CONTAINER_IMAGE --file ./web-ui/crest-ui/Dockerfile.nginx.svom ./web-ui/crest-ui/
+    - docker build --tag=$WEB_CONTAINER_IMAGE --file ./web-ui/crest-ui/Dockerfile.nginx ./web-ui/crest-ui/
   only:
-  - svom-dc1
+  - cms-stable
 
 sonar_application:
   stage: sonar_application
-  image: openjdk:11-jdk-alpine
+  image: adoptopenjdk:11-jdk-openj9
   script:
    - ./gradlew sonarqube -Dsonar.projectKey=crestdb -Dsonar.host.url=http://svom1.lal.in2p3.fr:20090 -Dsonar.login=f50918d8b780181f947ae83b42e78983ffde4bf3
   allow_failure: false

@@ -46,7 +46,8 @@ public class TestMetadataApi {
     public void testA_runinfoApi() throws Exception {
         final Date start = new Date();
         final Date end = new Date(start.getTime()+3600000);
-        final RunLumiInfoDto dto = DataGenerator.generateRunLumiInfoDto(new BigDecimal(start.getTime()), new BigDecimal(end.getTime()), new BigDecimal(100L));
+        final RunLumiInfoDto dto = DataGenerator.generateRunLumiInfoDto(new BigDecimal(start.getTime()),
+                new BigDecimal(end.getTime()), new BigDecimal(100L));
         final CrestBaseResponse setdto = new RunLumiSetDto().addResourcesItem(dto).size(1L);
         log.info("Store run info set : {} ", setdto);
         final ResponseEntity<RunLumiSetDto> response = this.testRestTemplate
@@ -63,9 +64,8 @@ public class TestMetadataApi {
             log.info("Retrieved run info list " + resp.getBody());
             final String responseBody = resp.getBody();
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-            RunLumiSetDto ok;
             log.info("Response from server is: " + responseBody);
-            ok = mapper.readValue(responseBody, RunLumiSetDto.class);
+            RunLumiSetDto ok = mapper.readValue(responseBody, RunLumiSetDto.class);
             assertThat(ok.getSize()).isPositive();
         }
 
@@ -78,9 +78,8 @@ public class TestMetadataApi {
             log.info("Retrieved run info list " + resp1.getBody());
             final String responseBody = resp1.getBody();
             assertThat(resp1.getStatusCode()).isEqualTo(HttpStatus.OK);
-            RunLumiSetDto ok;
             log.info("Response from server is: " + responseBody);
-            ok = mapper.readValue(responseBody, RunLumiSetDto.class);
+            RunLumiSetDto ok = mapper.readValue(responseBody, RunLumiSetDto.class);
             assertThat(ok.getSize()).isNotNegative();
         }
 
@@ -93,9 +92,8 @@ public class TestMetadataApi {
             log.info("Retrieved run info list " + resp2.getBody());
             final String responseBody = resp2.getBody();
             assertThat(resp2.getStatusCode()).isEqualTo(HttpStatus.OK);
-            RunLumiSetDto ok;
             log.info("Response from server is: " + responseBody);
-            ok = mapper.readValue(responseBody, RunLumiSetDto.class);
+            RunLumiSetDto ok = mapper.readValue(responseBody, RunLumiSetDto.class);
             assertThat(ok.getSize()).isNotNegative();
         }
 

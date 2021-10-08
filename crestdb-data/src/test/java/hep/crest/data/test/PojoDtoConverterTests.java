@@ -3,7 +3,11 @@
  */
 package hep.crest.data.test;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.GlobalTagMap;
 import hep.crest.data.pojo.GlobalTagMapId;
@@ -15,31 +19,10 @@ import hep.crest.data.runinfo.pojo.RunLumiInfo;
 import hep.crest.data.security.pojo.CrestFolders;
 import hep.crest.data.security.pojo.CrestRoles;
 import hep.crest.data.security.pojo.CrestUser;
+import hep.crest.data.serializers.CustomTimeDeserializer;
+import hep.crest.data.serializers.CustomTimeSerializer;
 import hep.crest.data.test.tools.DataGenerator;
-import hep.crest.swagger.model.FolderDto;
-import hep.crest.swagger.model.FolderSetDto;
-import hep.crest.swagger.model.GenericMap;
-import hep.crest.swagger.model.GlobalTagDto;
-import hep.crest.swagger.model.GlobalTagMapDto;
-import hep.crest.swagger.model.GlobalTagMapSetDto;
-import hep.crest.swagger.model.GlobalTagSetDto;
-import hep.crest.swagger.model.GroupDto;
-import hep.crest.swagger.model.HTTPResponse;
-import hep.crest.swagger.model.IovDto;
-import hep.crest.swagger.model.IovPayloadDto;
-import hep.crest.swagger.model.IovPayloadSetDto;
-import hep.crest.swagger.model.IovSetDto;
-import hep.crest.swagger.model.PayloadDto;
-import hep.crest.swagger.model.PayloadSetDto;
-import hep.crest.swagger.model.PayloadTagInfoDto;
-import hep.crest.swagger.model.RunLumiInfoDto;
-import hep.crest.swagger.model.RunLumiSetDto;
-import hep.crest.swagger.model.TagDto;
-import hep.crest.swagger.model.TagMetaDto;
-import hep.crest.swagger.model.TagMetaSetDto;
-import hep.crest.swagger.model.TagSetDto;
-import hep.crest.swagger.model.TagSummaryDto;
-import hep.crest.swagger.model.TagSummarySetDto;
+import hep.crest.swagger.model.*;
 import ma.glasnost.orika.MapperFacade;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +36,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -77,7 +63,8 @@ public class PojoDtoConverterTests {
     public void testGlobalTagConverter() throws Exception {
         final GlobalTag entity = DataGenerator.generateGlobalTag("GT-02");
         final GlobalTagDto dto = mapper.map(entity, GlobalTagDto.class);
-        assertThat(entity.getName()).isEqualTo(dto.getName());
+        log.info("Convert entity to dto: {} -> {}", entity, dto);
+        assertThat(entity.name()).isEqualTo(dto.getName());
         assertThat(entity.toString().length()).isPositive();
         assertThat(dto.toString().length()).isPositive();
 
@@ -94,7 +81,7 @@ public class PojoDtoConverterTests {
     public void testTagConverter() throws Exception {
         final Tag entity = DataGenerator.generateTag("MT-02", "run");
         final TagDto dto = mapper.map(entity, TagDto.class);
-        assertThat(entity.getName()).isEqualTo(dto.getName());
+        assertThat(entity.name()).isEqualTo(dto.getName());
         assertThat(entity.toString().length()).isPositive();
         assertThat(dto.toString().length()).isPositive();
         assertThat(dto.hashCode()).isNotZero();
@@ -109,16 +96,16 @@ public class PojoDtoConverterTests {
         final GlobalTag gtag = DataGenerator.generateGlobalTag("MY-TEST-GT-03");
         final Tag tag1 = DataGenerator.generateTag("MY-TEST-02", "time");
         final GlobalTagMapId id1 = new GlobalTagMapId();
-        id1.setGlobalTagName(gtag.getName());
-        id1.setLabel("MY-TEST");
-        id1.setRecord("aaa");
+        id1.globalTagName(gtag.name());
+        id1.label("MY-TEST");
+        id1.record("aaa");
 
         final GlobalTagMap map1 = DataGenerator.generateMapping(gtag, tag1, id1);
         final GlobalTagMapDto dto = mapper.map(map1, GlobalTagMapDto.class);
         assertThat(dto.toString().length()).isPositive();
-        assertThat(dto.getGlobalTagName()).isEqualTo(gtag.getName());
+        assertThat(dto.getGlobalTagName()).isEqualTo(gtag.name());
 
-        final GlobalTagMapId id2 = new GlobalTagMapId(gtag.getName(), "aaa", "MY-TEST");
+        final GlobalTagMapId id2 = new GlobalTagMapId(gtag.name(), "aaa", "MY-TEST");
         assertThat(id2).isEqualTo(id1);
         assertThat(id2.hashCode()).isNotZero();
 
@@ -128,16 +115,16 @@ public class PojoDtoConverterTests {
     public void testIovConverter() throws Exception {
         final IovDto dto = DataGenerator.generateIovDto("MYHASH", "MT-02", new BigDecimal(1000L));
         final Iov entity = mapper.map(dto, Iov.class);
-        final IovId id = entity.getId();
-        assertThat(id.getSince()).isEqualTo(new BigDecimal(1000L));
+        final IovId id = entity.id();
+        assertThat(id.since()).isEqualTo(new BigDecimal(1000L));
         log.info("Id of iov is {}", id);
 
         final Iov geniov = DataGenerator.generateIov("MYHASH", "MT-02", new BigDecimal(1000L));
         log.info("Generated iov {}", geniov);
-        final IovId genid = geniov.getId();
+        final IovId genid = geniov.id();
         assertThat(genid).isNotNull();
 
-        assertThat(entity.getPayloadHash()).isEqualTo(dto.getPayloadHash());
+        assertThat(entity.payloadHash()).isEqualTo(dto.getPayloadHash());
         assertThat(entity.toString().length()).isPositive();
         assertThat(dto.toString().length()).isPositive();
         assertThat(dto.hashCode()).isNotZero();
@@ -152,7 +139,7 @@ public class PojoDtoConverterTests {
         final PayloadDto dto = DataGenerator.generatePayloadDto("myhash1", "mydata", "mystreamer",
                 "test", time);
         final Payload entity = DataGenerator.generatePayload("myhash1", "test");
-        assertThat(entity.getHash()).isEqualTo(dto.getHash());
+        assertThat(entity.hash()).isEqualTo(dto.getHash());
         assertThat(entity.toString().length()).isPositive();
         assertThat(dto.toString().length()).isPositive();
         assertThat(dto.hashCode()).isNotZero();
@@ -171,7 +158,6 @@ public class PojoDtoConverterTests {
         assertThat(dto1).isEqualTo(dto1bis);
         final GlobalTagSetDto setdto = new GlobalTagSetDto();
         setdto.datatype("globaltags");
-        setdto.format("JSON");
         setdto.addResourcesItem(dto1).addResourcesItem(dto2);
         assertThat(setdto.toString().length()).isPositive();
         assertThat(setdto.hashCode()).isNotZero();
@@ -183,7 +169,6 @@ public class PojoDtoConverterTests {
         }
         final GlobalTagSetDto setdto2 = new GlobalTagSetDto();
         setdto2.datatype("globaltags");
-        setdto2.format("JSON");
         setdto2.setResources(resources);
         assertThat(setdto2).isEqualTo(setdto);
     }
@@ -201,7 +186,6 @@ public class PojoDtoConverterTests {
 
         final GlobalTagMapSetDto setdto = new GlobalTagMapSetDto();
         setdto.datatype("maps");
-        setdto.format("JSON");
         setdto.addResourcesItem(dto1).addResourcesItem(dto2);
         assertThat(setdto.toString().length()).isPositive();
         assertThat(setdto.hashCode()).isNotZero();
@@ -213,7 +197,6 @@ public class PojoDtoConverterTests {
         }
         final GlobalTagMapSetDto setdto2 = new GlobalTagMapSetDto();
         setdto2.datatype("maps");
-        setdto2.format("JSON");
         setdto2.setResources(resources);
         assertThat(setdto2).isEqualTo(setdto);
     }
@@ -224,7 +207,6 @@ public class PojoDtoConverterTests {
         final IovDto dto2 = DataGenerator.generateIovDto("MYHASH2", "MT-02", new BigDecimal(2000L));
         final IovSetDto setdto = new IovSetDto();
         setdto.datatype("iovs");
-        setdto.format("JSON");
         setdto.addResourcesItem(dto1).addResourcesItem(dto2);
         assertThat(setdto.toString().length()).isPositive();
         assertThat(setdto.hashCode()).isNotZero();
@@ -236,7 +218,6 @@ public class PojoDtoConverterTests {
         }
         final IovSetDto setdto2 = new IovSetDto();
         setdto2.datatype("iovs");
-        setdto2.format("JSON");
         setdto2.setResources(resources);
         assertThat(setdto2).isEqualTo(setdto);
     }
@@ -247,7 +228,6 @@ public class PojoDtoConverterTests {
         final TagDto dto2 = DataGenerator.generateTagDto("MY-TAG-02", "time");
         final TagSetDto setdto = new TagSetDto();
         setdto.datatype("tags");
-        setdto.format("JSON");
         setdto.addResourcesItem(dto1).addResourcesItem(dto2);
         assertThat(setdto.toString().length()).isPositive();
         assertThat(setdto.hashCode()).isNotZero();
@@ -260,7 +240,6 @@ public class PojoDtoConverterTests {
         }
         final TagSetDto setdto2 = new TagSetDto();
         setdto2.datatype("tags");
-        setdto2.format("JSON");
         setdto2.setResources(resources);
         assertThat(setdto2).isEqualTo(setdto);
     }
@@ -272,7 +251,6 @@ public class PojoDtoConverterTests {
 
         final TagSummarySetDto setdto = new TagSummarySetDto();
         setdto.datatype("tags");
-        setdto.format("JSON");
         setdto.addResourcesItem(dto1).addResourcesItem(dto2);
         assertThat(setdto.toString().length()).isPositive();
         assertThat(setdto.hashCode()).isNotZero();
@@ -333,6 +311,13 @@ public class PojoDtoConverterTests {
         assertThat(setdto).isEqualTo(setdto1);
         assertThat(setdto.hashCode()).isNotZero();
 
+        final RunLumiSetDto setdto2 = new RunLumiSetDto();
+        setdto2.datatype("runs");
+        setdto2.addResourcesItem(dto1);
+        setdto2.size(1L);
+        assertThat(setdto2).isEqualTo(setdto);
+        assertThat(setdto.toString()).isNotNull();
+        setdto2.filter(setdto.getFilter());
     }
 
     @Test
@@ -397,7 +382,6 @@ public class PojoDtoConverterTests {
         assertThat(dto1.getHash()).isEqualTo(dto1bis.getHash());
         final PayloadSetDto setdto = new PayloadSetDto();
         setdto.datatype("payloads");
-        setdto.format("JSON");
         setdto.addResourcesItem(dto1);
         assertThat(setdto.toString().length()).isPositive();
         assertThat(setdto.hashCode()).isNotZero();
@@ -433,7 +417,6 @@ public class PojoDtoConverterTests {
         psetdto.addResourcesItem(ipdto1).addResourcesItem(ipdto2);
         psetdto.datatype("IovPayloadSetDto");
         psetdto.format("iovpayloaddto");
-        
         assertThat(psetdto.getResources()).isNotNull();
         assertThat(ipdto1).isNotEqualTo(ipdto2);
         
@@ -478,9 +461,6 @@ public class PojoDtoConverterTests {
         final List<BigDecimal> groups = new ArrayList<>();
         groups.add(new BigDecimal(10L));
         groups.add(new BigDecimal(100L));
-        final GroupDto dto = new GroupDto();
-        dto.groups(groups);
-        assertThat(dto.getGroups().size()).isPositive();
 
         final HTTPResponse resp = new HTTPResponse();
         resp.action("test");
@@ -533,6 +513,29 @@ public class PojoDtoConverterTests {
     @Test
     public void testDeserializer() {
         final ObjectMapper locmapper = new ObjectMapper();
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                .parseCaseInsensitive()
+                .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                .optionalStart()
+                .appendPattern(".SSS")
+                .optionalEnd()
+                .optionalStart()
+                .appendZoneOrOffsetId()
+                .optionalEnd()
+                .optionalStart()
+                .appendOffset("+HHMM", "0000")
+                .optionalEnd()
+                .toFormatter();
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false);
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.setDateFormat(new StdDateFormat());
+        JavaTimeModule module = new JavaTimeModule();
+        module.addSerializer(OffsetDateTime.class, new CustomTimeSerializer(formatter));
+        module.addDeserializer(OffsetDateTime.class, new CustomTimeDeserializer(formatter));
+        mapper.registerModule(module);
+
 //        final SimpleModule module = new SimpleModule();
 //
 //        module.addDeserializer(Timestamp.class, new TimestampDeserializer());

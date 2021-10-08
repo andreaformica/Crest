@@ -14,6 +14,8 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Data;
+import lombok.experimental.Accessors;
 import org.hibernate.annotations.Type;
 
 import hep.crest.data.config.DatabasePropertyConfigurator;
@@ -23,196 +25,51 @@ import hep.crest.data.config.DatabasePropertyConfigurator;
  */
 @Entity
 @Table(name = "PAYLOAD", schema = DatabasePropertyConfigurator.SCHEMA_NAME)
+@Data
+@Accessors(fluent = true)
 public class Payload {
 
     /**
      * The hash.
      */
+    @Id
+    @Column(name = "HASH", unique = true, nullable = false, length = 64)
     private String hash;
     /**
      * The version.
      */
+    @Column(name = "VERSION", nullable = false, length = 20)
     private String version;
     /**
      * The object type.
      */
+    @Column(name = "OBJECT_TYPE", nullable = false, length = 100)
     private String objectType;
     /**
      * The size.
      */
+    @Column(name = "DATA_SIZE", nullable = true)
     private Integer size;
     /**
      * The data blob. It will be transformed in a stream or byte array.
      */
+    @Column(name = "DATA", nullable = false)
+    @Lob
+    @Type(type = "org.hibernate.type.BlobType")
     private Blob data;
     /**
      * The streamer info blob.
      */
+    @Column(name = "STREAMER_INFO", nullable = false)
+    @Lob
+    @Type(type = "org.hibernate.type.BlobType")
     private Blob streamerInfo;
     /**
      * The insertion time.
      */
-    private Date insertionTime;
-
-    /**
-     * Default ctor.
-     */
-    public Payload() {
-    }
-
-    /**
-     * Ctor.
-     * 
-     * @param hash
-     *            the String
-     * @param objectType
-     *            the String
-     * @param data
-     *            the Blob
-     * @param streamerInfo
-     *            the Blob
-     * @param insertionTime
-     *            the Date
-     */
-    public Payload(String hash, String objectType, Blob data, Blob streamerInfo,
-            Date insertionTime) {
-        this.hash = hash;
-        this.objectType = objectType;
-        this.data = data;
-        this.streamerInfo = streamerInfo;
-        if (insertionTime != null) {
-            this.insertionTime = new Date(insertionTime.getTime());
-        }
-    }
-
-    /**
-     * @return String
-     */
-    @Id
-    @Column(name = "HASH", unique = true, nullable = false, length = 64)
-    public String getHash() {
-        return this.hash;
-    }
-
-    /**
-     * @param hash
-     *            the String
-     * @return
-     */
-    public void setHash(String hash) {
-        this.hash = hash;
-    }
-
-    /**
-     * @return String
-     */
-    @Column(name = "VERSION", nullable = false, length = 20)
-    public String getVersion() {
-        return this.version;
-    }
-
-    /**
-     * @param version the String
-     * @return
-     */
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    /**
-     * @return String
-     */
-    @Column(name = "OBJECT_TYPE", nullable = false, length = 100)
-    public String getObjectType() {
-        return this.objectType;
-    }
-
-    /**
-     * @param objectType
-     *            the String
-     * @return
-     */
-    public void setObjectType(String objectType) {
-        this.objectType = objectType;
-    }
-
-    /**
-     * @return Integer
-     */
-    @Column(name = "DATA_SIZE", nullable = true)
-    public Integer getSize() {
-        return size;
-    }
-
-    /**
-     * @param size
-     *            the Integer
-     * @return
-     */
-    public void setSize(Integer size) {
-        this.size = size;
-    }
-
-    /**
-     * @return Blob
-     */
-    @Column(name = "DATA", nullable = false)
-    @Lob
-    @Type(type = "org.hibernate.type.BlobType")
-    public Blob getData() {
-        return this.data;
-    }
-
-    /**
-     * @param data
-     *            the Blob
-     * @return
-     */
-    public void setData(Blob data) {
-        this.data = data;
-    }
-
-    /**
-     * @return Blob
-     */
-    @Column(name = "STREAMER_INFO", nullable = false)
-    @Lob
-    @Type(type = "org.hibernate.type.BlobType")
-    public Blob getStreamerInfo() {
-        return this.streamerInfo;
-    }
-
-    /**
-     * @param streamerInfo
-     *            the Blob
-     * @return
-     */
-    public void setStreamerInfo(Blob streamerInfo) {
-        this.streamerInfo = streamerInfo;
-    }
-
-    /**
-     * @return Date
-     */
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "INSERTION_TIME", nullable = false, length = 11)
-    public Date getInsertionTime() {
-        if (insertionTime == null) {
-            return null;
-        }
-        return new Date(this.insertionTime.getTime());
-    }
-
-    /**
-     * @param insertionTime
-     *            the Date
-     * @return
-     */
-    public void setInsertionTime(Date insertionTime) {
-        if (insertionTime != null) {
-            this.insertionTime = new Date(insertionTime.getTime());
-        }
-    }
+    private Date insertionTime;
 
     /**
      * Before saving the object.
@@ -225,16 +82,5 @@ public class Payload {
             final Timestamp now = new Timestamp(new Date().getTime());
             this.insertionTime = now;
         }
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return "Payload [hash=" + hash + ", version=" + version + ", objectType=" + objectType
-                + ", size=" + size + ", insertionTime=" + insertionTime + "]";
     }
 }

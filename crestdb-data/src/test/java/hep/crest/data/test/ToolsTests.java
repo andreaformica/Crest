@@ -162,7 +162,8 @@ public class ToolsTests {
         final IovDto iov = DataGenerator.generateIovDto("mydirhash", "MY-TAG-01",
                 new BigDecimal(1000L));
         Iov ientity = mapper.map(iov, Iov.class);
-        ientity.getId().setTagName(iov.getTagName());
+        ientity.id().tagName(iov.getTagName());
+
         fsiovrepository.save(ientity);
         final List<Iov> iovlist = fsiovrepository.findByIdTagName("MY-TAG-01");
         assertThat(iovlist.size()).isPositive();
@@ -177,7 +178,8 @@ public class ToolsTests {
                 new BigDecimal(1000L));
         iov1.tagName(null);
         Iov ientity1 = mapper.map(iov1, Iov.class);
-        ientity1.getId().setTagName(iov1.getTagName());
+        ientity1.id().tagName(iov1.getTagName());
+
         final Iov saved1 = fsiovrepository.save(ientity1);
         assertThat(saved1).isNull();
 

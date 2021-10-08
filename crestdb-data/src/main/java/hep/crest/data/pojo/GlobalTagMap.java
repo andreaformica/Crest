@@ -3,6 +3,13 @@ package hep.crest.data.pojo;
 
 import hep.crest.data.config.DatabasePropertyConfigurator;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+
 import javax.persistence.AttributeOverride;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
@@ -17,6 +24,12 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "GLOBAL_TAG_MAP", schema = DatabasePropertyConfigurator.SCHEMA_NAME)
+@Accessors(fluent = true)
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 public class GlobalTagMap implements java.io.Serializable {
 
     /**
@@ -26,94 +39,25 @@ public class GlobalTagMap implements java.io.Serializable {
     /**
      * The global tag map ID.
      */
-    private GlobalTagMapId id;
-    /**
-     * The Tag.
-     */
-    private Tag tag;
-    /**
-     * The Global Tag.
-     */
-    private GlobalTag globalTag;
-
-    /**
-     * Default ctor.
-     */
-    public GlobalTagMap() {
-    }
-
-    /**
-     * @param id
-     *            the GlobalTagMapId
-     * @param tag
-     *            the Tag
-     * @param globalTag
-     *            the GlobalTag
-     */
-    public GlobalTagMap(GlobalTagMapId id, Tag tag, GlobalTag globalTag) {
-        this.id = id;
-        this.tag = tag;
-        this.globalTag = globalTag;
-    }
-
-    /**
-     * @return GlobalTagMapId
-     */
     @EmbeddedId
-
     @AttributeOverride(name = "globalTagName",
             column = @Column(name = "GLOBAL_TAG_NAME", nullable = false, length = 100))
     @AttributeOverride(name = "record",
             column = @Column(name = "RECORD", nullable = false, length = 100))
     @AttributeOverride(name = "label",
             column = @Column(name = "LABEL", nullable = false, length = 100))
-    public GlobalTagMapId getId() {
-        return this.id;
-    }
-
+    private GlobalTagMapId id;
     /**
-     * @param id
-     *            the GlobalTagMapId
-     * @return
-     */
-    public void setId(GlobalTagMapId id) {
-        this.id = id;
-    }
-
-    /**
-     * @return Tag
+     * The Tag.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "TAG_NAME", nullable = false)
-    public Tag getTag() {
-        return this.tag;
-    }
-
+    private Tag tag;
     /**
-     * @param tag
-     *            the Tag
-     * @return
-     */
-    public void setTag(Tag tag) {
-        this.tag = tag;
-    }
-
-    /**
-     * @return GlobalTag
+     * The Global Tag.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "GLOBAL_TAG_NAME", nullable = false, insertable = false, updatable = false)
-    public GlobalTag getGlobalTag() {
-        return this.globalTag;
-    }
-
-    /**
-     * @param globalTag
-     *            the GlobalTag
-     * @return
-     */
-    public void setGlobalTag(GlobalTag globalTag) {
-        this.globalTag = globalTag;
-    }
+    private GlobalTag globalTag;
 
 }

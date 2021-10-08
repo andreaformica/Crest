@@ -1,6 +1,10 @@
 package hep.crest.data.config;
 
 import hep.crest.data.config.converters.DateToOffDateTimeConverter;
+import hep.crest.data.config.converters.GlobalTagConverter;
+import hep.crest.data.config.converters.GlobalTagMapConverter;
+import hep.crest.data.config.converters.IovConverter;
+import hep.crest.data.config.converters.TagConverter;
 import hep.crest.data.config.converters.TimestampToOffDateTimeConverter;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.GlobalTagMap;
@@ -49,16 +53,23 @@ public class PojoDtoConverterConfig {
      */
     @Bean(name = "mapperFactory")
     public MapperFactory createOrikaMapperFactory() {
-        final MapperFactory mapperFactory = new DefaultMapperFactory.Builder().build();
+        final MapperFactory mapperFactory = new DefaultMapperFactory.Builder()
+                .propertyResolverStrategy(new BuilderPropertyResolver())
+                .build();
+
         ConverterFactory converterFactory = mapperFactory.getConverterFactory();
         converterFactory.registerConverter(new DateToOffDateTimeConverter());
         converterFactory.registerConverter(new TimestampToOffDateTimeConverter());
-        this.initGlobalTagMap(mapperFactory);
-        this.initGlobalTagMapsMap(mapperFactory);
-        this.initTagMap(mapperFactory);
-        this.initIovMap(mapperFactory);
+        converterFactory.registerConverter(new GlobalTagConverter());
+        converterFactory.registerConverter(new GlobalTagMapConverter());
+        converterFactory.registerConverter(new TagConverter());
+        converterFactory.registerConverter(new IovConverter());
+        //this.initGlobalTagMap(mapperFactory);
+        //this.initGlobalTagMapsMap(mapperFactory);
+        //this.initTagMap(mapperFactory);
+        //this.initIovMap(mapperFactory);
         this.initPayloadMap(mapperFactory);
-        this.initRunLumiInfoMap(mapperFactory);
+        this.initRunInfoMap(mapperFactory);
         this.initFolderMap(mapperFactory);
         return mapperFactory;
     }
@@ -72,18 +83,21 @@ public class PojoDtoConverterConfig {
                 .customize(new CustomMapper<GlobalTag, GlobalTagDto>() {
                     @Override
                     public void mapAtoB(GlobalTag a, GlobalTagDto b, MappingContext context) {
-                        if (a.getInsertionTime() != null) {
-                            Long instimemilli = (a.getInsertionTime().getTime());
+                        log.info("Orika: mapping global tag {} into dto {}", a, b);
+                        if (a.insertionTime() != null) {
+                            Long instimemilli = (a.insertionTime().getTime());
                             b.insertionTimeMilli(instimemilli);
                         }
-                        if (a.getSnapshotTime() != null) {
-                            Long snaptimemilli = (a.getSnapshotTime().getTime());
+                        if (a.insertionTime() != null) {
+                            Long snaptimemilli = (a.insertionTime().getTime());
                             b.snapshotTimeMilli(snaptimemilli);
                         }
                     }
+
                     @Override
                     public void mapBtoA(GlobalTagDto a, GlobalTag b, MappingContext context) {
                         // ignore the millisec fields.
+                        log.info("Orika: mapping global tag dto {} into entity {}", a, b);
                     }
                 }).register();
     }
@@ -128,13 +142,13 @@ public class PojoDtoConverterConfig {
                     @Override
                     public void mapAtoB(Payload a, PayloadDto b, MappingContext context) {
                         try {
-                            Instant it = Instant.ofEpochMilli(a.getInsertionTime().getTime());
-                            b.hash(a.getHash()).version(a.getVersion())
-                                    .objectType(a.getObjectType())
-                                    .data(a.getData().getBytes(1, (int) a.getData().length()))
-                                    .streamerInfo(a.getStreamerInfo().getBytes(1,
-                                            (int) a.getStreamerInfo().length()))
-                                    .size(a.getSize()).insertionTime(it.atOffset(ZoneOffset.UTC));
+                            Instant it = Instant.ofEpochMilli(a.insertionTime().getTime());
+                            b.hash(a.hash()).version(a.version())
+                                    .objectType(a.objectType())
+                                    .data(a.data().getBytes(1, (int) a.data().length()))
+                                    .streamerInfo(a.streamerInfo().getBytes(1,
+                                            (int) a.streamerInfo().length()))
+                                    .size(a.size()).insertionTime(it.atOffset(ZoneOffset.UTC));
                         }
                         catch (final SQLException e) {
                             log.error("SQL exception in mapping pojo and dto for payload...: {}",
@@ -148,8 +162,8 @@ public class PojoDtoConverterConfig {
      * @param mapperFactory the MapperFactory
      * @return
      */
-    protected void initRunLumiInfoMap(MapperFactory mapperFactory) {
-        mapperFactory.classMap(RunLumiInfo.class, RunLumiInfoDto.class).exclude("insertionTime")
+    protected void initRunInfoMap(MapperFactory mapperFactory) {
+        mapperFactory.classMap(RunLumiInfo.class, RunLumiInfoDto.class)
                 .byDefault().register();
     }
 

@@ -13,7 +13,6 @@ import java.sql.SQLException;
 
 /**
  * Handler for Postgres LOB.
- *
  * @author formica
  */
 public class PostgresBlobHandler {
@@ -24,20 +23,18 @@ public class PostgresBlobHandler {
     private static final Logger log = LoggerFactory.getLogger(PostgresBlobHandler.class);
 
     /**
-     * The null long.
-     */
-    private static final Long LONGNULL = null;
-
-    /**
      * This method is inspired to the postgres documentation on the JDBC driver. For
      * reasons which are still not clear the select methods are working as they are.
      *
-     * @param conn   the Connection
-     * @param is     the InputStream
-     * @param entity the PayloadDto
+     * @param conn
+     *            the Connection
+     * @param is
+     *            the InputStream
+     * @param entity
+     *            the PayloadDto
      * @return long
      */
-    public long getLargeObjectId(Connection conn, InputStream is, PayloadDto entity) {
+    public long writeLargeObjectId(Connection conn, InputStream is, PayloadDto entity) throws SQLException {
         // Open the large object for writing
         LargeObjectManager lobj = null;
         LargeObject obj = null;
@@ -62,8 +59,59 @@ public class PostgresBlobHandler {
             }
             // Close the large object
             obj.close();
-            // unlink is used to DELETE the BLOB. Do not unlink here.
+            // This seems to be not needed or harmful: lobj . unlink( oid )
+            // unlink seems to be used to DELETE the BLOB.
             return oid;
+        }
+        catch (SQLException | IOException e) {
+            log.error("Exception in getting large object id: {}", e.getMessage());
+        }
+        finally {
+            try {
+                if (obj != null) {
+                    obj.close();
+                }
+            }
+            catch (final SQLException e) {
+                log.error("Error in closing result set : {}", e.getMessage());
+            }
+        }
+        throw new SQLException("Cannot write into LOB");
+    }
+
+    /**
+     * This method is inspired to the postgres documentation on the JDBC driver. For
+     * reasons which are still not clear the select methods are working as they are.
+     *
+     * @param conn
+     *            the Connection
+     * @param is
+     *            the InputStream
+     * @param oid
+     *            the large object id
+     * @return
+     */
+    public void updateLargeObjectId(Connection conn, InputStream is, long oid) {
+        // Open the large object for writing
+        LargeObjectManager lobj = null;
+        LargeObject obj = null;
+        try {
+            lobj = conn.unwrap(org.postgresql.PGConnection.class).getLargeObjectAPI();
+            obj = lobj.open(oid, LargeObjectManager.WRITE);
+            obj.truncate(0);
+            // Copy the data from the file to the large object
+            final byte[] buf = new byte[2048];
+            int s = 0;
+            int tl = 0;
+            while ((s = is.read(buf, 0, 2048)) > 0) {
+                log.trace("Write into LargeObject ID {} nbytes {} ", oid, s);
+                obj.write(buf, 0, s);
+                tl += s;
+            }
+            // Close the large object
+            obj.close();
+            // This seems to be not needed or harmful: lobj . unlink( oid )
+            // unlink seems to be used to DELETE the BLOB.
         }
         catch (SQLException | IOException e) {
             log.error("Exception in getting large object id: {}", e.getMessage());
@@ -81,7 +129,7 @@ public class PostgresBlobHandler {
                 log.error("Error in closing result set : {}", e.getMessage());
             }
         }
-        return LONGNULL;
+        return;
     }
 
     /**

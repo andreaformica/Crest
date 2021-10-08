@@ -135,25 +135,25 @@ public class AdminApiServiceImpl extends AdminApiService {
 //	        final char type = entity.getType() != null ? entity.getType() : 'N';
 
             // Compare fields to set them from the input body object provided by the client.
-            if (entity.getDescription() != body.getDescription()) {
+            if (entity.description() != body.getDescription()) {
                 // change description.
-                entity.setDescription(body.getDescription());
+                entity.description(body.getDescription());
             }
-            if (entity.getRelease() != body.getRelease()) {
+            if (entity.release() != body.getRelease()) {
                 // change release.
-                entity.setRelease(body.getRelease());
+                entity.release(body.getRelease());
             }
-            if (entity.getWorkflow() != body.getWorkflow()) {
+            if (entity.workflow() != body.getWorkflow()) {
                 // change workflow.
-                entity.setWorkflow(body.getWorkflow());
+                entity.workflow(body.getWorkflow());
             }
-            if (entity.getScenario() != body.getScenario()) {
+            if (entity.scenario() != body.getScenario()) {
                 // change scenario.
-                entity.setScenario(body.getScenario());
+                entity.scenario(body.getScenario());
             }
-            if (entity.getType() != type) {
+            if (entity.type() != type) {
                 // change type.
-                entity.setType(type);
+                entity.type(type);
             }
             // Update the global tag.
             final GlobalTag saved = globalTagService.updateGlobalTag(entity);

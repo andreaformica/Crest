@@ -9,10 +9,13 @@ spring:
       use-legacy-processing: true
     profiles:
       includes: crest
+<<<<<<< HEAD
     servlet:
       multipart:
         max-file-size: 50MB
         max-request-size: 50MB
+=======
+>>>>>>> cms-2021
     jersey:
       application-path: ${crest.api.name}
     datasource:
@@ -23,13 +26,13 @@ spring:
       type: com.zaxxer.hikari.HikariDataSource
       hikari:
         connection-test-query: SELECT 1
-        maximum-pool-size: 5
+        maximum-pool-size: 10
     jpa:
       properties:
         hibernate.dialect: org.hibernate.dialect.PostgreSQL9Dialect
         hibernate.jdbc.fetch_size: 300
 # This should be changed for production to "validate"
-        hibernate.hbm2ddl.auto: update
+        hibernate.hbm2ddl.auto: validate
         hibernate.show_sql: false
         hibernate.jdbc.use_streams_for_binary: false
         hibernate.connection.autocommit: false

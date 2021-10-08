@@ -1,6 +1,7 @@
 package hep.crest.server.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hep.crest.swagger.model.GenericMap;
 import hep.crest.swagger.model.IovDto;
 import hep.crest.swagger.model.IovSetDto;
 import hep.crest.swagger.model.PayloadDto;
@@ -140,6 +141,20 @@ public class TestCrestPayload {
             log.info("Retrieved meta payload {} ", dto1.getHash());
             assertThat(resp4.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
+        // Update streamer info
+        log.info("Update streamer info on {}", dto1.getHash());
+        final GenericMap mapinfo = new GenericMap();
+        mapinfo.put("streamerInfo", dto1.getStreamerInfo()+"-modified");
+        final HttpEntity<GenericMap> requestupd = new HttpEntity<GenericMap>(
+                mapinfo, null);
+        // Now retrieve metadata only
+        final ResponseEntity<String> resp5 = this.testRestTemplate.exchange(
+                "/crestapi/payloads/" + dto1.getHash() + "/meta", HttpMethod.PUT, requestupd,
+                String.class);
+        {
+            log.info("Updated meta payload {} ", dto1.getHash());
+            assertThat(resp5.getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
 
     }
     
@@ -249,7 +264,7 @@ public class TestCrestPayload {
         final IovDto iovdto1 = DataGenerator.generateIovDto("file:///tmp/pyld1.json", tagname, new BigDecimal(2000000L));
         final IovDto iovdto2 = DataGenerator.generateIovDto("file:///tmp/pyld2.json", tagname, new BigDecimal(2100000L));
         final IovSetDto setdto = new IovSetDto();
-        setdto.format("json").size(2L);
+        setdto.size(2L);
         setdto.addResourcesItem(iovdto1).addResourcesItem(iovdto2);
         
         DataGenerator.generatePayloadData("/tmp/pyld1.json", "some content for file1");
@@ -273,7 +288,7 @@ public class TestCrestPayload {
         final IovDto iovdto3 = DataGenerator.generateIovDto("This will become a payload", tagname, new BigDecimal(3000000L));
         final IovDto iovdto4 = DataGenerator.generateIovDto("This will become another payload", tagname, new BigDecimal(3100000L));
         final IovSetDto setdto2 = new IovSetDto();
-        setdto2.format("txt").size(2L);
+        setdto2.size(2L);
         setdto2.addResourcesItem(iovdto3).addResourcesItem(iovdto4);
        
         log.info("Upload batch: {}", setdto2);

@@ -37,13 +37,13 @@ public class JerseyConfig extends ResourceConfig {
         super.register(AdminApi.class);
         super.register(GlobaltagsApi.class);
         super.register(TagsApi.class);
-        super.register(FoldersApi.class);
         super.register(GlobaltagmapsApi.class);
         super.register(IovsApi.class);
         super.register(PayloadsApi.class);
-        super.register(MonitoringApi.class);
         super.register(FsApi.class);
         super.register(RuninfoApi.class);
+        super.register(MonitoringApi.class);
+        super.register(FoldersApi.class);
         super.register(MultiPartFeature.class);
         super.register(CacheControlFilter.class);
         super.register(CORSFilter.class);
@@ -56,7 +56,7 @@ public class JerseyConfig extends ResourceConfig {
      */
     public void init() {
         // Register components where DI is needed
-        this.configureSwagger();
+        // this.configureSwagger();
     }
 
     /**

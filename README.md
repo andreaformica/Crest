@@ -224,7 +224,15 @@ To run code generation some scripts can be used as examples (`./scripts`).
 The server stub generation is implemented as well as a gradle task:
 
 ```
-./gradlew generateSwaggerCode
+./gradlew openApiGenerate
+```
+For generating a client (e.g. typescript) : 
+```
+openapi-generator-cli generate -g typescript-axios -i ./swagger_schemas/swagger/yaml/crestdb_full.yaml -o out
+```
+This can then be installed via npm with command like:
+```
+npm install @openapitools/openapi-generator-cli -g
 ```
 
 ## Docker

@@ -94,7 +94,7 @@ public class TagMetaPostgresImpl extends TagMetaGeneral implements TagMetaDataBa
         try (Connection conn = super.getDs().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);) {
             conn.setAutoCommit(false);
-            final long tid = bhandler.getLargeObjectId(conn, tis, null);
+            final long tid = bhandler.writeLargeObjectId(conn, tis, null);
             ps.setString(1, entity.getDescription());
             ps.setInt(2, entity.getChansize());
             ps.setInt(3, entity.getColsize());

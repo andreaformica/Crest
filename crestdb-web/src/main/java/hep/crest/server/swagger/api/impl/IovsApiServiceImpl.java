@@ -137,7 +137,7 @@ public class IovsApiServiceImpl extends IovsApiService {
             // Create a new IOV.
             String tagname = body.getTagName();
             Iov entity = mapper.map(body, Iov.class);
-            entity.setTag(new Tag(tagname));
+            entity.tag(new Tag().name(tagname));
             final Iov saved = iovService.insertIov(entity);
             IovDto dto = mapper.map(saved, IovDto.class);
             dto.tagName(tagname);
@@ -196,9 +196,9 @@ public class IovsApiServiceImpl extends IovsApiService {
             if (iovlist == null) {
                 throw new BadRequestException("Cannot store null list of iovs");
             }
-
             // Loop over resources uploaded.
             for (final IovDto iovDto : iovlist) {
+                log.debug("Create iov from dto {}", iovDto);
                 // Verify if tagname should be taken inside the iovdto.
                 if (!"unknown".equals(tagName)
                     && (iovDto.getTagName() == null || !iovDto.getTagName().equals(tagName))) {
@@ -211,9 +211,10 @@ public class IovsApiServiceImpl extends IovsApiService {
                             msg);
                     return Response.status(Response.Status.NOT_ACCEPTABLE).entity(resp).build();
                 }
+                log.debug("Iov tag is {}", iovDto.getTagName());
                 // Create new iov.
                 Iov entity = mapper.map(iovDto, Iov.class);
-                entity.setTag(new Tag(iovDto.getTagName()));
+                entity.tag(new Tag().name(iovDto.getTagName()));
                 final Iov saved = iovService.insertIov(entity);
                 IovDto saveddto = mapper.map(saved, IovDto.class);
                 saveddto.tagName(iovDto.getTagName());
@@ -388,10 +389,11 @@ public class IovsApiServiceImpl extends IovsApiService {
             throws NotFoundException {
         log.info("IovRestController processing request for iovs groups using tag name {}", tagname);
         try {
+
             // Search for tag in order to load the time type:
             final Tag tagentity = tagService.findOne(tagname);
-            Request request = context.getRequest();
             HttpHeaders headers = context.getHttpHeaders();
+            Request request = context.getRequest();
             // Apply caching on iov groups selections.
             // Use cache service to detect if a tag was modified.
             final ResponseBuilder builder = cachesvc.verifyLastModified(request, tagentity);
@@ -403,7 +405,7 @@ public class IovsApiServiceImpl extends IovsApiService {
             }
             Long groupsize = null;
             // Get the time type to apply different group selections.
-            final String timetype = tagentity.getTimeType();
+            final String timetype = tagentity.timeType();
             if (timetype.equalsIgnoreCase("run")) {
                 // The iov is of type RUN. Use the group size from properties.
                 groupsize = new Long(cprops.getRuntypeGroupsize());
@@ -438,8 +440,7 @@ public class IovsApiServiceImpl extends IovsApiService {
             filters.put("groupsize", groupsize.toString());
             respdto.datatype("groups").filter(filters);
             // In the response set the cachecontrol flag as well.
-            return Response.ok().entity(respdto).cacheControl(cc).lastModified(tagentity.getModificationTime()).build();
-
+            return Response.ok().entity(respdto).cacheControl(cc).lastModified(tagentity.modificationTime()).build();
         }
         catch (final NotExistsPojoException e) {
             // The tag was not found.
@@ -466,7 +467,8 @@ public class IovsApiServiceImpl extends IovsApiService {
      */
     @Override
     public Response selectIovs(String xCrestQuery, String tagname, String since, String until,
-                               Long snapshot, SecurityContext securityContext, UriInfo info) throws NotFoundException {
+                               Long snapshot, SecurityContext securityContext, UriInfo info)
+            throws NotFoundException {
         log.info(
                 "IovRestController processing request for iovs using tag name {} and range {} - {} ",
                 tagname, since, until);
@@ -475,9 +477,8 @@ public class IovsApiServiceImpl extends IovsApiService {
             // Search if tag exists.
             final Tag tagentity = tagService.findOne(tagname);
             log.debug("Found tag " + tagentity);
-            Request request = context.getRequest();
             HttpHeaders headers = context.getHttpHeaders();
-
+            Request request = context.getRequest();
             // Apply caching on iov selections.
             // Use cache service to detect if a tag was modified.
             final ResponseBuilder builder = cachesvc.verifyLastModified(request, tagentity);
@@ -529,7 +530,7 @@ public class IovsApiServiceImpl extends IovsApiService {
             filters.put("until", runtil.toString());
             final CrestBaseResponse respdto = buildEntityResponse(dtolist, filters);
             // Send the cache control in the response.
-            return Response.ok().entity(respdto).cacheControl(cc).lastModified(tagentity.getModificationTime()).build();
+            return Response.ok().entity(respdto).cacheControl(cc).lastModified(tagentity.modificationTime()).build();
         }
         catch (final NotExistsPojoException e) {
             // The tag was not found.

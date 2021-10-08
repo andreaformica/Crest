@@ -16,7 +16,7 @@ import hep.crest.data.pojo.GlobalTag;
 
 /**
  * Repository for global tags.
- * 
+ *
  * @author formica
  * @author rsipos
  *

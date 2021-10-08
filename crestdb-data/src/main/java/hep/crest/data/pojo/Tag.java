@@ -2,6 +2,10 @@ package hep.crest.data.pojo;
 // Generated Aug 2, 2016 3:50:25 PM by Hibernate Tools 3.2.2.GA
 
 import hep.crest.data.config.DatabasePropertyConfigurator;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -25,6 +29,8 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "TAG", schema = DatabasePropertyConfigurator.SCHEMA_NAME)
+@Data
+@Accessors(fluent = true)
 public class Tag implements java.io.Serializable {
 
     /**
@@ -34,240 +40,58 @@ public class Tag implements java.io.Serializable {
     /**
      * The tag name.
      */
+    @Id
+    @Column(name = "NAME", unique = true, nullable = false, length = 255)
     private String name;
     /**
      * The time type.
      */
+    @Column(name = "TIME_TYPE", nullable = false, length = 16)
     private String timeType;
     /**
      * The object type.
      */
+    @Column(name = "OBJECT_TYPE", nullable = false, length = 4000)
     private String objectType;
     /**
      * The synchronization.
      */
+    @Column(name = "SYNCHRONIZATION", nullable = false, length = 20)
     private String synchronization;
     /**
      * The description.
      */
+    @Column(name = "DESCRIPTION", nullable = false, length = 4000)
     private String description;
     /**
      * The last validated time.
      */
+    @Column(name = "LAST_VALIDATED_TIME", nullable = false, precision = 38, scale = 0)
     private BigDecimal lastValidatedTime;
     /**
      * The end of validity.
      */
+    @Column(name = "END_OF_VALIDITY", nullable = false, precision = 38, scale = 0)
     private BigDecimal endOfValidity;
     /**
      * The insertion time.
      */
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "INSERTION_TIME", nullable = false, updatable = true, length = 11)
     private Date insertionTime;
     /**
      * The modification time.
      */
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "MODIFICATION_TIME", nullable = false, length = 11)
     private Date modificationTime;
     /**
      * The mapping with global tags.
      */
-    private Set<GlobalTagMap> globalTagMaps = new HashSet<>(0);
-
-    /**
-     * Default ctor.
-     */
-    public Tag() {
-    }
-
-    /**
-     * @param name
-     *            the String
-     */
-    public Tag(String name) {
-        this.name = name;
-    }
-
-    /**
-     * @return String
-     */
-    @Id
-    @Column(name = "NAME", unique = true, nullable = false, length = 255)
-    public String getName() {
-        return this.name;
-    }
-
-    /**
-     * @param name
-     *            the String
-     * @return
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * @return String
-     */
-    @Column(name = "TIME_TYPE", nullable = false, length = 16)
-    public String getTimeType() {
-        return this.timeType;
-    }
-
-    /**
-     * @param timeType
-     *            the String
-     * @return
-     */
-    public void setTimeType(String timeType) {
-        this.timeType = timeType;
-    }
-
-    /**
-     * @return String
-     */
-    @Column(name = "OBJECT_TYPE", nullable = false, length = 4000)
-    public String getObjectType() {
-        return this.objectType;
-    }
-
-    /**
-     * @param objectType
-     *            the String
-     * @return
-     */
-    public void setObjectType(String objectType) {
-        this.objectType = objectType;
-    }
-
-    /**
-     * @return String
-     */
-    @Column(name = "SYNCHRONIZATION", nullable = false, length = 20)
-    public String getSynchronization() {
-        return this.synchronization;
-    }
-
-    /**
-     * @param synchronization
-     *            the String
-     * @return
-     */
-    public void setSynchronization(String synchronization) {
-        this.synchronization = synchronization;
-    }
-
-    /**
-     * @return String
-     */
-    @Column(name = "DESCRIPTION", nullable = false, length = 4000)
-    public String getDescription() {
-        return this.description;
-    }
-
-    /**
-     * @param description
-     *            the String
-     * @return
-     */
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    /**
-     * @return BigDecimal
-     */
-    @Column(name = "LAST_VALIDATED_TIME", nullable = false, precision = 38, scale = 0)
-    public BigDecimal getLastValidatedTime() {
-        return this.lastValidatedTime;
-    }
-
-    /**
-     * @param lastValidatedTime
-     *            the BigDecimal
-     * @return
-     */
-    public void setLastValidatedTime(BigDecimal lastValidatedTime) {
-        this.lastValidatedTime = lastValidatedTime;
-    }
-
-    /**
-     * @return BigDecimal
-     */
-    @Column(name = "END_OF_VALIDITY", nullable = false, precision = 38, scale = 0)
-    public BigDecimal getEndOfValidity() {
-        return this.endOfValidity;
-    }
-
-    /**
-     * @param endOfValidity
-     *            the BigDecimal
-     * @return
-     */
-    public void setEndOfValidity(BigDecimal endOfValidity) {
-        this.endOfValidity = endOfValidity;
-    }
-
-    /**
-     * @return Date
-     */
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "INSERTION_TIME", nullable = false, updatable = true, length = 11)
-    public Date getInsertionTime() {
-        if (insertionTime == null) {
-            return null;
-        }
-        return new Date(this.insertionTime.getTime());
-    }
-
-    /**
-     * @param insertionTime
-     *            the Date
-     * @return
-     */
-    public void setInsertionTime(Date insertionTime) {
-        if (insertionTime != null) {
-            this.insertionTime = new Date(insertionTime.getTime());
-        }
-    }
-
-    /**
-     * @return Date
-     */
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "MODIFICATION_TIME", nullable = false, length = 11)
-    public Date getModificationTime() {
-        if (modificationTime == null) {
-            return null;
-        }
-        return new Date(this.modificationTime.getTime());
-    }
-
-    /**
-     * @param modificationTime
-     *            the Date
-     * @return
-     */
-    public void setModificationTime(Date modificationTime) {
-        if (modificationTime != null) {
-            this.modificationTime = new Date(modificationTime.getTime());
-        }
-    }
-
-    /**
-     * @return Set<GlobalTagMap>
-     */
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "tag")
-    public Set<GlobalTagMap> getGlobalTagMaps() {
-        return this.globalTagMaps;
-    }
-
-    /**
-     * @param globalTagMaps
-     *            the Set<GlobalTagMap>
-     * @return
-     */
-    public void setGlobalTagMaps(Set<GlobalTagMap> globalTagMaps) {
-        this.globalTagMaps = globalTagMaps;
-    }
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Set<GlobalTagMap> globalTagMaps = new HashSet<>(0);
 
     /**
      * Before saving.
@@ -293,19 +117,4 @@ public class Tag implements java.io.Serializable {
         final Timestamp now = new Timestamp(new Date().getTime());
         this.modificationTime = now;
     }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return "Tag [name=" + name + ", timeType=" + timeType + ", objectType=" + objectType
-                + ", synchronization=" + synchronization + ", description=" + description
-                + ", lastValidatedTime=" + lastValidatedTime + ", endOfValidity=" + endOfValidity
-                + ", insertionTime=" + insertionTime + ", modificationTime=" + modificationTime
-                + "]";
-    }
-
 }

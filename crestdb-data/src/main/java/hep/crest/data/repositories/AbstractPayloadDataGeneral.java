@@ -193,29 +193,6 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         return null;
     }
 
-    /**
-     * The method does not access blob data.
-     *
-     * @param id           the String
-     * @param streamerInfo the String
-     * @return number of updated rows.
-     */
-    @Override
-    public int updateMetaInfo(String id, String streamerInfo) {
-        log.info("Update payload streamer info {} using JDBCTEMPLATE", id);
-        try {
-            final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-            final String tablename = this.tablename();
-
-            final String sql = SqlRequests.getUpdateMetaQuery(tablename);
-            return jdbcTemplate.update(sql, streamerInfo.getBytes(StandardCharsets.UTF_8), id);
-        }
-        catch (final DataAccessException e) {
-            log.error("Cannot update streamer info payload with data for hash {}: {}", id, e);
-        }
-        return 0;
-    }
-
     /*
      * (non-Javadoc)
      *
@@ -240,6 +217,29 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
             log.error("Cannot find payload with data for hash {}: {}", id, e);
         }
         return null;
+    }
+
+    /**
+     * The method does not access blob data.
+     *
+     * @param id           the String
+     * @param streamerInfo the String
+     * @return number of updated rows.
+     */
+    @Override
+    public int updateMetaInfo(String id, String streamerInfo) {
+        log.info("Update payload streamer info {} using JDBCTEMPLATE", id);
+        try {
+            final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
+            final String tablename = this.tablename();
+
+            final String sql = SqlRequests.getUpdateMetaQuery(tablename);
+            return jdbcTemplate.update(sql, streamerInfo.getBytes(StandardCharsets.UTF_8), id);
+        }
+        catch (final DataAccessException e) {
+            log.error("Cannot update streamer info payload with data for hash {}: {}", id, e);
+        }
+        return 0;
     }
 
     /**

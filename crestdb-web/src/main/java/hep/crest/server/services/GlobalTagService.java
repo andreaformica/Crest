@@ -114,8 +114,8 @@ public class GlobalTagService {
             throw new NotExistsPojoException("Cannot fetch tags for " + globaltagname);
         }
         final List<Tag> taglist = new ArrayList<>();
-        for (final GlobalTagMap globalTagMap : entity.getGlobalTagMaps()) {
-            taglist.add(globalTagMap.getTag());
+        for (final GlobalTagMap globalTagMap : entity.globalTagMaps()) {
+            taglist.add(globalTagMap.tag());
         }
         return taglist;
     }
@@ -130,11 +130,11 @@ public class GlobalTagService {
     @Transactional
     public GlobalTag insertGlobalTag(GlobalTag entity) {
         log.debug("Create GlobalTag from {}", entity);
-        final Optional<GlobalTag> tmpgt = globalTagRepository.findById(entity.getName());
+        final Optional<GlobalTag> tmpgt = globalTagRepository.findById(entity.name());
         if (tmpgt.isPresent()) {
             log.warn("GlobalTag {} already exists.", tmpgt.get());
             throw new AlreadyExistsPojoException(
-                    "GlobalTag already exists for name " + entity.getName());
+                    "GlobalTag already exists for name " + entity.name());
         }
         final GlobalTag saved = globalTagRepository.save(entity);
         log.debug("Saved entity {}", saved);
@@ -151,20 +151,16 @@ public class GlobalTagService {
     @Transactional
     public GlobalTag updateGlobalTag(GlobalTag entity) {
         log.debug("Update GlobalTag from {}", entity);
-        final Optional<GlobalTag> tmpoptgt = globalTagRepository.findById(entity.getName());
+        final Optional<GlobalTag> tmpoptgt = globalTagRepository.findById(entity.name());
         if (!tmpoptgt.isPresent()) {
-            log.debug("Cannot update GlobalTag {} : resource does not exists.. ", entity.getName());
+            log.debug("Cannot update GlobalTag {} : resource does not exists.. ", entity.name());
             throw new NotExistsPojoException(
-                    "GlobalTag does not exists for name " + entity.getName());
+                    "GlobalTag does not exists for name " + entity.name());
         }
         final GlobalTag toupd = tmpoptgt.get();
-        toupd.setDescription(entity.getDescription());
-        toupd.setRelease(entity.getRelease());
-        toupd.setScenario(entity.getScenario());
-        toupd.setSnapshotTime(entity.getSnapshotTime());
-        toupd.setType(entity.getType());
-        toupd.setValidity(entity.getValidity());
-        toupd.setWorkflow(entity.getWorkflow());
+        toupd.description(entity.description()).release(entity.release())
+                .scenario(entity.scenario()).snapshotTime(entity.snapshotTime())
+                .workflow(entity.workflow()).type(entity.type()).validity(entity.validity());
         final GlobalTag saved = globalTagRepository.save(toupd);
         log.debug("Saved entity: {}", saved);
         return saved;

@@ -16,7 +16,6 @@ import hep.crest.data.pojo.GlobalTagMap;
 
 /**
  * Repository for mappings.
- * 
  * @author formica
  */
 @Repository

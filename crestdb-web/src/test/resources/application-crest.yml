@@ -6,14 +6,11 @@ caching:
     payloads_maxage: 604800
     timetype_groupsize: 3600  # expressed in seconds
     runtype_groupsize: 100    # expressed in run numbers
-crest:
-    audience: https://crest/api
-spring:
-    security:
-        oauth2:
-            resourceserver:
-                jwt:
-                    issuer-uri: https://dev-andrea-1971.eu.auth0.com/
-        strategy: MODE_INHERITABLETHREADLOCAL
-    jpa:
-        open-in-view: false
+keycloak:
+    realm: svom-fsc
+    auth-server-url: https://admin.svom.eu/keycloak/
+    ssl-required: external
+    resource: FSC_VHFMGR
+    credentials.secret: some-secret
+    use-resource-role-mappings: true
+    bearer-only: true

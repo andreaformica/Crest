@@ -222,6 +222,7 @@ public class TestCrestTag {
         final ResponseEntity<String> respupdnull = this.testRestTemplate
                 .exchange("/crestapi/tags/" + dto1.getName(), HttpMethod.PUT, null, String.class);
         assertThat(respupdnull.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+
         log.info("Update tag with wrong name : NOT-THERE ");
         final ResponseEntity<String> respupdnotexist = this.testRestTemplate
                 .exchange("/crestapi/tags/NOT-THERE", HttpMethod.PUT, updrequest, String.class);

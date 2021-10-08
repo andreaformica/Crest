@@ -78,25 +78,25 @@ public class GlobalTagMapService {
     @Transactional
     public GlobalTagMap insertGlobalTagMap(GlobalTagMap entity) {
         log.debug("Create GlobalTagMap from {}", entity);
-        Optional<GlobalTagMap> map = globalTagMapRepository.findById(entity.getId());
+        Optional<GlobalTagMap> map = globalTagMapRepository.findById(entity.id());
         if (map.isPresent()) {
             log.warn("GlobalTagMap {} already exists.", map.get());
-            throw new AlreadyExistsPojoException("GlobalTagMap already exists for ID " + entity.getId());
+            throw new AlreadyExistsPojoException("GlobalTagMap already exists for ID " + entity.id());
         }
-        String gtname = entity.getId().getGlobalTagName();
+        String gtname = entity.id().globalTagName();
         final Optional<GlobalTag> gt = globalTagRepository.findById(gtname);
         if (!gt.isPresent()) {
             log.warn("GlobalTag {} does not exists.", gtname);
             throw new NotExistsPojoException("GlobalTag does not exists for name " + gtname);
         }
-        String tagname = entity.getTag().getName();
+        String tagname = entity.tag().name();
         final Optional<Tag> tg = tagRepository.findById(tagname);
         if (!tg.isPresent()) {
             log.warn("Tag {} does not exists.", tagname);
             throw new NotExistsPojoException("Tag does not exists for name " + tagname);
         }
-        entity.setGlobalTag(gt.get());
-        entity.setTag(tg.get());
+        entity.globalTag(gt.get());
+        entity.tag(tg.get());
         final GlobalTagMap saved = globalTagMapRepository.save(entity);
         log.debug("Saved entity: {}", saved);
         return saved;
@@ -122,7 +122,7 @@ public class GlobalTagMapService {
         List<GlobalTagMap> maplist = globalTagMapRepository.findByGlobalTagNameAndLabelAndTagNameLike(globaltag, label,
                 tag);
         if (record != null && !record.isEmpty()) {
-            return StreamSupport.stream(maplist.spliterator(), false).filter(c -> c.getId().getRecord().equals(record))
+            return StreamSupport.stream(maplist.spliterator(), false).filter(c -> c.id().record().equals(record))
                     .collect(Collectors.toList());
         }
         return maplist;

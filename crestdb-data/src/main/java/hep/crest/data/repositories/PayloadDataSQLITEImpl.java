@@ -31,7 +31,6 @@ import java.sql.SQLException;
  */
 public class PayloadDataSQLITEImpl extends AbstractPayloadDataGeneral implements PayloadDataBaseCustom {
 
-
     /**
      * @param ds the DataSource
      */
