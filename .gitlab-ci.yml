@@ -59,7 +59,6 @@ before_script:
 
 stages:
  - package_application
- - webui
  - build
  - release
  - sonar_application
