@@ -2,9 +2,9 @@
 #
 # Andrea Formica - October 2018
 #
-# Instructions to deploy CREST server (taken from H.Louvin: messaging example)
+# Instructions to deploy VHFMGR server (taken from H.Louvin: messaging example)
 #
-# docker stack deploy --with-registry-auth -c docker-compose.yml crest
+# docker stack deploy --with-registry-auth -c docker-compose.yml svom_vhfmgr_ssl
 #
 #_______________________________________________________________________________
 
@@ -18,10 +18,10 @@ services:
         constraints:
           - node.hostname == crest-02.cern.ch
     ports:
-      - "8090:8080"
-    networks:
-      - crestnet
+      - "9090:8080"
     configs:
+    - source: crest-config
+      target: /home/svom/application.properties
     - source: crest-logs
       target: /home/crest/logback.xml
     - source: crest-jopts
@@ -30,8 +30,7 @@ services:
     - source: crest-config
       target: /home/crest/application.properties
     environment:
-        - crest.server.port=8080
-        - spring.profiles.active=prod
+        - spring.profiles.active=postgres
     volumes:
         - crest_data_logs:/data/logs
         - crest_data_dump:/data/dump
@@ -56,6 +55,8 @@ networks:
     external: true
 
 configs:
+  crest-config:
+    external: true
   crest-logs:
     external: true
   crest-jopts:
