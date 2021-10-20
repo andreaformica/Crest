@@ -125,46 +125,20 @@ task buildCrestPythonClient(type: org.openapitools.generator.gradle.plugin.tasks
     packageName = "hep.crest.client"
 }
 
-/*
-// Task to generate sources in build output directory
-openApiGenerate {
-    generatorName = "jaxrs-jersey"
-    inputSpec = "$rootDir/swagger_schemas/swagger/yaml/crestApi_all.yml".toString()
-    outputDir = "$rootDir/api-generated".toString()
-    templateDir = "$rootDir/swagger_schemas/swagger/templates/java/JavaJaxRs/openApi-5.1.0".toString()
+task buildCrestShellClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask){
+    generatorName = "bash"
+    inputSpec = "$swaggerBundleDirectory/crestApi_all.yml".toString()
+    outputDir = "$rootDir/crestsh".toString()
+}
+task buildHtmlDoc(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask){
+    generatorName = "html2"
+    inputSpec = "$swaggerBundleDirectory/crestApi_all.yml".toString()
+    outputDir = "$buildDir/htmldoc".toString()
     apiPackage = "hep.crest.server.swagger.api"
     modelPackage = "hep.crest.swagger.model"
     configOptions = [
-            dateLibrary: "java8",
             hideGenerationTimestamp: "true",
     ]
-}
-*/
-convertSwagger2markup {
-	swaggerInput file("swagger_schemas/swagger/json/crestdb_full.json").getAbsolutePath()
-	outputDir file("build/asciidoc")
-	config = ['swagger2markup.markupLanguage' : 'MARKDOWN',
-			  'swagger2markup.pathsGroupedBy' : 'TAGS',
-			  'swagger2markup.interDocumentCrossReferencesEnabled' : true]
-}
-
-swaggerSources {
-    crestdb {
-        inputFile = file('swagger_schemas/swagger/json/crestdb_full.json')
-        code {
-            language = 'jaxrs'
-            templateDir = file('./templates/java/JavaJaxRs')
-            configFile = file('swagger_schemas/swagger/json/crestdb-config.json')
-        }
-    }
-    crestdb_client {
-        inputFile = file('swagger_schemas/swagger/json/crestdb.json')
-        code {
-            language = 'python'
-            //templateDir = file('./templates/2.3.0/python-client/model')
-            configFile = file('swagger_schemas/swagger/json/crestdb-pyclient-config.json')
-        }
-    }
 }
 
 configurations.compile.each {
@@ -295,3 +269,9 @@ subprojects {
     }
     test.dependsOn purgedb
 }
+
+compileJava {
+    dependsOn buildHtmlDoc
+}
+
+
