@@ -1,9 +1,11 @@
 /**
- * 
+ *
  */
 package hep.crest.data.test;
 
 import hep.crest.data.config.CrestProperties;
+import hep.crest.data.exceptions.CdbInternalException;
+import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.exceptions.PayloadEncodingException;
 import hep.crest.data.handlers.DateFormatterHandler;
@@ -100,7 +102,7 @@ public class ToolsTests {
         }
         final Path base = dirutils.getBasePath("/tmp/cdms/pippo");
         assertThat(base).isNotNull();
-        
+
         assertThat(dirutils.getTagfile()).isEqualTo("tag.json"); // Should be true
         assertThat(dirutils.getIovfile()).isEqualTo("iovs.json"); // Should be true
         dirutils.createIfNotexistsTag("MY-TAG");
@@ -154,10 +156,11 @@ public class ToolsTests {
         try {
             tag.name(null);
             fstagrepository.save(entity);
-        } catch (final RuntimeException e) {
+        }
+        catch (final RuntimeException e) {
             log.info("Cannot store tag");
         }
-        
+
         final IovDirImpl fsiovrepository = new IovDirImpl(dirutils, mapper);
         final IovDto iov = DataGenerator.generateIovDto("mydirhash", "MY-TAG-01",
                 new BigDecimal(1000L));
@@ -328,9 +331,9 @@ public class ToolsTests {
     @Test
     public void exceptionTest() {
         final NullPointerException np = new NullPointerException("null");
-        final CdbServiceException es = new CdbServiceException("message");
+        final CdbServiceException es = new CdbInternalException("message");
         assertThat(es.getMessage()).contains("message");
-        final CdbServiceException ees = new CdbServiceException("message", np);
+        final CdbServiceException ees = new CdbNotFoundException("message not found", np);
         assertThat(ees.getCause()).isNotNull();
         final PayloadEncodingException e = new PayloadEncodingException("message");
         assertThat(e.getMessage()).contains("message");

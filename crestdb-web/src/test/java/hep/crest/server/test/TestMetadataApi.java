@@ -113,7 +113,7 @@ public class TestMetadataApi {
         final ResponseEntity<String> response = this.testRestTemplate
                 .postForEntity("/crestapi/runinfo", setdto, String.class);
         log.info("Received response: {}", response);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         
         log.info("Find run info with by=none ");
         final ResponseEntity<String> resp = this.testRestTemplate.exchange(

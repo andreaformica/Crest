@@ -127,8 +127,8 @@ public class TagMetaPostgresImpl extends TagMetaGeneral implements TagMetaDataBa
         final String sql = TagMetaRequests.getDeleteQuery(tablename);
         log.info("Remove payload with hash {} using JDBC", id);
         Long oid = jdbcTemplate.queryForObject(sqlget,
-                new Object[]{id},
-                (rs, row) -> rs.getLong(1));
+                (rs, row) -> rs.getLong(1),
+                new Object[]{id});
         jdbcTemplate.execute("select lo_unlink(" + oid + ")");
         jdbcTemplate.update(sql, id);
         log.debug("Entity removal done...");

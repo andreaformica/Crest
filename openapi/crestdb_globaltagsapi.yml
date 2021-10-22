@@ -59,6 +59,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GlobalTagSetDto"
+        '404':
+          description: resource not found
+          content:
+            'application/json': {}
+            'application/xml': {}
     post:
       tags:
         - globaltags
@@ -105,6 +110,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GlobalTagSetDto"
+        '404':
+          description: resource not found
+          content:
+            'application/json': {}
+            'application/xml': {}
   /globaltags/{name}/tags:
     get:
       tags:

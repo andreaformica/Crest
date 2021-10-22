@@ -1,12 +1,11 @@
 package hep.crest.server.swagger.api.impl;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.querydsl.IFilteringCriteria;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
-import hep.crest.server.exceptions.AlreadyExistsPojoException;
-import hep.crest.server.exceptions.NotExistsPojoException;
 import hep.crest.server.services.TagMetaService;
 import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.api.NotFoundException;
@@ -101,30 +100,16 @@ public class TagsApiServiceImpl extends TagsApiService {
      * .TagDto, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response createTag(TagDto body, SecurityContext securityContext, UriInfo info)
-            throws NotFoundException {
+    public Response createTag(TagDto body, SecurityContext securityContext, UriInfo info) {
         log.info("TagRestController processing request for creating a tag");
-        try {
-            // Create a tag.
-            Tag entity = mapper.map(body, Tag.class);
-            final Tag saved = tagService.insertTag(entity);
-            log.debug("Created tag {}", saved);
-            TagDto dto = mapper.map(saved, TagDto.class);
-            // Response is 201.
-            log.debug("Created tag DTO {}", dto);
-            return Response.created(info.getRequestUri()).entity(dto).build();
-        }
-        catch (final AlreadyExistsPojoException e) {
-            // Exception, resource exists, send 303.
-            log.error("Cannot create tag {}, name already exists...", body);
-            return rfh.alreadyExistsPojo("Cannot create tag: " + e.getMessage());
-        }
-        catch (final RuntimeException e) {
-            // Exception, send 500.
-            final String message = e.getMessage();
-            log.error("Api method createTag got exception {}", message);
-            return rfh.internalError("createTag error: " + message);
-        }
+        // Create a tag.
+        Tag entity = mapper.map(body, Tag.class);
+        final Tag saved = tagService.insertTag(entity);
+        log.debug("Created tag {}", saved);
+        TagDto dto = mapper.map(saved, TagDto.class);
+        // Response is 201.
+        log.debug("Created tag DTO {}", dto);
+        return Response.created(info.getRequestUri()).entity(dto).build();
     }
 
     /*
@@ -136,57 +121,44 @@ public class TagsApiServiceImpl extends TagsApiService {
      */
     @Override
     public Response updateTag(String name, Map<String, String> body, SecurityContext securityContext,
-                              UriInfo info) throws NotFoundException {
+                              UriInfo info) {
         log.info("TagRestController processing request for updating a tag");
-        try {
-            // Search tag.
-            final Tag entity = tagService.findOne(name);
-            // Send a bad request if body is null.
-            if (body == null) {
-                return rfh.badRequest("Cannot update tag " + entity.name() + ": body is null");
+        // Search tag.
+        final Tag entity = tagService.findOne(name);
+        // Send a bad request if body is null.
+        if (body == null) {
+            return rfh.badRequest("Cannot update tag " + entity.name() + ": body is null");
+        }
+        // Loop over map body keys.
+        for (final String key : body.keySet()) {
+            if ("description".equals(key)) {
+                // Update description.
+                entity.description(body.get(key));
             }
-            // Loop over map body keys.
-            for (final String key : body.keySet()) {
-                if ("description".equals(key)) {
-                    // Update description.
-                    entity.description(body.get(key));
-                }
-                else if (key == "timeType") {
-                    entity.timeType(body.get(key));
-                }
-                else if (key == "lastValidatedTime") {
-                    final BigDecimal val = new BigDecimal(body.get(key));
-                    entity.lastValidatedTime(val);
-                }
-                else if (key == "endOfValidity") {
-                    final BigDecimal val = new BigDecimal(body.get(key));
-                    entity.endOfValidity(val);
-                }
-                else if (key == "synchronization") {
-                    entity.synchronization(body.get(key));
-                }
-                else if (key == "payloadSpec") {
-                    entity.objectType(body.get(key));
-                }
-                else {
-                    log.warn("Ignored key {} in updateTag: field does not exists", key);
-                }
+            else if (key == "timeType") {
+                entity.timeType(body.get(key));
             }
-            final Tag saved = tagService.updateTag(entity);
-            TagDto dto = mapper.map(saved, TagDto.class);
-            return Response.ok(info.getRequestUri()).entity(dto).build();
+            else if (key == "lastValidatedTime") {
+                final BigDecimal val = new BigDecimal(body.get(key));
+                entity.lastValidatedTime(val);
+            }
+            else if (key == "endOfValidity") {
+                final BigDecimal val = new BigDecimal(body.get(key));
+                entity.endOfValidity(val);
+            }
+            else if (key == "synchronization") {
+                entity.synchronization(body.get(key));
+            }
+            else if (key == "payloadSpec") {
+                entity.objectType(body.get(key));
+            }
+            else {
+                log.warn("Ignored key {} in updateTag: field does not exists", key);
+            }
         }
-        catch (final NotExistsPojoException e) {
-            // Exception, tag not found, send 404.
-            final String message = "No tag resource has been found for " + name;
-            return rfh.notFoundPojo("Cannot find tag: " + name);
-        }
-        catch (final RuntimeException e) {
-            // Exception, send 500.
-            final String message = e.getMessage();
-            log.error("Api method updateTag got exception {}", message);
-            return rfh.internalError("updateTag error: " + message);
-        }
+        final Tag saved = tagService.updateTag(entity);
+        TagDto dto = mapper.map(saved, TagDto.class);
+        return Response.ok(info.getRequestUri()).entity(dto).build();
     }
 
     /*
@@ -196,26 +168,16 @@ public class TagsApiServiceImpl extends TagsApiService {
      * javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response findTag(String name, SecurityContext securityContext, UriInfo info)
-            throws NotFoundException {
+    public Response findTag(String name, SecurityContext securityContext, UriInfo info) {
         log.info("TagRestController processing request for tag name " + name);
         final GenericMap filters = new GenericMap();
         filters.put("name", name);
-        try {
-            final Tag entity = tagService.findOne(name);
-            TagDto dto = mapper.map(entity, TagDto.class);
-            // Create the set.
-            final TagSetDto respdto = (TagSetDto) new TagSetDto().addResourcesItem(dto).size(1L)
-                    .filter(filters).datatype("tags");
-            return Response.ok().entity(respdto).build();
-        }
-        catch (final NotExistsPojoException e) {
-            // Not found. Send a 404.
-            log.warn("Api method findGlobalTag cannot find resource : {}", name);
-            final CrestBaseResponse resp = new TagSetDto()
-                    .format("TagSetDto").filter(filters).size(0L).datatype("tags");
-            return rfh.emptyResultSet(resp);
-        }
+        final Tag entity = tagService.findOne(name);
+        TagDto dto = mapper.map(entity, TagDto.class);
+        // Create the set.
+        final TagSetDto respdto = (TagSetDto) new TagSetDto().addResourcesItem(dto).size(1L)
+                .filter(filters).datatype("tags");
+        return Response.ok().entity(respdto).build();
     }
 
     /*
@@ -227,142 +189,92 @@ public class TagsApiServiceImpl extends TagsApiService {
      */
     @Override
     public Response listTags(String by, Integer page, Integer size, String sort,
-                             SecurityContext securityContext, UriInfo info) throws NotFoundException {
-        try {
-            log.debug("Search resource list using by={}, page={}, size={}, sort={}", by, page, size,
-                    sort);
-            // Create filters
-            GenericMap filters = prh.getFilters(prh.createMatcherCriteria(by));
-            // Create pagination request.
-            final PageRequest preq = prh.createPageRequest(page, size, sort);
-            BooleanExpression wherepred = null;
-            if (!"none".equals(by)) {
-                // Create search conditions for where statement in SQL
-                wherepred = prh.buildWhere(filtering, by);
-            }
-            // Retrieve tag list using filtering.
-            Page<Tag> entitypage = tagService.findAllTags(wherepred, preq);
-            RespPage respPage = new RespPage().size(entitypage.getSize())
-                    .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
-                    .number(entitypage.getNumber());
-            List<TagDto> dtolist = edh.entityToDtoList(entitypage.toList(), TagDto.class);
-            // Create the Set.
-            final CrestBaseResponse setdto = new TagSetDto().resources(dtolist)
-                    .page(respPage)
-                    .size((long) dtolist.size()).datatype("tags");
-            if (filters != null) {
-                setdto.filter(filters);
-            }
-            // Response is 200.
-            return Response.ok().entity(setdto).build();
+                             SecurityContext securityContext, UriInfo info) {
+        log.debug("Search resource list using by={}, page={}, size={}, sort={}", by, page, size,
+                sort);
+        // Create filters
+        GenericMap filters = prh.getFilters(prh.createMatcherCriteria(by));
+        // Create pagination request.
+        final PageRequest preq = prh.createPageRequest(page, size, sort);
+        BooleanExpression wherepred = null;
+        if (!"none".equals(by)) {
+            // Create search conditions for where statement in SQL
+            wherepred = prh.buildWhere(filtering, by);
         }
-        catch (final RuntimeException e) {
-            // Exception, send a 500.
-            // Error from server. Send a 500.
-            final String message = e.getMessage();
-            log.error("listTags service exception : {}", message);
-            return rfh.internalError("listTags error: " + message);
+        // Retrieve tag list using filtering.
+        Page<Tag> entitypage = tagService.findAllTags(wherepred, preq);
+        RespPage respPage = new RespPage().size(entitypage.getSize())
+                .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
+                .number(entitypage.getNumber());
+        List<TagDto> dtolist = edh.entityToDtoList(entitypage.toList(), TagDto.class);
+        // Create the Set.
+        final CrestBaseResponse setdto = new TagSetDto().resources(dtolist)
+                .page(respPage)
+                .size((long) dtolist.size()).datatype("tags");
+        if (filters != null) {
+            setdto.filter(filters);
         }
+        // Response is 200.
+        return Response.ok().entity(setdto).build();
     }
 
     /* (non-Javadoc)
-     * @see hep.crest.server.swagger.api.TagsApiService#createTagMeta(java.lang.String, hep.crest.swagger.model.TagMetaDto, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+     * @see hep.crest.server.swagger.api.TagsApiService#createTagMeta(java.lang.String, hep.crest.swagger.model
+     * .TagMetaDto, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response createTagMeta(String name, TagMetaDto body, SecurityContext securityContext, UriInfo info)
-            throws NotFoundException {
+    public Response createTagMeta(String name, TagMetaDto body, SecurityContext securityContext, UriInfo info) {
         log.info("TagRestController processing request for creating a tag meta data entry for {}", name);
-        try {
-            final Tag tag = tagService.findOne(name);
-            log.debug("Add meta information to tag {}", name);
-            final TagMetaDto tmpt = tagMetaService.findMeta(name);
-            if (tmpt != null) {
-                log.debug("Cannot store tag meta {} : resource already exists.. ", name);
-                throw new AlreadyExistsPojoException(
-                        "Tag meta already exists for name " + name);
-            }
-            final TagMetaDto saved = tagMetaService.insertTagMeta(body);
-            return Response.created(info.getRequestUri()).entity(saved).build();
-        }
-        catch (final AlreadyExistsPojoException e) {
-            // Exception, resource exists, send 303.
-            log.error("Cannot create tag meta {}, name already exists...", body);
-            return rfh.alreadyExistsPojo(e.getMessage());
-        }
-        catch (final NotExistsPojoException e) {
-            // Exception, tag not found, send 404.
-            final String message = "No tag resource has been found for " + name;
-            return rfh.notFoundPojo(message);
-        }
-        catch (final RuntimeException e) {
-            // Exception, send a 500.
-            final String message = e.getMessage();
-            log.error("createTagMeta service exception : {}", message);
-            return rfh.internalError("createTagMeta error: " + e.getMessage());
-        }
+        final Tag tag = tagService.findOne(name);
+        log.debug("Add meta information to tag {}", name);
+        final TagMetaDto saved = tagMetaService.insertTagMeta(body);
+        return Response.created(info.getRequestUri()).entity(saved).build();
     }
 
     /* (non-Javadoc)
-     * @see hep.crest.server.swagger.api.TagsApiService#findTagMeta(java.lang.String, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+     * @see hep.crest.server.swagger.api.TagsApiService#findTagMeta(java.lang.String, javax.ws.rs.core
+     * .SecurityContext, javax.ws.rs.core.UriInfo)
      */
     @Override
     public Response findTagMeta(String name, SecurityContext securityContext, UriInfo info) throws NotFoundException {
         this.log.info("TagRestController processing request to find tag metadata for name " + name);
-        try {
-            final TagMetaDto dto = tagMetaService.findMeta(name);
-            if (dto == null) {
-                log.debug("Entity not found for name " + name);
-                return rfh.notFoundPojo("findTagMeta error: cannot find meta for tag " + name);
-            }
-            final TagMetaSetDto respdto = (TagMetaSetDto) new TagMetaSetDto().addResourcesItem(dto).size(1L)
-                    .datatype("tagmetas");
-            return Response.ok().entity(respdto).build();
-        }
-        catch (final RuntimeException e) {
-            // Exception, send a 500.
-            // Error from server. Send a 500.
-            final String message = e.getMessage();
-            log.error("findTagMeta service exception : {}", message);
-            return rfh.internalError("findTagMeta error: " + e.getMessage());
-        }
+        final TagMetaDto dto = tagMetaService.findMeta(name);
+        final TagMetaSetDto respdto = (TagMetaSetDto) new TagMetaSetDto().addResourcesItem(dto).size(1L)
+                .datatype("tagmetas");
+        return Response.ok().entity(respdto).build();
     }
 
 
     /* (non-Javadoc)
-     * @see hep.crest.server.swagger.api.TagsApiService#updateTagMeta(java.lang.String, hep.crest.swagger.model.GenericMap, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+     * @see hep.crest.server.swagger.api.TagsApiService#updateTagMeta(java.lang.String, hep.crest.swagger.model
+     * .GenericMap, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
      */
     @Override
     public Response updateTagMeta(String name, Map<String, String> body, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
         log.info("TagRestController processing request for updating a tag meta information");
-        try {
-            final TagMetaDto dto = tagMetaService.findMeta(name);
-            if (dto == null) {
-                log.debug("Cannot update meta data on null tag meta entity for {}", name);
-                final String message = "TagMeta " + name + " not found...";
-                return rfh.notFoundPojo("updateTagMeta error: cannot find meta for tag " + name);
-            }
-            for (final String key : body.keySet()) {
-                if (key == "description") {
-                    dto.setDescription(body.get(key));
-                }
-                if (key == "chansize") {
-                    dto.setChansize(new Integer(body.get(key)));
-                }
-                if (key == "colsize") {
-                    dto.setColsize(new Integer(body.get(key)));
-                }
-                if (key == "tagInfo") {
-                    // The field is a string ... this is mandatory for the moment....
-                    dto.setTagInfo(body.get(key));
-                }
-            }
-            final TagMetaDto saved = tagMetaService.updateTagMeta(dto);
-            return Response.ok(info.getRequestUri()).entity(saved).build();
+        final TagMetaDto dto = tagMetaService.findMeta(name);
+        if (dto == null) {
+            log.debug("Cannot update meta data on null tag meta entity for {}", name);
+            final String message = "TagMeta " + name + " not found...";
+            return rfh.notFoundPojo("updateTagMeta error: cannot find meta for tag " + name);
         }
-        catch (final RuntimeException e) {
-            log.error("Api method updateTagMeta error: {}", e.getMessage());
-            return rfh.internalError("updateTagMeta error: " + e.getMessage());
+        for (final String key : body.keySet()) {
+            if (key == "description") {
+                dto.setDescription(body.get(key));
+            }
+            if (key == "chansize") {
+                dto.setChansize(new Integer(body.get(key)));
+            }
+            if (key == "colsize") {
+                dto.setColsize(new Integer(body.get(key)));
+            }
+            if (key == "tagInfo") {
+                // The field is a string ... this is mandatory for the moment....
+                dto.setTagInfo(body.get(key));
+            }
         }
+        final TagMetaDto saved = tagMetaService.updateTagMeta(dto);
+        return Response.ok(info.getRequestUri()).entity(saved).build();
     }
 }

@@ -1,5 +1,12 @@
 package hep.crest.data.handlers;
 
+import hep.crest.data.exceptions.CdbInternalException;
+import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.PayloadEncodingException;
+import org.hibernate.engine.jdbc.StreamUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -11,18 +18,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 
-import org.hibernate.engine.jdbc.StreamUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import hep.crest.data.exceptions.CdbServiceException;
-import hep.crest.data.exceptions.PayloadEncodingException;
-
 /**
  * A helper service to handle payload.
- * 
- * @author formica
  *
+ * @author formica
  */
 public final class PayloadHandler {
 
@@ -43,8 +42,7 @@ public final class PayloadHandler {
     }
 
     /**
-     * @param is
-     *            the InputStream
+     * @param is the InputStream
      * @return byte[]
      */
     public static byte[] getBytesFromInputStream(InputStream is) {
@@ -68,14 +66,12 @@ public final class PayloadHandler {
     }
 
     /**
-     * @param uploadedInputStream
-     *            the InputStream
-     * @param uploadedFileLocation
-     *            the String
-     * @throws CdbServiceException
-     *             If an Exception occurred
+     * @param uploadedInputStream  the InputStream
+     * @param uploadedFileLocation the String
+     * @throws CdbServiceException If an Exception occurred
      */
-    public static void saveToFile(InputStream uploadedInputStream, String uploadedFileLocation) {
+    public static void saveToFile(InputStream uploadedInputStream, String uploadedFileLocation)
+            throws CdbServiceException {
 
         try (OutputStream out = new FileOutputStream(new File(uploadedFileLocation))) {
             int read = 0;
@@ -87,17 +83,15 @@ public final class PayloadHandler {
             out.flush();
         }
         catch (final IOException e) {
-            throw new CdbServiceException("Cannot save stream to file " + uploadedFileLocation, e);
+            throw new CdbInternalException("Cannot save stream to file " + uploadedFileLocation, e);
         }
     }
 
     /**
      * Save the inputStream to the outputStream.
      *
-     * @param uploadedInputStream
-     *            the InputStream
-     * @param out
-     *            the OutputStream
+     * @param uploadedInputStream the InputStream
+     * @param out                 the OutputStream
      */
     public static void saveToOutStream(InputStream uploadedInputStream, OutputStream out) {
 
@@ -128,16 +122,13 @@ public final class PayloadHandler {
      * method will close the output and input stream but we also do it here just in
      * case.
      *
-     * @param uploadedInputStream
-     *            the InputStream
-     * @param uploadedFileLocation
-     *            the String
+     * @param uploadedInputStream  the InputStream
+     * @param uploadedFileLocation the String
      * @return String
-     * @throws PayloadEncodingException
-     *             If an Exception occurred
+     * @throws PayloadEncodingException If an Exception occurred
      */
     public static String saveToFileGetHash(InputStream uploadedInputStream,
-            String uploadedFileLocation) {
+                                           String uploadedFileLocation) throws PayloadEncodingException {
 
         try (OutputStream out = new FileOutputStream(new File(uploadedFileLocation))) {
             return HashGenerator.hashoutstream(uploadedInputStream, out);
@@ -160,13 +151,11 @@ public final class PayloadHandler {
     }
 
     /**
-     * @param uploadedInputStream
-     *            the BufferedInputStream
+     * @param uploadedInputStream the BufferedInputStream
      * @return String
-     * @throws PayloadEncodingException
-     *             If an Exception occurred
+     * @throws PayloadEncodingException If an Exception occurred
      */
-    public static String getHashFromStream(BufferedInputStream uploadedInputStream) {
+    public static String getHashFromStream(BufferedInputStream uploadedInputStream) throws PayloadEncodingException {
         try {
             return HashGenerator.hash(uploadedInputStream);
         }
@@ -176,13 +165,11 @@ public final class PayloadHandler {
     }
 
     /**
-     * @param uploadedInputStream
-     *            the InputStream
-     * @param uploadedFileLocation
-     *            the String
+     * @param uploadedInputStream  the InputStream
+     * @param uploadedFileLocation the String
      */
     public static void saveStreamToFile(InputStream uploadedInputStream,
-            String uploadedFileLocation) {
+                                        String uploadedFileLocation) {
 
         try (OutputStream out = new FileOutputStream(new File(uploadedFileLocation))) {
             StreamUtils.copy(uploadedInputStream, out);
@@ -193,8 +180,7 @@ public final class PayloadHandler {
     }
 
     /**
-     * @param uploadedFileLocation
-     *            the String
+     * @param uploadedFileLocation the String
      * @return byte[]
      */
     public static byte[] readFromFile(String uploadedFileLocation) {
@@ -212,8 +198,7 @@ public final class PayloadHandler {
     }
 
     /**
-     * @param uploadedFileLocation
-     *            the String
+     * @param uploadedFileLocation the String
      * @return long
      */
     public static long lengthOfFile(String uploadedFileLocation) {

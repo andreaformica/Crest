@@ -59,7 +59,7 @@ public class TestCrestFolders {
         final ResponseEntity<String> response1 = this.testRestTemplate
                 .postForEntity("/crestapi/folders", dto1, String.class);
         log.info("Received response: {}", response1);
-        assertThat(response1.getStatusCode()).isEqualTo(HttpStatus.SEE_OTHER);
+        assertThat(response1.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         
         // Retrieve folder list
         final ResponseEntity<String> resp = this.testRestTemplate

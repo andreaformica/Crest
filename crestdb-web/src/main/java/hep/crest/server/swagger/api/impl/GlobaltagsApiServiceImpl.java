@@ -1,13 +1,13 @@
 package hep.crest.server.swagger.api.impl;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.querydsl.IFilteringCriteria;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
-import hep.crest.server.exceptions.AlreadyExistsPojoException;
-import hep.crest.server.exceptions.NotExistsPojoException;
 import hep.crest.server.services.GlobalTagService;
 import hep.crest.server.swagger.api.GlobaltagsApiService;
 import hep.crest.server.swagger.api.NotFoundException;
@@ -103,33 +103,19 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
      */
     @Override
     public Response createGlobalTag(String force, GlobalTagDto body,
-                                    SecurityContext securityContext, UriInfo info) throws NotFoundException {
+                                    SecurityContext securityContext, UriInfo info) {
         log.info("GlobalTagRestController processing request for creating a global tag");
-        try {
-            // If the force mode is active, the insertion time is imposed by the client.
-            if (force.equals("false")) {
-                // Set to null so that is automatically generated.
-                body.setInsertionTime(null);
-            }
-            // Insert a new global tag.
-            final GlobalTag entity = mapper.map(body, GlobalTag.class);
-            final GlobalTag saved = globaltagService.insertGlobalTag(entity);
-            final GlobalTagDto dto = mapper.map(saved, GlobalTagDto.class);
-            // Send the created status.
-            return Response.created(info.getRequestUri()).entity(dto).build();
+        // If the force mode is active, the insertion time is imposed by the client.
+        if (force.equals("false")) {
+            // Set to null so that is automatically generated.
+            body.setInsertionTime(null);
         }
-        catch (final AlreadyExistsPojoException e) {
-            // Global tag resource exists already. Send a 303.
-            log.warn("createGlobalTag resource exists : {}", e);
-            final String msg = "GlobalTag already exists for name : " + body.getName();
-            return rfh.alreadyExistsPojo(msg);
-        }
-        catch (final RuntimeException e) {
-            // Error in creation. Send a 500.
-            final String message = e.getMessage();
-            log.error("Api method createGlobalTag got exception : {}", message);
-            return rfh.internalError("createGlobalTag error: " + message);
-        }
+        // Insert a new global tag.
+        final GlobalTag entity = mapper.map(body, GlobalTag.class);
+        final GlobalTag saved = globaltagService.insertGlobalTag(entity);
+        final GlobalTagDto dto = mapper.map(saved, GlobalTagDto.class);
+        // Send the created status.
+        return Response.created(info.getRequestUri()).entity(dto).build();
     }
 
     /*
@@ -140,29 +126,19 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
      * String, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response findGlobalTag(String name, SecurityContext securityContext, UriInfo info)
-            throws NotFoundException {
+    public Response findGlobalTag(String name, SecurityContext securityContext, UriInfo info) {
         log.info("GlobalTagRestController processing request for global tag name " + name);
         // Prepare filters.
         final GenericMap filters = new GenericMap();
         filters.put("name", name);
-        try {
-            // Search for a global tag resource.
-            final GlobalTag entity = globaltagService.findOne(name);
-            final GlobalTagDto dto = mapper.map(entity, GlobalTagDto.class);
-            log.debug("Found GlobalTag " + name);
-            // Prepare response set.
-            final CrestBaseResponse setdto = new GlobalTagSetDto().addResourcesItem(dto)
-                    .filter(filters).size(1L).datatype("globaltags");
-            return Response.ok().entity(setdto).build();
-        }
-        catch (final NotExistsPojoException e) {
-            // Not found. Send a 404.
-            log.warn("Api method findGlobalTag cannot find resource : {}", name);
-            final CrestBaseResponse resp = new GlobalTagSetDto()
-                    .filter(filters).size(0L).datatype("globaltags");
-            return rfh.emptyResultSet(resp);
-        }
+        // Search for a global tag resource.
+        final GlobalTag entity = globaltagService.findOne(name);
+        final GlobalTagDto dto = mapper.map(entity, GlobalTagDto.class);
+        log.debug("Found GlobalTag " + name);
+        // Prepare response set.
+        final CrestBaseResponse setdto = new GlobalTagSetDto().addResourcesItem(dto)
+                .filter(filters).size(1L).datatype("globaltags");
+        return Response.ok().entity(setdto).build();
     }
 
     /*
@@ -175,32 +151,23 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
      */
     @Override
     public Response findGlobalTagFetchTags(String name, String record, String label,
-                                           SecurityContext securityContext, UriInfo info) throws NotFoundException {
+                                           SecurityContext securityContext, UriInfo info) {
         // Prepare filters.
         final GenericMap filters = new GenericMap();
         filters.put("name", name);
-        try {
-            // Search for a global tag and associated tags. Use record and label.
-            // Presets for record and label is "none".
-            log.info("GlobalTagRestController processing request for global tag name " + name);
-            // Fetch tags via record and label.
-            final List<Tag> entitylist = globaltagService.getGlobalTagByNameFetchTags(name, record,
-                    label);
-            final List<TagDto> dtolist = edh.entityToDtoList(entitylist, TagDto.class);
-            final long listsize = dtolist == null ? 0L : dtolist.size();
-            log.debug("Found list of tags of length {}", listsize);
+        // Search for a global tag and associated tags. Use record and label.
+        // Presets for record and label is "none".
+        log.info("GlobalTagRestController processing request for global tag name " + name);
+        // Fetch tags via record and label.
+        final List<Tag> entitylist = globaltagService.getGlobalTagByNameFetchTags(name, record,
+                label);
+        final List<TagDto> dtolist = edh.entityToDtoList(entitylist, TagDto.class);
+        final long listsize = dtolist == null ? 0L : dtolist.size();
+        log.debug("Found list of tags of length {}", listsize);
 
-            final CrestBaseResponse setdto = new TagSetDto().resources(dtolist)
-                    .filter(filters).size(listsize).datatype("tags");
-            return Response.ok().entity(setdto).build();
-        }
-        catch (final NotExistsPojoException e) {
-            // This is triggered in case the GlobalTag was not found.
-            log.warn("Api  method findGlobalTagFetchTags cannot find resources: {}", e);
-            final CrestBaseResponse setdto = new TagSetDto()
-                    .filter(filters).size(0L).datatype("tags");
-            return Response.status(Response.Status.OK).entity(setdto).build();
-        }
+        final CrestBaseResponse setdto = new TagSetDto().resources(dtolist)
+                .filter(filters).size(listsize).datatype("tags");
+        return Response.ok().entity(setdto).build();
     }
 
     /*
@@ -213,41 +180,33 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
      */
     @Override
     public Response listGlobalTags(String by, Integer page, Integer size, String sort,
-                                   SecurityContext securityContext, UriInfo info) throws NotFoundException {
-        try {
-            log.debug("Search resource list using by={}, page={}, size={}, sort={}", by, page, size,
-                    sort);
-            // Create filters
-            final GenericMap filters = prh.getFilters(prh.createMatcherCriteria(by));
-            // Create pagination request
-            final PageRequest preq = prh.createPageRequest(page, size, sort);
-            BooleanExpression wherepred = null;
-            if (!"none".equals(by)) {
-                // Create search conditions for where statement in SQL
-                wherepred = prh.buildWhere(filtering, by);
-            }
-            // Search for global tags using where conditions.
-            final Page<GlobalTag> entitypage = globaltagService.findAllGlobalTags(wherepred, preq);
-            RespPage respPage = new RespPage().size(entitypage.getSize())
-                    .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
-                    .number(entitypage.getNumber());
+                                   SecurityContext securityContext, UriInfo info) {
+        log.debug("Search resource list using by={}, page={}, size={}, sort={}", by, page, size,
+                sort);
+        // Create filters
+        final GenericMap filters = prh.getFilters(prh.createMatcherCriteria(by));
+        // Create pagination request
+        final PageRequest preq = prh.createPageRequest(page, size, sort);
+        BooleanExpression wherepred = null;
+        if (!"none".equals(by)) {
+            // Create search conditions for where statement in SQL
+            wherepred = prh.buildWhere(filtering, by);
+        }
+        // Search for global tags using where conditions.
+        final Page<GlobalTag> entitypage = globaltagService.findAllGlobalTags(wherepred, preq);
+        RespPage respPage = new RespPage().size(entitypage.getSize())
+                .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
+                .number(entitypage.getNumber());
 
-            final List<GlobalTagDto> dtolist = edh.entityToDtoList(entitypage.toList(), GlobalTagDto.class);
-            final Response.Status rstatus = Response.Status.OK;
-            final CrestBaseResponse setdto = new GlobalTagSetDto().resources(dtolist)
-                    .size((long) dtolist.size())
-                    .page(respPage)
-                    .datatype("globaltags");
-            if (filters != null) {
-                setdto.filter(filters);
-            }
-            return Response.status(rstatus).entity(setdto).build();
+        final List<GlobalTagDto> dtolist = edh.entityToDtoList(entitypage.toList(), GlobalTagDto.class);
+        final Response.Status rstatus = Response.Status.OK;
+        final CrestBaseResponse setdto = new GlobalTagSetDto().resources(dtolist)
+                .size((long) dtolist.size())
+                .page(respPage)
+                .datatype("globaltags");
+        if (filters != null) {
+            setdto.filter(filters);
         }
-        catch (final RuntimeException e) {
-            // Error from server. Send a 500.
-            final String message = e.getMessage();
-            log.error("listGlobalTags service exception : {}", message);
-            return rfh.internalError("listGlobalTags error: " + message);
-        }
+        return Response.status(rstatus).entity(setdto).build();
     }
 }

@@ -45,8 +45,12 @@ public class JerseyConfig extends ResourceConfig {
         super.register(MonitoringApi.class);
         super.register(FoldersApi.class);
         super.register(MultiPartFeature.class);
+        // Filters.
         super.register(CacheControlFilter.class);
         super.register(CORSFilter.class);
+        // Exception handler
+        super.register(JerseyExceptionHandler.class);
+
         super.property(ServletProperties.FILTER_FORWARD_ON_404, true);
     }
 

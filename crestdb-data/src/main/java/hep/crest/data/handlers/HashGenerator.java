@@ -58,7 +58,7 @@ public final class HashGenerator {
      * @return The MD5 representation of the message string.
      * @throws PayloadEncodingException If an Exception occurred
      **/
-    public static String md5Java(String message) {
+    public static String md5Java(String message) throws PayloadEncodingException {
         return md5Java(message.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -68,7 +68,7 @@ public final class HashGenerator {
      * @return The MD5 representation of the message string.
      * @throws PayloadEncodingException If an Exception occurred
      */
-    public static String md5Java(byte[] message) {
+    public static String md5Java(byte[] message) throws PayloadEncodingException {
         String digest = null;
         try {
             final MessageDigest md = MessageDigest.getInstance(MD5);
@@ -93,7 +93,7 @@ public final class HashGenerator {
      * @return The MD5 representation of the message string.
      * @throws PayloadEncodingException If an Exception occurred
      */
-    public static String shaJava(byte[] message) {
+    public static String shaJava(byte[] message) throws PayloadEncodingException {
         String digest = null;
         try {
             final MessageDigest md = MessageDigest.getInstance(SHA);

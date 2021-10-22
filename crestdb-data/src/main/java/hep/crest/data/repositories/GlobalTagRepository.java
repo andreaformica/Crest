@@ -3,8 +3,8 @@
  */
 package hep.crest.data.repositories;
 
-import java.util.List;
-
+import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.pojo.GlobalTag;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.PagingAndSortingRepository;
@@ -12,7 +12,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import hep.crest.data.pojo.GlobalTag;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository for global tags.
@@ -29,23 +30,23 @@ public interface GlobalTagRepository extends PagingAndSortingRepository<GlobalTa
     /**
      * @param name
      *            the String
-     * @return GlobalTag
+     * @return Optional<GlobalTag>
      */
     @Query("SELECT distinct p FROM GlobalTag p JOIN FETCH p.globalTagMaps maps JOIN FETCH maps.tag "
-            + "WHERE maps.id.globalTagName = (:name)")
-    GlobalTag findByNameAndFetchTagsEagerly(@Param("name") String name);
+           + "WHERE maps.id.globalTagName = (:name)")
+    Optional<GlobalTag> findByNameAndFetchTagsEagerly(@Param("name") String name) throws CdbServiceException;
 
     /**
      * @param name
      *            the String
      * @param record
      *            the String
-     * @return GlobalTag
+     * @return Optional<GlobalTag>
      */
     @Query("SELECT distinct p FROM GlobalTag p JOIN FETCH p.globalTagMaps maps JOIN FETCH maps.tag "
-            + "WHERE maps.id.globalTagName = (:name) and maps.id.record = (:record)")
-    GlobalTag findByNameAndFetchRecordTagsEagerly(@Param("name") String name,
-            @Param("record") String record);
+           + "WHERE maps.id.globalTagName = (:name) and maps.id.record = (:record)")
+    Optional<GlobalTag> findByNameAndFetchRecordTagsEagerly(@Param("name") String name,
+                                                            @Param("record") String record) throws CdbServiceException;
 
     /**
      * @param name
@@ -54,30 +55,33 @@ public interface GlobalTagRepository extends PagingAndSortingRepository<GlobalTa
      *            the String
      * @param label
      *            the String
-     * @return GlobalTag
+     * @return Optional<GlobalTag>
      */
     @Query("SELECT distinct p FROM GlobalTag p JOIN FETCH p.globalTagMaps maps JOIN FETCH maps.tag "
-            + "WHERE maps.id.globalTagName = (:name) and maps.id.record = (:record) and maps.id.label = (:label) ")
-    GlobalTag findByNameAndFetchSpecifiedTagsEagerly(@Param("name") String name,
-            @Param("record") String record, @Param("label") String label);
+           + "WHERE maps.id.globalTagName = (:name) and maps.id.record = (:record) and maps.id.label = (:label) ")
+    Optional<GlobalTag> findByNameAndFetchSpecifiedTagsEagerly(@Param("name") String name,
+                                                               @Param("record") String record,
+                                                               @Param("label") String label)
+            throws CdbServiceException;
 
     /**
      * @param name
      *            the String
      * @param tag
      *            the String
-     * @return GlobalTag
+     * @return Optional<GlobalTag>
      */
     @Query("SELECT distinct p FROM GlobalTag p JOIN FETCH p.globalTagMaps maps JOIN FETCH maps.tag "
-            + "WHERE maps.id.globalTagName = (:name) and maps.tag.name like (:tag)")
-    GlobalTag findByNameAndFilterTagsEagerly(@Param("name") String name, @Param("tag") String tag);
+           + "WHERE maps.id.globalTagName = (:name) and maps.tag.name like (:tag)")
+    Optional<GlobalTag> findByNameAndFilterTagsEagerly(@Param("name") String name, @Param("tag") String tag)
+            throws CdbServiceException;
 
     /**
      * @param name
      *            the String
-     * @return GlobalTag
+     * @return Optional<GlobalTag>
      */
-    GlobalTag findByName(@Param("name") String name);
+    Optional<GlobalTag> findByName(@Param("name") String name) throws CdbServiceException;
 
     /**
      * @param name

@@ -4,9 +4,10 @@
 package hep.crest.server.services;
 
 import com.querydsl.core.types.Predicate;
+import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.security.pojo.CrestFolders;
 import hep.crest.data.security.pojo.FolderRepository;
-import hep.crest.server.exceptions.AlreadyExistsPojoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,17 +66,17 @@ public class FolderService {
      * @param entity
      *            the CrestFolders
      * @return CrestFolders
-     * @throws AlreadyExistsPojoException
+     * @throws CdbServiceException
      *             If an Exception occurred because pojo exists
      */
     @Transactional
-    public CrestFolders insertFolder(CrestFolders entity) {
+    public CrestFolders insertFolder(CrestFolders entity) throws CdbServiceException {
         log.debug("Create CrestFolder from  {}", entity);
         final Optional<CrestFolders> tmpgt = folderRepository
                 .findById(entity.getNodeFullpath());
         if (tmpgt.isPresent()) {
             log.debug("Cannot store folder {}  : resource already exists.. ", entity);
-            throw new AlreadyExistsPojoException(
+            throw new ConflictException(
                     "Folder already exists for name " + entity.getNodeFullpath());
         }
         log.debug("Saving folder entity {}", entity);

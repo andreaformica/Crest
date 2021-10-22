@@ -17,11 +17,13 @@
  **/
 package hep.crest.data.exceptions;
 
+import javax.ws.rs.core.Response;
+
 /**
  * @author formica
  *
  */
-public class PayloadEncodingException extends RuntimeException {
+public class PayloadEncodingException extends CdbServiceException {
 
     /**
      * Serializer.
@@ -53,6 +55,14 @@ public class PayloadEncodingException extends RuntimeException {
         super(message, err);
     }
 
+    /**
+     * Add context information.
+     * @param err
+     */
+    public PayloadEncodingException(Throwable err) {
+        super(err);
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -60,6 +70,16 @@ public class PayloadEncodingException extends RuntimeException {
      */
     @Override
     public String getMessage() {
-        return "PayloadEncoding generated exception: " + super.getMessage();
+        return "Encoding error " + super.getMessage();
+    }
+
+    /**
+     * Associate an HTTP response code, in case this error needs to be sent to the client.
+     *
+     * @return the response status
+     */
+    @Override
+    public Response.StatusType getResponseStatus() {
+        return Response.Status.BAD_REQUEST;
     }
 }

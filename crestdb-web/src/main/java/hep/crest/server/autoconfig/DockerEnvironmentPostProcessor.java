@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+import hep.crest.data.exceptions.CdbInternalException;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,7 +113,7 @@ public class DockerEnvironmentPostProcessor implements EnvironmentPostProcessor 
             }
         }
         catch (final IOException e) {
-            throw new CdbServiceException("Error getting secrets", e);
+            throw new CdbInternalException("Error getting secrets", e);
         }
     }
 

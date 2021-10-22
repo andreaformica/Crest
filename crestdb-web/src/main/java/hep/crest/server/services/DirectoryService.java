@@ -13,7 +13,6 @@ import hep.crest.data.repositories.ITagMetaCrud;
 import hep.crest.data.repositories.PayloadDirectoryImplementation;
 import hep.crest.data.utils.DirectoryUtilities;
 import hep.crest.server.controllers.EntityDtoHelper;
-import hep.crest.server.exceptions.NotExistsPojoException;
 import hep.crest.swagger.model.IovDto;
 import hep.crest.swagger.model.PayloadDto;
 import hep.crest.swagger.model.TagMetaDto;
@@ -219,9 +218,6 @@ public class DirectoryService {
             log.debug("Created output tar file {}", outtar);
             return new AsyncResult<>(
                     "Dump a list of " + counter + " iovs into file system...");
-        }
-        catch (final NotExistsPojoException e) {
-            log.error("Cannot find tag or payload  : {}", e.getMessage());
         }
         catch (final CdbServiceException e) {
             log.error("Server exception, cannot dump tag {} in path {} : {}", tagname, path, e.getMessage());

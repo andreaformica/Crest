@@ -1,13 +1,11 @@
 /**
-<<<<<<< HEAD
- * 
+ * <<<<<<< HEAD
  */
 package hep.crest.server.aspects;
 
 import hep.crest.data.config.CrestProperties;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
-import hep.crest.server.exceptions.NotExistsPojoException;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.TagService;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -92,42 +90,36 @@ public class IovSynchroAspect {
         else if (allowedOperation) {
             // Synchronization aspect is enabled.
             Tag tagentity = null;
-            try {
-                tagentity = tagService.findOne(entity.tag().name());
-                // Get synchro type from tag.
-                final String synchro = tagentity.synchronization();
-                // Synchro for single version type. Can only append IOVs.
-                if ("SV".equalsIgnoreCase(synchro)) {
-                    log.warn("Can only append IOVs....");
-                    Iov latest = null;
-                    // Get latest IOV.
-                    latest = iovService.latest(tagentity.name(), "now", "ms");
-                    if (latest == null) {
-                        // No latest is present.
-                        log.info("No iov could be retrieved");
-                        acceptTime = true;
-                    }
-                    else if (latest.id().since().compareTo(entity.id().since()) <= 0) {
-                        // Latest is before the new one.
-                        log.info("IOV in insert has correct time respect to last IOV : {} > {}", entity, latest);
-                        acceptTime = true;
-                    }
-                    else {
-                        // Latest is after the new one.
-                        log.warn("IOV in insert has WRONG time respect to last IOV : {} < {}", entity, latest);
-                        acceptTime = false;
-                    }
+            tagentity = tagService.findOne(entity.tag().name());
+            // Get synchro type from tag.
+            final String synchro = tagentity.synchronization();
+            // Synchro for single version type. Can only append IOVs.
+            if ("SV".equalsIgnoreCase(synchro)) {
+                log.warn("Can only append IOVs....");
+                Iov latest = null;
+                // Get latest IOV.
+                latest = iovService.latest(tagentity.name(), "now", "ms");
+                if (latest == null) {
+                    // No latest is present.
+                    log.info("No iov could be retrieved");
+                    acceptTime = true;
+                }
+                else if (latest.id().since().compareTo(entity.id().since()) <= 0) {
+                    // Latest is before the new one.
+                    log.info("IOV in insert has correct time respect to last IOV : {} > {}", entity, latest);
+                    acceptTime = true;
                 }
                 else {
-                    // Nothing here, synchro type is not implemented.
-                    log.debug("Synchro type not found....Insertion is accepted by default");
-                    acceptTime = true;
-                    // throw new NotFoundException("Cannot find synchro type " + synchro);
+                    // Latest is after the new one.
+                    log.warn("IOV in insert has WRONG time respect to last IOV : {} < {}", entity, latest);
+                    acceptTime = false;
                 }
             }
-            catch (final NotExistsPojoException e) {
-                log.error("Error checking synchronization, tag does not exists : {}", e.getMessage());
-                throw e;
+            else {
+                // Nothing here, synchro type is not implemented.
+                log.debug("Synchro type not found....Insertion is accepted by default");
+                acceptTime = true;
+                // throw new NotFoundException("Cannot find synchro type " + synchro);
             }
         }
         if (acceptTime && allowedOperation) {

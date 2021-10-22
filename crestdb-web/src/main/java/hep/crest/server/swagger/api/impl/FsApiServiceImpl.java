@@ -2,12 +2,9 @@ package hep.crest.server.swagger.api.impl;
 
 import hep.crest.data.config.CrestProperties;
 import hep.crest.data.pojo.Tag;
-import hep.crest.server.exceptions.NotExistsPojoException;
 import hep.crest.server.services.DirectoryService;
 import hep.crest.server.services.TagService;
-import hep.crest.server.swagger.api.ApiResponseMessage;
 import hep.crest.server.swagger.api.FsApiService;
-import hep.crest.server.swagger.api.NotFoundException;
 import hep.crest.swagger.model.GenericMap;
 import hep.crest.swagger.model.TagDto;
 import hep.crest.swagger.model.TagSetDto;
@@ -33,7 +30,6 @@ import java.util.concurrent.Future;
  * all conditions for a tag, and prepare a tarball for clients.
  *
  * @author formica
- *
  */
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen",
         date = "2017-09-08T10:40:47.444+02:00")
@@ -74,89 +70,60 @@ public class FsApiServiceImpl extends FsApiService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see hep.crest.server.swagger.api.FsApiService#buildTar(java.lang.String,
      * java.lang.Long, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo,
      * javax.servlet.http.HttpServletRequest)
      */
     @Override
     public Response buildTar(@NotNull String tagname, @NotNull Long snapshot,
-            SecurityContext securityContext, UriInfo info)
-            throws NotFoundException {
+                             SecurityContext securityContext, UriInfo info) {
         log.info("FileSystemRestController processing request for tag name " + tagname);
-        try {
-            // Find a tag using tagname in input.
-            final Tag entity = tagService.findOne(tagname);
-            log.debug("Found tag {}", entity.name());
-            HttpServletRequest request = context.getHttpServletRequest();
-            final String reqid = request.getSession().getId() + new Date().getTime();
-            
-            // Tag was found: load iovs for the given tag
-            Date snap = new Date();
-            if (snapshot != 0L) {
-                snap = new Date(snapshot);
-            }
-            @SuppressWarnings("unused")
-            final Future<String> future = dirsvc.dumpTag(tagname, snap, reqid);
-            // Send back a response. The reqid can be used for retrieval.
-            return Response.ok("Launched task for tar creation: tar will be available at " + reqid)
-                    .build();
+        // Find a tag using tagname in input.
+        final Tag entity = tagService.findOne(tagname);
+        log.debug("Found tag {}", entity.name());
+        HttpServletRequest request = context.getHttpServletRequest();
+        final String reqid = request.getSession().getId() + new Date().getTime();
+
+        // Tag was found: load iovs for the given tag
+        Date snap = new Date();
+        if (snapshot != 0L) {
+            snap = new Date(snapshot);
         }
-        catch (final NotExistsPojoException e) {
-            final String msg = "Cannot find tag " + tagname;
-            final ApiResponseMessage resp = new ApiResponseMessage(ApiResponseMessage.INFO, msg);
-            return Response.status(Response.Status.NOT_FOUND).entity(resp).build();
-        }
-        catch (final RuntimeException e) {
-            // An error occurred. Send a 500.
-            final String msg = "Error retrieving Tag resource to create tar file...";
-            final ApiResponseMessage resp = new ApiResponseMessage(ApiResponseMessage.ERROR, msg);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(resp).build();
-        }
+        @SuppressWarnings("unused") final Future<String> future = dirsvc.dumpTag(tagname, snap, reqid);
+        // Send back a response. The reqid can be used for retrieval.
+        return Response.ok("Launched task for tar creation: tar will be available at " + reqid)
+                .build();
     }
 
     @Override
     public Response findFsTag(@NotNull String tagname, @NotNull String reqid, SecurityContext securityContext,
-                            UriInfo info)
-            throws NotFoundException {
+                              UriInfo info) {
         log.info("FileSystemRestController processing request for request id {} and tag {} ", reqid, tagname);
-        try {
-            String outdir = "none";
-            // Check req id
-            if (!"none".equals(reqid)) {
-                outdir = cprops.getDumpdir() + File.separator + reqid;
-            }
-            // Find a tag using tagname in input.
-            Tag fst = dirsvc.getTag(tagname, outdir);
-            TagDto dto = null;
-            if ( fst != null) {
-                // send back tag info
-                dto = mapper.map(fst, TagDto.class);
-            }
-            else {
-                final Tag entity = tagService.findOne(tagname);
-                log.debug("Found tag {} in DB, dump it on file system.", entity.name());
-                dirsvc.insertTag(entity, outdir);
-                dto = mapper.map(entity, TagDto.class);
-            }
-            // Create the set.
-            GenericMap filterMap = new GenericMap();
-            filterMap.put("tagname", tagname);
-            final TagSetDto respdto = (TagSetDto) new TagSetDto().addResourcesItem(dto).size(1L)
-                    .filter(filterMap).datatype("tags");
-            return Response.ok().entity(respdto).build();
+        String outdir = "none";
+        // Check req id
+        if (!"none".equals(reqid)) {
+            outdir = cprops.getDumpdir() + File.separator + reqid;
         }
-        catch (final NotExistsPojoException e) {
-            final String msg = "Cannot find tag " + tagname;
-            final ApiResponseMessage resp = new ApiResponseMessage(ApiResponseMessage.INFO, msg);
-            return Response.status(Response.Status.NOT_FOUND).entity(resp).build();
+        // Find a tag using tagname in input.
+        Tag fst = dirsvc.getTag(tagname, outdir);
+        TagDto dto = null;
+        if (fst != null) {
+            // send back tag info
+            dto = mapper.map(fst, TagDto.class);
         }
-        catch (final RuntimeException e) {
-            // An error occurred. Send a 500.
-            final String msg = "Error retrieving Tag resource from file system...";
-            final ApiResponseMessage resp = new ApiResponseMessage(ApiResponseMessage.ERROR, msg);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(resp).build();
+        else {
+            final Tag entity = tagService.findOne(tagname);
+            log.debug("Found tag {} in DB, dump it on file system.", entity.name());
+            dirsvc.insertTag(entity, outdir);
+            dto = mapper.map(entity, TagDto.class);
         }
+        // Create the set.
+        GenericMap filterMap = new GenericMap();
+        filterMap.put("tagname", tagname);
+        final TagSetDto respdto = (TagSetDto) new TagSetDto().addResourcesItem(dto).size(1L)
+                .filter(filterMap).datatype("tags");
+        return Response.ok().entity(respdto).build();
     }
 
 }

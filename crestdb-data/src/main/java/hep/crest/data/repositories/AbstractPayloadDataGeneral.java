@@ -55,7 +55,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
             final String tablename = this.tablename();
             // Check if payload with a given hash exists.
             final String sql = SqlRequests.getExistsHashQuery(tablename);
-            return jdbcTemplate.queryForObject(sql, new Object[]{id}, (rs, num) -> rs.getString("HASH"));
+            return jdbcTemplate.queryForObject(sql, (rs, num) -> rs.getString("HASH"), new Object[]{id});
         }
         catch (final DataAccessException e) {
             log.warn("Hash {} does not exists", id);
@@ -323,7 +323,6 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         final String sql = SqlRequests.getInsertAllQuery(tablename);
         log.debug("Insert Payload with hash {} using saveBlobAsStream", entity.getHash());
         execute(is, sql, entity);
-        //return findMetaInfo(entity.getHash());
         return entity;
     }
 

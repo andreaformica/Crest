@@ -37,7 +37,6 @@ import java.util.List;
  * Rest endpoint for run information.
  *
  * @author formica
- *
  */
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen",
         date = "2017-11-07T14:29:18.354+01:00")
@@ -85,29 +84,20 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
     public Response createRunInfo(RunLumiSetDto body, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
         log.info("RunInfoRestController processing request for creating a run info entry using "
-                + body);
-        try {
-            // Create a list of resources
-            final List<RunLumiInfoDto> dtolist = body.getResources();
-            final List<RunLumiInfoDto> savedlist = new ArrayList<>();
-            for (final RunLumiInfoDto runInfoDto : dtolist) {
-                // Create a RunInfo resource.
-                final RunLumiInfoDto saved = runinfoService.insertRunInfo(runInfoDto);
-                // Add to the saved list for the response.
-                savedlist.add(saved);
-            }
-            final CrestBaseResponse respdto = new RunLumiSetDto().resources(savedlist)
-                    .size((long) savedlist.size()).datatype("runs");
-            return Response.created(info.getRequestUri()).entity(respdto).build();
+                 + body);
+        // Create a list of resources
+        final List<RunLumiInfoDto> dtolist = body.getResources();
+        final List<RunLumiInfoDto> savedlist = new ArrayList<>();
+        for (final RunLumiInfoDto runInfoDto : dtolist) {
+            // Create a RunInfo resource.
+            final RunLumiInfoDto saved = runinfoService.insertRunInfo(runInfoDto);
+            // Add to the saved list for the response.
+            savedlist.add(saved);
         }
-        catch (final CdbServiceException e) {
-            // Exception, send 500.
-            final String message = e.getMessage();
-            log.error("Api method createRunLumiInfo got exception : {}", message);
-            final ApiResponseMessage resp = new ApiResponseMessage(ApiResponseMessage.ERROR,
-                    message);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(resp).build();
-        }
+        final CrestBaseResponse respdto = new RunLumiSetDto().resources(savedlist)
+                .size((long) savedlist.size()).datatype("runs");
+        return Response.created(info.getRequestUri()).entity(respdto).build();
+
     }
 
     /*
@@ -119,29 +109,20 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
      */
     @Override
     public Response listRunInfo(String by, Integer page, Integer size, String sort,
-            SecurityContext securityContext, UriInfo info) throws NotFoundException {
-        try {
-            log.debug("Search resource list using by={}, page={}, size={}, sort={}", by, page, size,
-                    sort);
-            // Find a RunInfo resource.
-            final CrestBaseResponse setdto = this.findRunLumiInfo(by, page, size, sort);
-            if (setdto == null) {
-                // Return 404.
-                final String message = "No resource has been found";
-                final ApiResponseMessage resp = new ApiResponseMessage(ApiResponseMessage.INFO,
-                        message);
-                return Response.status(Response.Status.NOT_FOUND).entity(resp).build();
-            }
-            // Return 200.
-            return Response.ok().entity(setdto).build();
-
+                                SecurityContext securityContext, UriInfo info) throws NotFoundException {
+        log.debug("Search resource list using by={}, page={}, size={}, sort={}", by, page, size,
+                sort);
+        // Find a RunInfo resource.
+        final CrestBaseResponse setdto = this.findRunLumiInfo(by, page, size, sort);
+        if (setdto == null) {
+            // Return 404.
+            final String message = "No resource has been found";
+            final ApiResponseMessage resp = new ApiResponseMessage(ApiResponseMessage.INFO,
+                    message);
+            return Response.status(Response.Status.NOT_FOUND).entity(resp).build();
         }
-        catch (final CdbServiceException e) {
-            // Exception, send 500.
-            final String message = e.getMessage();
-            log.error("Api method listRunLumiInfo got exception : {}", message);
-            return rfh.internalError("listRunInfo error: " + message);
-        }
+        // Return 200.
+        return Response.ok().entity(setdto).build();
     }
 
     /*
@@ -154,74 +135,61 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
      */
     @Override
     public Response selectRunInfo(String from, String to, String format, String mode,
-            SecurityContext securityContext, UriInfo info) throws NotFoundException {
-        try {
-            log.debug("Search resource list using from={}, to={}, format={}, mode={}", from, to,
-                    format, mode);
-            // Select RunInfo in a range.
-            List<RunLumiInfoDto> dtolist = new ArrayList<>();
-            if (mode.equalsIgnoreCase("runrange")) {
-                // Interpret as Runs
-                final BigDecimal bfrom = new BigDecimal(from);
-                final BigDecimal bto = new BigDecimal(to);
-                // Inclusive selection.
-                dtolist = runinfoService.selectInclusiveByRun(bfrom, bto);
-            }
-            else if (mode.equalsIgnoreCase("daterange")) {
-                // Interpret as Dates
-                Timestamp tsfrom = null;
-                Timestamp tsto = null;
-                if (format.equals("iso")) {
-                    log.debug("Using from and to as times in yyyymmddhhmiss");
-                    final DateTimeFormatter locFormatter = DateTimeFormatter
-                            .ofPattern("yyyyMMddHHmmss");
-                    final ZonedDateTime zdtfrom = LocalDateTime.parse(from, locFormatter)
-                            .atZone(ZoneId.of("Z"));
-                    final ZonedDateTime zdtto = LocalDateTime.parse(to, locFormatter)
-                            .atZone(ZoneId.of("Z"));
-                    tsfrom = new Timestamp(zdtfrom.toInstant().toEpochMilli());
-                    tsto = new Timestamp(zdtto.toInstant().toEpochMilli());
-                }
-                else if (format.equals("number")) {
-                    tsfrom = new Timestamp(new Long(from));
-                    tsto = new Timestamp(new Long(to));
-                }
-                // Inclusive selection.
-                dtolist = runinfoService.selectInclusiveByDate(new Date(tsfrom.getTime()),
-                        new Date(tsto.getTime()));
-            }
-            // Create response Set.
-            final CrestBaseResponse setdto = new RunLumiSetDto().resources(dtolist)
-                    .size((long) dtolist.size()).datatype("runs");
-            final GenericMap filters = new GenericMap();
-            filters.put("from", from);
-            filters.put("to", to);
-            filters.put("mode", mode);
-            if (filters != null) {
-                setdto.filter(filters);
-            }
-            return Response.ok().entity(setdto).build();
+                                  SecurityContext securityContext, UriInfo info) throws NotFoundException {
+        log.debug("Search resource list using from={}, to={}, format={}, mode={}", from, to,
+                format, mode);
+        // Select RunInfo in a range.
+        List<RunLumiInfoDto> dtolist = new ArrayList<>();
+        if (mode.equalsIgnoreCase("runrange")) {
+            // Interpret as Runs
+            final BigDecimal bfrom = new BigDecimal(from);
+            final BigDecimal bto = new BigDecimal(to);
+            // Inclusive selection.
+            dtolist = runinfoService.selectInclusiveByRun(bfrom, bto);
         }
-        catch (final CdbServiceException e) {
-            // Exception, send 500.
-            final String message = e.getMessage();
-            log.error("findRunLumiInfo got Exception : {}", message);
-            return rfh.internalError("findRunLumiInfo error: " + message);
+        else if (mode.equalsIgnoreCase("daterange")) {
+            // Interpret as Dates
+            Timestamp tsfrom = null;
+            Timestamp tsto = null;
+            if (format.equals("iso")) {
+                log.debug("Using from and to as times in yyyymmddhhmiss");
+                final DateTimeFormatter locFormatter = DateTimeFormatter
+                        .ofPattern("yyyyMMddHHmmss");
+                final ZonedDateTime zdtfrom = LocalDateTime.parse(from, locFormatter)
+                        .atZone(ZoneId.of("Z"));
+                final ZonedDateTime zdtto = LocalDateTime.parse(to, locFormatter)
+                        .atZone(ZoneId.of("Z"));
+                tsfrom = new Timestamp(zdtfrom.toInstant().toEpochMilli());
+                tsto = new Timestamp(zdtto.toInstant().toEpochMilli());
+            }
+            else if (format.equals("number")) {
+                tsfrom = new Timestamp(new Long(from));
+                tsto = new Timestamp(new Long(to));
+            }
+            // Inclusive selection.
+            dtolist = runinfoService.selectInclusiveByDate(new Date(tsfrom.getTime()),
+                    new Date(tsto.getTime()));
         }
+        // Create response Set.
+        final CrestBaseResponse setdto = new RunLumiSetDto().resources(dtolist)
+                .size((long) dtolist.size()).datatype("runs");
+        final GenericMap filters = new GenericMap();
+        filters.put("from", from);
+        filters.put("to", to);
+        filters.put("mode", mode);
+        if (filters != null) {
+            setdto.filter(filters);
+        }
+        return Response.ok().entity(setdto).build();
     }
 
     /**
-     * @param by
-     *            the String
-     * @param page
-     *            the Integer
-     * @param size
-     *            the Integer
-     * @param sort
-     *            the String
-     * @throws CdbServiceException
-     *             If an exception occurred
+     * @param by   the String
+     * @param page the Integer
+     * @param size the Integer
+     * @param sort the String
      * @return CrestBaseResponse
+     * @throws CdbServiceException If an exception occurred
      */
     protected CrestBaseResponse findRunLumiInfo(String by, Integer page, Integer size, String sort)
             throws CdbServiceException {

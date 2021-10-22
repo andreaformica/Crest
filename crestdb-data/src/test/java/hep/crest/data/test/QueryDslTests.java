@@ -38,10 +38,10 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -53,6 +53,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -141,8 +142,8 @@ public class QueryDslTests {
         final Page<GlobalTag> dtolist = globaltagrepository.findAll(wherepred, preq);
         assertThat(dtolist.getSize()).isPositive();
 
-        final GlobalTag loaded = globaltagrepository.findByName("MY-TEST-GT-01");
-        assertThat(loaded).isNotNull();
+        final Optional<GlobalTag> loaded = globaltagrepository.findByName("MY-TEST-GT-01");
+        assertThat(loaded.get()).isNotNull();
     }
 
     @Test

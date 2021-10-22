@@ -95,7 +95,7 @@ public class TestCrestPayloadSqlite {
         final ResponseEntity<String> responsedup = this.testRestTemplate
                 .postForEntity(apiname + "/payloads", dto, String.class);
         log.info("Received response on dup: " + responsedup);
-        assertThat(responsedup.getStatusCode()).isEqualTo(HttpStatus.SEE_OTHER);
+        assertThat(responsedup.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 
         final HttpHeaders headers = new HttpHeaders();
         headers.add("X-Crest-PayloadFormat", "JSON");

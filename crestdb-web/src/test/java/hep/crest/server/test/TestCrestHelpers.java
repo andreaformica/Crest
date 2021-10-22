@@ -1,12 +1,14 @@
 package hep.crest.server.test;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import hep.crest.data.exceptions.CdbInternalException;
+import hep.crest.data.exceptions.CdbNotFoundException;
+import hep.crest.data.exceptions.ConflictException;
+import hep.crest.data.exceptions.PayloadEncodingException;
 import hep.crest.data.repositories.querydsl.GlobalTagFiltering;
 import hep.crest.data.repositories.querydsl.IFilteringCriteria;
 import hep.crest.data.repositories.querydsl.SearchCriteria;
 import hep.crest.server.controllers.PageRequestHelper;
-import hep.crest.server.exceptions.AlreadyExistsPojoException;
-import hep.crest.server.exceptions.NotExistsPojoException;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,13 +53,13 @@ public class TestCrestHelpers {
     @Test
     public void testB_ExceptionTest() {
         final NullPointerException np = new NullPointerException("null");
-        final AlreadyExistsPojoException es = new AlreadyExistsPojoException("message");
+        final ConflictException es = new ConflictException("message");
         assertThat(es.getMessage()).contains("message");
-        final AlreadyExistsPojoException ees = new AlreadyExistsPojoException("message", np);
+        final CdbInternalException ees = new CdbInternalException("message", np);
         assertThat(ees.getCause()).isNotNull();
-        final NotExistsPojoException e = new NotExistsPojoException("message");
+        final CdbNotFoundException e = new CdbNotFoundException("message");
         assertThat(e.getMessage()).contains("message");
-        final NotExistsPojoException ee = new NotExistsPojoException("message", np);
+        final PayloadEncodingException ee = new PayloadEncodingException("message", np);
         assertThat(ee.getCause()).isNotNull();
     }
 

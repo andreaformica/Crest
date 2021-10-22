@@ -8,8 +8,6 @@ import hep.crest.data.pojo.GlobalTagMapId;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
 import hep.crest.server.controllers.EntityDtoHelper;
-import hep.crest.server.exceptions.AlreadyExistsPojoException;
-import hep.crest.server.exceptions.NotExistsPojoException;
 import hep.crest.server.services.DirectoryService;
 import hep.crest.server.services.GlobalTagMapService;
 import hep.crest.server.services.GlobalTagService;
@@ -123,11 +121,8 @@ public class TestCrestServices {
             updated.description("this should not be updated");
             globaltagService.updateGlobalTag(updated);
         }
-        catch ( final AlreadyExistsPojoException e) {
-            log.info("Cannot save global tag {}: {}", dto, e);
-        }
-        catch (final NotExistsPojoException e) {
-            log.info("Cannot update global tag {}: {}", dto, e);
+        catch ( final CdbServiceException e) {
+            log.info("Cannot save or update global tag {}: {}", dto, e);
         }
     }
 
@@ -144,11 +139,8 @@ public class TestCrestServices {
             updated.description("this should not be updated");
             tagService.updateTag(updated);
         }
-        catch ( final AlreadyExistsPojoException e) {
-            log.info("Cannot save global tag {}: {}", dto, e);
-        }
-        catch (final NotExistsPojoException e) {
-            log.info("Cannot update global tag {}: {}", dto, e);
+        catch ( final CdbServiceException e) {
+            log.info("Cannot save or update global tag {}: {}", dto, e);
         }
     }
 
@@ -169,7 +161,7 @@ public class TestCrestServices {
             ioventity.tag(new Tag().name(iovdto.getTagName()));
             iovService.insertIov(ioventity);
         }
-        catch (final NotExistsPojoException e) {
+        catch (final CdbServiceException e) {
             log.error("Exception in iov insertion {}", e);
         }
         try {

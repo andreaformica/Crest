@@ -5,9 +5,7 @@ import hep.crest.data.repositories.querydsl.IFilteringCriteria;
 import hep.crest.data.security.pojo.CrestFolders;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
-import hep.crest.server.exceptions.AlreadyExistsPojoException;
 import hep.crest.server.services.FolderService;
-import hep.crest.server.swagger.api.ApiResponseMessage;
 import hep.crest.server.swagger.api.FoldersApiService;
 import hep.crest.server.swagger.api.NotFoundException;
 import hep.crest.swagger.model.CrestBaseResponse;
@@ -35,7 +33,6 @@ import java.util.List;
  * a string for all tag names of a given system.
  *
  * @author formica
- *
  */
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen",
         date = "2018-05-10T14:57:11.305+02:00")
@@ -89,28 +86,11 @@ public class FoldersApiServiceImpl extends FoldersApiService {
     public Response createFolder(FolderDto body, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
         log.info("FolderRestController processing request for creating a folder");
-        try {
-            // Insert the new folder.
-            CrestFolders entity = mapper.map(body, CrestFolders.class);
-            final CrestFolders saved = folderService.insertFolder(entity);
-            FolderDto dto = mapper.map(saved, FolderDto.class);
-            return Response.created(info.getRequestUri()).entity(dto).build();
-        }
-        catch (final AlreadyExistsPojoException e) {
-            // The folder exists, send a 303
-            log.warn("createFolder resource exists : {}", e);
-            final String msg = "CrestFolder already exists for name : " + body.getNodeFullpath();
-            final ApiResponseMessage resp = new ApiResponseMessage(ApiResponseMessage.INFO, msg);
-            return Response.status(Response.Status.SEE_OTHER).entity(resp).build();
-        }
-        catch (final RuntimeException e) {
-            // The folder insertion failed, send a 500...
-            final String message = e.getMessage();
-            log.error("Cannot create folder {}: {}", body, e);
-            final ApiResponseMessage resp = new ApiResponseMessage(ApiResponseMessage.ERROR,
-                    message);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(resp).build();
-        }
+        // Insert the new folder.
+        CrestFolders entity = mapper.map(body, CrestFolders.class);
+        final CrestFolders saved = folderService.insertFolder(entity);
+        FolderDto dto = mapper.map(saved, FolderDto.class);
+        return Response.created(info.getRequestUri()).entity(dto).build();
     }
 
     /*
@@ -122,37 +102,27 @@ public class FoldersApiServiceImpl extends FoldersApiService {
      */
     @Override
     public Response listFolders(String by, String sort, SecurityContext securityContext,
-            UriInfo info) throws NotFoundException {
-        try {
-            log.debug("Search resource list using by={}, sort={}", by, sort);
-            // Create filters
-            GenericMap filters = prh.getFilters(prh.createMatcherCriteria(by));
-            // Create a default page requests with 10000 size for retrieval.
-            // This method does not allow to set pagination.
-            final PageRequest preq = prh.createPageRequest(0, 10000, sort);
-            BooleanExpression wherepred = null;
-            if (!"none".equals(by)) {
-                // Create search conditions for where statement in SQL
-                wherepred = prh.buildWhere(filtering, by);
-            }
-            // Search for global tags using where conditions.
-            Iterable<CrestFolders> entitylist = folderService.findAllFolders(wherepred, preq);
-            final List<FolderDto> dtolist = edh.entityToDtoList(entitylist, FolderDto.class);
-            Response.Status rstatus = Response.Status.OK;
-            final CrestBaseResponse setdto = new FolderSetDto().resources(dtolist)
-                    .size((long) dtolist.size()).datatype("folders");
-            if (filters != null) {
-                setdto.filter(filters);
-            }
-            return Response.status(rstatus).entity(setdto).build();
+                                UriInfo info) throws NotFoundException {
+        log.debug("Search resource list using by={}, sort={}", by, sort);
+        // Create filters
+        GenericMap filters = prh.getFilters(prh.createMatcherCriteria(by));
+        // Create a default page requests with 10000 size for retrieval.
+        // This method does not allow to set pagination.
+        final PageRequest preq = prh.createPageRequest(0, 10000, sort);
+        BooleanExpression wherepred = null;
+        if (!"none".equals(by)) {
+            // Create search conditions for where statement in SQL
+            wherepred = prh.buildWhere(filtering, by);
         }
-        catch (final RuntimeException e) {
-            // Error occurred. Send a 500.
-            final String message = e.getMessage();
-            log.error("Api method listFolders got exception : {}", message);
-            final ApiResponseMessage resp = new ApiResponseMessage(ApiResponseMessage.ERROR,
-                    message);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(resp).build();
+        // Search for global tags using where conditions.
+        Iterable<CrestFolders> entitylist = folderService.findAllFolders(wherepred, preq);
+        final List<FolderDto> dtolist = edh.entityToDtoList(entitylist, FolderDto.class);
+        Response.Status rstatus = Response.Status.OK;
+        final CrestBaseResponse setdto = new FolderSetDto().resources(dtolist)
+                .size((long) dtolist.size()).datatype("folders");
+        if (filters != null) {
+            setdto.filter(filters);
         }
+        return Response.status(rstatus).entity(setdto).build();
     }
 }

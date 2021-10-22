@@ -3,8 +3,6 @@ package hep.crest.server.test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.pojo.Tag;
-import hep.crest.server.exceptions.AlreadyExistsPojoException;
-import hep.crest.server.exceptions.NotExistsPojoException;
 import hep.crest.server.services.TagService;
 import hep.crest.swagger.model.TagDto;
 import hep.crest.swagger.model.TagSetDto;
@@ -21,6 +19,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -63,7 +62,7 @@ public class TestCrestTag {
             final Tag saved = tagservice.insertTag(entity);
             assertThat(saved).isNotNull();
         }
-        catch (AlreadyExistsPojoException e) {
+        catch (final CdbServiceException e) {
             log.info("got exception of type {}",e.getClass());
         }
         try {
@@ -76,7 +75,7 @@ public class TestCrestTag {
             final Tag dtonull = tagservice.findOne(null);
             assertThat(dtonull).isNull();
         }
-        catch (final NotExistsPojoException e) {
+        catch (final CdbServiceException | InvalidDataAccessApiUsageException e) {
             log.info("got exception of type {}",e.getClass());
         }
         final List<String> ids = new ArrayList<>();
@@ -112,7 +111,7 @@ public class TestCrestTag {
         final ResponseEntity<String> response1 = this.testRestTemplate
                 .postForEntity("/crestapi/tags", dto, String.class);
         log.info("Received response: {}", response1);
-        assertThat(response1.getStatusCode()).isEqualTo(HttpStatus.SEE_OTHER);
+        assertThat(response1.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 
         dto.name(null);
         log.info("Try to use null name in tag again : {} ", dto);

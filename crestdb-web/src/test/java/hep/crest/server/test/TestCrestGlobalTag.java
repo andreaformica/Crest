@@ -109,7 +109,7 @@ public class TestCrestGlobalTag {
         final ResponseEntity<String> response1 = this.testRestTemplate
                 .postForEntity("/crestapi/globaltags", dto, String.class);
         log.info("Received response: {}", response1);
-        assertThat(response1.getStatusCode()).isEqualTo(HttpStatus.SEE_OTHER);
+        assertThat(response1.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 
         log.info("Try to update global tag : {} ", dto);
         final GlobalTagDto body = dto;
@@ -338,7 +338,7 @@ public class TestCrestGlobalTag {
         final ResponseEntity<String> respmaptagalreadythere = this.testRestTemplate
                 .postForEntity("/crestapi/globaltagmaps", maptagdto, String.class);
         log.info("Received response: {}", respmaptagalreadythere);
-        assertThat(respmaptagalreadythere.getStatusCode()).isEqualTo(HttpStatus.SEE_OTHER);
+        assertThat(respmaptagalreadythere.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 
         // Associate but use a null name for global tag: it should fail
         maptagdto.setGlobalTagName(null);
@@ -360,12 +360,13 @@ public class TestCrestGlobalTag {
             ok = mapper.readValue(responseBody, TagSetDto.class);
             assertThat(ok.getSize()).isPositive();
         }
+        // This mapping should not exists.
         final ResponseEntity<String> resptagsall = this.testRestTemplate.exchange(
                 "/crestapi/globaltags/" + dto.getName() + "/tags?record=B-TAGGT&label=pippo",
                 HttpMethod.GET, null, String.class);
         {
-            log.info("Retrieved associated tags for global tag {} using bot record and label");
-            assertThat(resptagsall.getStatusCode()).isEqualTo(HttpStatus.OK);
+            log.info("Retrieved associated tags for global tag {} using both record and label");
+            assertThat(resptagsall.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
 
         // Search for mapping on not existing global tag
@@ -374,7 +375,7 @@ public class TestCrestGlobalTag {
                 HttpMethod.GET, null, String.class);
         {
             log.info("Retrieved associated tags for global tag NOT-THERE...should fail");
-            assertThat(resptags2.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(resptags2.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
 
         // Associate the tag B-TAGGT-02 to an not existing global tag
@@ -384,7 +385,7 @@ public class TestCrestGlobalTag {
         final ResponseEntity<String> respmaptag1 = this.testRestTemplate
                 .postForEntity("/crestapi/globaltagmaps", maptagdto1, String.class);
         log.info("Received response: {}", respmaptag1);
-        assertThat(respmaptag1.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(respmaptag1.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 
         // Retrieve global tag maps
         final ResponseEntity<String> respmaptags = this.testRestTemplate.exchange(

@@ -1,5 +1,6 @@
 package hep.crest.data.repositories;
 
+import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.pojo.Iov;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,7 +14,7 @@ public interface IIovQuery {
      * @param name the String
      * @return List<Iov>
      */
-    List<Iov> findByIdTagName(@Param("name") String name);
+    List<Iov> findByIdTagName(@Param("name") String name) throws CdbNotFoundException;
 
     /**
      * @param name  the String
@@ -24,7 +25,7 @@ public interface IIovQuery {
     @Query("SELECT distinct p FROM Iov p JOIN FETCH p.tag tag "
            + "WHERE tag.name = (:name) and p.id.since = :since and p.payloadHash = (:hash)")
     Iov findBySinceAndTagNameAndHash(@Param("name") String name, @Param("since") BigDecimal since,
-                                     @Param("hash") String hash);
+                                     @Param("hash") String hash) throws CdbNotFoundException;
 
     /**
      * @param name  the String
@@ -36,7 +37,7 @@ public interface IIovQuery {
            + "WHERE tag.name = (:name) and p.id.since >= :since AND  p.id.since < :until "
            + "ORDER BY p.id.since ASC, p.id.insertionTime DESC")
     List<Iov> selectLatestByGroup(@Param("name") String name, @Param("since") BigDecimal since,
-                                  @Param("until") BigDecimal until);
+                                  @Param("until") BigDecimal until) throws CdbNotFoundException;
 
     /**
      * This method is like the getRange method, but it does not include the IOV before the given since.
@@ -54,7 +55,8 @@ public interface IIovQuery {
            + " AND p.id.insertionTime <= :snap "
            + "ORDER BY p.id.since ASC, p.id.insertionTime DESC")
     List<Iov> selectSnapshotByGroup(@Param("name") String name, @Param("since") BigDecimal since,
-                                    @Param("until") BigDecimal until, @Param("snap") Date snapshot);
+                                    @Param("until") BigDecimal until, @Param("snap") Date snapshot)
+            throws CdbNotFoundException;
 
     /**
      * @param name     the String
@@ -68,7 +70,7 @@ public interface IIovQuery {
            + "WHERE pt.name = (:name) AND pi.id.since <= :since AND pi.id.insertionTime <= :snap) "
            + "ORDER BY p.id.since ASC, p.id.insertionTime DESC")
     List<Iov> selectAtTime(@Param("name") String name, @Param("since") BigDecimal since,
-                           @Param("snap") Date snapshot);
+                           @Param("snap") Date snapshot) throws CdbNotFoundException;
 
     /**
      * @param name     the String

@@ -1,5 +1,6 @@
 package hep.crest.data.repositories;
 
+import hep.crest.data.exceptions.CdbInternalException;
 import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.utils.DirectoryUtilities;
@@ -91,8 +92,8 @@ public class TagDirImpl implements ITagCrud {
             log.debug("findByName uses tag file path {}", tagfilepath);
             return readTagFile(tagfilepath);
         }
-        catch (final CdbServiceException e) {
-            log.error("Cannot find tag {} : {}", name, e.getMessage());
+        catch (CdbServiceException e) {
+            log.error("Error in findByName using tag {}: {}", name, e.getMessage());
         }
         return null;
     }
@@ -178,12 +179,12 @@ public class TagDirImpl implements ITagCrud {
      * @param filepath the Path
      * @throws CdbServiceException If an Exception occurred
      */
-    protected void writeTagFile(String jsonstr, Path filepath) {
+    protected void writeTagFile(String jsonstr, Path filepath) throws CdbServiceException {
         try (BufferedWriter writer = Files.newBufferedWriter(filepath, dirtools.getCharset())) {
             writer.write(jsonstr);
         }
         catch (final IOException x) {
-            throw new CdbServiceException("Cannot write " + jsonstr + " in JSON file", x);
+            throw new CdbInternalException("Cannot write " + jsonstr + " in JSON file", x);
         }
     }
 }

@@ -3,14 +3,15 @@
  */
 package hep.crest.server.services;
 
+import hep.crest.data.exceptions.CdbNotFoundException;
+import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.GlobalTagMap;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.GlobalTagMapRepository;
 import hep.crest.data.repositories.GlobalTagRepository;
 import hep.crest.data.repositories.TagRepository;
-import hep.crest.server.exceptions.AlreadyExistsPojoException;
-import hep.crest.server.exceptions.NotExistsPojoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,28 +73,28 @@ public class GlobalTagMapService {
     /**
      * @param entity the GlobalTagMap
      * @return GlobalTagMap
-     * @throws NotExistsPojoException     If an Exception occurred
-     * @throws AlreadyExistsPojoException If an Exception occurred
+     * @throws CdbServiceException
+     *              If an Exception occurred
      */
     @Transactional
-    public GlobalTagMap insertGlobalTagMap(GlobalTagMap entity) {
+    public GlobalTagMap insertGlobalTagMap(GlobalTagMap entity) throws CdbServiceException {
         log.debug("Create GlobalTagMap from {}", entity);
         Optional<GlobalTagMap> map = globalTagMapRepository.findById(entity.id());
         if (map.isPresent()) {
             log.warn("GlobalTagMap {} already exists.", map.get());
-            throw new AlreadyExistsPojoException("GlobalTagMap already exists for ID " + entity.id());
+            throw new ConflictException("GlobalTagMap already exists for ID " + entity.id());
         }
         String gtname = entity.id().globalTagName();
         final Optional<GlobalTag> gt = globalTagRepository.findById(gtname);
         if (!gt.isPresent()) {
             log.warn("GlobalTag {} does not exists.", gtname);
-            throw new NotExistsPojoException("GlobalTag does not exists for name " + gtname);
+            throw new CdbNotFoundException("GlobalTag does not exists for name " + gtname);
         }
         String tagname = entity.tag().name();
         final Optional<Tag> tg = tagRepository.findById(tagname);
         if (!tg.isPresent()) {
             log.warn("Tag {} does not exists.", tagname);
-            throw new NotExistsPojoException("Tag does not exists for name " + tagname);
+            throw new CdbNotFoundException("Tag does not exists for name " + tagname);
         }
         entity.globalTag(gt.get());
         entity.tag(tg.get());

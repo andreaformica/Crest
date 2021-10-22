@@ -1,5 +1,7 @@
 package hep.crest.data.repositories;
 
+import hep.crest.data.exceptions.CdbNotFoundException;
+import hep.crest.data.exceptions.CdbSQLException;
 import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.handlers.PayloadHandler;
 import hep.crest.data.pojo.TagMeta;
@@ -12,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Table;
 import javax.sql.DataSource;
+import javax.validation.ConstraintViolationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -74,8 +77,14 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
         final String sql = TagMetaRequests.getDeleteQuery(tablename);
         log.debug("Remove tag meta with tag name {} using JDBCTEMPLATE", id);
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-        jdbcTemplate.update(sql, id);
-        log.debug("Entity removal done...");
+        try {
+            jdbcTemplate.update(sql, id);
+            log.debug("Entity removal done...");
+        }
+        catch (ConstraintViolationException e) {
+            log.error("Cannot execute sql statement: {}", sql);
+            throw new CdbSQLException("Cannot remove tag meta for " + id + ": " + e.getMessage());
+        }
     }
 
     @Override
@@ -104,8 +113,8 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
         }
         catch (final Exception e) {
             log.warn("Could not find entry for tag name {}", id);
+            throw new CdbNotFoundException(id);
         }
-        return null;
     }
 
     @Override
@@ -129,8 +138,8 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
         }
         catch (final Exception e) {
             log.warn("Could not find entry for tag {}", id);
+            throw new CdbNotFoundException(id);
         }
-        return null;
     }
 
     /**

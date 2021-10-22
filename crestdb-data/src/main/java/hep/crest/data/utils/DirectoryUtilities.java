@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import hep.crest.data.exceptions.CdbInternalException;
+import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.serializers.CustomTimeDeserializer;
@@ -147,7 +149,7 @@ public class DirectoryUtilities {
      * @return Path
      * @throws CdbServiceException If an Exception occurred
      */
-    public Path getTagPath(String tagname) {
+    public Path getTagPath(String tagname) throws CdbNotFoundException {
         return this.getTagPath(locbasedir, tagname);
     }
 
@@ -156,7 +158,7 @@ public class DirectoryUtilities {
      * @return Path
      * @throws CdbServiceException If an Exception occurred
      */
-    public Path getTagFilePath(String tagname) {
+    public Path getTagFilePath(String tagname) throws CdbNotFoundException {
         return this.getTagFilePath(locbasedir, tagname);
     }
 
@@ -165,7 +167,7 @@ public class DirectoryUtilities {
      * @return Path
      * @throws CdbServiceException If an Exception occurred
      */
-    public Path getTagMetaFilePath(String tagname) {
+    public Path getTagMetaFilePath(String tagname) throws CdbNotFoundException {
         return this.getTagFilePath(locbasedir, tagname);
     }
 
@@ -174,7 +176,7 @@ public class DirectoryUtilities {
      * @return Path
      * @throws CdbServiceException If an Exception occurred
      */
-    public Path getIovFilePath(String tagname) {
+    public Path getIovFilePath(String tagname) throws CdbNotFoundException {
         return this.getIovFilePath(locbasedir, tagname);
     }
 
@@ -197,7 +199,7 @@ public class DirectoryUtilities {
      * @return Path
      * @throws CdbServiceException If an Exception occurred
      */
-    public Path createIfNotexistsTag(String name) {
+    public Path createIfNotexistsTag(String name) throws CdbServiceException {
         return createIfNotexistsTag(locbasedir, name);
     }
 
@@ -206,7 +208,7 @@ public class DirectoryUtilities {
      * @return Path
      * @throws CdbServiceException If an Exception occurred
      */
-    public Path createIfNotexistsIov(String name) {
+    public Path createIfNotexistsIov(String name) throws CdbServiceException {
         return createIfNotexistsIov(locbasedir, name);
     }
 
@@ -216,10 +218,10 @@ public class DirectoryUtilities {
      * @return Path
      * @throws CdbServiceException If an Exception occurred
      */
-    public Path getTagPath(String basedir, String tagname) {
+    public Path getTagPath(String basedir, String tagname) throws CdbNotFoundException {
         final Path tagpath = Paths.get(basedir, tagname);
         if (!tagpath.toFile().exists()) {
-            throw new CdbServiceException("DirectoryUtility: cannot find directory for tag name " + tagname);
+            throw new CdbNotFoundException("DirectoryUtility: cannot find directory for tag name " + tagname);
         }
         return tagpath;
     }
@@ -230,11 +232,11 @@ public class DirectoryUtilities {
      * @return Path
      * @throws CdbServiceException If an Exception occurred
      */
-    public Path getTagFilePath(String basedir, String tagname) {
+    public Path getTagFilePath(String basedir, String tagname) throws CdbNotFoundException {
         final Path tagpath = getTagPath(basedir, tagname);
         final Path tagfilepath = Paths.get(tagpath.toString(), TAG_FILE);
         if (!tagfilepath.toFile().exists()) {
-            throw new CdbServiceException("DirectoryUtility: cannot find tag file for tag name " + tagname);
+            throw new CdbNotFoundException("DirectoryUtility: cannot find tag file for tag name " + tagname);
         }
         return tagfilepath;
     }
@@ -245,11 +247,11 @@ public class DirectoryUtilities {
      * @return Path
      * @throws CdbServiceException If an Exception occurred
      */
-    public Path getTagMetaFilePath(String basedir, String tagname) {
+    public Path getTagMetaFilePath(String basedir, String tagname) throws CdbNotFoundException {
         final Path tagpath = getTagPath(basedir, tagname);
         final Path tagfilepath = Paths.get(tagpath.toString(), TAG_META_FILE);
         if (!tagfilepath.toFile().exists()) {
-            throw new CdbServiceException("DirectoryUtility: cannot find tag meta file for tag name " + tagname);
+            throw new CdbNotFoundException("DirectoryUtility: cannot find tag meta file for tag name " + tagname);
         }
         return tagfilepath;
     }
@@ -261,11 +263,11 @@ public class DirectoryUtilities {
      * @return Path
      * @throws CdbServiceException If an Exception occurred
      */
-    public Path getIovFilePath(String basedir, String tagname) {
+    public Path getIovFilePath(String basedir, String tagname) throws CdbNotFoundException {
         final Path tagpath = getTagPath(basedir, tagname);
         final Path iovfilepath = Paths.get(tagpath.toString(), IOV_FILE);
         if (!iovfilepath.toFile().exists()) {
-            throw new CdbServiceException("DirectoryUtility: cannot find iov file for tag name " + tagname);
+            throw new CdbNotFoundException("DirectoryUtility: cannot find iov file for tag name " + tagname);
         }
         return iovfilepath;
     }
@@ -335,9 +337,9 @@ public class DirectoryUtilities {
      * @return Path
      * @throws CdbServiceException If an Exception occurred
      */
-    public Path createIfNotexistsTag(String basedir, String name) {
+    public Path createIfNotexistsTag(String basedir, String name) throws CdbServiceException {
         if (name == null) {
-            throw new CdbServiceException("Cannot use null tag name");
+            throw new CdbInternalException("Cannot use null tag name");
         }
         final String tagname = name;
         final Path tagpath = Paths.get(basedir, tagname);
@@ -364,14 +366,14 @@ public class DirectoryUtilities {
      * @return Path
      * @throws CdbServiceException If an Exception occurred
      */
-    public Path createIfNotexistsIov(String basedir, String name) {
+    public Path createIfNotexistsIov(String basedir, String name) throws CdbServiceException {
         if (name == null) {
-            throw new CdbServiceException("Cannot use null tag name");
+            throw new CdbInternalException("Cannot use null tag name");
         }
         final String tagname = name;
         final Path tagpath = Paths.get(basedir, tagname);
         if (!tagpath.toFile().exists()) {
-            throw new CdbServiceException("Cannot find tag directory for tag name " + tagname);
+            throw new CdbNotFoundException("Cannot find tag directory for tag name " + tagname);
         }
         else {
             try {
@@ -486,12 +488,12 @@ public class DirectoryUtilities {
      * @param filepath the Path
      * @throws CdbServiceException If an Exception occurred
      */
-    public void writeTagFile(String jsonstr, Path filepath) {
+    public void writeTagFile(String jsonstr, Path filepath) throws CdbServiceException {
         try (BufferedWriter writer = Files.newBufferedWriter(filepath, getCharset())) {
             writer.write(jsonstr);
         }
         catch (final IOException x) {
-            throw new CdbServiceException("Cannot write " + jsonstr + " in JSON file", x);
+            throw new CdbInternalException("Cannot write " + jsonstr + " in JSON file", x);
         }
     }
 

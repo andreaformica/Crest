@@ -1,7 +1,14 @@
 /**
- * 
+ *
  */
 package hep.crest.data.repositories;
+
+import hep.crest.data.exceptions.CdbNotFoundException;
+import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.utils.DirectoryUtilities;
+import hep.crest.swagger.model.PayloadDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -9,13 +16,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import hep.crest.data.exceptions.CdbServiceException;
-import hep.crest.data.utils.DirectoryUtilities;
-import hep.crest.swagger.model.PayloadDto;
 
 /**
  * @author formica
@@ -64,17 +64,17 @@ public class PayloadDirectoryImplementation {
      * @throws CdbServiceException
      *             If an Exception occurred
      */
-    public PayloadDto find(String hash) {
+    public PayloadDto find(String hash) throws CdbServiceException {
         final Path payloadpath = dirtools.getPayloadPath();
         final String hashdir = dirtools.hashdir(hash);
         final Path payloadhashpath = Paths.get(payloadpath.toString(), hashdir);
         if (!payloadhashpath.toFile().exists()) {
-            throw new CdbServiceException("Cannot find hash dir " + payloadhashpath.toString());
+            throw new CdbNotFoundException("Cannot find hash dir " + payloadhashpath.toString());
         }
         final String filename = hash + ".blob";
         final Path payloadfilepath = Paths.get(payloadhashpath.toString(), filename);
         if (!payloadfilepath.toFile().exists()) {
-            throw new CdbServiceException("Cannot find file for " + payloadfilepath.toString());
+            throw new CdbNotFoundException("Cannot find file for " + payloadfilepath.toString());
         }
 
         final StringBuilder buf = new StringBuilder();

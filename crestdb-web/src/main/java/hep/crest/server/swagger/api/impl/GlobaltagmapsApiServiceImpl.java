@@ -2,11 +2,8 @@ package hep.crest.server.swagger.api.impl;
 
 import hep.crest.data.pojo.GlobalTagMap;
 import hep.crest.server.controllers.EntityDtoHelper;
-import hep.crest.server.exceptions.AlreadyExistsPojoException;
-import hep.crest.server.exceptions.NotExistsPojoException;
 import hep.crest.server.services.GlobalTagMapService;
 import hep.crest.server.swagger.api.GlobaltagmapsApiService;
-import hep.crest.server.swagger.api.NotFoundException;
 import hep.crest.swagger.model.CrestBaseResponse;
 import hep.crest.swagger.model.GenericMap;
 import hep.crest.swagger.model.GlobalTagMapDto;
@@ -71,33 +68,13 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
      * javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response createGlobalTagMap(GlobalTagMapDto body, SecurityContext securityContext, UriInfo info)
-            throws NotFoundException {
+    public Response createGlobalTagMap(GlobalTagMapDto body, SecurityContext securityContext, UriInfo info) {
         log.info("GlobalTagMapRestController processing request for creating a global tag map entry " + body);
-        try {
-            // Insert new mapping resource.
-            GlobalTagMap entity = mapper.map(body, GlobalTagMap.class);
-            final GlobalTagMap saved = globaltagmapService.insertGlobalTagMap(entity);
-            GlobalTagMapDto dto = mapper.map(saved, GlobalTagMapDto.class);
-            return Response.created(info.getRequestUri()).entity(dto).build();
-        }
-        catch (NotExistsPojoException e) {
-            // Not found. Send a 404.
-            log.warn("Api method createGlobalTagMap cannot find resource : {}", body);
-            return rfh.badRequest("createGlobalTagMap error: " + e.getMessage());
-        }
-        catch (AlreadyExistsPojoException e) {
-            // See other. Send a 303.
-            log.warn("createGlobalTagMap resource exists : {}", e.getMessage());
-            final String msg = "GlobalTagMap already exists : " + body;
-            return rfh.alreadyExistsPojo("createGlobalTagMap error: " + msg);
-        }
-        catch (final RuntimeException e) {
-            // Error in creation. Send a 500.
-            final String message = e.getMessage();
-            log.error("Api method createGlobalTagMap got exception : {}", message);
-            return rfh.internalError("createGlobalTagMap error: " + message);
-        }
+        // Insert new mapping resource.
+        GlobalTagMap entity = mapper.map(body, GlobalTagMap.class);
+        final GlobalTagMap saved = globaltagmapService.insertGlobalTagMap(entity);
+        GlobalTagMapDto dto = mapper.map(saved, GlobalTagMapDto.class);
+        return Response.created(info.getRequestUri()).entity(dto).build();
     }
 
     /*
@@ -108,47 +85,38 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
      * javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response findGlobalTagMap(String name, String xCrestMapMode, SecurityContext securityContext, UriInfo info)
-            throws NotFoundException {
+    public Response findGlobalTagMap(String name, String xCrestMapMode, SecurityContext securityContext, UriInfo info) {
         log.info("GlobalTagMapRestController processing request to get map for GlobalTag name " + name);
         // Prepare filters
         final GenericMap filters = new GenericMap();
         filters.put("name", name);
         filters.put("mode", xCrestMapMode);
-        try {
-            Iterable<GlobalTagMap> entitylist = null;
-            // If there is no header then set it to Trace mode. Implies that you search tags
-            // associated with a global tag. The input name will be considered as a
-            // GlobalTag name.
-            if (xCrestMapMode == null) {
-                xCrestMapMode = "Trace";
-            }
-            if ("trace".equalsIgnoreCase(xCrestMapMode)) {
-                // The header is Trace, so search for tags associated to a global tag.
-                entitylist = globaltagmapService.getTagMap(name);
-            }
-            else {
-                // The header is not Trace, so search for global tags associated to a tag.
-                // The input name is considered a Tag name.
-                entitylist = globaltagmapService.getTagMapByTagName(name);
-            }
-            List<GlobalTagMapDto> dtolist = edh.entityToDtoList(entitylist, GlobalTagMapDto.class);
-            final CrestBaseResponse setdto = new GlobalTagMapSetDto().resources(dtolist).filter(filters)
-                    .size((long) dtolist.size()).datatype("maps");
-            Response.Status status = Response.Status.OK;
-            return Response.status(status).entity(setdto).build();
+        Iterable<GlobalTagMap> entitylist = null;
+        // If there is no header then set it to Trace mode. Implies that you search tags
+        // associated with a global tag. The input name will be considered as a
+        // GlobalTag name.
+        if (xCrestMapMode == null) {
+            xCrestMapMode = "Trace";
         }
-        catch (final RuntimeException e) {
-            // Error in finding mappings. Send a 500.
-            final String message = e.getMessage();
-            log.error("Api method findGlobalTagMap got exception : {}", message);
-            return rfh.internalError("findGlobalTagMap error: " + message);
+        if ("trace".equalsIgnoreCase(xCrestMapMode)) {
+            // The header is Trace, so search for tags associated to a global tag.
+            entitylist = globaltagmapService.getTagMap(name);
         }
+        else {
+            // The header is not Trace, so search for global tags associated to a tag.
+            // The input name is considered a Tag name.
+            entitylist = globaltagmapService.getTagMapByTagName(name);
+        }
+        List<GlobalTagMapDto> dtolist = edh.entityToDtoList(entitylist, GlobalTagMapDto.class);
+        final CrestBaseResponse setdto = new GlobalTagMapSetDto().resources(dtolist).filter(filters)
+                .size((long) dtolist.size()).datatype("maps");
+        Response.Status status = Response.Status.OK;
+        return Response.status(status).entity(setdto).build();
     }
 
     @Override
     public Response deleteGlobalTagMap(String name, @NotNull String label, @NotNull String tagname, String record,
-                                       SecurityContext securityContext, UriInfo info) throws NotFoundException {
+                                       SecurityContext securityContext, UriInfo info) {
         log.info("GlobalTagMapRestController processing request to delete map for GlobalTag name " + name);
         // Prepare filters
         final GenericMap filters = new GenericMap();
@@ -158,27 +126,19 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
         if (record != null) {
             filters.put("record", record);
         }
-        try {
-            Iterable<GlobalTagMap> entitylist = null;
-            // If there is no header then set it to Trace mode. Implies that you search tags
-            // associated with a global tag. The input name will be considered as a
-            // GlobalTag name.
-            entitylist = globaltagmapService.findMapsByGlobalTagLabelTag(name, label, tagname, record);
-            // Delete the full list inside a transaction.
-            List<GlobalTagMap> deletedlist = globaltagmapService.deleteMapList(entitylist);
-            // Return the deleted list.
-            List<GlobalTagMapDto> dtolist = edh.entityToDtoList(deletedlist, GlobalTagMapDto.class);
-            final CrestBaseResponse setdto = new GlobalTagMapSetDto().resources(dtolist).filter(filters)
-                    .size((long) dtolist.size()).datatype("maps");
-            Response.Status status = Response.Status.OK;
-            return Response.status(status).entity(setdto).build();
-        }
-        catch (final RuntimeException e) {
-            // Error in finding mappings. Send a 500.
-            final String message = e.getMessage();
-            log.error("Api method deleteGlobalTagMap got exception : {}", message);
-            return rfh.internalError("deleteGlobalTagMap error: " + message);
-        }
+        Iterable<GlobalTagMap> entitylist = null;
+        // If there is no header then set it to Trace mode. Implies that you search tags
+        // associated with a global tag. The input name will be considered as a
+        // GlobalTag name.
+        entitylist = globaltagmapService.findMapsByGlobalTagLabelTag(name, label, tagname, record);
+        // Delete the full list inside a transaction.
+        List<GlobalTagMap> deletedlist = globaltagmapService.deleteMapList(entitylist);
+        // Return the deleted list.
+        List<GlobalTagMapDto> dtolist = edh.entityToDtoList(deletedlist, GlobalTagMapDto.class);
+        final CrestBaseResponse setdto = new GlobalTagMapSetDto().resources(dtolist).filter(filters)
+                .size((long) dtolist.size()).datatype("maps");
+        Response.Status status = Response.Status.OK;
+        return Response.status(status).entity(setdto).build();
     }
 
 }

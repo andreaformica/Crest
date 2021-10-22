@@ -9,7 +9,7 @@ import javax.ws.rs.core.Response;
  * @author formica
  *
  */
-public abstract class CdbServiceException extends RuntimeException {
+public class CdbSQLException extends CdbServiceException {
 
     /**
      * Serializer.
@@ -20,7 +20,7 @@ public abstract class CdbServiceException extends RuntimeException {
      * @param message
      *            the String
      */
-    public CdbServiceException(String message) {
+    public CdbSQLException(String message) {
         super(message);
     }
 
@@ -30,8 +30,17 @@ public abstract class CdbServiceException extends RuntimeException {
      * @param err
      *            the Throwable
      */
-    public CdbServiceException(String message, Throwable err) {
+    public CdbSQLException(String message, Throwable err) {
         super(message, err);
+    }
+
+    /**
+     * Create using a throwable.
+     *
+     * @param cause
+     */
+    public CdbSQLException(Throwable cause) {
+        super(cause);
     }
 
     /*
@@ -41,20 +50,16 @@ public abstract class CdbServiceException extends RuntimeException {
      */
     @Override
     public String getMessage() {
-        return "error message => " + super.getMessage();
-    }
-
-    /**
-     * @param cause the Internal Exception.
-     */
-    public CdbServiceException(final Throwable cause) {
-        super(cause);
+        return "SQL " + super.getMessage();
     }
 
     /**
      * Associate an HTTP response code, in case this error needs to be sent to the client.
+     *
      * @return the response status
      */
-    public abstract Response.StatusType getResponseStatus();
-
+    @Override
+    public Response.StatusType getResponseStatus() {
+        return Response.Status.NOT_MODIFIED;
+    }
 }

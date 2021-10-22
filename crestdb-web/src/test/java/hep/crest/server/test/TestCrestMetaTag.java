@@ -1,9 +1,8 @@
 package hep.crest.server.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.Tag;
-import hep.crest.server.exceptions.AlreadyExistsPojoException;
 import hep.crest.server.services.TagMetaService;
 import hep.crest.server.services.TagService;
 import hep.crest.swagger.model.TagDto;
@@ -35,9 +34,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@ContextConfiguration
 @ActiveProfiles("test")
+@ContextConfiguration
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestCrestMetaTag {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -55,6 +54,7 @@ public class TestCrestMetaTag {
     @Qualifier("jacksonMapper")
     private ObjectMapper mapper;
     @Autowired
+    @Qualifier("mapper")
     private MapperFacade mapperFacade;
 
     @Test
@@ -73,7 +73,7 @@ public class TestCrestMetaTag {
             final TagMetaDto metasaved = tagmetaservice.insertTagMeta(metadto);
             assertThat(metasaved).isNotNull();
         }
-        catch (AlreadyExistsPojoException e) {
+        catch (ConflictException e) {
             log.info("got exception of type {}",e.getClass());
         }
     }

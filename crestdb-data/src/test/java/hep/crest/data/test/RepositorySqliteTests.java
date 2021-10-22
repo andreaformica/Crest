@@ -1,6 +1,7 @@
 package hep.crest.data.test;
 
 
+import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.handlers.PayloadHandler;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.PayloadDataBaseCustom;
@@ -146,7 +147,12 @@ public class RepositorySqliteTests {
         final TagMetaDto updmeta = tagmetarepobean.update(storedmeta);
         assertThat(updmeta).isNotNull();
         tagmetarepobean.delete(updmeta.getTagName());
-        final TagMetaDto deletedmeta = tagmetarepobean.find(updmeta.getTagName());
-        assertThat(deletedmeta).isNull();
+        try {
+            final TagMetaDto deletedmeta = tagmetarepobean.find(updmeta.getTagName());
+            assertThat(deletedmeta).isNull();
+        }
+        catch (CdbServiceException e) {
+            log.error("Cannot find deleted meta info: it was deleted before {}", e.getMessage());
+        }
     }
 }

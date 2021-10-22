@@ -2,11 +2,11 @@ package hep.crest.server.test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
-import hep.crest.server.exceptions.NotExistsPojoException;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.TagService;
 import hep.crest.swagger.model.CrestBaseResponse;
@@ -127,11 +127,11 @@ public class TestCrestIov {
             final List<IovDto> ilist2 = edh.entityToDtoList(iovlist2, IovDto.class);
             assertThat(ilist2.size()).isPositive();
         }
-        catch (final NotExistsPojoException e) {
+        catch (final CdbNotFoundException e) {
             log.info("got exception of type {}", e.getClass());
         }
         catch (RuntimeException e) {
-            log.info("got exception of type {}", e.getClass());
+            log.info("Another runtime exception of type {}", e.getClass());
         }
 
     }
@@ -186,7 +186,7 @@ public class TestCrestIov {
         final ResponseEntity<String> iovrespalreadythere = this.testRestTemplate
                 .postForEntity("/crestapi/iovs", iovdto, String.class);
         log.info("Received response: " + iovrespalreadythere);
-        assertThat(iovrespalreadythere.getStatusCode()).isEqualTo(HttpStatus.SEE_OTHER);
+        assertThat(iovrespalreadythere.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 
         // Upload batch iovs
         iovdto.setSince(new BigDecimal(2000000L)); // change the since to have a new iov...
@@ -221,7 +221,7 @@ public class TestCrestIov {
         final ResponseEntity<String> iovresp3 = this.testRestTemplate
                 .postForEntity("/crestapi/iovs/storebatch", setdto, String.class);
         log.info("Received response 3: " + iovresp3);
-        assertThat(iovresp3.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(iovresp3.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 
         // Check without tagname in iovs
         final GenericMap filters3 = new GenericMap();

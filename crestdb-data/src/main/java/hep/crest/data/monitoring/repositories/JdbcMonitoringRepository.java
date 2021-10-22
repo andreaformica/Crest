@@ -54,10 +54,10 @@ public class JdbcMonitoringRepository implements IMonitoringRepository {
             // Create the sql string using a query defined in a package.
             // This should word on any DB.
             sql = "select iv.tag_name, count(iv.tag_name) as niovs, sum(pl.data_size) as tot_volume, avg(pl"
-                    + ".data_size) as avg_volume FROM " + this.payloadTable() + " pl, " + this.iovTable() + " iv "
-                    + " WHERE iv.TAG_NAME like ? AND iv.PAYLOAD_HASH=pl.HASH group by iv.TAG_NAME order by iv.TAG_NAME";
+                  + ".data_size) as avg_volume FROM " + this.payloadTable() + " pl, " + this.iovTable() + " iv "
+                  + " WHERE iv.TAG_NAME like ? AND iv.PAYLOAD_HASH=pl.HASH group by iv.TAG_NAME order by iv.TAG_NAME";
             log.debug("Execute query {} using {}", sql, tagpattern);
-            return jdbcTemplate.query(sql, new Object[]{tagpattern}, new PayloadInfoMapper());
+            return jdbcTemplate.query(sql, new PayloadInfoMapper(), new Object[]{tagpattern});
         }
         catch (final EmptyResultDataAccessException e) {
             log.error("Cannot find tag information for pattern {}: {}", tagpattern, e);

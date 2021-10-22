@@ -1,8 +1,7 @@
 package hep.crest.testutils;
 
 import hep.crest.data.exceptions.CdbServiceException;
-import hep.crest.server.exceptions.AlreadyExistsIovException;
-import hep.crest.server.exceptions.AlreadyExistsPojoException;
+import hep.crest.data.exceptions.ConflictException;
 
 public class ExceptionsExample {
 
@@ -14,16 +13,16 @@ public class ExceptionsExample {
 
         try {
             System.out.println("Send an Exception for IOV");
-            throw new AlreadyExistsIovException("iov is already there");
+            throw new ConflictException("iov is already there");
         }
-        catch (AlreadyExistsPojoException e) {
+        catch (ConflictException e) {
             e.printStackTrace();
             System.out.println("Pojo Exception message : " + e.getMessage());
         }
 
         try {
             System.out.println("Send an Exception for IOV");
-            throw new AlreadyExistsIovException("iov is already there");
+            throw new ConflictException("iov is already there");
         }
         catch (CdbServiceException e) {
             e.printStackTrace();

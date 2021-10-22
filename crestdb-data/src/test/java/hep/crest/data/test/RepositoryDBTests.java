@@ -364,9 +364,6 @@ public class RepositoryDBTests {
         catch (final IOException e) {
             log.error("Cannot create or operate on blob: {}", e.getMessage());
         }
-        catch (final CdbServiceException e) {
-            log.error("Cannot save payload: {}", e.getMessage());
-        }
         try {
             final File fbad = new File("/tmp/cdms/payloadataforhandler.blob");
             final BufferedInputStream dsbad = new BufferedInputStream(new FileInputStream(fbad));

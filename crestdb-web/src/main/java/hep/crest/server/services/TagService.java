@@ -4,14 +4,23 @@
 package hep.crest.server.services;
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import hep.crest.data.exceptions.CdbBadRequestException;
+import hep.crest.data.exceptions.CdbInternalException;
+import hep.crest.data.exceptions.CdbNotFoundException;
+import hep.crest.data.exceptions.CdbSQLException;
 import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.Tag;
+import hep.crest.data.repositories.IovRepository;
 import hep.crest.data.repositories.TagRepository;
-import hep.crest.server.exceptions.AlreadyExistsPojoException;
-import hep.crest.server.exceptions.NotExistsPojoException;
+import hep.crest.data.repositories.querydsl.IFilteringCriteria;
+import hep.crest.data.repositories.querydsl.SearchCriteria;
+import hep.crest.server.controllers.PageRequestHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -40,19 +50,37 @@ public class TagService {
     private TagRepository tagRepository;
 
     /**
+     * Repository.
+     */
+    @Autowired
+    private IovRepository iovRepository;
+
+    /**
+     * Helper.
+     */
+    @Autowired
+    private PageRequestHelper prh;
+    /**
+     * Filtering.
+     */
+    @Autowired
+    @Qualifier("iovFiltering")
+    private IFilteringCriteria filtering;
+
+    /**
      * @param tagname
      *            the String
      * @return boolean
      * @throws CdbServiceException
      *             If an Exception occurred
      */
-    public boolean exists(String tagname) {
+    public boolean exists(String tagname) throws CdbInternalException {
         try {
-            log.debug("Verify existence of Tag->{}", tagname);
+            log.debug("Verify existence of Tag {}", tagname);
             return tagRepository.existsById(tagname);
         }
         catch (final IllegalArgumentException | InvalidDataAccessApiUsageException e) {
-            throw new CdbServiceException("Wrong tagname " + tagname, e);
+            throw new CdbInternalException("Wrong tagname " + tagname, e);
         }
     }
 
@@ -69,23 +97,17 @@ public class TagService {
      * @param id
      *            the String representing the Tag name
      * @return Tag
-     * @throws NotExistsPojoException
+     * @throws CdbServiceException
      *             If object was not found
      */
-    public Tag findOne(String id) {
-        try {
-            log.debug("Search for tag by Id...{}", id);
-            final Optional<Tag> entity = tagRepository.findById(id);
-            if (entity.isPresent()) {
-                log.debug("found...");
-                return entity.get();
-            }
-            throw new NotExistsPojoException(id);
+    public Tag findOne(String id) throws CdbServiceException {
+        log.debug("Search for tag by Id...{}", id);
+        if (id == null) {
+            throw new CdbBadRequestException("Wrong null argument");
         }
-        catch (final IllegalArgumentException | InvalidDataAccessApiUsageException e) {
-            log.error("Should never happen, wrong id was used {} : {}", id, e);
-        }
-        return null;
+        final Tag entity = tagRepository.findById(id).orElseThrow(() -> new CdbNotFoundException(
+                "Tag not found: " + id));
+        return entity;
     }
 
     /**
@@ -124,16 +146,16 @@ public class TagService {
      * @param entity
      *            the Tag
      * @return Tag
-     * @throws AlreadyExistsPojoException
+     * @throws ConflictException
      *             If an Exception occurred because pojo exists
      */
     @Transactional
-    public Tag insertTag(Tag entity) {
+    public Tag insertTag(Tag entity) throws ConflictException {
         log.debug("Create Tag from {}", entity);
         final Optional<Tag> tmpt = tagRepository.findById(entity.name());
         if (tmpt.isPresent()) {
             log.warn("Tag {} already exists.", tmpt.get());
-            throw new AlreadyExistsPojoException(
+            throw new ConflictException(
                     "Tag already exists for name " + entity.name());
         }
         final Tag saved = tagRepository.save(entity);
@@ -147,19 +169,14 @@ public class TagService {
      * @param entity
      *            the Tag
      * @return TagDto of the updated entity.
-     * @throws NotExistsPojoException
+     * @throws CdbServiceException
      *             If an Exception occurred
      */
     @Transactional
-    public Tag updateTag(Tag entity) {
-        log.debug("Update tag from dto {}", entity
-        );
-        final Optional<Tag> tmpt = tagRepository.findById(entity.name());
-        if (!tmpt.isPresent()) {
-            log.debug("Cannot update tag {} : resource does not exists.. ", entity);
-            throw new NotExistsPojoException("Tag does not exists for name " + entity.name());
-        }
-        final Tag toupd = tmpt.get();
+    public Tag updateTag(Tag entity) throws CdbServiceException {
+        log.debug("Update tag from dto {}", entity);
+        final Tag toupd = tagRepository.findById(entity.name()).orElseThrow(
+                () -> new CdbNotFoundException("Tag does not exists for name " + entity.name()));
         toupd.description(entity.description()).objectType(entity.objectType())
                 .synchronization(entity.synchronization()).endOfValidity(entity.endOfValidity())
                 .lastValidatedTime(entity.lastValidatedTime())
@@ -175,9 +192,14 @@ public class TagService {
      */
     @Transactional
     public void removeTag(String name) {
-        log.debug("Remove tag {}", name);
+        log.debug("Remove tag {} after checking if IOVs are present", name);
+        List<SearchCriteria> criteriaList = prh.createMatcherCriteria("tagname:" + name);
+        BooleanExpression bytag = prh.buildWhere(filtering, criteriaList);
+        long niovs = iovRepository.count(bytag);
+        if (niovs > 0) {
+            throw new CdbSQLException("Tag contains iovs...remove them before deleting the tag " + name);
+        }
         tagRepository.deleteById(name);
         log.debug("Removed entity: {}", name);
     }
-
 }

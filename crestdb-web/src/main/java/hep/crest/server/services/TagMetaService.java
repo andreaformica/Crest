@@ -3,9 +3,10 @@
  */
 package hep.crest.server.services;
 
+import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.repositories.TagMetaDataBaseCustom;
-import hep.crest.server.exceptions.AlreadyExistsPojoException;
 import hep.crest.swagger.model.TagMetaDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,15 +39,25 @@ public class TagMetaService {
      * @param dto
      *            the TagMetaDto
      * @return TagMetaDto
-     * @throws AlreadyExistsPojoException
-     *             If an Exception occurred
      * @throws CdbServiceException
      *             If an Exception occurred
      */
     public TagMetaDto insertTagMeta(TagMetaDto dto) {
         log.debug("Create tag meta data from dto {}", dto);
+        try {
+            final String name = dto.getTagName();
+            final TagMetaDto tmpt = this.findMeta(name);
+            if (tmpt != null) {
+                log.debug("Cannot store tag meta {} : resource already exists.. ", name);
+                throw new ConflictException(
+                        "Tag meta already exists for name " + name);
+            }
+        }
+        catch (CdbNotFoundException e) {
+            log.warn("This is a new meta info...");
+        }
         final TagMetaDto saved = tagmetaRepository.save(dto);
-        log.info("Saved entity: {}", saved);
+        log.debug("Saved entity: {}", saved);
         return saved;
     }
 
@@ -60,6 +71,8 @@ public class TagMetaService {
      */
     public TagMetaDto updateTagMeta(TagMetaDto dto) {
         log.debug("Update tag meta from dto {}", dto);
+        TagMetaDto toupd = this.findMeta(dto.getTagName());
+        log.debug("Updating existing tag meta {}", toupd);
         final TagMetaDto saved = tagmetaRepository.update(dto);
         log.debug("Updated entity: {}", saved);
         return saved;
@@ -74,8 +87,7 @@ public class TagMetaService {
      */
     public TagMetaDto findMeta(String id) {
         log.debug("Search for tag meta data by Id...{}", id);
-        final TagMetaDto tmpt = tagmetaRepository.find(id);
-        return tmpt; // This will trigger a response 404 if it is null
+        return tagmetaRepository.find(id);
     }
 
     /**

@@ -5,7 +5,9 @@ package hep.crest.server.services;
 
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.IovGroupsCustom;
@@ -15,8 +17,6 @@ import hep.crest.data.repositories.TagRepository;
 import hep.crest.data.repositories.querydsl.IFilteringCriteria;
 import hep.crest.server.annotations.ProfileAndLog;
 import hep.crest.server.controllers.PageRequestHelper;
-import hep.crest.server.exceptions.AlreadyExistsIovException;
-import hep.crest.server.exceptions.NotExistsPojoException;
 import hep.crest.swagger.model.CrestBaseResponse;
 import hep.crest.swagger.model.IovDto;
 import hep.crest.swagger.model.IovPayloadDto;
@@ -316,33 +316,33 @@ public class IovService {
      * @param entity
      *            the IovDto
      * @return Iov
-     * @throws NotExistsPojoException
+     * @throws CdbServiceException
      *             If an Exception occurred
      * @throws DataIntegrityViolationException If an sql exception occurred.
      */
     @Transactional(rollbackOn = {CdbServiceException.class})
-    public Iov insertIov(Iov entity) {
+    public Iov insertIov(Iov entity) throws CdbServiceException {
         log.debug("Create iov from {}", entity);
         final String tagname = entity.tag().name();
         // The IOV is not yet stored. Verify that the tag exists before inserting it.
         final Optional<Tag> tg = tagRepository.findById(tagname);
-        if (tg.isPresent()) {
-            final Tag t = tg.get();
-            t.modificationTime(new Date());
-            // Check if iov exists
-            if (existsIov(t.name(), entity.id().since(), entity.payloadHash())) {
-                log.warn("Iov already exists : {}", entity);
-                throw new AlreadyExistsIovException(entity.toString());
-            }
-            // Update the tag modification time
-            final Tag updtag = tagRepository.save(t);
-            entity.tag(updtag);
-            entity.id().tagName(updtag.name());
-            log.debug("Storing iov entity {} in tag {}", entity, updtag);
-            final Iov saved = iovRepository.save(entity);
-            log.debug("Saved entity: {}", saved);
-            return saved;
+        if (!tg.isPresent()) {
+            throw new CdbNotFoundException("Tag " + tagname + " not found: cannot insert IOV.");
         }
-        throw new NotExistsPojoException("Unkown tag : " + tagname);
+        final Tag t = tg.get();
+        t.modificationTime(new Date());
+        // Check if iov exists
+        if (existsIov(t.name(), entity.id().since(), entity.payloadHash())) {
+            log.warn("Iov already exists : {}", entity);
+            throw new ConflictException("Iov already exists: " + entity.toString());
+        }
+        // Update the tag modification time
+        final Tag updtag = tagRepository.save(t);
+        entity.tag(updtag);
+        entity.id().tagName(updtag.name());
+        log.debug("Storing iov entity {} in tag {}", entity, updtag);
+        final Iov saved = iovRepository.save(entity);
+        log.debug("Saved entity: {}", saved);
+        return saved;
     }
 }
