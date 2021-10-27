@@ -9,13 +9,10 @@ spring:
       use-legacy-processing: true
     profiles:
       includes: crest
-<<<<<<< HEAD
     servlet:
       multipart:
         max-file-size: 50MB
         max-request-size: 50MB
-=======
->>>>>>> cms-2021
     jersey:
       application-path: ${crest.api.name}
     datasource:
