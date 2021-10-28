@@ -188,8 +188,8 @@ public class PayloadService {
      */
     @Transactional(rollbackOn = {CdbServiceException.class})
     public HTTPResponse saveIovAndPayload(IovDto dto, PayloadDto pdto, String filename) throws CdbServiceException {
-        log.debug("Create dto with hash {},  format {}, ...", dto.getPayloadHash(),
-                pdto.getObjectType());
+        log.debug("Save payload and iov dto with hash {},  using format <{}>, and filename {}", dto.getPayloadHash(),
+                pdto.getObjectType(), filename);
         try {
             PayloadDto saved = null;
             if (filename != null) {
@@ -201,12 +201,12 @@ public class PayloadService {
             String tagname = dto.getTagName();
             Iov entity = mapper.map(dto, Iov.class);
             entity.tag(new Tag().name(tagname));
-
+            log.debug("Inserting iov {}", entity);
             final Iov savediov = iovService.insertIov(entity);
             IovDto saveddto = mapper.map(savediov, IovDto.class);
             saveddto.tagName(tagname);
             dto.tagName(tagname);
-            log.debug("Saved Iov Dto {} ", saveddto);
+            log.debug("Saved iov {} ", saveddto);
             // Everything ok, so send back a "created" status code.
             log.debug("Created payload {} and iov {} ", saved, savediov);
             return new HTTPResponse().code(Response.Status.CREATED.getStatusCode())
@@ -219,7 +219,8 @@ public class PayloadService {
                                            + dto.getTagName() + " with hash " + dto.getPayloadHash());
         }
         catch (RuntimeException e) {
-            throw new CdbInternalException("Service runtime exception in saveIovAndPayload: ", e);
+            log.error("Runtime exception in method saveIovAndPayload: {}", e.getMessage());
+            throw e;
         }
         finally {
             log.debug("Clean up files when non null...");

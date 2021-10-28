@@ -16,6 +16,7 @@
  **/
 package hep.crest.data.repositories;
 
+import hep.crest.data.exceptions.CdbSQLException;
 import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.pojo.Payload;
 import hep.crest.swagger.model.PayloadDto;
@@ -32,32 +33,32 @@ public interface PayloadDataBaseCustom {
     /**
      * @param id
      *            the String
-     * @return String
+     * @return String or null.
      */
-    String exists(String id);
+    String exists(String id) throws CdbSQLException;
 
     /**
      * @param id
      *            the String
-     * @return Payload
+     * @return PayloadDto or null.
      */
-    PayloadDto find(String id);
+    PayloadDto find(String id) throws CdbSQLException;
 
     /**
      * @param id
      *            the String
-     * @return Payload
+     * @return Payload Stream or null.
      */
-    InputStream findData(String id);
+    InputStream findData(String id) throws CdbSQLException;
 
     /**
      * The method does not access blob data.
      *
      * @param id
      *            the String
-     * @return The payload or null.
+     * @return PayloadDto or null.
      */
-    PayloadDto findMetaInfo(String id);
+    PayloadDto findMetaInfo(String id) throws CdbSQLException;
 
     /**
      * The method does not access blob data.
@@ -68,7 +69,7 @@ public interface PayloadDataBaseCustom {
      *            the String
      * @return The number of updated rows.
      */
-    int updateMetaInfo(String id, String streamerInfo);
+    int updateMetaInfo(String id, String streamerInfo) throws CdbSQLException;
 
     /**
      * @param entity
@@ -77,7 +78,7 @@ public interface PayloadDataBaseCustom {
      * @throws CdbServiceException
      *             It should in reality not throw any exception
      */
-    PayloadDto save(PayloadDto entity);
+    PayloadDto save(PayloadDto entity) throws CdbSQLException;
 
     /**
      * @param entity
@@ -88,7 +89,7 @@ public interface PayloadDataBaseCustom {
      * @throws CdbServiceException
      *             If an Exception occurred
      */
-    PayloadDto save(PayloadDto entity, InputStream is);
+    PayloadDto save(PayloadDto entity, InputStream is) throws CdbSQLException;
 
     /**
      * @return Payload
@@ -100,5 +101,5 @@ public interface PayloadDataBaseCustom {
      *            the String
      * @return
      */
-    void delete(String id);
+    void delete(String id) throws CdbSQLException;
 }

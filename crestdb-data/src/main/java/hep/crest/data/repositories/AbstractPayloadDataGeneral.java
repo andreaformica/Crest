@@ -1,5 +1,8 @@
 package hep.crest.data.repositories;
 
+import hep.crest.data.config.DatabasePropertyConfigurator;
+import hep.crest.data.exceptions.CdbNotFoundException;
+import hep.crest.data.exceptions.CdbSQLException;
 import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.handlers.PayloadHandler;
 import hep.crest.data.pojo.Payload;
@@ -58,7 +61,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
             return jdbcTemplate.queryForObject(sql, (rs, num) -> rs.getString("HASH"), new Object[]{id});
         }
         catch (final DataAccessException e) {
-            log.warn("Hash {} does not exists", id);
+            log.warn("Hash {} does not exists, returning null", id);
         }
         return null;
     }
@@ -80,6 +83,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         }
         catch (final RuntimeException e) {
             log.error("Error in save paylod dto : {}", e.getMessage());
+            throw new CdbSQLException(e);
         }
         return savedentity;
     }
@@ -101,6 +105,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         }
         catch (final RuntimeException e) {
             log.error("Exception during payload dto insertion: {}", e.getMessage());
+            throw new CdbSQLException(e);
         }
         return savedentity;
     }
@@ -139,7 +144,6 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
             // Be careful, this seems not to work with Postgres: probably getBlob loads an
             // OID and not the byte[]
             // Temporarely, try to create a postgresql implementation of this class.
-
             return jdbcTemplate.queryForObject(sql, (rs, num) -> {
                 final PayloadDto entity = new PayloadDto();
                 Instant inst = Instant.ofEpochMilli(rs.getTimestamp("INSERTION_TIME").getTime());
@@ -151,12 +155,12 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
                 entity.setStreamerInfo(getBlob(rs, "STREAMER_INFO"));
                 entity.setSize(rs.getInt("DATA_SIZE"));
                 return entity;
-            }, id);
+            }, new Object[]{id});
         }
         catch (final DataAccessException e) {
             log.warn("Could not find entry for hash {}: {}", id, e);
+            throw new CdbNotFoundException(e);
         }
-        return null;
     }
 
     /*
@@ -185,12 +189,12 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
                 entity.setStreamerInfo(getBlob(rs, "STREAMER_INFO"));
                 entity.setSize(rs.getInt("DATA_SIZE"));
                 return entity;
-            }, id);
+            }, new Object[]{id});
         }
         catch (final DataAccessException e) {
             log.warn("Could not find meta info entry for hash {}: {}", id, e.getMessage());
+            throw new CdbNotFoundException(e);
         }
-        return null;
     }
 
     /*
@@ -209,14 +213,12 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
 
             final String sql = SqlRequests.getFindDataQuery(tablename);
             return jdbcTemplate.queryForObject(sql,
-                    (rs, num) -> getBlobAsStream(rs, "DATA"),
-                    id
-            );
+                    (rs, num) -> getBlobAsStream(rs, "DATA"), new Object[]{id});
         }
         catch (final DataAccessException e) {
             log.error("Cannot find payload with data for hash {}: {}", id, e);
+            throw new CdbNotFoundException(e);
         }
-        return null;
     }
 
     /**
@@ -238,8 +240,8 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         }
         catch (final DataAccessException e) {
             log.error("Cannot update streamer info payload with data for hash {}: {}", id, e);
+            throw new CdbNotFoundException(e);
         }
-        return 0;
     }
 
     /**
@@ -298,6 +300,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         }
         catch (final SQLException e) {
             log.error("Sql exception when storing payload with sql {} : {}", sql, e.getMessage());
+            throw new CdbSQLException(e);
         }
         finally {
             try {

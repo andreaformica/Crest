@@ -16,6 +16,8 @@
  **/
 package hep.crest.data.repositories;
 
+import hep.crest.data.exceptions.CdbSQLException;
+
 import javax.sql.DataSource;
 import java.io.InputStream;
 import java.sql.ResultSet;
@@ -39,11 +41,16 @@ public class PayloadDataDBImpl extends AbstractPayloadDataGeneral implements Pay
      * @param rs
      * @param key
      * @return byte[]
-     * @throws SQLException
+     * @throws CdbSQLException
      */
     @Override
-    protected byte[] getBlob(ResultSet rs, String key) throws SQLException {
-        return rs.getBytes(key);
+    protected byte[] getBlob(ResultSet rs, String key) throws CdbSQLException {
+        try {
+            return rs.getBytes(key);
+        }
+        catch (SQLException e) {
+            throw new CdbSQLException(e);
+        }
     }
 
 
@@ -53,11 +60,16 @@ public class PayloadDataDBImpl extends AbstractPayloadDataGeneral implements Pay
      * @param rs
      * @param key
      * @return InputStream
-     * @throws SQLException
+     * @throws CdbSQLException
      */
     @Override
-    protected InputStream getBlobAsStream(ResultSet rs, String key) throws SQLException {
-        return rs.getBlob(key).getBinaryStream();
+    protected InputStream getBlobAsStream(ResultSet rs, String key) throws CdbSQLException {
+        try {
+            return rs.getBlob(key).getBinaryStream();
+        }
+        catch (SQLException e) {
+            throw new CdbSQLException(e);
+        }
     }
 
 }
