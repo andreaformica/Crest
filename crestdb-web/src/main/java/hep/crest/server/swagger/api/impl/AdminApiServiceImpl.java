@@ -3,6 +3,9 @@ package hep.crest.server.swagger.api.impl;
 import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.CdbSQLException;
 import hep.crest.data.pojo.GlobalTag;
+import hep.crest.data.pojo.GlobalTagMap;
+import hep.crest.data.pojo.Tag;
+import hep.crest.server.services.GlobalTagMapService;
 import hep.crest.server.services.GlobalTagService;
 import hep.crest.server.services.TagMetaService;
 import hep.crest.server.services.TagService;
@@ -21,6 +24,7 @@ import javax.validation.ConstraintViolationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+import java.util.Set;
 
 /**
  * Rest endpoint for administration task. Essentially allows to remove
@@ -53,6 +57,12 @@ public class AdminApiServiceImpl extends AdminApiService {
      */
     @Autowired
     private TagMetaService tagMetaService;
+
+    /**
+     * Service.
+     */
+    @Autowired
+    private GlobalTagMapService globalTagMapService;
 
     /**
      * Mapper.
@@ -89,6 +99,13 @@ public class AdminApiServiceImpl extends AdminApiService {
     public Response removeTag(String name, SecurityContext securityContext, UriInfo info) {
         log.info("AdminRestController processing request for removing a tag");
         // Remove the tag with name.
+        Tag removableTag = tagService.findOne(name);
+        Iterable<GlobalTagMap> assgt = globalTagMapService.getTagMapByTagName(name);
+        if (assgt.iterator().hasNext()) {
+            log.error("Cannot remove tag {}", name);
+            throw new CdbSQLException("Cannot remove tag " + name + ": clean up associations with global tags");
+        }
+        // TODO: you can also test for locking of the tag or similar.
         TagMetaDto metadto;
         try {
             metadto = tagMetaService.findMeta(name);
@@ -102,7 +119,7 @@ public class AdminApiServiceImpl extends AdminApiService {
         try {
             tagService.removeTag(name);
         }
-        catch (ConstraintViolationException | DataIntegrityViolationException e) {
+        catch (RuntimeException e) {
             log.error("Cannot remove tag {}", name);
             throw new CdbSQLException("Cannot remove tag " + name + ": " + e.getMessage());
         }

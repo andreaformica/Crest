@@ -34,4 +34,11 @@ public interface IovRepository
      */
     List<Iov> findByIdTagName(@Param("name") String name, Pageable pageable);
 
+    /**
+     * @param hash
+     *            the String
+     * @return List<Iov>
+     */
+    List<Iov> findByPayloadHash(@Param("hash") String hash);
+
 }

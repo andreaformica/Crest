@@ -135,7 +135,6 @@ public class IovService {
         return entitylist;
     }
 
-
     /**
      * @param tagname
      *            the String
@@ -344,5 +343,15 @@ public class IovService {
         final Iov saved = iovRepository.save(entity);
         log.debug("Saved entity: {}", saved);
         return saved;
+    }
+
+    /**
+     * List iovs with a given hash.
+     *
+     * @param hash
+     * @return List of Iov
+     */
+    public List<Iov> findIovsWithHash(String hash) {
+        return iovRepository.findByPayloadHash(hash);
     }
 }

@@ -8,9 +8,9 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import hep.crest.data.exceptions.CdbBadRequestException;
 import hep.crest.data.exceptions.CdbInternalException;
 import hep.crest.data.exceptions.CdbNotFoundException;
-import hep.crest.data.exceptions.CdbSQLException;
 import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.exceptions.ConflictException;
+import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.IovRepository;
 import hep.crest.data.repositories.TagRepository;
@@ -54,6 +54,12 @@ public class TagService {
      */
     @Autowired
     private IovRepository iovRepository;
+
+    /**
+     * Repository.
+     */
+    @Autowired
+    private PayloadService payloadService;
 
     /**
      * Helper.
@@ -197,7 +203,21 @@ public class TagService {
         BooleanExpression bytag = prh.buildWhere(filtering, criteriaList);
         long niovs = iovRepository.count(bytag);
         if (niovs > 0) {
-            throw new CdbSQLException("Tag contains iovs...remove them before deleting the tag " + name);
+            List<Iov> iovlist = iovRepository.findByIdTagName(name);
+            log.info("Delete {} payloads associated to iovs....", niovs);
+            for (Iov iov : iovlist) {
+                // Delete iov payloads one by one because we need to check the payload
+                // It could belong as well to another tag, in that case we cannot remove it
+                // but we can remove the iov.
+                String rem = payloadService.removePayload(name, iov.payloadHash());
+                if (!rem.equals(iov.payloadHash())) {
+                    log.warn("Skip removal of payload for hash {}", iov.payloadHash());
+                }
+            }
+            log.info("Delete {} iovs....", niovs);
+            for (Iov iov : iovlist) {
+                iovRepository.delete(iov);
+            }
         }
         tagRepository.deleteById(name);
         log.debug("Removed entity: {}", name);

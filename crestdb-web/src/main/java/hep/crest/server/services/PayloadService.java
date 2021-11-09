@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 
 /**
  * @author aformic
@@ -76,6 +77,40 @@ public class PayloadService {
         }
         return pyld;
     }
+
+    /**
+     * @param tag
+     *            the String tag name
+     * @param hash
+     *            the String payload hash
+     * @return String
+     * @throws CdbServiceException
+     *             If an Exception occurred
+     */
+    @Transactional
+    public String removePayload(String tag, String hash) throws CdbServiceException {
+        final PayloadDto pyld = payloaddataRepository.find(hash);
+        if (pyld == null) {
+            throw new CdbNotFoundException("Cannot find payload dto for hash " + hash);
+        }
+        Boolean canremove = Boolean.TRUE;
+        List<Iov> iovwithhash = iovService.findIovsWithHash(hash);
+        if (iovwithhash.size() > 1) {
+            log.debug("The hash {} is associated to more than one iov...remove only if tag name is the same", hash);
+            for (Iov iov : iovwithhash) {
+                if (!iov.id().tagName().equals(tag)) {
+                    log.info("Cannot remove payload hash {}: found iov in tag {}", hash, iov.id());
+                    canremove = Boolean.FALSE;
+                }
+            }
+        }
+        if (canremove) {
+            payloaddataRepository.delete(hash);
+            return hash;
+        }
+        return "skip";
+    }
+
 
     /**
      * @param hash

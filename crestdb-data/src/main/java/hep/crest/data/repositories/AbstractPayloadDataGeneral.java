@@ -1,6 +1,5 @@
 package hep.crest.data.repositories;
 
-import hep.crest.data.config.DatabasePropertyConfigurator;
 import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.CdbSQLException;
 import hep.crest.data.exceptions.CdbServiceException;
