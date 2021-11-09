@@ -206,17 +206,18 @@ public class TagService {
             List<Iov> iovlist = iovRepository.findByIdTagName(name);
             log.info("Delete {} payloads associated to iovs....", niovs);
             for (Iov iov : iovlist) {
+                log.debug("Delete iov {}....", iov);
+                iovRepository.delete(iov);
+            }
+            for (Iov iov : iovlist) {
                 // Delete iov payloads one by one because we need to check the payload
                 // It could belong as well to another tag, in that case we cannot remove it
                 // but we can remove the iov.
+                log.debug("Delete payload {}....", iov.payloadHash());
                 String rem = payloadService.removePayload(name, iov.payloadHash());
                 if (!rem.equals(iov.payloadHash())) {
                     log.warn("Skip removal of payload for hash {}", iov.payloadHash());
                 }
-            }
-            log.info("Delete {} iovs....", niovs);
-            for (Iov iov : iovlist) {
-                iovRepository.delete(iov);
             }
         }
         tagRepository.deleteById(name);

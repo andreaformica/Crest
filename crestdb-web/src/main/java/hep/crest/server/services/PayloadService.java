@@ -105,6 +105,7 @@ public class PayloadService {
             }
         }
         if (canremove) {
+            log.info("Remove payload for hash {} in tag {}", hash, tag);
             payloaddataRepository.delete(hash);
             return hash;
         }
