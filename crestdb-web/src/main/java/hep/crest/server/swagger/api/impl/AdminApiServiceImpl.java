@@ -99,13 +99,13 @@ public class AdminApiServiceImpl extends AdminApiService {
     public Response removeTag(String name, SecurityContext securityContext, UriInfo info) {
         log.info("AdminRestController processing request for removing a tag");
         // Remove the tag with name.
-        Tag removableTag = tagService.findOne(name);
         Iterable<GlobalTagMap> assgt = globalTagMapService.getTagMapByTagName(name);
         if (assgt.iterator().hasNext()) {
             log.error("Cannot remove tag {}", name);
             throw new CdbSQLException("Cannot remove tag " + name + ": clean up associations with global tags");
         }
         // TODO: you can also test for locking of the tag or similar.
+        // Remove meta information associated with the tag.
         TagMetaDto metadto;
         try {
             metadto = tagMetaService.findMeta(name);
@@ -116,13 +116,7 @@ public class AdminApiServiceImpl extends AdminApiService {
         catch (CdbNotFoundException e) {
             log.warn("The meta information for tag {} is not present...", name);
         }
-        try {
-            tagService.removeTag(name);
-        }
-        catch (RuntimeException e) {
-            log.error("Cannot remove tag {}", name);
-            throw new CdbSQLException("Cannot remove tag " + name + ": " + e.getMessage());
-        }
+        tagService.removeTag(name);
         return Response.ok().build();
     }
 
