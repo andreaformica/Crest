@@ -222,8 +222,8 @@ public class IovsApiServiceImpl extends IovsApiService {
             dateformat = "ms";
         }
         // A filter on tag name should be mandatory in by.
-        if (!by.matches("(.*)tag.ame(.*)")) {
-            // If the tagname is not among the parameter then return a 406.
+        if (!by.matches("(.*)tag.ame(.*)") && !by.matches("(.*)hash(.*)")) {
+            // If the tagname or hash is not among the parameter then return a 406.
             final String message = "Cannot search iovs without a tagname selection.";
             throw new CdbBadRequestException(message);
         }
