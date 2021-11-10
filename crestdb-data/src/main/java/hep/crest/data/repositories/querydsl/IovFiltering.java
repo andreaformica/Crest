@@ -46,9 +46,9 @@ public class IovFiltering implements IFilteringCriteria {
             final String key = searchCriteria.getKey().toLowerCase(Locale.ENGLISH);
             if ("tagname".equals(key)) {
                 // Filter based on the tag name.
-                final BooleanExpression objtyplike = IovPredicates
+                final BooleanExpression hastag = IovPredicates
                         .hasTagName(searchCriteria.getValue().toString());
-                expressions.add(objtyplike);
+                expressions.add(hastag);
             }
             else if ("insertiontime".equals(key)) {
                 // Filter based on the insertion time.
@@ -62,6 +62,12 @@ public class IovFiltering implements IFilteringCriteria {
                 final BooleanExpression sincexthan = IovPredicates
                         .isSinceXThan(searchCriteria.getOperation(), since);
                 expressions.add(sincexthan);
+            }
+            else if ("hash".equals(key)) {
+                // Filter based on the hash.
+                final BooleanExpression ishash = IovPredicates
+                        .hasPayloadHash(searchCriteria.getValue().toString());
+                expressions.add(ishash);
             }
         }
         return expressions;

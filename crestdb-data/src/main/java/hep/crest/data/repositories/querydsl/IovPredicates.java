@@ -42,6 +42,16 @@ public final class IovPredicates {
     }
 
     /**
+     * @param hash
+     *            the String
+     * @return BooleanExpression
+     */
+    public static BooleanExpression hasPayloadHash(String hash) {
+        log.debug("hasPayloadHash: argument {}", hash);
+        return QIov.iov.payloadHash.eq(hash);
+    }
+
+    /**
      * @param oper
      *            the String
      * @param since

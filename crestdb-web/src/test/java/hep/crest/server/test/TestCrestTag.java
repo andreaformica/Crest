@@ -240,7 +240,7 @@ public class TestCrestTag {
                 .exchange("/crestapi/admin/tags/NOT-THERE", HttpMethod.DELETE, null, String.class);
         {
             log.info("Remove tag NOT-THERE ");
-            assertThat(resprmnotthere.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+            assertThat(resprmnotthere.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
 
         final ResponseEntity<String> resp2 = this.testRestTemplate
