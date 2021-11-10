@@ -197,8 +197,10 @@ public class TagService {
      *            the String
      */
     @Transactional
-    public void removeTag(String name) {
+    public void removeTag(String name) throws CdbServiceException {
         log.debug("Remove tag {} after checking if IOVs are present", name);
+        Tag remTag = tagRepository.findById(name).orElseThrow(
+                () -> new CdbNotFoundException("Tag does not exists for name " + name));
         List<SearchCriteria> criteriaList = prh.createMatcherCriteria("tagname:" + name);
         BooleanExpression bytag = prh.buildWhere(filtering, criteriaList);
         long niovs = iovRepository.count(bytag);
