@@ -146,6 +146,10 @@ public class RepositoryPostgresTests {
         log.info("Add size of payload data {}", dto.getSize());
         final PayloadDto saved = repobean.save(dto);
         assertThat(saved).isNotNull();
+
+        // modify streamer info
+        int nu = repobean.updateMetaInfo(saved.getHash(), new String(saved.getStreamerInfo()) + ", {some other json}");
+        assertThat(nu).isPositive();
         final PayloadDto loaded = repobean.find("myhashpg1");
         assertThat(loaded.toString().length()).isPositive();
 

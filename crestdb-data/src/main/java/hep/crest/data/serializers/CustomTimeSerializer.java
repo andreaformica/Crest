@@ -3,14 +3,19 @@ package hep.crest.data.serializers;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
+ * Custom ser for JSON to offset date time using a formatter.
+ * The formatter should be initialized elsewhere.
+ *
  * @author formica
  */
+@Slf4j
 public class CustomTimeSerializer extends JsonSerializer<OffsetDateTime> {
 
     /**

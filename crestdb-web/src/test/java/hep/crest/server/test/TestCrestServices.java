@@ -2,14 +2,12 @@ package hep.crest.server.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.data.exceptions.AbstractCdbServiceException;
-import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.GlobalTagMap;
 import hep.crest.data.pojo.GlobalTagMapId;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
 import hep.crest.server.controllers.EntityDtoHelper;
-import hep.crest.server.services.DirectoryService;
 import hep.crest.server.services.GlobalTagMapService;
 import hep.crest.server.services.GlobalTagService;
 import hep.crest.server.services.IovService;
@@ -33,9 +31,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -45,7 +40,6 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -69,8 +63,6 @@ public class TestCrestServices {
     private IovService iovService;
     @Autowired
     private PayloadService payloadService;
-    @Autowired
-    private DirectoryService directoryService;
     @Autowired
     private TestRestTemplate testRestTemplate;
 
@@ -228,51 +220,4 @@ public class TestCrestServices {
         globaltagmapService.getTagMapByTagName(null);
 
     }
-
-    @Test
-    public void testD_Directory() {
-        directoryService.dumpTag("MY-TEST-01", null, "");
-        final TagDto tobesaved = DataGenerator.generateTagDto("MY-TEST-02", "time");
-        Tag entity = mapperFacade.map(tobesaved, Tag.class);
-        final Tag saved = directoryService.insertTag(entity, "none");
-        assertThat(saved).isNotNull();
-        final Tag dto = directoryService.getTag("MY-TEST-02", "none");
-        assertThat(dto).isNotNull();
-        final List<IovDto> iovlist = directoryService.listIovs("MY-TEST-01");
-        assertThat(iovlist).isNotNull();
-        try {
-            final Tag dtonotthere = directoryService.getTag("MY-TEST-NOT-THERE", "none");
-            assertThat(dtonotthere).isNull();
-        }
-        catch (CdbNotFoundException e) {
-            log.info("The tag does not exists so this exception should be thrown");
-            assertThat(e.getMessage()).contains("Error in finding tag");
-        }
-        final List<IovDto> iovlistempty = directoryService.listIovs("MY-TEST-NOT-THERE");
-        assertThat(iovlistempty.isEmpty()).isTrue();
-        try {
-            final PayloadDto pdto = directoryService.getPayload("somehash");
-            assertThat(pdto).isNull();
-        }
-        catch (CdbNotFoundException e) {
-            log.info("The hash does not exists so this exception should be thrown");
-            assertThat(e.getMessage()).contains("Cannot find hash dir");
-        }
-
-    }
-
-    @Test
-    public void testE_fsApi() throws Exception {
-        final Long now = Instant.now().toEpochMilli();
-        final ResponseEntity<String> response = this.testRestTemplate.exchange(
-                "/crestapi/fs/tar?tagname=MY-TEST-01&snapshot=" + now, HttpMethod.POST, null, String.class);
-        log.info("Received response: {}", response);
-        assertThat(response.getStatusCode()).isGreaterThanOrEqualTo(HttpStatus.OK);
-
-        final ResponseEntity<String> responsenotfound = this.testRestTemplate.exchange(
-                "/crestapi/fs/tar?tagname=MY-TEST-0000&snapshot=0", HttpMethod.POST, null, String.class);
-        log.info("Received response: {}", responsenotfound);
-        assertThat(responsenotfound.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-    }
-
 }

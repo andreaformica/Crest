@@ -18,9 +18,13 @@ package hep.crest.data.repositories;
 
 import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.pojo.Payload;
+import hep.crest.swagger.model.IovPayloadDto;
 import hep.crest.swagger.model.PayloadDto;
 
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author formica
@@ -69,6 +73,20 @@ public interface PayloadDataBaseCustom {
      * @return The number of updated rows.
      */
     int updateMetaInfo(String id, String streamerInfo) throws CdbSQLException;
+
+    /**
+     * @param name
+     *            the String
+     * @param since
+     *            the BigDecimal
+     * @param until
+     *            the BigDecimal
+     * @param snapshot
+     *            the Date
+     * @return List<IovPayloadDto>
+     */
+    List<IovPayloadDto> getRangeIovPayloadInfo(String name, BigDecimal since, BigDecimal until,
+                                               Date snapshot);
 
     /**
      * @param entity

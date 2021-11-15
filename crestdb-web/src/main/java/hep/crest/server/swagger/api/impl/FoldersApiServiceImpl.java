@@ -12,11 +12,13 @@ import hep.crest.swagger.model.CrestBaseResponse;
 import hep.crest.swagger.model.FolderDto;
 import hep.crest.swagger.model.FolderSetDto;
 import hep.crest.swagger.model.GenericMap;
+import hep.crest.swagger.model.RespPage;
 import ma.glasnost.orika.MapperFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
@@ -115,10 +117,16 @@ public class FoldersApiServiceImpl extends FoldersApiService {
             wherepred = prh.buildWhere(filtering, by);
         }
         // Search for global tags using where conditions.
-        Iterable<CrestFolders> entitylist = folderService.findAllFolders(wherepred, preq);
-        final List<FolderDto> dtolist = edh.entityToDtoList(entitylist, FolderDto.class);
+        Page<CrestFolders> entitypage = folderService.findAllFolders(wherepred, preq);
+        RespPage respPage = new RespPage().size(entitypage.getSize())
+                .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
+                .number(entitypage.getNumber());
+        // Now pass back the dto list.
+        final List<FolderDto> dtolist = edh.entityToDtoList(entitypage.toList(), FolderDto.class);
         Response.Status rstatus = Response.Status.OK;
+        // Create the response object using also the page.
         final CrestBaseResponse setdto = new FolderSetDto().resources(dtolist)
+                .page(respPage)
                 .size((long) dtolist.size()).datatype("folders");
         if (filters != null) {
             setdto.filter(filters);

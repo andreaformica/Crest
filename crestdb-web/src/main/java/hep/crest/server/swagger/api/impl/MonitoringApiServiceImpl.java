@@ -1,9 +1,7 @@
 package hep.crest.server.swagger.api.impl;
 
-import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.monitoring.repositories.IMonitoringRepository;
 import hep.crest.server.controllers.PageRequestHelper;
-import hep.crest.server.swagger.api.ApiResponseMessage;
 import hep.crest.server.swagger.api.MonitoringApiService;
 import hep.crest.server.swagger.api.NotFoundException;
 import hep.crest.swagger.model.CrestBaseResponse;
@@ -25,7 +23,8 @@ import java.util.List;
  *
  * @author formica
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-11-07T14:29:18.354+01:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-11-07T14:29"
+                                                                                                   + ":18.354+01:00")
 @Component
 public class MonitoringApiServiceImpl extends MonitoringApiService {
 
@@ -55,38 +54,29 @@ public class MonitoringApiServiceImpl extends MonitoringApiService {
     @Override
     public Response listPayloadTagInfo(String tagname, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
-        try {
-            log.debug("Search resource list using tagname or pattern={}", tagname);
-            List<PayloadTagInfoDto> dtolist = null;
-            String tagpattern = tagname;
+        log.debug("Search resource list using tagname or pattern={}", tagname);
+        List<PayloadTagInfoDto> dtolist = null;
+        String tagpattern = tagname;
 
-            // Set default tag pattern.
-            if ("none".equals(tagpattern)) {
-                // select any tag.
-                tagpattern = "%";
-            }
-            else {
-                // Add special pattern regexp.
-                tagpattern = "%" + tagpattern + "%";
-            }
-            // Create filters
-            final GenericMap filters = new GenericMap();
-            filters.put("tagname", tagpattern);
-            // Select tag informations.
-            dtolist = monitoringrepo.selectTagInfo(tagpattern);
-            // The dtolist should always be non null....
-            // Create the PayloadTagInfoSet
-            final CrestBaseResponse setdto = new PayloadTagInfoSetDto().resources(dtolist)
-                    .filter(filters).size(1L).datatype("payloadtaginfos");
-            // Return 200.
-            return Response.ok().entity(setdto).build();
+        // Set default tag pattern.
+        if ("none".equals(tagpattern)) {
+            // select any tag.
+            tagpattern = "%";
         }
-        catch (final AbstractCdbServiceException e) {
-            // Exception, send a 500.
-            log.error("Exception listing payload tag info : {}", e.getMessage());
-            final String message = e.getMessage();
-            final ApiResponseMessage resp = new ApiResponseMessage(ApiResponseMessage.ERROR, message);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(resp).build();
+        else {
+            // Add special pattern regexp.
+            tagpattern = "%" + tagpattern + "%";
         }
+        // Create filters
+        final GenericMap filters = new GenericMap();
+        filters.put("tagname", tagpattern);
+        // Select tag informations.
+        dtolist = monitoringrepo.selectTagInfo(tagpattern);
+        // The dtolist should always be non null....
+        // Create the PayloadTagInfoSet
+        final CrestBaseResponse setdto = new PayloadTagInfoSetDto().resources(dtolist)
+                .filter(filters).size(1L).datatype("payloadtaginfos");
+        // Return 200.
+        return Response.ok().entity(setdto).build();
     }
 }

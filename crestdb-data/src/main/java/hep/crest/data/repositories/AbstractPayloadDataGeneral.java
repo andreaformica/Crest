@@ -4,8 +4,10 @@ import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.CdbSQLException;
 import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.handlers.PayloadHandler;
+import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Payload;
 import hep.crest.data.repositories.externals.SqlRequests;
+import hep.crest.swagger.model.IovPayloadDto;
 import hep.crest.swagger.model.PayloadDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,11 @@ import javax.persistence.Table;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -24,6 +31,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Base64;
+import java.util.Date;
+import java.util.List;
 
 /**
  * General base class for repository implementations.
@@ -36,13 +46,92 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
      * Logger.
      */
     private static final Logger log = LoggerFactory.getLogger(AbstractPayloadDataGeneral.class);
+    /**
+     * The Data Source.
+     */
+    private final DataSource ds;
+    /**
+     * The decoder.
+     */
+    private CharsetDecoder decoder = StandardCharsets.US_ASCII.newDecoder();
+
+    /**
+     * The upload directory for files.
+     */
+    @Value("${crest.upload.dir:/tmp}")
+    private String serverUploadLocationFolder;
+    /**
+     * Default table name.
+     */
+    private String defaultTablename = null;
 
     /**
      * @param ds the DataSource
      */
     protected AbstractPayloadDataGeneral(DataSource ds) {
-        super(ds);
-        super.setAnn(Payload.class.getAnnotation(Table.class));
+        super();
+        this.ds = ds;
+    }
+
+    /**
+     * @param defaultTablename the String
+     * @return
+     */
+    public void setDefaultTablename(String defaultTablename) {
+        if (this.defaultTablename == null) {
+            this.defaultTablename = defaultTablename;
+        }
+    }
+
+    /**
+     * @return String
+     */
+    protected String tablename() {
+        final Table ann = Payload.class.getAnnotation(Table.class);
+        String tablename = ann.name();
+        if (!DatabasePropertyConfigurator.SCHEMA_NAME.isEmpty()) {
+            tablename = DatabasePropertyConfigurator.SCHEMA_NAME + "." + tablename;
+        }
+        else if (this.defaultTablename != null) {
+            tablename = this.defaultTablename + "." + tablename;
+        }
+        return tablename;
+    }
+
+    /**
+     * @return String
+     */
+    protected String iovtablename() {
+        final Table ann = Iov.class.getAnnotation(Table.class);
+        String tablename = ann.name();
+        if (!DatabasePropertyConfigurator.SCHEMA_NAME.isEmpty()) {
+            tablename = DatabasePropertyConfigurator.SCHEMA_NAME + "." + tablename;
+        }
+        else if (this.defaultTablename != null) {
+            tablename = this.defaultTablename + "." + tablename;
+        }
+        return tablename;
+    }
+
+    /**
+     * @return DataSource
+     */
+    protected DataSource getDs() {
+        return ds;
+    }
+
+    /**
+     * @return the serverUploadLocationFolder
+     */
+    protected String getServerUploadLocationFolder() {
+        return serverUploadLocationFolder;
+    }
+
+    /**
+     * @param serverUploadLocationFolder the serverUploadLocationFolder to set
+     */
+    protected void setServerUploadLocationFolder(String serverUploadLocationFolder) {
+        this.serverUploadLocationFolder = serverUploadLocationFolder;
     }
 
     /**
@@ -250,6 +339,38 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         }
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * hep.crest.data.repositories.IovGroupsCustom#getRangeIovPayloadInfo(java.lang
+     * .String, java.math.BigDecimal, java.math.BigDecimal, java.util.Date)
+     */
+    @Override
+    public List<IovPayloadDto> getRangeIovPayloadInfo(String name, BigDecimal since,
+                                                      BigDecimal until, Date snapshot) {
+        log.debug("Select Iov and Payload meta info for tag  {} using JDBCTEMPLATE", name);
+        final JdbcTemplate jdbcTemplate = new JdbcTemplate(ds);
+        final String tablename = this.tablename();
+
+        // Get sql query.
+        final String sql = SqlRequests.getRangeIovPayloadQuery(iovtablename(), tablename);
+        // Execute request.
+        return jdbcTemplate.query(sql, (rs, num) -> {
+            final IovPayloadDto entity = new IovPayloadDto();
+            Instant inst = Instant.ofEpochMilli(rs.getTimestamp("INSERTION_TIME").getTime());
+            entity.setSince(rs.getBigDecimal("SINCE"));
+            entity.setInsertionTime(inst.atOffset(ZoneOffset.UTC));
+            entity.setPayloadHash(rs.getString("PAYLOAD_HASH"));
+            entity.setVersion(rs.getString("VERSION"));
+            entity.setObjectType(rs.getString("OBJECT_TYPE"));
+            entity.setSize(rs.getInt("DATA_SIZE"));
+            entity.setStreamerInfo(getStringFromBuf(getBlob(rs, "STREAMER_INFO")));
+            log.debug("create entity {}", entity);
+            return entity;
+        }, name, name, since, snapshot, until, snapshot);
+    }
+
     /**
      * @param rs  the result set.
      * @param key the key.
@@ -356,6 +477,28 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
     public Payload saveNull() {
         log.warn("Method not implemented");
         return null;
+    }
+
+    /**
+     *
+     * @param buf
+     * @return the String.
+     */
+    protected String getStringFromBuf(byte[] buf) {
+        decoder.onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT);
+
+        byte[] streaminfoByteArr = buf.clone();
+        try {
+            // Use decoder to read the byte array into a string.
+            return decoder.decode(ByteBuffer.wrap(streaminfoByteArr))
+                    .toString();
+        }
+        catch (CharacterCodingException e) {
+            // If there are character encoding problems, then use a base64 encoder.
+            log.warn("Cannot decode as String with charset US_ASCII, use base64: {}", e.getMessage());
+            return Base64.getEncoder().encodeToString(streaminfoByteArr);
+        }
     }
 
 }

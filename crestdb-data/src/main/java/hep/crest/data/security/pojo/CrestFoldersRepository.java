@@ -15,8 +15,8 @@ import org.springframework.stereotype.Repository;
  *
  */
 @Repository
-public interface FolderRepository extends PagingAndSortingRepository<CrestFolders, String>,
-        QuerydslPredicateExecutor<CrestFolders> {
+public interface CrestFoldersRepository extends PagingAndSortingRepository<CrestFolders, String>,
+                                                QuerydslPredicateExecutor<CrestFolders> {
 
     /*
      * (non-Javadoc)

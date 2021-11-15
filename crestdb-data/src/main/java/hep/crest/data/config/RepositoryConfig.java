@@ -1,20 +1,14 @@
 package hep.crest.data.config;
 
-import hep.crest.data.repositories.IovDirImpl;
+import hep.crest.data.monitoring.repositories.IMonitoringRepository;
+import hep.crest.data.monitoring.repositories.JdbcMonitoringRepository;
 import hep.crest.data.repositories.IovGroupsCustom;
 import hep.crest.data.repositories.IovGroupsImpl;
-import hep.crest.data.repositories.IovGroupsPostgresImpl;
-import hep.crest.data.repositories.IovGroupsSQLITEImpl;
 import hep.crest.data.repositories.PayloadDataBaseCustom;
 import hep.crest.data.repositories.PayloadDataDBImpl;
 import hep.crest.data.repositories.PayloadDataPostgresImpl;
 import hep.crest.data.repositories.PayloadDataSQLITEImpl;
-import hep.crest.data.repositories.PayloadDirectoryImplementation;
-import hep.crest.data.repositories.TagDirImpl;
-import hep.crest.data.utils.DirectoryUtilities;
-import ma.glasnost.orika.MapperFacade;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -31,12 +25,9 @@ import javax.sql.DataSource;
  */
 @Configuration
 @ComponentScan("hep.crest.data")
+@Slf4j
 public class RepositoryConfig {
 
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(RepositoryConfig.class);
 
     /**
      * The properties.
@@ -45,44 +36,27 @@ public class RepositoryConfig {
     private CrestProperties cprops;
 
     /**
-     * @param mapper
-     * @return TagDirectoryImplementation
+     * Create a monitoring bean.
+     *
+     * @param mainDataSource the DataSource
+     * @return IMonitoringRepository
      */
-    @Bean(name = "fstagrepository")
-    public TagDirImpl tagdirectoryRepository(@Qualifier("mapper") MapperFacade mapper) {
-        // Initialize directory utilities.
-        final DirectoryUtilities du = new DirectoryUtilities(cprops.getDumpdir());
-        return new TagDirImpl(du, mapper);
+    @Bean
+    public IMonitoringRepository iMonitoringRepository(@Qualifier("dataSource") DataSource mainDataSource) {
+        final JdbcMonitoringRepository bean = new JdbcMonitoringRepository(mainDataSource);
+        // Set default schema and table name taken from properties.
+        if (!"none".equals(cprops.getSchemaname())) {
+            bean.setDefaultTablename(cprops.getSchemaname());
+        }
+        return bean;
     }
 
     /**
-     * @param mapper
-     * @return IovDirectoryImplementation
-     */
-    @Bean(name = "fsiovrepository")
-    public IovDirImpl iovdirectoryRepository(@Qualifier("mapper") MapperFacade mapper) {
-        // Initialize directory utilities.
-        final DirectoryUtilities du = new DirectoryUtilities(cprops.getDumpdir());
-        return new IovDirImpl(du, mapper);
-    }
-
-    /**
-     * @return PayloadDirectoryImplementation
-     */
-    @Bean(name = "fspayloadrepository")
-    public PayloadDirectoryImplementation payloaddirectoryRepository() {
-        final PayloadDirectoryImplementation pdi = new PayloadDirectoryImplementation();
-        // Initialize directory utilities.
-        final DirectoryUtilities du = new DirectoryUtilities(cprops.getDumpdir());
-        pdi.setDirtools(du);
-        return pdi;
-    }
-
-    /**
+     * Create group repository.
+     *
      * @param mainDataSource the DataSource
      * @return IovGroupsCustom
      */
-    @Profile({"test", "default", "ssl", "mysql", "cmsprep", "oracle"})
     @Bean(name = "iovgroupsrepo")
     public IovGroupsCustom iovgroupsRepository(@Qualifier("dataSource") DataSource mainDataSource) {
         final IovGroupsImpl bean = new IovGroupsImpl(mainDataSource);
@@ -94,36 +68,8 @@ public class RepositoryConfig {
     }
 
     /**
-     * @param mainDataSource the DataSource
-     * @return IovGroupsCustom
-     */
-    @Profile({"postgres", "pgsvom"})
-    @Bean(name = "iovgroupsrepo")
-    public IovGroupsCustom iovgroupsPostgresRepository(@Qualifier("dataSource") DataSource mainDataSource) {
-        final IovGroupsPostgresImpl bean = new IovGroupsPostgresImpl(mainDataSource);
-        // Set default schema and table name taken from properties.
-        if (!"none".equals(cprops.getSchemaname())) {
-            bean.setDefaultTablename(cprops.getSchemaname());
-        }
-        return bean;
-    }
-
-    /**
-     * @param mainDataSource the DataSource
-     * @return IovGroupsCustom
-     */
-    @Profile({"sqlite"})
-    @Bean(name = "iovgroupsrepo")
-    public IovGroupsCustom iovgroupsSqliteRepository(@Qualifier("dataSource") DataSource mainDataSource) {
-        final IovGroupsSQLITEImpl bean = new IovGroupsSQLITEImpl(mainDataSource);
-        // Set default schema and table name taken from properties.
-        if (!"none".equals(cprops.getSchemaname())) {
-            bean.setDefaultTablename(cprops.getSchemaname());
-        }
-        return bean;
-    }
-
-    /**
+     * Create payload repo...for all but postgres and sqlite.
+     *
      * @param mainDataSource the DataSource
      * @return PayloadDataBaseCustom
      */
@@ -137,11 +83,13 @@ public class RepositoryConfig {
         if (!"none".equals(cprops.getSchemaname())) {
             bean.setDefaultTablename(cprops.getSchemaname());
         }
-        log.info("Creating default repository implementation.");
+        log.info("Creating default payload repository implementation.");
         return bean;
     }
 
     /**
+     * Create payload repo...for postgres.
+     *
      * @param mainDataSource the DataSource
      * @return PayloadDataBaseCustom
      */
@@ -154,11 +102,13 @@ public class RepositoryConfig {
         if (!"none".equals(cprops.getSchemaname())) {
             bean.setDefaultTablename(cprops.getSchemaname());
         }
-        log.info("Creating postegres repository implementation.");
+        log.info("Creating postgres payload repository implementation.");
         return bean;
     }
 
     /**
+     * Create payload repo...for sqlite.
+     *
      * @param mainDataSource the DataSource
      * @return PayloadDataBaseCustom
      */
@@ -171,7 +121,7 @@ public class RepositoryConfig {
         if (!"none".equals(cprops.getSchemaname())) {
             bean.setDefaultTablename(cprops.getSchemaname());
         }
-        log.info("Creating sqlite repository implementation.");
+        log.info("Creating sqlite payload repository implementation.");
         return bean;
     }
 

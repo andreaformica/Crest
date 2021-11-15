@@ -185,8 +185,10 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      * hep.crest.server.swagger.api.PayloadsApiService#getPayload(java.lang.String,
      * java.lang.String, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
      */
+    //     @CacheControlCdb("public, max-age=604800") : this has to be set on the API class itself.
+    //     For the moment we decide to use the cachecontrol filter (if active) via the method
+    //     name definition, by looking for the annotation @Path
     @Override
-    @CacheControlCdb("public, max-age=604800")
     public Response getPayload(String hash, String format, SecurityContext securityContext,
                                UriInfo info) {
         this.log.info(

@@ -238,7 +238,7 @@ public class IovService {
         if (snapshot == null || snapshot.getTime() == 0) {
             snapshot = Instant.now().toDate(); // Use now for the snapshot
         }
-        entities = iovgroupsrepo.getRangeIovPayloadInfo(tagname, since, until, snapshot);
+        entities = payloaddataRepository.getRangeIovPayloadInfo(tagname, since, until, snapshot);
 
         if (entities == null) {
             log.warn("Cannot find iovpayloads for tag {} using ranges {} {} and snapshot {}",

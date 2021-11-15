@@ -1,7 +1,5 @@
 package hep.crest.data.handlers;
 
-import hep.crest.data.exceptions.AbstractCdbServiceException;
-import hep.crest.data.exceptions.CdbInternalException;
 import hep.crest.data.exceptions.PayloadEncodingException;
 import org.hibernate.engine.jdbc.StreamUtils;
 import org.slf4j.Logger;
@@ -47,6 +45,10 @@ public final class PayloadHandler {
      */
     public static byte[] getBytesFromInputStream(InputStream is) {
         byte[] data = null;
+        // Test if stream is null.
+        if (is == null) {
+            return data;
+        }
         // Open the output buffer.
         try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
             int nRead;
@@ -56,6 +58,7 @@ public final class PayloadHandler {
                 buffer.write(data, 0, nRead);
                 log.debug("Reading data from stream {} ", nRead);
             }
+            // Flush.
             buffer.flush();
             data = buffer.toByteArray();
         }
@@ -64,28 +67,6 @@ public final class PayloadHandler {
             data = new byte[0];
         }
         return data;
-    }
-
-    /**
-     * @param uploadedInputStream  the InputStream
-     * @param uploadedFileLocation the String
-     * @throws AbstractCdbServiceException If an Exception occurred
-     */
-    public static void saveToFile(InputStream uploadedInputStream, String uploadedFileLocation)
-            throws AbstractCdbServiceException {
-        // Open the output file.
-        try (OutputStream out = new FileOutputStream(new File(uploadedFileLocation))) {
-            int read = 0;
-            final byte[] bytes = new byte[MAX_LENGTH];
-            // Loop over the input stream.
-            while ((read = uploadedInputStream.read(bytes)) != -1) {
-                out.write(bytes, 0, read);
-            }
-            out.flush();
-        }
-        catch (final IOException e) {
-            throw new CdbInternalException("Cannot save stream to file " + uploadedFileLocation, e);
-        }
     }
 
     /**
@@ -223,7 +204,7 @@ public final class PayloadHandler {
     /**
      * Return a byte array from the input stream blob.
      *
-     * @param is
+     * @param is the inputstream
      * @return byte[]
      */
     public static byte[] getByteArr(InputStream is) {

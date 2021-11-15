@@ -7,10 +7,11 @@ import com.querydsl.core.types.Predicate;
 import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.security.pojo.CrestFolders;
-import hep.crest.data.security.pojo.FolderRepository;
+import hep.crest.data.security.pojo.CrestFoldersRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -37,27 +38,23 @@ public class FolderService {
      * Repository.
      */
     @Autowired
-    private FolderRepository folderRepository;
+    private CrestFoldersRepository crestFoldersRepository;
 
     /**
      * @param qry
      *            the Predicate
      * @param req
      *            the Pageable
-     * @return Iterable<CrestFolders>
+     * @return Page<CrestFolders>
      */
-    public Iterable<CrestFolders> findAllFolders(Predicate qry, Pageable req) {
-        Iterable<CrestFolders> entitylist = null;
+    public Page<CrestFolders> findAllFolders(Predicate qry, Pageable req) {
+        Page<CrestFolders> entitylist = null;
         if (qry == null) {
-            if (req == null) {
-                entitylist = folderRepository.findAll();
-            }
-            else {
-                entitylist = folderRepository.findAll(req);
-            }
+            // The req object is always filled here because of the default.
+            entitylist = crestFoldersRepository.findAll(req);
         }
         else {
-            entitylist = folderRepository.findAll(qry, req);
+            entitylist = crestFoldersRepository.findAll(qry, req);
         }
         return entitylist;
     }
@@ -72,15 +69,15 @@ public class FolderService {
     @Transactional
     public CrestFolders insertFolder(CrestFolders entity) throws AbstractCdbServiceException {
         log.debug("Create CrestFolder from  {}", entity);
-        final Optional<CrestFolders> tmpgt = folderRepository
-                .findById(entity.getNodeFullpath());
+        final Optional<CrestFolders> tmpgt = crestFoldersRepository
+                .findById(entity.nodeFullpath());
         if (tmpgt.isPresent()) {
             log.debug("Cannot store folder {}  : resource already exists.. ", entity);
             throw new ConflictException(
-                    "Folder already exists for name " + entity.getNodeFullpath());
+                    "Folder already exists for name " + entity.nodeFullpath());
         }
         log.debug("Saving folder entity {}", entity);
-        final CrestFolders saved = folderRepository.save(entity);
+        final CrestFolders saved = crestFoldersRepository.save(entity);
         log.trace("Saved entity: {}", saved);
         return saved;
     }

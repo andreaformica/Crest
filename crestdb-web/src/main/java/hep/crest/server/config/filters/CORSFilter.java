@@ -1,4 +1,4 @@
-package hep.crest.server.filters;
+package hep.crest.server.config.filters;
 
 import java.io.IOException;
 

@@ -15,7 +15,6 @@ security:
 tags:
   - name: admin
   - name: folders
-  - name: fs
   - name: globaltagmaps
   - name: globaltags
   - name: tags
@@ -80,65 +79,6 @@ paths:
       responses:
         '200':
           description: successful operation
-  /fs/tar:
-    post:
-      tags:
-        - fs
-      summary: Dump a tag into filesystem and retrieve the tar file asynchronously.
-      description: This method allows to request a tar file from the server using a tag specified in input.
-      operationId: buildTar
-      parameters:
-        - name: tagname
-          in: query
-          description: 'tagname: the tag name {none}'
-          required: true
-          schema:
-            type: string
-            default: none
-        - name: snapshot
-          in: query
-          description: 'snapshot: the snapshot time {0}'
-          required: true
-          schema:
-            type: integer
-            default: 0
-            format: int64
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                type: string
-  /fs/tag:
-    post:
-      tags:
-        - fs
-      summary: Read a tag from filesystem. If the tag does not exists dump it.
-      description: This method allows to dump a tag on filesystem.
-      operationId: findFsTag
-      parameters:
-        - name: tagname
-          in: query
-          description: 'tagname: the tag name {none}'
-          required: true
-          schema:
-            type: string
-            default: none
-        - name: reqid
-          in: query
-          description: 'reqid: the request id from tar method {none}'
-          required: true
-          schema:
-            type: string
-            default: none
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TagSetDto'
   /folders:
     post:
       tags:
@@ -316,6 +256,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GlobalTagSetDto'
+        '404':
+          description: resource not found
+          content:
+            application/json: {}
+            application/xml: {}
     post:
       tags:
         - globaltags
@@ -362,6 +307,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GlobalTagSetDto'
+        '404':
+          description: resource not found
+          content:
+            application/json: {}
+            application/xml: {}
   '/globaltags/{name}/tags':
     get:
       tags:
@@ -517,86 +467,6 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/TagDto'
-  '/tags/{name}/meta':
-    get:
-      tags:
-        - tags
-      summary: Finds a TagMetaDto by name
-      description: This method will search for a tag metadata with the given name. Only one tag should be returned.
-      operationId: findTagMeta
-      parameters:
-        - name: name
-          in: path
-          description: 'name: the tag name'
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TagMetaSetDto'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/TagMetaSetDto'
-    post:
-      tags:
-        - tags
-      summary: Create a TagMeta in the database.
-      description: 'This method allows to insert a TagMeta.Arguments: TagMetaDto should be provided in the body as a JSON file.'
-      operationId: createTagMeta
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TagMetaDto'
-      parameters:
-        - name: name
-          in: path
-          description: 'name: the tag name'
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TagMetaDto'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/TagMetaDto'
-    put:
-      tags:
-        - tags
-      summary: Update a TagMetaDto by name
-      description: 'This method will search for a tag with the given name, and update its content for the provided body fields. Only the following fields can be updated: description, timeType, objectTime, endOfValidity, lastValidatedTime.'
-      operationId: updateTagMeta
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GenericMap'
-      parameters:
-        - name: name
-          in: path
-          description: 'name: the tag name'
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TagMetaDto'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/TagMetaDto'
   /iovs:
     get:
       tags:
@@ -1304,7 +1174,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RunLumiSetDto'
+                $ref: '#/components/schemas/RunInfoSetDto'
   /runinfo:
     post:
       tags:
@@ -1316,14 +1186,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RunLumiSetDto'
+              $ref: '#/components/schemas/RunInfoSetDto'
       responses:
         '200':
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RunLumiSetDto'
+                $ref: '#/components/schemas/RunInfoSetDto'
     get:
       tags:
         - runinfo
@@ -1356,18 +1226,18 @@ paths:
             format: int32
         - name: sort
           in: query
-          description: 'sort: the sort pattern {since:ASC}'
+          description: 'sort: the sort pattern {runNumber:ASC}'
           required: false
           schema:
             type: string
-            default: 'since:ASC'
+            default: 'runNumber:ASC'
       responses:
         '200':
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RunLumiSetDto'
+                $ref: '#/components/schemas/RunInfoSetDto'
 components:
   securitySchemes:
     BearerAuth:
@@ -1480,33 +1350,6 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/TagDto'
-    TagMetaSetDto:
-      description: An Set containing TagMetaDto objects.
-      allOf:
-        - $ref: '#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/TagMetaDto'
-    TagMetaDto:
-      type: object
-      properties:
-        tagName:
-          type: string
-        description:
-          type: string
-        chansize:
-          type: integer
-          format: int32
-        colsize:
-          type: integer
-          format: int32
-        tagInfo:
-          type: string
-        insertionTime:
-          type: string
-          format: date-time
     GlobalTagDto:
       type: object
       properties:
@@ -1710,28 +1553,23 @@ components:
         niovs:
           type: integer
           format: int64
-    RunLumiSetDto:
-      description: An RunLumiSet containing RunLumiInfoDto objects.
+    RunInfoSetDto:
+      description: An RunInfoSet containing RunInfoDto objects.
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
         - properties:
-            format:
-              type: string
-              default: RunLumiSetDto
             resources:
               type: array
               items:
-                $ref: '#/components/schemas/RunLumiInfoDto'
-    RunLumiInfoDto:
+                $ref: '#/components/schemas/RunInfoDto'
+    RunInfoDto:
       type: object
       properties:
-        since:
-          type: number
         runNumber:
           type: number
-        lb:
-          type: number
-        starttime:
-          type: number
-        endtime:
-          type: number
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time

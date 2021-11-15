@@ -11,7 +11,6 @@ security:
 
 tags:
   - name: admin
-  - name: fs
   - name: folders
 
 paths:
@@ -71,65 +70,6 @@ paths:
       responses:
         '200':
           description: successful operation
-  /fs/tar:
-    post:
-      tags:
-        - fs
-      summary: Dump a tag into filesystem and retrieve the tar file asynchronously.
-      description: This method allows to request a tar file from the server using a tag specified in input.
-      operationId: buildTar
-      parameters:
-        - name: tagname
-          in: query
-          description: 'tagname: the tag name {none}'
-          required: true
-          schema:
-            type: string
-            default: none
-        - name: snapshot
-          in: query
-          description: 'snapshot: the snapshot time {0}'
-          required: true
-          schema:
-            type: integer
-            default: 0
-            format: int64
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                type: string
-  /fs/tag:
-    post:
-      tags:
-        - fs
-      summary: Read a tag from filesystem. If the tag does not exists dump it.
-      description: This method allows to dump a tag on filesystem.
-      operationId: findFsTag
-      parameters:
-        - name: tagname
-          in: query
-          description: 'tagname: the tag name {none}'
-          required: true
-          schema:
-            type: string
-            default: none
-        - name: reqid
-          in: query
-          description: 'reqid: the request id from tar method {none}'
-          required: true
-          schema:
-            type: string
-            default: none
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/TagSetDto"
   /folders:
     post:
       tags:

@@ -35,10 +35,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -62,11 +65,30 @@ public class PojoDtoConverterTests {
     @Test
     public void testGlobalTagConverter() throws Exception {
         final GlobalTag entity = DataGenerator.generateGlobalTag("GT-02");
+        // convert with no insertion time.
+        final GlobalTagDto dtonoinstime = mapper.map(entity, GlobalTagDto.class);
+        assertThat(dtonoinstime).isNotNull();
+
+        Date nowd = new Date();
+        entity.insertionTime(nowd);
+        // Convert from pojo to dto.
         final GlobalTagDto dto = mapper.map(entity, GlobalTagDto.class);
         log.info("Convert entity to dto: {} -> {}", entity, dto);
         assertThat(entity.name()).isEqualTo(dto.getName());
         assertThat(entity.toString().length()).isPositive();
         assertThat(dto.toString().length()).isPositive();
+        // No snapshot time.
+        entity.snapshotTime(null);
+        final GlobalTagDto dtonosnaptime = mapper.map(entity, GlobalTagDto.class);
+        assertThat(dtonosnaptime).isNotNull();
+
+        // Convert from dto to pojo.
+        GlobalTag fromdto = mapper.map(dto, GlobalTag.class);
+        assertThat(fromdto.name()).isEqualTo(dto.getName());
+        // now set times to null
+        dto.insertionTime(null).snapshotTime(null).type(null);
+        GlobalTag fromdtowithnull = mapper.map(dto, GlobalTag.class);
+        assertThat(fromdtowithnull).isNotNull();
 
         final Instant now = Instant.now();
         final Date it = new Date(now.toEpochMilli());
@@ -80,13 +102,29 @@ public class PojoDtoConverterTests {
     @Test
     public void testTagConverter() throws Exception {
         final Tag entity = DataGenerator.generateTag("MT-02", "run");
+        // convert with no insertion time no modification time.
+        final TagDto dtonoinstime = mapper.map(entity, TagDto.class);
+        assertThat(dtonoinstime).isNotNull();
+        // .. and back
+        Tag fromdtonoinstime = mapper.map(dtonoinstime, Tag.class);
+        assertThat(fromdtonoinstime).isNotNull();
+
+        Date now = new Date();
+        entity.insertionTime(now);
+        entity.modificationTime(now);
+        // Convert from pojo to dto.
         final TagDto dto = mapper.map(entity, TagDto.class);
         assertThat(entity.name()).isEqualTo(dto.getName());
         assertThat(entity.toString().length()).isPositive();
         assertThat(dto.toString().length()).isPositive();
         assertThat(dto.hashCode()).isNotZero();
+        // Convert from dto to pojo.
+        Tag fromdto = mapper.map(dto, Tag.class);
+        assertThat(fromdto.name()).isEqualTo(dto.getName());
 
         final Tag entity1 = DataGenerator.generateTag("MT-02", "run");
+        entity1.insertionTime(now);
+        entity1.modificationTime(now);
         final TagDto dto1 = mapper.map(entity1, TagDto.class);
         assertThat(dto1).isNotNull().isEqualTo(dto);
     }
@@ -105,6 +143,10 @@ public class PojoDtoConverterTests {
         assertThat(dto.toString().length()).isPositive();
         assertThat(dto.getGlobalTagName()).isEqualTo(gtag.name());
 
+        // Convert from dto to pojo.
+        GlobalTagMap fromdto = mapper.map(dto, GlobalTagMap.class);
+        assertThat(fromdto.id().globalTagName()).isEqualTo(dto.getGlobalTagName());
+
         final GlobalTagMapId id2 = new GlobalTagMapId(gtag.name(), "aaa", "MY-TEST");
         assertThat(id2).isEqualTo(id1);
         assertThat(id2.hashCode()).isNotZero();
@@ -118,6 +160,17 @@ public class PojoDtoConverterTests {
         final IovId id = entity.id();
         assertThat(id.since()).isEqualTo(new BigDecimal(1000L));
         log.info("Id of iov is {}", id);
+        // Convert from dto to pojo.
+        OffsetDateTime now = Instant.now().atOffset(ZoneOffset.UTC);
+        Iov fromdtonoinsertiontime = mapper.map(dto, Iov.class);
+        assertThat(fromdtonoinsertiontime).isNotNull();
+        dto.insertionTime(now);
+        Iov fromdto = mapper.map(dto, Iov.class);
+        assertThat(fromdto.id().tagName()).isEqualTo(dto.getTagName());
+        // Convert from pojo to dto.
+        IovDto fromentity = mapper.map(fromdto, IovDto.class);
+        assertThat(fromentity.getTagName()).isEqualTo(fromdto.id().tagName());
+        assertThat(fromdto.id().insertionTime().getTime() / 1000L).isEqualTo(now.toEpochSecond());
 
         final Iov geniov = DataGenerator.generateIov("MYHASH", "MT-02", new BigDecimal(1000L));
         log.info("Generated iov {}", geniov);
@@ -274,7 +327,7 @@ public class PojoDtoConverterTests {
         final GenericMap filterm = new GenericMap();
         filterm.put("run", "1000");
         assertThat(filterm.containsKey("run")).isTrue();
-        
+
         setdto.filter(filterm);
         setdto.addResourcesItem(dto1);
         setdto.format("RunInfo");
@@ -324,25 +377,28 @@ public class PojoDtoConverterTests {
     public void testFolderConverter() throws Exception {
         final FolderDto dto1 = DataGenerator.generateFolderDto("T0BLOB", "/MDT/T0BLOB",
                 "COOLOFL_MDT");
-
+        dto1.tagPattern("T0Blob");
         assertThat(dto1.toString().length()).isPositive();
         assertThat(dto1.hashCode()).isNotZero();
         final CrestFolders entity = mapper.map(dto1, CrestFolders.class);
-        assertThat(dto1.getNodeFullpath()).isEqualTo(entity.getNodeFullpath());
+        assertThat(dto1.getNodeFullpath()).isEqualTo(entity.nodeFullpath());
         assertThat(entity.toString().length()).isPositive();
         assertThat(entity.hashCode()).isNotZero();
-        
+
+        final FolderDto fromentity = mapper.map(entity, FolderDto.class);
+        assertThat(fromentity.getTagPattern()).isEqualTo(entity.tagPattern());
+
         dto1.setGroupRole("somerole");
         dto1.setNodeDescription("some node desc");
         dto1.setSchemaName("some_schema");
         dto1.setTagPattern("some_anode");
         dto1.setNodeName("anode");
         dto1.setNodeFullpath("/some/anode");
-  
+
         final FolderDto dto2 = DataGenerator.generateFolderDto("T0BLOB", "/MDT/T0BLOB",
                 "COOLOFL_MDT");
         assertThat(dto1).isNotEqualTo(dto2);
-        
+
     }
 
     @Test
@@ -419,7 +475,7 @@ public class PojoDtoConverterTests {
         psetdto.format("iovpayloaddto");
         assertThat(psetdto.getResources()).isNotNull();
         assertThat(ipdto1).isNotEqualTo(ipdto2);
-        
+
         final List<IovPayloadDto> plist = new ArrayList<>();
         plist.add(ipdto1);
         plist.add(ipdto2);
@@ -481,14 +537,14 @@ public class PojoDtoConverterTests {
         ptdto.setTotvolume(1.3F);
         assertThat(ptdto.toString().length()).isPositive();
         assertThat(ptdto.hashCode()).isNotZero();
-        
+
         final PayloadTagInfoDto ptdto2 = new PayloadTagInfoDto();
         ptdto2.avgvolume(ptdto.getAvgvolume());
         ptdto2.tagname(ptdto.getTagname());
         ptdto2.totvolume(ptdto.getTotvolume());
         ptdto2.niovs(ptdto.getNiovs());
         assertThat(ptdto2).isEqualTo(ptdto);
-        
+
         final CrestUser user = new CrestUser("user", "password");
         user.setId("someid");
         user.setUsername("anothername");
@@ -499,7 +555,7 @@ public class PojoDtoConverterTests {
         assertThat(user.getPassword()).isEqualTo("anewpass");
         final CrestUser usr1 = new CrestUser();
         assertThat(usr1).isNotNull();
-        
+
         final CrestRoles role = new CrestRoles("roleid", "admin");
         role.setRole("guest");
         assertThat(role.toString().length()).isPositive();
@@ -508,12 +564,12 @@ public class PojoDtoConverterTests {
         assertThat(role.getRole()).isEqualTo("guest");
         final CrestRoles rol1 = new CrestRoles();
         assertThat(rol1).isNotNull();
-     }
+    }
 
     @Test
     public void testDeserializer() {
         final ObjectMapper locmapper = new ObjectMapper();
-        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+        DateTimeFormatter formatter1 = new DateTimeFormatterBuilder()
                 .parseCaseInsensitive()
                 .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                 .optionalStart()
@@ -527,37 +583,68 @@ public class PojoDtoConverterTests {
                 .optionalEnd()
                 .toFormatter();
 
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false);
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        mapper.setDateFormat(new StdDateFormat());
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                .parseCaseInsensitive()
+                .appendPattern("yyyy-MM-dd'T'HH:mm:ss")
+                .optionalStart().appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true).optionalEnd()
+                .appendPattern("xxxx")
+                .toFormatter();
+
+
+        locmapper.configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false);
+        locmapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        locmapper.setDateFormat(new StdDateFormat());
         JavaTimeModule module = new JavaTimeModule();
         module.addSerializer(OffsetDateTime.class, new CustomTimeSerializer(formatter));
         module.addDeserializer(OffsetDateTime.class, new CustomTimeDeserializer(formatter));
-        mapper.registerModule(module);
+        locmapper.registerModule(module);
 
 //        final SimpleModule module = new SimpleModule();
 //
 //        module.addDeserializer(Timestamp.class, new TimestampDeserializer());
 //        module.addDeserializer(byte[].class, new ByteArrayDeserializer());
-        
+
         final String json = "{ \"data\" : \"VGhpcyBpcyBhIG5vcm1hbCB0ZXh0Cg==\", " +
-                "\"instime\" : \"2011-12-03T10:15:30+01:00\", " +
-                "\"insdate\" : \"2020-12-03T22:15:30+01:00\", " +
-                "\"name\" : \"MyTest\"}";
-        
+                            "\"modtime\" : \"2021-11-15T09:56:17.579+0000\", " +
+                            "\"instime\" : \"2011-12-03T10:15:30.000+0100\", " +
+                            "\"insdate\" : \"2020-12-03T22:15:30.000+0100\", " +
+                            "\"name\" : \"MyTest\"}";
+
         try {
             log.info("Try to deserialize json {}", json);
-            final TestItem m = locmapper.readValue(json, TestItem.class);
-            assertThat(m.getName()).isEqualTo("MyTest");
-            
-            final String jsonout = locmapper.writeValueAsString(m);
-            log.info("Serialized object is {}", jsonout);
-            assertThat(jsonout).contains("MyTest");
+//            final TestItem m = locmapper.readValue(json, TestItem.class);
+//            assertThat(m.getName()).isEqualTo("MyTest");
+//
+//            final String jsonout = locmapper.writeValueAsString(m);
+//            log.info("Serialized object is {}", jsonout);
+//            assertThat(jsonout).contains("MyTest");
+
+            TestItemNoAnnotations mn = locmapper.readValue(json, TestItemNoAnnotations.class);
+            assertThat(mn.getInstime().getTime()).isGreaterThan(0L);
+            String mnjson = locmapper.writeValueAsString(mn);
+            assertThat(mnjson).contains("MyTest");
+            log.info("Serialized without annotations {}", mn);
         }
         catch (final IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void test_TimeConverters() {
+        OffsetDateTime now = Instant.now().atOffset(ZoneOffset.UTC);
+        final Timestamp entity = mapper.map(now, Timestamp.class);
+        assertThat(entity.getTime() / 1000L).isEqualTo(now.toEpochSecond());
+
+        final OffsetDateTime fromentity = mapper.map(entity, OffsetDateTime.class);
+        assertThat(fromentity).isNotNull();
+
+        final Date entitydate = mapper.map(now, Date.class);
+        assertThat(entitydate.getTime() / 1000L).isEqualTo(now.toEpochSecond());
+
+        final OffsetDateTime fromentitydate = mapper.map(entitydate, OffsetDateTime.class);
+        assertThat(fromentitydate).isNotNull();
+
     }
 }

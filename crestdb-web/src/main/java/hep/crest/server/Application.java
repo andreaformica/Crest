@@ -57,19 +57,6 @@ public class Application {
         };
     }
 
-//    @Override
-//    public void onStartup(ServletContext servletContext)
-//            throws ServletException {
-//
-//        AnnotationConfigWebApplicationContext context
-//                = new AnnotationConfigWebApplicationContext();
-//
-//        servletContext.addListener(new ContextLoaderListener(context));
-//        servletContext.setInitParameter(
-//                "contextConfigLocation", "hep.crest.server");
-//    }
-
-
     /**
      * Customizer for Web server (undertow).
      *

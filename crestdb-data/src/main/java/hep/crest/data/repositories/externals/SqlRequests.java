@@ -130,16 +130,16 @@ public final class SqlRequests {
     /**
      * Get payload info query using range.
      *
-     * @param tablename
+     * @param iovtablename
      * @param payloadtablename
      * @return
      */
-    public static final String getRangeIovPayloadQuery(String tablename, String payloadtablename) {
+    public static final String getRangeIovPayloadQuery(String iovtablename, String payloadtablename) {
         return "select iv.TAG_NAME, iv.SINCE, iv.INSERTION_TIME, iv.PAYLOAD_HASH, pyld.STREAMER_INFO, "
-               + " pyld.VERSION, pyld.OBJECT_TYPE, " + " pyld.DATA_SIZE from " + tablename + " iv "
+               + " pyld.VERSION, pyld.OBJECT_TYPE, " + " pyld.DATA_SIZE from " + iovtablename + " iv "
                + " LEFT JOIN " + payloadtablename + " pyld " + " ON iv.PAYLOAD_HASH=pyld.HASH "
                + " where iv.TAG_NAME=? AND iv.SINCE>=COALESCE(" + "  (SELECT max(iov2.SINCE) FROM "
-               + tablename + " iov2 "
+               + iovtablename + " iov2 "
                + "  WHERE iov2.TAG_NAME=? AND iov2.SINCE<=? AND iov2.INSERTION_TIME<=? ),0)"
                + " AND iv.SINCE<=? AND iv.INSERTION_TIME<=? "
                + " ORDER BY iv.SINCE ASC, iv.INSERTION_TIME DESC";

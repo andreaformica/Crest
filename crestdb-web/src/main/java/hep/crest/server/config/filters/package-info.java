@@ -5,4 +5,4 @@
  * @author aformic
  *
  */
-package hep.crest.server.filters;
+package hep.crest.server.config.filters;

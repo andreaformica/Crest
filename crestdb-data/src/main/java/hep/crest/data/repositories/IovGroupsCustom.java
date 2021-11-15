@@ -1,14 +1,13 @@
 /**
- * 
+ *
  */
 package hep.crest.data.repositories;
+
+import hep.crest.swagger.model.TagSummaryDto;
 
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
-
-import hep.crest.swagger.model.IovPayloadDto;
-import hep.crest.swagger.model.TagSummaryDto;
 
 /**
  * Interface for groups requests.
@@ -59,19 +58,5 @@ public interface IovGroupsCustom {
      * @return List<TagSummaryDto>
      */
     List<TagSummaryDto> getTagSummaryInfo(String tagname);
-
-    /**
-     * @param name
-     *            the String
-     * @param since
-     *            the BigDecimal
-     * @param until
-     *            the BigDecimal
-     * @param snapshot
-     *            the Date
-     * @return List<IovPayloadDto>
-     */
-    List<IovPayloadDto> getRangeIovPayloadInfo(String name, BigDecimal since, BigDecimal until,
-            Date snapshot);
 
 }

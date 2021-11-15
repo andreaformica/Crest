@@ -3,16 +3,13 @@
  */
 package hep.crest.data.monitoring.repositories;
 
-import hep.crest.data.config.CrestProperties;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Payload;
 import hep.crest.swagger.model.PayloadTagInfoDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
 
 import javax.persistence.Table;
 import javax.sql.DataSource;
@@ -22,7 +19,6 @@ import java.util.List;
 /**
  * @author formica
  */
-@Component
 public class JdbcMonitoringRepository implements IMonitoringRepository {
 
     /**
@@ -33,12 +29,28 @@ public class JdbcMonitoringRepository implements IMonitoringRepository {
     /**
      * The datasource.
      */
-    @Autowired
     private DataSource ds;
+    /**
+     * Default table name.
+     */
+    private String defaultTablename = null;
 
-    /** The props. */
-    @Autowired
-    private CrestProperties props;
+    /**
+     * @param ds the DataSource
+     */
+    public JdbcMonitoringRepository(DataSource ds) {
+        this.ds = ds;
+    }
+
+    /**
+     * @param defaultTablename the String
+     * @return
+     */
+    public void setDefaultTablename(String defaultTablename) {
+        if (this.defaultTablename == null) {
+            this.defaultTablename = defaultTablename;
+        }
+    }
 
     /*
      * (non-Javadoc)
@@ -72,7 +84,6 @@ public class JdbcMonitoringRepository implements IMonitoringRepository {
      * @return String
      */
     protected String payloadTable() {
-        String defaultTablename = ("none".equals(props.getSchemaname())) ? null : props.getSchemaname();
         final Table ann = Payload.class.getAnnotation(Table.class);
         String tablename = ann.name();
         if (defaultTablename != null) {
@@ -88,7 +99,6 @@ public class JdbcMonitoringRepository implements IMonitoringRepository {
      * @return String
      */
     protected String iovTable() {
-        String defaultTablename = ("none".equals(props.getSchemaname())) ? null : props.getSchemaname();
         final Table ann = Iov.class.getAnnotation(Table.class);
         String tablename = ann.name();
         if (defaultTablename != null) {
@@ -105,9 +115,9 @@ public class JdbcMonitoringRepository implements IMonitoringRepository {
      */
     protected String procname() {
         // Get the package name.
-        if (props.getSchemaname().isEmpty()) {
+        if (defaultTablename == null || defaultTablename.isEmpty()) {
             return "CREST_TOOLS";
         }
-        return props.getSchemaname() + ".CREST_TOOLS";
+        return defaultTablename + ".CREST_TOOLS";
     }
 }

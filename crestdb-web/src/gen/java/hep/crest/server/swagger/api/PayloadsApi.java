@@ -1,5 +1,6 @@
 package hep.crest.server.swagger.api;
 
+import hep.crest.server.annotations.CacheControlCdb;
 import hep.crest.swagger.model.*;
 import hep.crest.server.swagger.api.PayloadsApiService;
 
@@ -74,7 +75,7 @@ public class PayloadsApi  {
     }
     @GET
     @Path("/{hash}")
-    
+    @CacheControlCdb("public, max-age=604800")
     @Produces({ "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Finds a payload resource associated to the hash.", notes = "This method retrieves a payload resource.Arguments: hash=<hash> the hash of the payload", response = String.class, authorizations = {
         @io.swagger.annotations.Authorization(value = "BearerAuth")

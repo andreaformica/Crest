@@ -22,7 +22,7 @@ import hep.crest.data.runinfo.pojo.RunLumiInfo;
 import hep.crest.data.runinfo.repositories.RunLumiInfoRepository;
 import hep.crest.data.runinfo.repositories.querydsl.RunLumiInfoFiltering;
 import hep.crest.data.security.pojo.CrestFolders;
-import hep.crest.data.security.pojo.FolderRepository;
+import hep.crest.data.security.pojo.CrestFoldersRepository;
 import hep.crest.data.test.tools.DataGenerator;
 import hep.crest.swagger.model.PayloadDto;
 import org.junit.Before;
@@ -88,7 +88,7 @@ public class QueryDslTests {
     private RunLumiInfoRepository runrepository;
 
     @Autowired
-    private FolderRepository folderRepository;
+    private CrestFoldersRepository crestFoldersRepository;
 
     @Autowired
     @Qualifier("dataSource")
@@ -374,10 +374,10 @@ public class QueryDslTests {
     @Test
     public void testFolders() throws Exception {
         final CrestFolders folder = DataGenerator.generateFolder("MDTRT", "/MDT/RT", "COOLOFL_MDT");
-        folderRepository.save(folder);
+        crestFoldersRepository.save(folder);
         final CrestFolders folder1 = DataGenerator.generateFolder("MUONALIGNBARREL", "/MUONALIGN/MDT/BARREL",
                 "COOLOFL_MUONALIGN");
-        folderRepository.save(folder1);
+        crestFoldersRepository.save(folder1);
         final IFilteringCriteria filter = new FolderFiltering();
         final PageRequest preq = createPageRequest(0, 10, "nodeFullpath:ASC");
         log.info("Created folders in the db...{}", folder1);
@@ -393,8 +393,7 @@ public class QueryDslTests {
                 wherepred = wherepred.and(exp);
             }
         }
-        log.info("Loading folders using where pred {}", wherepred.toString());
-        final Page<CrestFolders> dtolist = folderRepository.findAll(wherepred, preq);
+        final Page<CrestFolders> dtolist = crestFoldersRepository.findAll(wherepred, preq);
         assertThat(dtolist.getSize()).isPositive();
 
     }

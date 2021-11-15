@@ -310,6 +310,17 @@ public class TestCrestPayload {
         final ResponseEntity<String> resp3 = this.testRestTemplate
                 .postForEntity("/crestapi/payloads/storebatch", request2, String.class);
         assertThat(resp3.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        // Now try some monitoring
+        log.info("Get payload monitoring for tag: {}", tagname);
+        final HttpHeaders headersmon = new HttpHeaders();
+        headers.add("X-Crest-PayloadFormat", "JSON");
+        final HttpEntity<?> entity = new HttpEntity<>(headersmon);
+        final ResponseEntity<String> respmon = this.testRestTemplate.exchange(
+                "/crestapi/monitoring/payloads?tagname=" + tagname, HttpMethod.GET, entity, String.class);
+        log.info("Received response: " + respmon);
+        assertThat(respmon.getStatusCode()).isGreaterThanOrEqualTo(HttpStatus.OK);
+
         log.info("============ END of testC_payloadIovApi ===========");
     }
 

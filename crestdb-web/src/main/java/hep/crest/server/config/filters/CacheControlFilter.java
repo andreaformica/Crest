@@ -1,18 +1,16 @@
-package hep.crest.server.filters;
+package hep.crest.server.config.filters;
 
-import java.io.IOException;
-import java.lang.annotation.Annotation;
+import hep.crest.server.annotations.CacheControlCdb;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.ext.Provider;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import hep.crest.server.annotations.CacheControlCdb;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
 
 /**
  * @author formica
@@ -41,7 +39,9 @@ public class CacheControlFilter implements ContainerResponseFilter {
     @Override
     public void filter(ContainerRequestContext pRequestContext,
             ContainerResponseContext pResponseContext) throws IOException {
+        log.debug("CacheControlFilter processing context entity annotations");
         for (final Annotation a : pResponseContext.getEntityAnnotations()) {
+            log.debug("Found annotation {}", a);
             if (a.annotationType() == CacheControlCdb.class) {
                 final String value = ((CacheControlCdb) a).value();
                 log.debug("CacheControl will be set to {}", value);

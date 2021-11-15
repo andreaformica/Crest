@@ -183,8 +183,18 @@ sonarqube {
         property "sonar.projectKey", "crest"
         property "sonar.projectName", "crest"
         property "sonar.junit.reportPaths", "build/test-results/test"
-        property 'sonar.coverage.exclusions', "**/hep/crest/swagger/model/*"
-        property "sonar.exclusions", "**/hep/crest/swagger/model/*,**/hep/crest/server/swagger/api/*,**/hep/crest/data/dialect/*"
+        property 'sonar.coverage.exclusions', "**/hep/crest/swagger/model/*" +
+                "**/hep/crest/server/swagger/api/*,**/hep/crest/data/dialect/*," +
+                "**/hep/crest/data/pojo/*,**/hep/crest/server/security/*," +
+                "**/hep/crest/server/autoconfig/*," +
+                "**/hep/crest/server/config/BuilderPropertyResolver.java," +
+                "**/hep/crest/data/ApplicationData*"
+        property "sonar.exclusions", "**/hep/crest/swagger/model/*," +
+                "**/hep/crest/server/swagger/api/*,**/hep/crest/data/dialect/*," +
+                "**/hep/crest/data/pojo/*,**/hep/crest/server/security/*," +
+                "**/hep/crest/server/autoconfig/*," +
+                "**/hep/crest/server/config/BuilderPropertyResolver.java," +
+                "**/hep/crest/data/ApplicationData*"
     }
 }
 

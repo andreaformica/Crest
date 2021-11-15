@@ -197,6 +197,7 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
             if (!oidlist.isEmpty()) {
                 Long oid = oidlist.get(0);
                 bhandler.updateLargeObjectId(conn, sis, oid);
+                return 1;
             }
         }
         catch (final DataAccessException | SQLException e) {

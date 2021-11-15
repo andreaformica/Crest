@@ -182,12 +182,12 @@ public class DataGenerator {
 
     public static CrestFolders generateFolder(String name, String fullpath, String schema) {
         final CrestFolders entity = new CrestFolders();
-        entity.setSchemaName(schema);
-        entity.setNodeFullpath(fullpath);
-        entity.setNodeName(name);
-        entity.setTagPattern(name+"-MY-TEST");
-        entity.setNodeDescription("Some node");
-        entity.setGroupRole("TEST");
+        entity.schemaName(schema);
+        entity.nodeFullpath(fullpath);
+        entity.nodeName(name);
+        entity.tagPattern(name+"-MY-TEST");
+        entity.nodeDescription("Some node");
+        entity.groupRole("TEST");
         return entity;
     }
 

@@ -1,10 +1,9 @@
 package hep.crest.server.config;
 
-import hep.crest.server.filters.CORSFilter;
-import hep.crest.server.filters.CacheControlFilter;
+import hep.crest.server.config.filters.CORSFilter;
+import hep.crest.server.config.filters.CacheControlFilter;
 import hep.crest.server.swagger.api.AdminApi;
 import hep.crest.server.swagger.api.FoldersApi;
-import hep.crest.server.swagger.api.FsApi;
 import hep.crest.server.swagger.api.GlobaltagmapsApi;
 import hep.crest.server.swagger.api.GlobaltagsApi;
 import hep.crest.server.swagger.api.IovsApi;
@@ -37,10 +36,10 @@ public class JerseyConfig extends ResourceConfig {
         super.register(AdminApi.class);
         super.register(GlobaltagsApi.class);
         super.register(TagsApi.class);
+        super.register(FoldersApi.class);
         super.register(GlobaltagmapsApi.class);
         super.register(IovsApi.class);
         super.register(PayloadsApi.class);
-        super.register(FsApi.class);
         super.register(RuninfoApi.class);
         super.register(MonitoringApi.class);
         super.register(FoldersApi.class);

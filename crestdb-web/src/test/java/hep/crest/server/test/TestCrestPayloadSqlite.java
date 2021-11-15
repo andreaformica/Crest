@@ -208,6 +208,7 @@ public class TestCrestPayloadSqlite {
     @Test
     public void testA_payloadIovApi() throws Exception {
         log.info("============ testA_payloadIovApi ===========");
+        final String tagname = "SB-TAG-PYLD-01";
         final TagDto dto = DataGenerator.generateTagDto("SB-TAG-PYLD-01", "run");
         log.info("Store tag for payload request: {}", dto);
         final ResponseEntity<TagDto> response = this.testRestTemplate
@@ -219,7 +220,6 @@ public class TestCrestPayloadSqlite {
 
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        final String tagname = "SB-TAG-PYLD-01";
         final MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
         map.add("file", new String(bindata));
         map.add("since", "1000000");
@@ -277,6 +277,12 @@ public class TestCrestPayloadSqlite {
         final ResponseEntity<String> resp3 = this.testRestTemplate
                 .postForEntity(apiname + "/payloads/storebatch", request2, String.class);
         assertThat(resp3.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        final ResponseEntity<String> resp4 = this.testRestTemplate
+                .exchange(apiname + "/iovs/selectGroups?tagname=" + tagname, HttpMethod.GET, null, String.class);
+        log.info("Received response: " + resp4);
+        assertThat(resp4.getStatusCode()).isGreaterThanOrEqualTo(HttpStatus.OK);
+
         log.info("============ END of testA_payloadIovApi ===========");
     }
 

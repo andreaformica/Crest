@@ -10,15 +10,8 @@ import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.PayloadEncodingException;
 import hep.crest.data.handlers.DateFormatterHandler;
 import hep.crest.data.handlers.HashGenerator;
-import hep.crest.data.pojo.Iov;
-import hep.crest.data.pojo.Tag;
-import hep.crest.data.repositories.IovDirImpl;
-import hep.crest.data.repositories.TagDirImpl;
 import hep.crest.data.test.tools.DataGenerator;
-import hep.crest.data.utils.DirectoryUtilities;
 import hep.crest.data.utils.RunIovConverter;
-import hep.crest.swagger.model.IovDto;
-import hep.crest.swagger.model.TagDto;
 import ma.glasnost.orika.MapperFacade;
 import org.joda.time.Instant;
 import org.junit.Before;
@@ -72,122 +65,6 @@ public class ToolsTests {
                 e.printStackTrace();
             }
         }
-    }
-
-    @Test
-    public void testDirectoryTools() throws Exception {
-        final DirectoryUtilities dirutils = new DirectoryUtilities();
-        assertThat(dirutils.getBasePath()).startsWithRaw(Paths.get("/tmp"));
-
-        final Path mtagpath = Paths.get(dirutils.getBasePath().toString(), "MANUAL-TAG");
-        Files.createDirectories(mtagpath);
-        log.info("Created tag directory manually : MANUAL-TAG");
-        try {
-            dirutils.getTagFilePath(dirutils.getBasePath().toString(), "MANUAL-TAG");
-        }
-        catch (final AbstractCdbServiceException e) {
-            log.info("Cannot find the tag file for MANUAL-TAG");
-        }
-        try {
-            dirutils.getIovFilePath(dirutils.getBasePath().toString(), "MANUAL-TAG");
-        }
-        catch (final AbstractCdbServiceException e) {
-            log.info("Cannot find the iov file for MANUAL-TAG");
-        }
-        try {
-            dirutils.createIfNotexistsIov(dirutils.getBasePath().toString(), "MANUAL-TAG-2");
-        }
-        catch (final AbstractCdbServiceException e) {
-            log.info("Cannot find the iov file for MANUAL-TAG");
-        }
-        final Path base = dirutils.getBasePath("/tmp/cdms/pippo");
-        assertThat(base).isNotNull();
-
-        assertThat(dirutils.getTagfile()).isEqualTo("tag.json"); // Should be true
-        assertThat(dirutils.getIovfile()).isEqualTo("iovs.json"); // Should be true
-        dirutils.createIfNotexistsTag("MY-TAG");
-        log.info("Created tag : MY-TAG");
-        final Path tp = dirutils.getTagFilePath("MY-TAG");
-        log.info("Retrieved file path for tag : {}", tp);
-        assertThat(tp.endsWith("tag.json")).isTrue();
-
-        dirutils.createIfNotexistsTag("MY-TAG-01");
-        log.info("Created tag : MY-TAG-01");
-        final List<String> dirs = dirutils.getTagDirectories();
-        assertThat(dirs.size()).isGreaterThan(1);
-
-        final Path basedir = dirutils.getBasePath();
-        log.info("Base dir path is {}", basedir);
-
-        dirutils.createIfNotexistsIov("MY-TAG");
-        final Path ip = dirutils.getIovFilePath("MY-TAG");
-        assertThat(ip.endsWith("iovs.json")).isTrue();
-
-        final Path payloadpath = dirutils.getPayloadPath();
-        final Path tagpath = dirutils.getTagPath("MY-TAG");
-        log.info("Payload path is {}", payloadpath);
-        log.info("Tag path is {}", tagpath);
-
-        if (!dirutils.existsFile(payloadpath, "testhash.blob")) {
-            final Path filepath = Paths.get(payloadpath.toString(), "testhash.blob");
-            Files.createFile(filepath);
-        }
-        assertThat(dirutils.existsFile(payloadpath, "testhash.blob")).isTrue();
-
-        dirutils.createTarFile(dirutils.getBasePath().toString(), "/tmp/cdms/alltagtar");
-    }
-
-    @Test
-    public void testDirectoryImpl() throws Exception {
-        final DirectoryUtilities dirutils = new DirectoryUtilities();
-        assertThat(dirutils.getBasePath()).startsWithRaw(Paths.get("/tmp"));
-        assertThat(dirutils.getTagfile()).isEqualTo("tag.json"); // Should be true
-        assertThat(dirutils.getIovfile()).isEqualTo("iovs.json"); // Should be true
-        dirutils.createIfNotexistsTag("MY-NEW-TAG");
-        log.info("Created tag : MY-NEW-TAG");
-        final Path tp = dirutils.getTagFilePath("MY-NEW-TAG");
-        log.info("Retrieved file path for tag : {}", tp);
-        assertThat(tp).endsWithRaw(Paths.get("tag.json"));
-
-        final TagDirImpl fstagrepository = new TagDirImpl(dirutils, mapper);
-        final TagDto tag = DataGenerator.generateTagDto("MY-TAG-01", "time");
-        Tag entity = mapper.map(tag, Tag.class);
-        fstagrepository.save(entity);
-        try {
-            tag.name(null);
-            fstagrepository.save(entity);
-        }
-        catch (final RuntimeException e) {
-            log.info("Cannot store tag");
-        }
-
-        final IovDirImpl fsiovrepository = new IovDirImpl(dirutils, mapper);
-        final IovDto iov = DataGenerator.generateIovDto("mydirhash", "MY-TAG-01",
-                new BigDecimal(1000L));
-        Iov ientity = mapper.map(iov, Iov.class);
-        ientity.id().tagName(iov.getTagName());
-
-        fsiovrepository.save(ientity);
-        final List<Iov> iovlist = fsiovrepository.findByIdTagName("MY-TAG-01");
-        assertThat(iovlist.size()).isPositive();
-        try {
-            final List<Iov> iovemptylist = fsiovrepository.findByIdTagName("MY-TAG-02");
-            assertThat(iovemptylist.size()).isZero();
-        }
-        catch (final AbstractCdbServiceException e) {
-            log.error("Cannot find tag MY-TAG-02");
-        }
-        final IovDto iov1 = DataGenerator.generateIovDto("mydirhash", "MY-TAG-01",
-                new BigDecimal(1000L));
-        iov1.tagName(null);
-        Iov ientity1 = mapper.map(iov1, Iov.class);
-        ientity1.id().tagName(iov1.getTagName());
-
-        final Iov saved1 = fsiovrepository.save(ientity1);
-        assertThat(saved1).isNull();
-
-        fsiovrepository.saveAll("MY-TAG", null);
-        fsiovrepository.findByIdTagName(null);
     }
 
     @Test

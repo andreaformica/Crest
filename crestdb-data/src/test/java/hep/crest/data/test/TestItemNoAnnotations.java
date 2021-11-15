@@ -1,32 +1,26 @@
 package hep.crest.data.test;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import hep.crest.data.serializers.ByteArrayDeserializer;
-import hep.crest.data.serializers.DateSerializer;
-import hep.crest.data.serializers.TimestampDeserializer;
-import hep.crest.data.serializers.TimestampSerializer;
 
 import java.sql.Timestamp;
+import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.Date;
 
-public class TestItem {
+public class TestItemNoAnnotations {
 
     @JsonDeserialize(using = ByteArrayDeserializer.class)
     private byte[] data;
-    @JsonDeserialize(using = TimestampDeserializer.class)
-    @JsonSerialize(using = TimestampSerializer.class)
+    private OffsetDateTime modtime;
     private Timestamp instime;
-    
-    @JsonSerialize(using = DateSerializer.class)
     private Date insdate;
-
     private String name;
 
     /**
-     * 
+     *
      */
-    public TestItem() {
+    public TestItemNoAnnotations() {
     }
 
     public byte[] getData() {
@@ -65,5 +59,24 @@ public class TestItem {
      */
     public void setInsdate(Date insdate) {
         this.insdate = insdate;
+    }
+
+    public OffsetDateTime getModtime() {
+        return modtime;
+    }
+
+    public void setModtime(OffsetDateTime modtime) {
+        this.modtime = modtime;
+    }
+
+    @Override
+    public String toString() {
+        return "TestItemNoAnnotations{" +
+               "data=" + Arrays.toString(data) +
+               ", modtime=" + modtime +
+               ", instime=" + instime +
+               ", insdate=" + insdate +
+               ", name='" + name + '\'' +
+               '}';
     }
 }

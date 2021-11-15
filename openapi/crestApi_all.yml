@@ -12,7 +12,6 @@ security:
 tags:
   - name: admin
   - name: folders
-  - name: fs
   - name: globaltagmaps
   - name: globaltags
   - name: tags
@@ -27,10 +26,6 @@ paths:
     $ref: 'crestdb_adminapi.yml#/paths/~1admin~1globaltags~1{name}'
   /admin/tags/{name}:
     $ref: 'crestdb_adminapi.yml#/paths/~1admin~1tags~1{name}'
-  /fs/tar:
-    $ref: 'crestdb_adminapi.yml#/paths/~1fs~1tar'
-  /fs/tag:
-    $ref: 'crestdb_adminapi.yml#/paths/~1fs~1tag'
   /folders:
     $ref: 'crestdb_adminapi.yml#/paths/~1folders'
   # globaltagmaps
