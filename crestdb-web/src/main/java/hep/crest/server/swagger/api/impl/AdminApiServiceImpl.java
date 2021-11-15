@@ -1,6 +1,5 @@
 package hep.crest.server.swagger.api.impl;
 
-import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.CdbSQLException;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.GlobalTagMap;
@@ -17,10 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
-import javax.validation.ConstraintViolationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -65,6 +62,12 @@ public class AdminApiServiceImpl extends AdminApiService {
     private GlobalTagMapService globalTagMapService;
 
     /**
+     * Service.
+     */
+    @Autowired
+    private GlobalTagMapService globalTagMapService;
+
+    /**
      * Mapper.
      */
     @Autowired
@@ -99,6 +102,7 @@ public class AdminApiServiceImpl extends AdminApiService {
     public Response removeTag(String name, SecurityContext securityContext, UriInfo info) {
         log.info("AdminRestController processing request for removing a tag");
         // Remove the tag with name.
+        Tag removableTag = tagService.findOne(name);
         Iterable<GlobalTagMap> assgt = globalTagMapService.getTagMapByTagName(name);
         if (assgt.iterator().hasNext()) {
             log.error("Cannot remove tag {}", name);
