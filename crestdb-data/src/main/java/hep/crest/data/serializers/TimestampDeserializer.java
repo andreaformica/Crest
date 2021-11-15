@@ -58,7 +58,7 @@ public class TimestampDeserializer extends JsonDeserializer<Timestamp> {
     public Timestamp deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         log.debug("Use private version of deserializer....{}", handler.getLocformatter());
         final String tstampstr = jp.getText();
-        log.info("try to decode string {} to timestamp", tstampstr);
+        log.debug("try to decode string {} to timestamp", tstampstr);
         return handler.format(tstampstr);
     }
 }

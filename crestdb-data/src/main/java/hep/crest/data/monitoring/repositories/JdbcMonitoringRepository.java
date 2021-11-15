@@ -57,9 +57,10 @@ public class JdbcMonitoringRepository implements IMonitoringRepository {
                   + ".data_size) as avg_volume FROM " + this.payloadTable() + " pl, " + this.iovTable() + " iv "
                   + " WHERE iv.TAG_NAME like ? AND iv.PAYLOAD_HASH=pl.HASH group by iv.TAG_NAME order by iv.TAG_NAME";
             log.debug("Execute query {} using {}", sql, tagpattern);
-            return jdbcTemplate.query(sql, new PayloadInfoMapper(), new Object[]{tagpattern});
+            return jdbcTemplate.query(sql, new PayloadInfoMapper(), tagpattern);
         }
         catch (final EmptyResultDataAccessException e) {
+            // No result, log the error.
             log.error("Cannot find tag information for pattern {}: {}", tagpattern, e);
         }
         return new ArrayList<>();
@@ -98,11 +99,12 @@ public class JdbcMonitoringRepository implements IMonitoringRepository {
     }
 
     /**
-     * Procname.
+     * Procname. Use stored procedures.
      *
      * @return the string
      */
     protected String procname() {
+        // Get the package name.
         if (props.getSchemaname().isEmpty()) {
             return "CREST_TOOLS";
         }

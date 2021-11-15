@@ -81,6 +81,7 @@ public class TestCrestPayload {
 
     @Test
     public void testA_payloadApi() throws Exception {
+        log.info("============ testA_payloadApi ===========");
         final PayloadDto dto = DataGenerator.generatePayloadDto("afakehashp01", "some data",
                 "some info", "test");
         log.info("Store payload : {}", dto);
@@ -155,11 +156,13 @@ public class TestCrestPayload {
             log.info("Updated meta payload {} ", dto1.getHash());
             assertThat(resp5.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
-
+        log.info("============ END of testA_payloadApi ===========");
     }
     
     @Test
-    public void testA_payloadfail() {
+    public void testB_payloadfail() {
+        log.info("============ testB_payloadfail ===========");
+
         final PayloadDto dto = DataGenerator.generatePayloadDto("afakehashp01", "some data",
                 "some info", "test");
         dto.hash(null);
@@ -197,12 +200,13 @@ public class TestCrestPayload {
                 "/crestapi/payloads/" + hash+"/meta", HttpMethod.GET, entity, String.class);
         log.info("Received response: " + resp4);
         assertThat(resp4.getStatusCode()).isGreaterThanOrEqualTo(HttpStatus.OK);
-
+        log.info("============ END of testB_payloadfail ===========");
     }
     
 
     @Test
-    public void testA_payloadIovApi() throws Exception {
+    public void testC_payloadIovApi() throws Exception {
+        log.info("============ testC_payloadIovApi ===========");
         final TagDto dto = DataGenerator.generateTagDto("SB-TAG-PYLD-10", "run");
         log.info("Store tag for payload request: {}", dto);
         final ResponseEntity<TagDto> response = this.testRestTemplate
@@ -210,7 +214,7 @@ public class TestCrestPayload {
         log.info("Received response: " + response);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
-        final byte[] bindata = new String("This is yet another fake payload").getBytes();
+        final byte[] bindata = "This is yet another fake payload".getBytes();
 
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
@@ -258,13 +262,14 @@ public class TestCrestPayload {
                 .postForEntity("/crestapi/payloads/store", request3a, String.class);
 
         log.info("Upload request gave response: {}", resp3a);
-        assertThat(resp3a.getStatusCode()).isGreaterThan(HttpStatus.OK);
+        assertThat(resp3a.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 
         // Upload batch using external files
         final IovDto iovdto1 = DataGenerator.generateIovDto("file:///tmp/pyld1.json", tagname, new BigDecimal(2000000L));
         final IovDto iovdto2 = DataGenerator.generateIovDto("file:///tmp/pyld2.json", tagname, new BigDecimal(2100000L));
         final IovSetDto setdto = new IovSetDto();
         setdto.size(2L);
+        setdto.datatype("JSON"); // required or to be provided in the FORM below.
         setdto.addResourcesItem(iovdto1).addResourcesItem(iovdto2);
         
         DataGenerator.generatePayloadData("/tmp/pyld1.json", "some content for file1");
@@ -289,6 +294,7 @@ public class TestCrestPayload {
         final IovDto iovdto4 = DataGenerator.generateIovDto("This will become another payload", tagname, new BigDecimal(3100000L));
         final IovSetDto setdto2 = new IovSetDto();
         setdto2.size(2L);
+        setdto2.datatype("JSON");
         setdto2.addResourcesItem(iovdto3).addResourcesItem(iovdto4);
        
         log.info("Upload batch: {}", setdto2);
@@ -296,6 +302,7 @@ public class TestCrestPayload {
         final MultiValueMap<String, Object> map2 = new LinkedMultiValueMap<String, Object>();
         map2.add("endtime", "0");
         map2.add("tag", tagname);
+        map2.add("objectType", "JSON");
         final String jsonset2 = mapper.writeValueAsString(setdto2);
         map2.add("iovsetupload", jsonset2);
         final HttpEntity<MultiValueMap<String, Object>> request2 = new HttpEntity<MultiValueMap<String, Object>>(
@@ -303,7 +310,7 @@ public class TestCrestPayload {
         final ResponseEntity<String> resp3 = this.testRestTemplate
                 .postForEntity("/crestapi/payloads/storebatch", request2, String.class);
         assertThat(resp3.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        
+        log.info("============ END of testC_payloadIovApi ===========");
     }
 
 }

@@ -97,22 +97,15 @@ public class TagSecurityAspect {
             if (user instanceof KeycloakPrincipal) {
                 KeycloakPrincipal<KeycloakSecurityContext> kp = (KeycloakPrincipal<KeycloakSecurityContext>) user;
                 // Use IDToken in Svom
-                //IDToken token = kp.getKeycloakSecurityContext().getIdToken();
+                // This work only for SVOM: kp.getKeycloakSecurityContext().getIdToken()
                 // Use AccessToken with CERN crest implementation
+                // example: kp.getKeycloakSecurityContext().getToken()
                 log.info("Keycloak principal: {}", kp);
                 AccessToken token = kp.getKeycloakSecurityContext().getToken();
                 log.debug("Found token : token {}!", token);
                 if (token != null) {
                     log.debug("Got token for {}", token.getAudience()[0]);
-                    Map<String, Object> otherClaims = token.getOtherClaims();
-                    if (otherClaims != null) {
-                        for (String key : otherClaims.keySet()) {
-                            log.info("Found claim : {} = {}", key, otherClaims.get(key));
-                            if ("clientId".equals(key)) {
-                                clientid = (String) otherClaims.get(key);
-                            }
-                        }
-                    }
+                    clientid = getClientId(token.getOtherClaims());
                 }
             }
             log.info("Tag insertion should verify the role for user : {} with clientid {}",
@@ -130,6 +123,25 @@ public class TagSecurityAspect {
                 roles.stream()
 //                        .filter(s -> s.getAuthority().startsWith("ATLAS-CONDITIONS"))
                         .forEach(s -> log.debug("Selected role is {}", s.getAuthority()));
+            }
+        }
+        return clientid;
+    }
+
+    /**
+     * Get the client ID from other claims.
+     *
+     * @param otherClaims
+     * @return String
+     */
+    protected String getClientId(Map<String, Object> otherClaims) {
+        String clientid = "TEST";
+        if (otherClaims != null) {
+            for (Map.Entry entry : otherClaims.entrySet()) {
+                log.info("Found claim : {} ", entry);
+                if ("clientId".equals(entry.getKey())) {
+                    clientid = (String) entry.getValue();
+                }
             }
         }
         return clientid;

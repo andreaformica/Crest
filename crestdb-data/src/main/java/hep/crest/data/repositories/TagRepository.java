@@ -11,11 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author formica
- *
+ * This repository is for the moment empty.
  */
 @Transactional(readOnly = true)
 @Repository
 public interface TagRepository
         extends PagingAndSortingRepository<Tag, String>, QuerydslPredicateExecutor<Tag>, ITagQuery {
-
+    // No specific methods implemented.
 }

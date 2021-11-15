@@ -22,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.NotAuthorizedException;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.Map;
 
@@ -87,24 +88,40 @@ public class IovSynchroAspect {
             log.warn("synchronization checks are disabled in this configuration....");
             acceptTime = true;
         }
-        else if (allowedOperation) {
+        else if (Boolean.TRUE.equals(allowedOperation)) {
             // Synchronization aspect is enabled.
             Tag tagentity = null;
             tagentity = tagService.findOne(entity.tag().name());
             // Get synchro type from tag.
-            final String synchro = tagentity.synchronization();
-            // Synchro for single version type. Can only append IOVs.
-            if ("SV".equalsIgnoreCase(synchro)) {
+            acceptTime = evaluateCondition(tagentity, entity);
+        }
+        if (acceptTime && allowedOperation) {
+            retVal = pjp.proceed();
+        }
+        else {
+            log.warn("Not authorized, either you cannot write in this tag or synchro type is wrong: auth={} "
+                     + "synchro={}", allowedOperation, acceptTime);
+            throw new NotAuthorizedException("You cannot write iov {}", entity);
+        }
+        return retVal;
+    }
+
+    /**
+     * Method to evaluate condition based on Tag synchronization type.
+     * For the moment we always accept insertions. This shall change.
+     *
+     * @param tagentity the tag
+     * @param entity the iov
+     * @return Boolean : True if the Iov should be accepted for insertion. False otherwise.
+     */
+    protected boolean evaluateCondition(Tag tagentity, Iov entity) {
+        final String synchro = tagentity.synchronization();
+        Boolean acceptTime = Boolean.FALSE;
+        Iov latest = iovService.latest(tagentity.name(), "now", "ms");
+        switch (synchro) {
+            case "SV":
                 log.warn("Can only append IOVs....");
-                Iov latest = null;
-                // Get latest IOV.
-                latest = iovService.latest(tagentity.name(), "now", "ms");
-                if (latest == null) {
-                    // No latest is present.
-                    log.info("No iov could be retrieved");
-                    acceptTime = true;
-                }
-                else if (latest.id().since().compareTo(entity.id().since()) <= 0) {
+                if (latest == null || latest.id().since().compareTo(entity.id().since()) <= 0) {
                     // Latest is before the new one.
                     log.info("IOV in insert has correct time respect to last IOV : {} > {}", entity, latest);
                     acceptTime = true;
@@ -114,27 +131,26 @@ public class IovSynchroAspect {
                     log.warn("IOV in insert has WRONG time respect to last IOV : {} < {}", entity, latest);
                     acceptTime = false;
                 }
-            }
-            else {
+                break;
+            case "APPEND":
+                log.warn("Can append data in case the since is after the end time of the tag");
+                BigDecimal endofval = tagentity.endOfValidity();
+                if (endofval  == null || endofval.compareTo(entity.id().since()) <= 0) {
+                    log.info("The since is after end of validity of the Tag");
+                    acceptTime = true;
+                }
+                break;
+            default:
                 // Nothing here, synchro type is not implemented.
                 log.debug("Synchro type not found....Insertion is accepted by default");
                 acceptTime = true;
-                // throw new NotFoundException("Cannot find synchro type " + synchro);
-            }
+                break;
         }
-        if (acceptTime && allowedOperation) {
-            retVal = pjp.proceed();
-        }
-        else {
-            log.warn("Not authorized, either you cannot write in this tag or synchro type is wrong: auth={} "
-                     + "synchro={}", allowedOperation, acceptTime);
-            throw new NotAuthorizedException("You cannot write iov in tag " + entity.tag().name());
-        }
-        return retVal;
+        return acceptTime;
     }
 
     /**
-     *
+     * Get the user ID.
      * @param auth
      * @return String
      */
@@ -144,28 +160,42 @@ public class IovSynchroAspect {
         if (auth == null) {
             // No authentication is present. It will be used to reject the request.
             log.warn(
-                    "Stop execution....for the moment it only print this message...no action is taken");
+                    "Stop execution....for the moment we only print this message...no action is taken");
         }
         else {
             // Retrieve user details.
             final Principal user = (Principal) auth.getPrincipal();
             if (user instanceof KeycloakPrincipal) {
                 KeycloakPrincipal<KeycloakSecurityContext> kp = (KeycloakPrincipal<KeycloakSecurityContext>) user;
-                //IDToken token = kp.getKeycloakSecurityContext().getIdToken();
+                // Use IDToken in Svom
+                // This work only for SVOM: kp.getKeycloakSecurityContext().getIdToken()
+                // Use AccessToken with CERN crest implementation
+                // example: kp.getKeycloakSecurityContext().getToken()
                 log.info("Keycloak principal: {}", kp);
                 AccessToken token = kp.getKeycloakSecurityContext().getToken();
                 log.debug("Found token : token {}!", token);
                 if (token != null) {
                     log.debug("Got token for {}", token.getAudience()[0]);
-                    Map<String, Object> otherClaims = token.getOtherClaims();
-                    if (otherClaims != null) {
-                        for (String key : otherClaims.keySet()) {
-                            log.info("Found claim : {} = {}", key, otherClaims.get(key));
-                            if ("clientId".equals(key)) {
-                                clientid = (String) otherClaims.get(key);
-                            }
-                        }
-                    }
+                    clientid = getClientId(token.getOtherClaims());
+                }
+            }
+        }
+        return clientid;
+    }
+
+    /**
+     * Get the client ID from other claims.
+     *
+     * @param otherClaims
+     * @return String
+     */
+    protected String getClientId(Map<String, Object> otherClaims) {
+        String clientid = "TEST";
+        if (otherClaims != null) {
+            for (Map.Entry entry : otherClaims.entrySet()) {
+                log.info("Found claim : {} ", entry);
+                if ("clientId".equals(entry.getKey())) {
+                    clientid = (String) entry.getValue();
                 }
             }
         }

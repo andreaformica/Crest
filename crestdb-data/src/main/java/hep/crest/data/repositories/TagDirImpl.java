@@ -1,7 +1,9 @@
 package hep.crest.data.repositories;
 
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbInternalException;
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.CdbNotFoundException;
+import hep.crest.data.exceptions.CdbSQLException;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.utils.DirectoryUtilities;
 import hep.crest.swagger.model.TagDto;
@@ -59,21 +61,27 @@ public class TagDirImpl implements ITagCrud {
     public Tag save(Tag entity) {
         final String tagname = entity.name();
         try {
+            // Create the tag directory if it does not exists.
             final Path tagpath = dirtools.createIfNotexistsTag(tagname);
             if (tagpath != null) {
+                // Remove tag file if exists.
                 final Path filepath = Paths.get(tagpath.toString(), dirtools.getTagfile());
                 Files.deleteIfExists(filepath);
+                // Create tag file if does not exists.
                 if (!filepath.toFile().exists()) {
                     Files.createFile(filepath);
                 }
+                // Map to dto.
                 TagDto dto = mapper.map(entity, TagDto.class);
                 final String jsonstr = dirtools.getMapper().writeValueAsString(dto);
+                // Write the tag file using the json serialization.
                 writeTagFile(jsonstr, filepath);
                 return entity;
             }
         }
         catch (final RuntimeException | IOException x) {
-            log.error("Cannot save tag {} : {}", entity, x.getMessage());
+            log.error("Cannot save tag {}", entity);
+            throw new CdbSQLException("Cannot save tag entity " + entity.name(), x);
         }
         return null;
     }
@@ -92,15 +100,14 @@ public class TagDirImpl implements ITagCrud {
             log.debug("findByName uses tag file path {}", tagfilepath);
             return readTagFile(tagfilepath);
         }
-        catch (CdbServiceException e) {
-            log.error("Error in findByName using tag {}: {}", name, e.getMessage());
+        catch (AbstractCdbServiceException e) {
+            log.error("Error in findByName using tag {}", name);
+            throw new CdbNotFoundException("Error in finding tag by name " + name, e);
         }
-        return null;
     }
 
     /**
      * @param id the String
-     * @return
      */
     @Override
     public void deleteById(String id) {
@@ -124,6 +131,7 @@ public class TagDirImpl implements ITagCrud {
     @Override
     public List<Tag> findByNameLike(String name) {
         final List<String> filteredByNameList;
+        // Search in the tag directories for names matching the input string.
         filteredByNameList = dirtools.getTagDirectories().stream().filter(x -> x.matches(name))
                 .collect(Collectors.toList());
         return filteredByNameList.stream().map(this::findOne).collect(Collectors.toList());
@@ -132,7 +140,7 @@ public class TagDirImpl implements ITagCrud {
     /**
      * Find all tags in the backend.
      *
-     * @return
+     * @return List of tags.
      */
     @Override
     public List<Tag> findAll() {
@@ -156,6 +164,7 @@ public class TagDirImpl implements ITagCrud {
      */
     protected Tag readTagFile(Path tagfilepath) {
         final StringBuilder buf = new StringBuilder();
+        // Open a buffered reader and start reading tag file.
         try (BufferedReader reader = Files.newBufferedReader(tagfilepath, dirtools.getCharset())) {
             String line = null;
             while ((line = reader.readLine()) != null) {
@@ -164,22 +173,23 @@ public class TagDirImpl implements ITagCrud {
             }
             final String jsonstring = buf.toString();
             final TagDto readValue = dirtools.getMapper().readValue(jsonstring, TagDto.class);
+            // Create an entity from a Dto.
             final Tag entity = mapper.map(readValue, Tag.class);
             log.debug("Parsed json to get tag object {} ", entity);
             return entity;
         }
         catch (final IOException e) {
-            log.error("Error in reading tag file from path {}: {}", tagfilepath, e.getMessage());
+            log.error("Error in reading tag file from path {}", tagfilepath);
+            throw new CdbInternalException("Error reading tag file " + tagfilepath, e);
         }
-        return null;
     }
 
     /**
      * @param jsonstr  the String
      * @param filepath the Path
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
-    protected void writeTagFile(String jsonstr, Path filepath) throws CdbServiceException {
+    protected void writeTagFile(String jsonstr, Path filepath) throws AbstractCdbServiceException {
         try (BufferedWriter writer = Files.newBufferedWriter(filepath, dirtools.getCharset())) {
             writer.write(jsonstr);
         }

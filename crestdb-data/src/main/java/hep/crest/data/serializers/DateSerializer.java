@@ -82,6 +82,7 @@ public class DateSerializer extends JsonSerializer<Date> {
      */
     protected String format(Date ts) {
         final Instant fromEpochMilli = Instant.ofEpochMilli(ts.getTime());
+        // Use Z as zonedate time to represent UTC.
         final ZonedDateTime zdt = fromEpochMilli.atZone(ZoneId.of("Z"));
         return zdt.format(getLocformatter());
     }
@@ -93,12 +94,15 @@ public class DateSerializer extends JsonSerializer<Date> {
         if (this.locFormatter != null) {
             return locFormatter;
         }
+        // Set formatter to ISO_OFFSET_DATE_TIME.
         if ("ISO_OFFSET_DATE_TIME".equals(pattern)) {
             locFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
         }
+        // Set formatter to ISO_LOCAL_DATE_TIME.
         else if ("ISO_LOCAL_DATE_TIME".equals(pattern)) {
             locFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
         }
+        // Set formatter to pattern.
         else {
             locFormatter = DateTimeFormatter.ofPattern(pattern);
         }

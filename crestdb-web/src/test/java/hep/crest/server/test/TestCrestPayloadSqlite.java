@@ -84,7 +84,8 @@ public class TestCrestPayloadSqlite {
 
     @Test
     public void testA_payloadApi() throws Exception {
-        final PayloadDto dto = DataGenerator.generatePayloadDto("afakehashp01", "some data",
+        log.info("============ testA_payloadApi ===========");
+        final PayloadDto dto = DataGenerator.generatePayloadDto("sqliteafakehashp01", "some data",
                 "some info", "test");
         log.info("Store payload : {}", dto);
         final ResponseEntity<PayloadDto> response = this.testRestTemplate
@@ -121,7 +122,7 @@ public class TestCrestPayloadSqlite {
             assertThat(resp2.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
         // Try another paylaod
-        final PayloadDto dto10 = DataGenerator.generatePayloadDto("afakehashp10", "some other data",
+        final PayloadDto dto10 = DataGenerator.generatePayloadDto("sqliteafakehashp10", "some other data",
                 "some info", "test");
         log.info("Store payload : {}", dto10);
         final ResponseEntity<PayloadDto> response10 = this.testRestTemplate
@@ -132,7 +133,7 @@ public class TestCrestPayloadSqlite {
         // Upload payload using external file
         final HttpHeaders headers1 = new HttpHeaders();
         headers1.setContentType(MediaType.MULTIPART_FORM_DATA);
-        final PayloadDto dto1 = DataGenerator.generatePayloadDto("afakehashp02", "",
+        final PayloadDto dto1 = DataGenerator.generatePayloadDto("sqliteafakehashp02", "",
                 "some other info", "test");
         log.info("Store payload : {}", dto1);
         String jsondto = "";
@@ -157,12 +158,13 @@ public class TestCrestPayloadSqlite {
             log.info("Retrieved meta payload {} ", dto1.getHash());
             assertThat(resp4.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
-
+        log.info("============ END of testA_payloadApi ===========");
     }
     
     @Test
     public void testA_payloadfail() {
-        final PayloadDto dto = DataGenerator.generatePayloadDto("afakehashp01", "some data",
+        log.info("============ testA_payloadfail ===========");
+        final PayloadDto dto = DataGenerator.generatePayloadDto("sqliteafakehashp01", "some data",
                 "some info", "test");
         dto.hash(null);
         log.info("Store bad payload : {}", dto);
@@ -199,12 +201,13 @@ public class TestCrestPayloadSqlite {
                 apiname + "/payloads/" + hash+"/meta", HttpMethod.GET, entity, String.class);
         log.info("Received response: " + resp4);
         assertThat(resp4.getStatusCode()).isGreaterThanOrEqualTo(HttpStatus.OK);
-
+        log.info("============ END of testA_payloadfail ===========");
     }
     
 
     @Test
     public void testA_payloadIovApi() throws Exception {
+        log.info("============ testA_payloadIovApi ===========");
         final TagDto dto = DataGenerator.generateTagDto("SB-TAG-PYLD-01", "run");
         log.info("Store tag for payload request: {}", dto);
         final ResponseEntity<TagDto> response = this.testRestTemplate
@@ -221,6 +224,7 @@ public class TestCrestPayloadSqlite {
         map.add("file", new String(bindata));
         map.add("since", "1000000");
         map.add("endtime", "0");
+        map.add("objectType", "BIN");
         map.add("tag", tagname);
         final HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(
                 map, headers);
@@ -235,6 +239,7 @@ public class TestCrestPayloadSqlite {
         final IovDto iovdto2 = DataGenerator.generateIovDto("file:///tmp/pyld2.json", tagname, new BigDecimal(2100000L));
         final IovSetDto setdto = new IovSetDto();
         setdto.size(2L);
+        setdto.datatype("JSON");
         setdto.addResourcesItem(iovdto1).addResourcesItem(iovdto2);
         
         DataGenerator.generatePayloadData("/tmp/pyld1.json", "some content for file1");
@@ -259,6 +264,7 @@ public class TestCrestPayloadSqlite {
         final IovDto iovdto4 = DataGenerator.generateIovDto("This will become another payload", tagname, new BigDecimal(3100000L));
         final IovSetDto setdto2 = new IovSetDto();
         setdto2.size(2L);
+        setdto2.datatype("JSON");
         setdto2.addResourcesItem(iovdto3).addResourcesItem(iovdto4);
         
         final MultiValueMap<String, Object> map2 = new LinkedMultiValueMap<String, Object>();
@@ -271,7 +277,7 @@ public class TestCrestPayloadSqlite {
         final ResponseEntity<String> resp3 = this.testRestTemplate
                 .postForEntity(apiname + "/payloads/storebatch", request2, String.class);
         assertThat(resp3.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        
+        log.info("============ END of testA_payloadIovApi ===========");
     }
 
 }

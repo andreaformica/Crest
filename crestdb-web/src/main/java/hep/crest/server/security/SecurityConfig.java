@@ -20,7 +20,7 @@ import org.springframework.security.web.authentication.session.RegisterSessionAu
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 
 /**
- * Web security configuration.
+ * Web security configuration. This is used only with profile keycloak.
  *
  * @version %I%, %G%
  * @author formica
@@ -46,8 +46,9 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
-
+        // Deal with specific configuration.
         if ("active".equals(cprops.getSecurity())) {
+            // If active then authorize requests. Role is guest.
             http.authorizeRequests()
                     .antMatchers(HttpMethod.GET, "/**").permitAll()
                     .antMatchers(HttpMethod.POST, "/**").hasAnyRole("guest")
@@ -63,6 +64,12 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
         }
     }
 
+    /**
+     * Registers the KeycloakAuthenticationProvider with the authentication manager.
+     *
+     * @param auth the builder.
+     * @throws Exception
+     */
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         KeycloakAuthenticationProvider keycloakAuthenticationProvider = keycloakAuthenticationProvider();
@@ -73,12 +80,14 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
     @Bean
     @Override
     protected KeycloakAuthenticationProvider keycloakAuthenticationProvider() {
+        // Create a custom provider.
         return new CustomKeycloakAuthenticationProvider();
     }
 
     @Bean
     @Override
     protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
+        // Create a authentication strategy.
         return new RegisterSessionAuthenticationStrategy(new SessionRegistryImpl());
     }
 

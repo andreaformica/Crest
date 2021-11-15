@@ -1,7 +1,7 @@
 package hep.crest.data.test;
 
 
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.handlers.PayloadHandler;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.Tag;
@@ -174,8 +174,13 @@ public class RepositoryPostgresTests {
         if (ds1 != null) {
             ds1.close();
         }
-        final PayloadDto loadedblob1 = repobean.find(savedfromblob.getHash());
-        assertThat(loadedblob1).isNull();
+        try {
+            final PayloadDto loadedblob1 = repobean.find(savedfromblob.getHash());
+            assertThat(loadedblob1).isNull();
+        }
+        catch (AbstractCdbServiceException e) {
+            log.error("Cannot find payload for hash {}: {}", savedfromblob.getHash(), e);
+        }
     }
 
     @Test

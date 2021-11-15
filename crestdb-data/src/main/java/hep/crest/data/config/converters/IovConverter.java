@@ -13,21 +13,28 @@ import java.time.ZoneOffset;
 import java.util.Date;
 
 /**
- * Converter for global tags.
+ * Converter for Iovs.
+ * It takes a Iov pojo and transform it to a Dto or viceversa.
+ * It is important to correctly deal with the internal IovId class
+ * of the pojo, which contains
+ * relevant information like the since and the insertion time.
  */
 public class IovConverter extends BidirectionalConverter<Iov, IovDto> {
 
     @Override
     public IovDto convertTo(Iov source, Type<IovDto> destinationType,
                             MappingContext mappingContext) {
-        IovDto dto = new IovDto();
-        IovId id = source.id();
 
+        IovDto dto = new IovDto();
+        // Get the IovId to extract relevant fields.
+        IovId id = source.id();
+        // Transform insertion time in Offsetdate time.
         if (id.insertionTime() != null) {
             final Instant insinst = id.insertionTime().toInstant();
             OffsetDateTime it = insinst.atOffset(ZoneOffset.UTC);
             dto.insertionTime(it);
         }
+        // Set all fields.
         dto.since(id.since()).payloadHash(source.payloadHash()).tagName(id.tagName());
         return dto;
     }
@@ -36,12 +43,15 @@ public class IovConverter extends BidirectionalConverter<Iov, IovDto> {
     public Iov convertFrom(IovDto source, Type<Iov> destinationType,
                            MappingContext mappingContext) {
         Iov entity = new Iov();
+        // Create the IovId.
         IovId id = new IovId().since(source.getSince()).tagName(source.getTagName());
+        // Set the insertion time as a date.
         if (source.getInsertionTime() != null) {
             final Instant insinst = source.getInsertionTime().toInstant();
             Date it = Date.from(insinst);
             id.insertionTime(it);
         }
+        // Set all fields.
         entity.id(id).payloadHash(source.getPayloadHash());
         return entity;
     }

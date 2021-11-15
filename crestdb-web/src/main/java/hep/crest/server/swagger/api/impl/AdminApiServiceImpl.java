@@ -74,16 +74,8 @@ public class AdminApiServiceImpl extends AdminApiService {
     @Qualifier("mapper")
     private MapperFacade mapper;
 
-    /**
-     * Response helper.
-     */
-    @Autowired
-    private ResponseFormatHelper rfh;
-
-    /*
-     * (non-Javadoc)
-     * @see hep.crest.server.swagger.api.AdminApiService#removeGlobalTag(java.lang.
-     * String, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+    /* (non-Javadoc)
+     * @see hep.crest.server.swagger.api.AdminApiService#removeGlobalTag(java.lang.String, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
      */
     @Override
     public Response removeGlobalTag(String name, SecurityContext securityContext, UriInfo info) {

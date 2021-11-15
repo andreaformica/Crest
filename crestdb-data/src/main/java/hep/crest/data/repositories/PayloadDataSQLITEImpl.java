@@ -40,13 +40,17 @@ public class PayloadDataSQLITEImpl extends AbstractPayloadDataGeneral implements
 
     @Override
     protected byte[] getBlob(ResultSet rs, String key) throws SQLException {
+        // Use SerialBlob for LOB. Create it from the byte array.
         SerialBlob blob = new SerialBlob(rs.getBytes(key));
+        // Get the LOB content as a byte array.
         return PayloadHandler.getBytesFromInputStream(blob.getBinaryStream());
     }
 
     @Override
     protected InputStream getBlobAsStream(ResultSet rs, String key) throws SQLException {
+        // Use SerialBlob for LOB. Create it from the byte array.
         SerialBlob blob = new SerialBlob(rs.getBytes(key));
+        // Get the LOB content as a stream.
         return blob.getBinaryStream();
     }
 }

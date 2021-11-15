@@ -3,7 +3,7 @@
  */
 package hep.crest.data.repositories;
 
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.pojo.GlobalTag;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
@@ -34,7 +34,7 @@ public interface GlobalTagRepository extends PagingAndSortingRepository<GlobalTa
      */
     @Query("SELECT distinct p FROM GlobalTag p JOIN FETCH p.globalTagMaps maps JOIN FETCH maps.tag "
            + "WHERE maps.id.globalTagName = (:name)")
-    Optional<GlobalTag> findByNameAndFetchTagsEagerly(@Param("name") String name) throws CdbServiceException;
+    Optional<GlobalTag> findByNameAndFetchTagsEagerly(@Param("name") String name) throws AbstractCdbServiceException;
 
     /**
      * @param name
@@ -46,7 +46,8 @@ public interface GlobalTagRepository extends PagingAndSortingRepository<GlobalTa
     @Query("SELECT distinct p FROM GlobalTag p JOIN FETCH p.globalTagMaps maps JOIN FETCH maps.tag "
            + "WHERE maps.id.globalTagName = (:name) and maps.id.record = (:record)")
     Optional<GlobalTag> findByNameAndFetchRecordTagsEagerly(@Param("name") String name,
-                                                            @Param("record") String record) throws CdbServiceException;
+                                                            @Param("record") String record)
+            throws AbstractCdbServiceException;
 
     /**
      * @param name
@@ -62,7 +63,7 @@ public interface GlobalTagRepository extends PagingAndSortingRepository<GlobalTa
     Optional<GlobalTag> findByNameAndFetchSpecifiedTagsEagerly(@Param("name") String name,
                                                                @Param("record") String record,
                                                                @Param("label") String label)
-            throws CdbServiceException;
+            throws AbstractCdbServiceException;
 
     /**
      * @param name
@@ -74,14 +75,14 @@ public interface GlobalTagRepository extends PagingAndSortingRepository<GlobalTa
     @Query("SELECT distinct p FROM GlobalTag p JOIN FETCH p.globalTagMaps maps JOIN FETCH maps.tag "
            + "WHERE maps.id.globalTagName = (:name) and maps.tag.name like (:tag)")
     Optional<GlobalTag> findByNameAndFilterTagsEagerly(@Param("name") String name, @Param("tag") String tag)
-            throws CdbServiceException;
+            throws AbstractCdbServiceException;
 
     /**
      * @param name
      *            the String
      * @return Optional<GlobalTag>
      */
-    Optional<GlobalTag> findByName(@Param("name") String name) throws CdbServiceException;
+    Optional<GlobalTag> findByName(@Param("name") String name) throws AbstractCdbServiceException;
 
     /**
      * @param name

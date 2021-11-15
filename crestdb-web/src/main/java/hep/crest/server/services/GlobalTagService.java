@@ -4,8 +4,8 @@
 package hep.crest.server.services;
 
 import com.querydsl.core.types.Predicate;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbNotFoundException;
-import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.GlobalTagMap;
@@ -68,15 +68,14 @@ public class GlobalTagService {
     /**
      * @param globaltagname
      *            the String
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If object was not found
      * @return GlobalTag
      */
-    public GlobalTag findOne(String globaltagname) throws CdbServiceException {
+    public GlobalTag findOne(String globaltagname) throws AbstractCdbServiceException {
         log.debug("Search for global tag by name {}", globaltagname);
-        final GlobalTag entity = globalTagRepository.findByName(globaltagname).orElseThrow(
+        return globalTagRepository.findByName(globaltagname).orElseThrow(
                 () -> new CdbNotFoundException("Cannot find global tag " + globaltagname));
-        return entity;
     }
 
     /**
@@ -87,11 +86,11 @@ public class GlobalTagService {
      * @param label
      *            the String
      * @return List<Tag>
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
     public List<Tag> getGlobalTagByNameFetchTags(String globaltagname, String record, String label)
-            throws CdbServiceException {
+            throws AbstractCdbServiceException {
         GlobalTag entity = null;
         log.debug("Search for (record, label) specified tag list for GlobalTag={}", globaltagname);
         if ("none".equalsIgnoreCase(record)) {
@@ -118,15 +117,14 @@ public class GlobalTagService {
                     () -> new CdbNotFoundException("Cannot find tags for globaltag " + globaltagname
                                                    + ", record " + rec + ", label " + lab));
         }
-        final List<Tag> taglist = entity.globalTagMaps().stream().map(GlobalTagMap::tag).collect(Collectors.toList());
-        return taglist;
+        return entity.globalTagMaps().stream().map(GlobalTagMap::tag).collect(Collectors.toList());
     }
 
     /**
      * @param entity
      *            the GlobalTag
      * @return GlobalTag
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred because pojo exists
      */
     @Transactional
@@ -147,7 +145,7 @@ public class GlobalTagService {
      * @param entity
      *            the GlobaTag
      * @return GlobalTag
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If object was not found
      */
     @Transactional

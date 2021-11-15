@@ -16,7 +16,7 @@
  **/
 package hep.crest.data.repositories;
 
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.handlers.PostgresBlobHandler;
 import hep.crest.data.repositories.externals.SqlRequests;
 import hep.crest.swagger.model.PayloadDto;
@@ -79,10 +79,12 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
     @Override
     protected byte[] getBlob(ResultSet rs, String key) throws SQLException {
         byte[] buf = null;
+        // In postgres we need the OID to access underlying LOB.
         long oid = rs.getLong(key);
         log.info("Retrieve blob from oid {}", oid);
         try (Connection conn = super.getDs().getConnection()) {
             conn.setAutoCommit(false);
+            // Get the LOB and read it in a byte array.
             buf = bhandler.getlargeObj(oid, conn);
         }
         return buf;
@@ -90,32 +92,34 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
 
     @Override
     protected PayloadDto saveBlobAsBytes(PayloadDto entity) {
-
+        // Set the SQL for insertion of a Payload entity.
         final String tablename = this.tablename();
-
         final String sql = SqlRequests.getInsertAllQuery(tablename);
-
-        log.info("Insert Payload {} using JDBCTEMPLATE ", entity.getHash());
-
+        // Here we print the hash used.
+        log.debug("Insert Payload {} using JDBCTEMPLATE ", entity.getHash());
+        // Prepare the input streams for data and streamerInfo LOBs.
         final InputStream is = new ByteArrayInputStream(entity.getData());
         final InputStream sis = new ByteArrayInputStream(entity.getStreamerInfo());
-
+        // Execute the SQL above.
         execute(is, sis, sql, entity);
         log.debug("Search for stored payload as a verification, use hash {}", entity.getHash());
+        // Send back a dto without the data LOB.
         return findMetaInfo(entity.getHash());
     }
 
     @Override
     protected PayloadDto saveBlobAsStream(PayloadDto entity, InputStream is) {
+        // Set the SQL for insertion of a Payload entity.
         final String tablename = this.tablename();
-
         final String sql = SqlRequests.getInsertAllQuery(tablename);
-
-        log.info("Insert Payload {} using JDBCTEMPLATE", entity.getHash());
+        // Here we print the hash used.
+        log.debug("Insert Payload {} using JDBCTEMPLATE", entity.getHash());
         log.debug("Streamer info {} ", entity.getStreamerInfo());
+        // Prepare the input streams for streamerInfo LOB.
         final InputStream sis = new ByteArrayInputStream(entity.getStreamerInfo());
-
+        // The data LOB is in the input argument of the function.
         execute(is, sis, sql, entity);
+        // Send back a dto without the data LOB.
         return findMetaInfo(entity.getHash());
     }
 
@@ -124,19 +128,21 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
      * @param sis    the InputStream
      * @param sql    the String
      * @param entity the PayloadDto
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     protected void execute(InputStream is, InputStream sis, String sql, PayloadDto entity) {
         Instant now = Instant.now();
         final java.sql.Date inserttime = new java.sql.Date(now.toEpochMilli());
         entity.setInsertionTime(now.atOffset(ZoneOffset.UTC));
-
+        // Get the connection from datasource.
+        // Create the prepared statement using the input SQL string.
         try (Connection conn = super.getDs().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             conn.setAutoCommit(false);
+            // Create the LOBs
             final long oid = bhandler.writeLargeObjectId(conn, is, entity);
             final long sioid = bhandler.writeLargeObjectId(conn, sis, null);
-
+            // Set the other columns.
             ps.setString(1, entity.getHash());
             ps.setString(2, entity.getObjectType());
             ps.setString(3, entity.getVersion());
@@ -153,6 +159,7 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
         }
         finally {
             try {
+                // Close all streams to avoid memory leaks.
                 is.close();
                 sis.close();
             }
@@ -173,17 +180,20 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
     @Transactional
     public int updateMetaInfo(String id, String streamerInfo) {
         log.info("Update payload streamer info {} using JDBCTEMPLATE (postgresql implementation)", id);
+        // Get the connection from datasource.
         try (Connection conn = super.getDs().getConnection()) {
             conn.setAutoCommit(false);
             final JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDs());
             final String tablename = this.tablename();
             final String sqlget = SqlRequests.getStreamerInfoQuery(tablename);
             // Retrieve oid to replace the content of the file.
+            // This is done only for streamerInfo LOB.
             List<Long> oidlist = jdbcTemplate.query(sqlget,
                     (rs, row) -> rs.getLong(1),
-                    new Object[]{id});
+                    id);
+            // Create an inputStream for the string in the input argument.
             final InputStream sis = new ByteArrayInputStream(streamerInfo.getBytes(StandardCharsets.UTF_8));
-
+            // If the OID for the streamerInfo LOB is present, then update it with the new content.
             if (!oidlist.isEmpty()) {
                 Long oid = oidlist.get(0);
                 bhandler.updateLargeObjectId(conn, sis, oid);
@@ -200,8 +210,10 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
     public void delete(String id) {
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDs());
         final String tablename = this.tablename();
+        // Create SQL for delete request.
         final String sql = SqlRequests.getDeleteQuery(tablename);
         log.info("Remove payload with hash {} using JDBC", id);
+        // Remove the OIDs.
         this.deleteOids(id);
         jdbcTemplate.update(sql, id);
         log.debug("Entity removal done...");
@@ -210,25 +222,29 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
     /**
      * Delete the underlying files provided the hash.
      * It applies to Data and StreamerInfo.
+     *
      * @param hash the payload hash.
      */
     protected void deleteOids(String hash) {
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDs());
         final String tablename = this.tablename();
         final String sqlget = SqlRequests.getFindDataQuery(tablename);
+        // Get the list of OIDs to remove for the HASH in input.
         List<Long> oidlist = jdbcTemplate.query(sqlget,
                 (rs, row) -> rs.getLong(1),
-                new Object[]{hash});
+                hash);
         if (!oidlist.isEmpty()) {
             Long oid = oidlist.get(0);
+            // This method remove the underlying LOB in postgresql.
             jdbcTemplate.execute("select lo_unlink(" + oid + ")");
         }
         final String sqlmetaget = SqlRequests.getStreamerInfoQuery(tablename);
         oidlist = jdbcTemplate.query(sqlmetaget,
                 (rs, row) -> rs.getLong(1),
-                new Object[]{hash});
+                hash);
         if (!oidlist.isEmpty()) {
             Long oid = oidlist.get(0);
+            // This method remove the underlying LOB in postgresql.
             jdbcTemplate.execute("select lo_unlink(" + oid + ")");
         }
     }

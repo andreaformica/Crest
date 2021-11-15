@@ -12,12 +12,20 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.web.context.WebApplicationContext;
 
+/**
+ * Web security configuration. This is used only with profile different from keycloak.
+ *
+ * @version %I%, %G%
+ * @author formica
+ *
+ */
 @Profile({"!keycloak"})
 @Configuration
 @EnableWebSecurity
 public class SecurityDefaultConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        // In this case everything is allowed.
         http.authorizeRequests().antMatchers("/**").permitAll();
         http.headers().frameOptions().disable();
         http.csrf().disable();
@@ -25,12 +33,14 @@ public class SecurityDefaultConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
+        // Ignore all urls.
         web.ignoring().antMatchers("/**");
     }
 
     @Bean
     @Scope(scopeName = WebApplicationContext.SCOPE_REQUEST, proxyMode = ScopedProxyMode.TARGET_CLASS)
     public AccessToken accessToken() {
+        // Provide a fake access token object.
         AccessToken accessToken = new AccessToken();
         accessToken.setSubject("abc");
         accessToken.setName("Tester");

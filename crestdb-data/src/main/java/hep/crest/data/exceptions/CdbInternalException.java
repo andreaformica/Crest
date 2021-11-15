@@ -9,7 +9,7 @@ import javax.ws.rs.core.Response;
  * @author formica
  *
  */
-public class CdbInternalException extends CdbServiceException {
+public class CdbInternalException extends AbstractCdbServiceException {
 
     /**
      * Serializer.

@@ -81,7 +81,8 @@ public class TestCrestIov {
     private EntityDtoHelper edh;
 
     @Test
-    public void test_IovService() {
+    public void testA_IovService() {
+        log.info("============ testA_IovService ============");
         final TagDto dto = DataGenerator.generateTagDto("SVC-TAG-02", "test");
         try {
             final Tag entity = mapperFacade.map(dto, Tag.class);
@@ -133,14 +134,15 @@ public class TestCrestIov {
         catch (RuntimeException e) {
             log.info("Another runtime exception of type {}", e.getClass());
         }
-
+        log.info("============ END of testA_IovService ============");
     }
 
     @Test
-    public void testA_iovApi() throws Exception {
+    public void testB_iovApi() throws Exception {
+        log.info("============ testB_iovApi ============");
         final PayloadDto pdto = DataGenerator.generatePayloadDto("afakehashiov01", "some iov data",
                 "some info", "txt");
-        log.info("Store payload : {}", pdto);
+        log.info("Store payload 1: {}", pdto);
         final ResponseEntity<PayloadDto> response = this.testRestTemplate
                 .postForEntity("/crestapi/payloads", pdto, PayloadDto.class);
         log.info("Received response: " + response);
@@ -148,7 +150,7 @@ public class TestCrestIov {
 
         final PayloadDto pdto2 = DataGenerator.generatePayloadDto("afakehashiov02", "some iov data for another payload",
                 "some info", "txt");
-        log.info("Store payload : {}", pdto2);
+        log.info("Store payload 2: {}", pdto2);
         final ResponseEntity<PayloadDto> response2 = this.testRestTemplate
                 .postForEntity("/crestapi/payloads", pdto2, PayloadDto.class);
         log.info("Received response: " + response2);
@@ -257,11 +259,12 @@ public class TestCrestIov {
                 .postForEntity("/crestapi/iovs/storebatch", setdto4, String.class);
         log.info("Received response 5: " + iovresp5);
         assertThat(iovresp5.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-
+        log.info("============ END of testB_iovApi ============");
     }
 
     @Test
-    public void testA_iovfail() {
+    public void testC_iovfail() {
+        log.info("============ testC_iovfail ============");
         // Store iov for payload pdto
         final IovDto iovdto = DataGenerator.generateIovDto(null, "SOME-TAG", new BigDecimal(1000000L));
         log.info("Store bad iov : {}", iovdto);
@@ -305,12 +308,12 @@ public class TestCrestIov {
         final ResponseEntity<String> resp5b = this.testRestTemplate
                 .exchange("/crestapi/iovs/lastIov?tagname=NONR", HttpMethod.GET, entity, String.class);
         assertThat(resp5b.getStatusCode()).isGreaterThanOrEqualTo(HttpStatus.OK);
-
+        log.info("============ END of testC_iovfail ============");
     }
 
     @Test
-    public void testB_findiovApi() throws Exception {
-
+    public void testD_findiovApi() throws Exception {
+        log.info("============ testD_findiovApi ============");
         final Long now = Instant.now().toEpochMilli();
         log.info("Test methods to find iovs in different ways");
         sendrequest("/crestapi/iovs?by=tagname:SB-TAG-IOV-01,insertiontime>0", HttpMethod.GET, null, new IovSetDto());
@@ -367,6 +370,7 @@ public class TestCrestIov {
         }
         sendrequest("/crestapi/iovs/selectIovs?tagname=SB-TAG-IOV-01&since=0&until=INF&snapshot="
                     + now, HttpMethod.GET, null, new IovSetDto());
+        log.info("============ END of testD_findiovApi ============");
     }
 
     /**

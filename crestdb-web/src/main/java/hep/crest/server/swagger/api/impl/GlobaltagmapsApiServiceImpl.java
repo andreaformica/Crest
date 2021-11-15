@@ -48,12 +48,6 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
     EntityDtoHelper edh;
 
     /**
-     * Response helper.
-     */
-    @Autowired
-    private ResponseFormatHelper rfh;
-
-    /**
      * Mapper.
      */
     @Autowired

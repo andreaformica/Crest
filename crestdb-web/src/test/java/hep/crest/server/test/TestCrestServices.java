@@ -1,7 +1,8 @@
 package hep.crest.server.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
+import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.GlobalTagMap;
 import hep.crest.data.pojo.GlobalTagMapId;
@@ -121,14 +122,14 @@ public class TestCrestServices {
             updated.description("this should not be updated");
             globaltagService.updateGlobalTag(updated);
         }
-        catch ( final CdbServiceException e) {
+        catch (final AbstractCdbServiceException e) {
             log.info("Cannot save or update global tag {}: {}", dto, e);
         }
     }
 
     @Test
     public void testB_Tags() {
-        final TagDto dto = DataGenerator.generateTagDto("MY-TEST-01","time");
+        final TagDto dto = DataGenerator.generateTagDto("MY-TEST-01", "time");
         try {
             final Tag entity = mapperFacade.map(dto, Tag.class);
             final Tag saved = tagService.insertTag(entity);
@@ -139,7 +140,7 @@ public class TestCrestServices {
             updated.description("this should not be updated");
             tagService.updateTag(updated);
         }
-        catch ( final CdbServiceException e) {
+        catch (final AbstractCdbServiceException e) {
             log.info("Cannot save or update global tag {}: {}", dto, e);
         }
     }
@@ -151,7 +152,7 @@ public class TestCrestServices {
         try {
             payloadService.insertPayload(dto);
         }
-        catch (final CdbServiceException e) {
+        catch (final AbstractCdbServiceException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
@@ -161,11 +162,11 @@ public class TestCrestServices {
             ioventity.tag(new Tag().name(iovdto.getTagName()));
             iovService.insertIov(ioventity);
         }
-        catch (final CdbServiceException e) {
+        catch (final AbstractCdbServiceException e) {
             log.error("Exception in iov insertion {}", e);
         }
         try {
-            final Iterable<Iov> iovlist = iovService.findAllIovs(null, PageRequest.of(0,10));
+            final Iterable<Iov> iovlist = iovService.findAllIovs(null, PageRequest.of(0, 10));
             final List<IovDto> dtolist = edh.entityToDtoList(iovlist, IovDto.class);
             assertThat(dtolist.size()).isPositive();
         }
@@ -173,6 +174,7 @@ public class TestCrestServices {
             log.error("Exception in iov retrieval {}", e);
         }
     }
+
     @Test
     public void testC_Mappings() {
 
@@ -181,7 +183,7 @@ public class TestCrestServices {
             final GlobalTag gt = DataGenerator.generateGlobalTag("TEST-GT-FORMAP-01");
             final GlobalTag gts = globaltagService.insertGlobalTag(gt);
             // We create a tag BUT without saveing it
-            final Tag tag = DataGenerator.generateTag("MY-TEST-FORMAP-01","time");
+            final Tag tag = DataGenerator.generateTag("MY-TEST-FORMAP-01", "time");
             final Tag ts = tagService.insertTag(tag);
             final GlobalTagMapId mapid = new GlobalTagMapId();
             mapid.globalTagName(gt.name()).label("somelabel").record("somerecord");
@@ -198,7 +200,7 @@ public class TestCrestServices {
             final GlobalTag gt = DataGenerator.generateGlobalTag("TEST-GT-FORMAP-02");
             final GlobalTag gts = globaltagService.insertGlobalTag(gt);
             // We create a tag BUT without saveing it
-            final Tag tag = DataGenerator.generateTag("MY-TEST-FORMAP-02","time");
+            final Tag tag = DataGenerator.generateTag("MY-TEST-FORMAP-02", "time");
             final GlobalTagMapId mapid = new GlobalTagMapId();
             mapid.globalTagName(gt.name()).label("somelabel").record("somerecord");
             final GlobalTagMap entity = DataGenerator.generateMapping(gt, tag, mapid);
@@ -211,7 +213,7 @@ public class TestCrestServices {
         try {
             // These two already exists as a mapping
             final GlobalTag gt = DataGenerator.generateGlobalTag("TEST-GT-FORMAP-02");
-            final Tag tag = DataGenerator.generateTag("MY-TEST-FORMAP-02","time");
+            final Tag tag = DataGenerator.generateTag("MY-TEST-FORMAP-02", "time");
             final GlobalTagMapId mapid = new GlobalTagMapId();
             mapid.globalTagName(gt.name()).label("somelabel").record("somerecord");
             final GlobalTagMap entity = DataGenerator.generateMapping(gt, tag, mapid);
@@ -230,7 +232,7 @@ public class TestCrestServices {
     @Test
     public void testD_Directory() {
         directoryService.dumpTag("MY-TEST-01", null, "");
-        final TagDto tobesaved = DataGenerator.generateTagDto("MY-TEST-02","time");
+        final TagDto tobesaved = DataGenerator.generateTagDto("MY-TEST-02", "time");
         Tag entity = mapperFacade.map(tobesaved, Tag.class);
         final Tag saved = directoryService.insertTag(entity, "none");
         assertThat(saved).isNotNull();
@@ -238,26 +240,39 @@ public class TestCrestServices {
         assertThat(dto).isNotNull();
         final List<IovDto> iovlist = directoryService.listIovs("MY-TEST-01");
         assertThat(iovlist).isNotNull();
-        final Tag dtonotthere = directoryService.getTag("MY-TEST-NOT-THERE", "none");
-        assertThat(dtonotthere).isNull();
+        try {
+            final Tag dtonotthere = directoryService.getTag("MY-TEST-NOT-THERE", "none");
+            assertThat(dtonotthere).isNull();
+        }
+        catch (CdbNotFoundException e) {
+            log.info("The tag does not exists so this exception should be thrown");
+            assertThat(e.getMessage()).contains("Error in finding tag");
+        }
         final List<IovDto> iovlistempty = directoryService.listIovs("MY-TEST-NOT-THERE");
         assertThat(iovlistempty.isEmpty()).isTrue();
-        final PayloadDto pdto = directoryService.getPayload("somehash");
-        assertThat(pdto).isNull();
+        try {
+            final PayloadDto pdto = directoryService.getPayload("somehash");
+            assertThat(pdto).isNull();
+        }
+        catch (CdbNotFoundException e) {
+            log.info("The hash does not exists so this exception should be thrown");
+            assertThat(e.getMessage()).contains("Cannot find hash dir");
+        }
+
     }
 
     @Test
     public void testE_fsApi() throws Exception {
         final Long now = Instant.now().toEpochMilli();
         final ResponseEntity<String> response = this.testRestTemplate.exchange(
-                "/crestapi/fs/tar?tagname=MY-TEST-01&snapshot="+now, HttpMethod.POST, null, String.class);
+                "/crestapi/fs/tar?tagname=MY-TEST-01&snapshot=" + now, HttpMethod.POST, null, String.class);
         log.info("Received response: {}", response);
         assertThat(response.getStatusCode()).isGreaterThanOrEqualTo(HttpStatus.OK);
-        
+
         final ResponseEntity<String> responsenotfound = this.testRestTemplate.exchange(
                 "/crestapi/fs/tar?tagname=MY-TEST-0000&snapshot=0", HttpMethod.POST, null, String.class);
         log.info("Received response: {}", responsenotfound);
         assertThat(responsenotfound.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
-    
+
 }

@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbInternalException;
 import hep.crest.data.exceptions.CdbNotFoundException;
-import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.serializers.CustomTimeDeserializer;
 import hep.crest.data.serializers.CustomTimeSerializer;
@@ -147,7 +147,7 @@ public class DirectoryUtilities {
     /**
      * @param tagname the String
      * @return Path
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     public Path getTagPath(String tagname) throws CdbNotFoundException {
         return this.getTagPath(locbasedir, tagname);
@@ -156,7 +156,7 @@ public class DirectoryUtilities {
     /**
      * @param tagname the String
      * @return Path
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     public Path getTagFilePath(String tagname) throws CdbNotFoundException {
         return this.getTagFilePath(locbasedir, tagname);
@@ -165,7 +165,7 @@ public class DirectoryUtilities {
     /**
      * @param tagname the String
      * @return Path
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     public Path getTagMetaFilePath(String tagname) throws CdbNotFoundException {
         return this.getTagFilePath(locbasedir, tagname);
@@ -174,7 +174,7 @@ public class DirectoryUtilities {
     /**
      * @param tagname the String
      * @return Path
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     public Path getIovFilePath(String tagname) throws CdbNotFoundException {
         return this.getIovFilePath(locbasedir, tagname);
@@ -197,18 +197,18 @@ public class DirectoryUtilities {
     /**
      * @param name the String
      * @return Path
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
-    public Path createIfNotexistsTag(String name) throws CdbServiceException {
+    public Path createIfNotexistsTag(String name) throws AbstractCdbServiceException {
         return createIfNotexistsTag(locbasedir, name);
     }
 
     /**
      * @param name the String
      * @return Path
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
-    public Path createIfNotexistsIov(String name) throws CdbServiceException {
+    public Path createIfNotexistsIov(String name) throws AbstractCdbServiceException {
         return createIfNotexistsIov(locbasedir, name);
     }
 
@@ -216,7 +216,7 @@ public class DirectoryUtilities {
      * @param basedir the String
      * @param tagname the String
      * @return Path
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     public Path getTagPath(String basedir, String tagname) throws CdbNotFoundException {
         final Path tagpath = Paths.get(basedir, tagname);
@@ -230,7 +230,7 @@ public class DirectoryUtilities {
      * @param basedir the String
      * @param tagname the String
      * @return Path
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     public Path getTagFilePath(String basedir, String tagname) throws CdbNotFoundException {
         final Path tagpath = getTagPath(basedir, tagname);
@@ -242,8 +242,12 @@ public class DirectoryUtilities {
     }
 
     /**
-     * @param basedir the String
-     * @param tagname the String
+     * @param basedir
+     *            the String
+     * @param tagname
+     *            the String
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      * @return Path
      * @throws CdbServiceException If an Exception occurred
      */
@@ -335,9 +339,9 @@ public class DirectoryUtilities {
      * @param basedir the String
      * @param name    the String
      * @return Path
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
-    public Path createIfNotexistsTag(String basedir, String name) throws CdbServiceException {
+    public Path createIfNotexistsTag(String basedir, String name) throws AbstractCdbServiceException {
         if (name == null) {
             throw new CdbInternalException("Cannot use null tag name");
         }
@@ -364,9 +368,9 @@ public class DirectoryUtilities {
      * @param basedir the String
      * @param name    the String
      * @return Path
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
-    public Path createIfNotexistsIov(String basedir, String name) throws CdbServiceException {
+    public Path createIfNotexistsIov(String basedir, String name) throws AbstractCdbServiceException {
         if (name == null) {
             throw new CdbInternalException("Cannot use null tag name");
         }
@@ -449,8 +453,7 @@ public class DirectoryUtilities {
             }
             final String jsonstring = buf.toString();
             final Tag readValue = getMapper().readValue(jsonstring, Tag.class);
-            log.debug("Parsed json to get tag object {} with field {} " + " and description {}",
-                    readValue, readValue.name(), readValue.description());
+            log.debug("Parsed json to get tag object {} ", readValue);
             return readValue;
         }
         catch (final IOException e) {
@@ -486,9 +489,9 @@ public class DirectoryUtilities {
     /**
      * @param jsonstr  the String
      * @param filepath the Path
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
-    public void writeTagFile(String jsonstr, Path filepath) throws CdbServiceException {
+    public void writeTagFile(String jsonstr, Path filepath) throws AbstractCdbServiceException {
         try (BufferedWriter writer = Files.newBufferedWriter(filepath, getCharset())) {
             writer.write(jsonstr);
         }

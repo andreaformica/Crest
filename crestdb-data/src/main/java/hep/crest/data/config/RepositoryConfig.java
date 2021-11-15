@@ -52,8 +52,7 @@ public class RepositoryConfig {
     public TagDirImpl tagdirectoryRepository(@Qualifier("mapper") MapperFacade mapper) {
         // Initialize directory utilities.
         final DirectoryUtilities du = new DirectoryUtilities(cprops.getDumpdir());
-        final TagDirImpl tdi = new TagDirImpl(du, mapper);
-        return tdi;
+        return new TagDirImpl(du, mapper);
     }
 
     /**
@@ -64,8 +63,7 @@ public class RepositoryConfig {
     public IovDirImpl iovdirectoryRepository(@Qualifier("mapper") MapperFacade mapper) {
         // Initialize directory utilities.
         final DirectoryUtilities du = new DirectoryUtilities(cprops.getDumpdir());
-        final IovDirImpl idi = new IovDirImpl(du, mapper);
-        return idi;
+        return new IovDirImpl(du, mapper);
     }
 
     /**

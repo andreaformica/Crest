@@ -23,21 +23,32 @@ public class CustomKeycloakAuthenticationProvider extends KeycloakAuthentication
     private GrantedAuthoritiesMapper grantedAuthoritiesMapper;
 
     /**
+     * Default ctor.
+     */
+    public CustomKeycloakAuthenticationProvider() {
+        // the initialization is taken care of by keycloak.
+    }
+
+    /**
      * @param grantedAuthoritiesMapper
      */
     public void setGrantedAuthoritiesMapper(GrantedAuthoritiesMapper grantedAuthoritiesMapper) {
+        // Set the authorities mapper.
         this.grantedAuthoritiesMapper = grantedAuthoritiesMapper;
     }
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+        // Get the token.
         KeycloakAuthenticationToken token = (KeycloakAuthenticationToken) authentication;
+        // Init authorities list.
         List<GrantedAuthority> grantedAuthorities = new ArrayList<GrantedAuthority>();
-
+        // Get the roles from the token.
         for (String role : token.getAccount().getRoles()) {
+            // Add to granted authorities.
             grantedAuthorities.add(new KeycloakRole(role));
         }
-
+        // For Svom, check if the security context contains a FSC_VHFMGR info.
         AccessToken.Access fsctoken = token.getAccount().getKeycloakSecurityContext().getToken().getResourceAccess(
                 "FSC_VHFMGR");
         if (fsctoken != null) {
@@ -54,14 +65,14 @@ public class CustomKeycloakAuthenticationProvider extends KeycloakAuthentication
         }
 
         return new KeycloakAuthenticationToken(token.getAccount(), token.isInteractive(),
-                mapAuthorities(grantedAuthorities));
+                mapCustomAuthorities(grantedAuthorities));
     }
 
     /**
      * @param authorities
      * @return Collection
      */
-    private Collection<? extends GrantedAuthority> mapAuthorities(
+    private Collection<? extends GrantedAuthority> mapCustomAuthorities(
             Collection<? extends GrantedAuthority> authorities) {
         return grantedAuthoritiesMapper != null
                 ? grantedAuthoritiesMapper.mapAuthorities(authorities)

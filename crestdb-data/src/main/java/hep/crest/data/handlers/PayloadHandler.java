@@ -1,7 +1,7 @@
 package hep.crest.data.handlers;
 
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbInternalException;
-import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.exceptions.PayloadEncodingException;
 import org.hibernate.engine.jdbc.StreamUtils;
 import org.slf4j.Logger;
@@ -20,7 +20,7 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  * A helper service to handle payload.
- *
+ * The handler contains static methods to use inputstreams or byte arrays.
  * @author formica
  */
 public final class PayloadHandler {
@@ -47,10 +47,11 @@ public final class PayloadHandler {
      */
     public static byte[] getBytesFromInputStream(InputStream is) {
         byte[] data = null;
+        // Open the output buffer.
         try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
             int nRead;
             data = new byte[16384];
-
+            // Loop over the stream.
             while ((nRead = is.read(data, 0, data.length)) != -1) {
                 buffer.write(data, 0, nRead);
                 log.debug("Reading data from stream {} ", nRead);
@@ -68,15 +69,15 @@ public final class PayloadHandler {
     /**
      * @param uploadedInputStream  the InputStream
      * @param uploadedFileLocation the String
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     public static void saveToFile(InputStream uploadedInputStream, String uploadedFileLocation)
-            throws CdbServiceException {
-
+            throws AbstractCdbServiceException {
+        // Open the output file.
         try (OutputStream out = new FileOutputStream(new File(uploadedFileLocation))) {
             int read = 0;
             final byte[] bytes = new byte[MAX_LENGTH];
-
+            // Loop over the input stream.
             while ((read = uploadedInputStream.read(bytes)) != -1) {
                 out.write(bytes, 0, read);
             }
@@ -96,6 +97,7 @@ public final class PayloadHandler {
     public static void saveToOutStream(InputStream uploadedInputStream, OutputStream out) {
 
         try {
+            // Read from inputstream and copy to output stream.
             int read = 0;
             final byte[] bytes = new byte[MAX_LENGTH];
             while ((read = uploadedInputStream.read(bytes)) != -1) {
@@ -108,6 +110,7 @@ public final class PayloadHandler {
         }
         finally {
             try {
+                // Close all streams.
                 uploadedInputStream.close();
                 out.close();
             }
@@ -129,7 +132,7 @@ public final class PayloadHandler {
      */
     public static String saveToFileGetHash(InputStream uploadedInputStream,
                                            String uploadedFileLocation) throws PayloadEncodingException {
-
+        // Generate hash.
         try (OutputStream out = new FileOutputStream(new File(uploadedFileLocation))) {
             return HashGenerator.hashoutstream(uploadedInputStream, out);
         }
@@ -157,6 +160,7 @@ public final class PayloadHandler {
      */
     public static String getHashFromStream(BufferedInputStream uploadedInputStream) throws PayloadEncodingException {
         try {
+            // Generate hash.
             return HashGenerator.hash(uploadedInputStream);
         }
         catch (NoSuchAlgorithmException | IOException e) {
@@ -170,7 +174,7 @@ public final class PayloadHandler {
      */
     public static void saveStreamToFile(InputStream uploadedInputStream,
                                         String uploadedFileLocation) {
-
+        // Save input stream to file.
         try (OutputStream out = new FileOutputStream(new File(uploadedFileLocation))) {
             StreamUtils.copy(uploadedInputStream, out);
         }
@@ -186,6 +190,7 @@ public final class PayloadHandler {
     public static byte[] readFromFile(String uploadedFileLocation) {
         byte[] databarr = null;
         try {
+            // Read from File into byte array.
             final java.nio.file.Path path = Paths.get(uploadedFileLocation);
             databarr = Files.readAllBytes(path);
         }
@@ -204,6 +209,7 @@ public final class PayloadHandler {
     public static long lengthOfFile(String uploadedFileLocation) {
         long flength = 0;
         try {
+            // Get length of file.
             final java.nio.file.Path path = Paths.get(uploadedFileLocation);
             Files.size(path);
             flength = Files.size(path);
@@ -224,6 +230,7 @@ public final class PayloadHandler {
         if (is == null) {
             return new byte[0];
         }
+        // Get byte array from input stream.
         try (ByteArrayOutputStream buffer = new ByteArrayOutputStream();) {
             int read = 0;
             final byte[] bytes = new byte[2048];

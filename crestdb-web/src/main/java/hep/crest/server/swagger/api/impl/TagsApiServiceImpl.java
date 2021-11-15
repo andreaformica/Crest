@@ -2,6 +2,7 @@ package hep.crest.server.swagger.api.impl;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import hep.crest.data.exceptions.ConflictException;
+import hep.crest.data.exceptions.CdbBadRequestException;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.querydsl.IFilteringCriteria;
 import hep.crest.server.controllers.EntityDtoHelper;
@@ -87,10 +88,9 @@ public class TagsApiServiceImpl extends TagsApiService {
     private MapperFacade mapper;
 
     /**
-     * Response helper.
+     * Resource bundle.
      */
-    @Autowired
-    private ResponseFormatHelper rfh;
+    private final ResourceBundle bundle = ResourceBundle.getBundle("messages", new Locale("US"));
 
     /*
      * (non-Javadoc)
@@ -127,7 +127,7 @@ public class TagsApiServiceImpl extends TagsApiService {
         final Tag entity = tagService.findOne(name);
         // Send a bad request if body is null.
         if (body == null) {
-            return rfh.badRequest("Cannot update tag " + entity.name() + ": body is null");
+            throw new CdbBadRequestException("Cannot update tag with null body");
         }
         // Loop over map body keys.
         for (final String key : body.keySet()) {

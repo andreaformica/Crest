@@ -4,7 +4,7 @@
 package hep.crest.server.services;
 
 import com.querydsl.core.types.Predicate;
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.security.pojo.CrestFolders;
 import hep.crest.data.security.pojo.FolderRepository;
@@ -66,11 +66,11 @@ public class FolderService {
      * @param entity
      *            the CrestFolders
      * @return CrestFolders
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred because pojo exists
      */
     @Transactional
-    public CrestFolders insertFolder(CrestFolders entity) throws CdbServiceException {
+    public CrestFolders insertFolder(CrestFolders entity) throws AbstractCdbServiceException {
         log.debug("Create CrestFolder from  {}", entity);
         final Optional<CrestFolders> tmpgt = folderRepository
                 .findById(entity.getNodeFullpath());

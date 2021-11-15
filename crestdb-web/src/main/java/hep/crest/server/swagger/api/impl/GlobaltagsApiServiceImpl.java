@@ -1,8 +1,6 @@
 package hep.crest.server.swagger.api.impl;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
-import hep.crest.data.exceptions.CdbServiceException;
-import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.querydsl.IFilteringCriteria;
@@ -10,7 +8,6 @@ import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.services.GlobalTagService;
 import hep.crest.server.swagger.api.GlobaltagsApiService;
-import hep.crest.server.swagger.api.NotFoundException;
 import hep.crest.swagger.model.CrestBaseResponse;
 import hep.crest.swagger.model.GenericMap;
 import hep.crest.swagger.model.GlobalTagDto;
@@ -55,12 +52,6 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
      */
     @Autowired
     private PageRequestHelper prh;
-
-    /**
-     * Response helper.
-     */
-    @Autowired
-    private ResponseFormatHelper rfh;
 
     /**
      * Helper.

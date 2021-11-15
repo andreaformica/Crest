@@ -39,7 +39,9 @@ public class IovGroupsSQLITEImpl extends IovGroupsImpl implements IovGroupsCusto
 
     @Override
     protected String getBlob(ResultSet rs, String key) throws SQLException {
+        // In sqlite you get directly the bytes under the form of a SerialBlob.
         SerialBlob blob = new SerialBlob(rs.getBytes(key));
+        // Read the LOB as a string.
         return getStringFromBuf(PayloadHandler.getByteArr(blob.getBinaryStream()));
     }
 }

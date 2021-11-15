@@ -1,17 +1,22 @@
 package hep.crest.data.test;
 
 
-import hep.crest.data.exceptions.CdbServiceException;
-import hep.crest.data.handlers.PayloadHandler;
-import hep.crest.data.pojo.Tag;
-import hep.crest.data.repositories.PayloadDataBaseCustom;
-import hep.crest.data.repositories.PayloadDataSQLITEImpl;
-import hep.crest.data.repositories.TagMetaDataBaseCustom;
-import hep.crest.data.repositories.TagMetaSQLITEImpl;
-import hep.crest.data.repositories.TagRepository;
-import hep.crest.data.test.tools.DataGenerator;
-import hep.crest.swagger.model.PayloadDto;
-import hep.crest.swagger.model.TagMetaDto;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Instant;
+import java.util.Date;
+
+import javax.sql.DataSource;
+
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -119,8 +124,13 @@ public class RepositorySqliteTests {
         if (ds1 != null) {
             ds1.close();
         }
-        final PayloadDto loadedblob1 = repobean.find(savedfromblob.getHash());
-        assertThat(loadedblob1).isNull();
+        try {
+            final PayloadDto loadedblob1 = repobean.find(savedfromblob.getHash());
+            assertThat(loadedblob1).isNull();
+        }
+        catch (AbstractCdbServiceException e) {
+            log.error("Cannot find payload for hash {}: {}", savedfromblob.getHash(), e);
+        }
 
 //        final PayloadDto pdto = lobhandler.convertToDto(loadedblob1);
 //        assertThat(pdto).isNotNull();

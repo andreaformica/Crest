@@ -66,6 +66,13 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     @Context
     private SecurityContext securityContext;
 
+    /**
+     * Default ctor.
+     */
+    public AuthorizationFilter() {
+        // Empty constructor. All variables initializes by spring.
+    }
+
     /*
      * (non-Javadoc)
      * 

@@ -111,11 +111,6 @@ public class IovsApiServiceImpl extends IovsApiService {
     private MapperFacade mapper;
 
     /**
-     * Response helper.
-     */
-    @Autowired
-    private ResponseFormatHelper rfh;
-    /**
      * The context from the request.
      */
     @Autowired

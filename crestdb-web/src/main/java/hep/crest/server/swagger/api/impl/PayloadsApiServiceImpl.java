@@ -3,12 +3,13 @@ package hep.crest.server.swagger.api.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.data.config.CrestProperties;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbBadRequestException;
 import hep.crest.data.exceptions.CdbInternalException;
-import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.exceptions.PayloadEncodingException;
 import hep.crest.data.handlers.PayloadHandler;
+import hep.crest.data.repositories.PayloadDataBaseCustom;
 import hep.crest.server.annotations.CacheControlCdb;
 import hep.crest.server.caching.CachingPolicyService;
 import hep.crest.server.services.IovService;
@@ -87,6 +88,12 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     @Autowired
     private PayloadService payloadService;
     /**
+     * Repository.
+     */
+    @Autowired
+    @Qualifier("payloaddatadbrepo")
+    private PayloadDataBaseCustom payloaddataRepository;
+    /**
      * Service.
      */
     @Autowired
@@ -113,12 +120,6 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     @Qualifier("mapper")
     private MapperFacade mapper;
 
-    /**
-     * Response helper.
-     */
-    @Autowired
-    private ResponseFormatHelper rfh;
-
     /* (non-Javadoc)
      * @see hep.crest.server.swagger.api.PayloadsApiService#createPayload(hep.crest.swagger.model.PayloadDto, javax
      * .ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
@@ -126,6 +127,11 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     @Override
     public Response createPayload(PayloadDto body, SecurityContext securityContext, UriInfo info) {
         // Create a new payload using the body in the request.
+        // Verify if hash exists
+        String dbhash = payloaddataRepository.exists(body.getHash());
+        if (dbhash != null && dbhash.length() > 0) {
+            throw new ConflictException("Hash already exists " + body.getHash());
+        }
         final PayloadDto saved = payloadService.insertPayload(body);
         log.debug("Saved PayloadDto {}", saved);
         return Response.created(info.getRequestUri()).entity(saved).build();
@@ -152,6 +158,11 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             // Get the DTO.
             payloaddto = jacksonMapper.readValue(payload, PayloadDto.class);
             log.debug("Received body json " + payloaddto);
+            // Verify if hash exists
+            String dbhash = payloaddataRepository.exists(payloaddto.getHash());
+            if (dbhash != null && dbhash.length() > 0) {
+                throw new ConflictException("Hash already exists " + payloaddto.getHash());
+            }
             // Create the payload taking binary content from the input stream.
             FormDataContentDisposition fileDetail = fileBodypart.getFormDataContentDisposition();
             InputStream fileInputStream = fileBodypart.getValueAs(InputStream.class);
@@ -275,18 +286,14 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 + "format {}",
                 tag, since, format);
         try {
+            if (fileBodypart == null) {
+                throw new CdbBadRequestException("Cannot upload payload: form is missing the body part");
+            }
             FormDataContentDisposition fileDetail = fileBodypart.getFormDataContentDisposition();
             InputStream fileInputStream = fileBodypart.getValueAs(InputStream.class);
-
             // Store payload with multi form
-            if (fileDetail == null) {
-                throw new IOException("Cannot upload payload: form is missing the file field");
-            }
-            if (tag == null) {
-                throw new IOException("Cannot upload payload: form is missing the tag field");
-            }
-            if (since == null) {
-                throw new IOException("Cannot upload payload: form is missing the since field");
+            if (fileDetail == null || tag == null || since == null || fileInputStream == null) {
+                throw new CdbBadRequestException("Cannot upload payload: form is missing a field");
             }
             String fdetailsname = fileDetail.getFileName();
             if (fdetailsname == null || fdetailsname.isEmpty()) {
@@ -299,7 +306,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 fdetailsname = "_" + p.getFileName().toString();
             }
             // Create a temporary file name from tag name and time of validity.
-            final String filename = cprops.getDumpdir() + SLASH + tag + "_" + since
+            String filename = cprops.getDumpdir() + SLASH + tag + "_" + since
                                     + fdetailsname;
             if (format == null) {
                 format = "JSON";
@@ -325,20 +332,25 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 sinfomap.put("streamerInfo", streamerInfo);
             }
             // Create the DTO, the version here is ignored. It could be added from the Form data.
-            final PayloadDto pdto = new PayloadDto().objectType(objectType)
+            PayloadDto pdto = new PayloadDto().objectType(objectType)
                     .streamerInfo(jacksonMapper.writeValueAsBytes(sinfomap)).version(version);
             final String hash = getHash(fileInputStream, filename);
             pdto.hash(hash);
+            // Verify if hash exists
+            String dbhash = payloaddataRepository.exists(hash);
+            if (dbhash != null && dbhash.length() > 0) {
+                log.warn("Hash {} already exists, set payload dto to null to skip insertion", hash);
+                pdto = null;
+            }
             final IovDto iovDto = new IovDto().payloadHash(hash).since(since).tagName(tag);
             // Save iov and payload and get the response object in return.
             final HTTPResponse resp = payloadService.saveIovAndPayload(iovDto, pdto, filename);
             resp.action("storePayloadWithIovMultiForm");
-            Response serverResp = rfh.createApiResponse(resp);
-            return serverResp;
+            return Response.status(Response.Status.CREATED).entity(resp).build();
         }
         catch (IOException e) {
-            log.warn("Bad request: {}", e.getMessage());
-            throw new CdbBadRequestException(e.getMessage());
+            log.warn("Bad request: {}", e);
+            throw new CdbBadRequestException("storePayloadWithIovMultiForm IO error: " + e.getMessage());
         }
     }
 
@@ -460,11 +472,11 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      * @return IovSetDto
      * @throws PayloadEncodingException If an Exception occurred
      * @throws IOException              If an Exception occurred
-     * @throws CdbServiceException      if an exception occurred in insertion.
+     * @throws AbstractCdbServiceException      if an exception occurred in insertion.
      */
     protected IovSetDto storeIovs(IovSetDto dto, String tag, String objectType, String version,
                                   String streamerInfo, List<FormDataBodyPart> filesbodyparts)
-            throws IOException, CdbServiceException {
+            throws IOException, AbstractCdbServiceException {
         final List<IovDto> iovlist = dto.getResources();
         final List<IovDto> savediovlist = new ArrayList<>();
         // Loop over iovs found in the Set.
@@ -567,7 +579,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         String sinfo = null;
         // Send a bad request if body is null.
         if (body == null) {
-            return rfh.badRequest("Cannot update payload " + entity.getHash() + ": body is null");
+            throw new CdbBadRequestException("Cannot update payload with null body");
         }
         // Loop over map body keys.
         for (final String key : body.keySet()) {

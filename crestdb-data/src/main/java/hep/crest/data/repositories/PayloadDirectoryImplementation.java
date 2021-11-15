@@ -3,8 +3,9 @@
  */
 package hep.crest.data.repositories;
 
+import hep.crest.data.exceptions.CdbInternalException;
 import hep.crest.data.exceptions.CdbNotFoundException;
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.utils.DirectoryUtilities;
 import hep.crest.swagger.model.PayloadDto;
 import org.slf4j.Logger;
@@ -61,10 +62,10 @@ public class PayloadDirectoryImplementation {
      * @param hash
      *            the String
      * @return PayloadDto
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
-    public PayloadDto find(String hash) throws CdbServiceException {
+    public PayloadDto find(String hash) throws AbstractCdbServiceException {
         final Path payloadpath = dirtools.getPayloadPath();
         final String hashdir = dirtools.hashdir(hash);
         final Path payloadhashpath = Paths.get(payloadpath.toString(), hashdir);
@@ -92,9 +93,9 @@ public class PayloadDirectoryImplementation {
             return dirtools.getMapper().readValue(jsonstring, PayloadDto.class);
         }
         catch (final IOException x) {
-            log.error("Cannot find payload for hash {}: {}", hash, x);
+            log.error("IO exception in loading payload for hash {}", hash);
+            throw new CdbInternalException("IO error for hash " + hash, x);
         }
-        return null;
     }
 
     /**
@@ -130,9 +131,9 @@ public class PayloadDirectoryImplementation {
             return hash;
         }
         catch (final RuntimeException | IOException x) {
-            log.error("Cannot save payload dto {} : {}", dto, x);
+            log.error("Cannot save payload dto {}", dto);
+            throw new CdbInternalException("IO error saving payload for hash " + dto.getHash(), x);
         }
-        return null;
     }
 
     /**

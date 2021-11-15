@@ -15,6 +15,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.Type;
 
@@ -25,6 +26,9 @@ import hep.crest.data.config.DatabasePropertyConfigurator;
  */
 @Entity
 @Table(name = "PAYLOAD", schema = DatabasePropertyConfigurator.SCHEMA_NAME)
+// This object represents a Payload.
+// Define default constructors.
+@NoArgsConstructor
 @Data
 @Accessors(fluent = true)
 public class Payload {
@@ -59,6 +63,8 @@ public class Payload {
     private Blob data;
     /**
      * The streamer info blob.
+     * This blob can be used to improve deserialization or as well to track actions performed
+     * using this payload.
      */
     @Column(name = "STREAMER_INFO", nullable = false)
     @Lob

@@ -108,6 +108,7 @@ public class PostgresBlobHandler {
                 obj.write(buf, 0, s);
                 tl += s;
             }
+            log.trace("Update LOB, total written size {} ", tl);
             // Close the large object
             obj.close();
             // This seems to be not needed or harmful: lobj . unlink( oid )
@@ -129,7 +130,6 @@ public class PostgresBlobHandler {
                 log.error("Error in closing result set : {}", e.getMessage());
             }
         }
-        return;
     }
 
     /**

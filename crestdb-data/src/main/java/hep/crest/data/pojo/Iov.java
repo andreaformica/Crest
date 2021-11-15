@@ -29,6 +29,8 @@ import java.util.Date;
 @Entity
 @Table(name = "IOV", schema = DatabasePropertyConfigurator.SCHEMA_NAME, uniqueConstraints = {
         @UniqueConstraint(columnNames = { "TAG_NAME", "SINCE", "PAYLOAD_HASH" }) })
+// This object represents an Iov.
+// Define default constructors.
 @Accessors(fluent = true)
 @Getter
 @Setter
@@ -43,6 +45,9 @@ public class Iov implements java.io.Serializable {
     private static final long serialVersionUID = 8775823880173022258L;
     /**
      * The Iov ID.
+     * The since field represent a sort of a time.
+     * The insertionTime field is used for history on the same since: when you overwrite
+     * a since with a new payload the old one is still accessible via this time.
      */
     @EmbeddedId
     @AttributeOverride(name = "tagName",
@@ -54,6 +59,7 @@ public class Iov implements java.io.Serializable {
     private IovId id;
     /**
      * The tag.
+     * We exclude this field in equals and hashcode generated methods.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "TAG_NAME", nullable = false, insertable = false, updatable = false)

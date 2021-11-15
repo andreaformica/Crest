@@ -5,10 +5,10 @@ package hep.crest.server.services;
 
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbBadRequestException;
 import hep.crest.data.exceptions.CdbInternalException;
 import hep.crest.data.exceptions.CdbNotFoundException;
-import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
@@ -77,7 +77,7 @@ public class TagService {
      * @param tagname
      *            the String
      * @return boolean
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
     public boolean exists(String tagname) throws CdbInternalException {
@@ -103,17 +103,16 @@ public class TagService {
      * @param id
      *            the String representing the Tag name
      * @return Tag
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If object was not found
      */
-    public Tag findOne(String id) throws CdbServiceException {
+    public Tag findOne(String id) throws AbstractCdbServiceException {
         log.debug("Search for tag by Id...{}", id);
         if (id == null) {
             throw new CdbBadRequestException("Wrong null argument");
         }
-        final Tag entity = tagRepository.findById(id).orElseThrow(() -> new CdbNotFoundException(
+        return tagRepository.findById(id).orElseThrow(() -> new CdbNotFoundException(
                 "Tag not found: " + id));
-        return entity;
     }
 
     /**
@@ -175,11 +174,11 @@ public class TagService {
      * @param entity
      *            the Tag
      * @return TagDto of the updated entity.
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
     @Transactional
-    public Tag updateTag(Tag entity) throws CdbServiceException {
+    public Tag updateTag(Tag entity) throws AbstractCdbServiceException {
         log.debug("Update tag from dto {}", entity);
         final Tag toupd = tagRepository.findById(entity.name()).orElseThrow(
                 () -> new CdbNotFoundException("Tag does not exists for name " + entity.name()));
@@ -197,10 +196,11 @@ public class TagService {
      *            the String
      */
     @Transactional
-    public void removeTag(String name) throws CdbServiceException {
+    public void removeTag(String name) throws AbstractCdbServiceException {
         log.debug("Remove tag {} after checking if IOVs are present", name);
         Tag remTag = tagRepository.findById(name).orElseThrow(
                 () -> new CdbNotFoundException("Tag does not exists for name " + name));
+        log.debug("Removing tag {}", remTag);
         List<SearchCriteria> criteriaList = prh.createMatcherCriteria("tagname:" + name);
         BooleanExpression bytag = prh.buildWhere(filtering, criteriaList);
         long niovs = iovRepository.count(bytag);

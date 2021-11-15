@@ -3,8 +3,8 @@
  */
 package hep.crest.server.services;
 
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbNotFoundException;
-import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.GlobalTagMap;
@@ -73,11 +73,11 @@ public class GlobalTagMapService {
     /**
      * @param entity the GlobalTagMap
      * @return GlobalTagMap
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *              If an Exception occurred
      */
     @Transactional
-    public GlobalTagMap insertGlobalTagMap(GlobalTagMap entity) throws CdbServiceException {
+    public GlobalTagMap insertGlobalTagMap(GlobalTagMap entity) throws AbstractCdbServiceException {
         log.debug("Create GlobalTagMap from {}", entity);
         Optional<GlobalTagMap> map = globalTagMapRepository.findById(entity.id());
         if (map.isPresent()) {

@@ -4,10 +4,11 @@
 package hep.crest.server.runinfo.services;
 
 import com.querydsl.core.types.Predicate;
-import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.runinfo.pojo.RunLumiInfo;
 import hep.crest.data.runinfo.repositories.RunLumiInfoRepository;
 import hep.crest.swagger.model.RunLumiInfoDto;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
+import hep.crest.data.exceptions.CdbBadRequestException;
 import ma.glasnost.orika.MapperFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,7 @@ public class RunInfoService {
      * @param req
      *            the Pageable
      * @return List<RunLumiInfoDto>
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
     public List<RunLumiInfoDto> findAllRunInfo(Predicate qry, Pageable req) {
@@ -75,7 +76,7 @@ public class RunInfoService {
      * @param dto
      *            the RunInfoDto
      * @return RunLumiInfoDto
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
     @Transactional
@@ -92,7 +93,7 @@ public class RunInfoService {
      *            the BigDecimal.
      * @param to
      *            the BigDecimal.
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred.
      * @return List<RunLumiInfoDto>
      */
@@ -113,7 +114,7 @@ public class RunInfoService {
      *            the Date.
      * @param to
      *            the Date.
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred.
      * @return List<RunLumiInfoDto>
      */

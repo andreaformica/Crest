@@ -1,7 +1,7 @@
 package hep.crest.server.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.pojo.Tag;
 import hep.crest.server.services.TagService;
 import hep.crest.swagger.model.TagDto;
@@ -62,20 +62,20 @@ public class TestCrestTag {
             final Tag saved = tagservice.insertTag(entity);
             assertThat(saved).isNotNull();
         }
-        catch (final CdbServiceException e) {
+        catch (final AbstractCdbServiceException e) {
             log.info("got exception of type {}",e.getClass());
         }
         try {
             tagservice.exists(null);
         }
-        catch (final CdbServiceException e) {
+        catch (final AbstractCdbServiceException e) {
             log.info("got exception of type {}",e.getClass());
         }
         try {
             final Tag dtonull = tagservice.findOne(null);
             assertThat(dtonull).isNull();
         }
-        catch (final CdbServiceException | InvalidDataAccessApiUsageException e) {
+        catch (final AbstractCdbServiceException | InvalidDataAccessApiUsageException e) {
             log.info("got exception of type {}",e.getClass());
         }
         final List<String> ids = new ArrayList<>();

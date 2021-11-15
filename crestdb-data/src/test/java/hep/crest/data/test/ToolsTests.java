@@ -6,7 +6,7 @@ package hep.crest.data.test;
 import hep.crest.data.config.CrestProperties;
 import hep.crest.data.exceptions.CdbInternalException;
 import hep.crest.data.exceptions.CdbNotFoundException;
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.PayloadEncodingException;
 import hep.crest.data.handlers.DateFormatterHandler;
 import hep.crest.data.handlers.HashGenerator;
@@ -85,19 +85,19 @@ public class ToolsTests {
         try {
             dirutils.getTagFilePath(dirutils.getBasePath().toString(), "MANUAL-TAG");
         }
-        catch (final CdbServiceException e) {
+        catch (final AbstractCdbServiceException e) {
             log.info("Cannot find the tag file for MANUAL-TAG");
         }
         try {
             dirutils.getIovFilePath(dirutils.getBasePath().toString(), "MANUAL-TAG");
         }
-        catch (final CdbServiceException e) {
+        catch (final AbstractCdbServiceException e) {
             log.info("Cannot find the iov file for MANUAL-TAG");
         }
         try {
             dirutils.createIfNotexistsIov(dirutils.getBasePath().toString(), "MANUAL-TAG-2");
         }
-        catch (final CdbServiceException e) {
+        catch (final AbstractCdbServiceException e) {
             log.info("Cannot find the iov file for MANUAL-TAG");
         }
         final Path base = dirutils.getBasePath("/tmp/cdms/pippo");
@@ -174,7 +174,7 @@ public class ToolsTests {
             final List<Iov> iovemptylist = fsiovrepository.findByIdTagName("MY-TAG-02");
             assertThat(iovemptylist.size()).isZero();
         }
-        catch (final CdbServiceException e) {
+        catch (final AbstractCdbServiceException e) {
             log.error("Cannot find tag MY-TAG-02");
         }
         final IovDto iov1 = DataGenerator.generateIovDto("mydirhash", "MY-TAG-01",
@@ -331,9 +331,9 @@ public class ToolsTests {
     @Test
     public void exceptionTest() {
         final NullPointerException np = new NullPointerException("null");
-        final CdbServiceException es = new CdbInternalException("message");
+        final AbstractCdbServiceException es = new CdbInternalException("message");
         assertThat(es.getMessage()).contains("message");
-        final CdbServiceException ees = new CdbNotFoundException("message not found", np);
+        final AbstractCdbServiceException ees = new CdbNotFoundException("message not found", np);
         assertThat(ees.getCause()).isNotNull();
         final PayloadEncodingException e = new PayloadEncodingException("message");
         assertThat(e.getMessage()).contains("message");

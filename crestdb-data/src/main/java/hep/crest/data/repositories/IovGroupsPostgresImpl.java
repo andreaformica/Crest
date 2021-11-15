@@ -45,9 +45,11 @@ public class IovGroupsPostgresImpl extends IovGroupsImpl implements IovGroupsCus
     @Override
     protected String getBlob(ResultSet rs, String key) throws SQLException {
         byte[] buf = null;
+        // For postgres we need to get the OID, which is the identifier of the LOB.
         Long oid = rs.getLong(key);
         try (Connection conn = super.getDs().getConnection();) {
             conn.setAutoCommit(false);
+            // Get the LOB content and serialize it as byte array.
             buf = bhandler.getlargeObj(oid, conn);
         }
         return this.getStringFromBuf(buf);

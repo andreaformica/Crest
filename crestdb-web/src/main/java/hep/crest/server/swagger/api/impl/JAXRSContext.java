@@ -30,16 +30,16 @@ public class JAXRSContext {
     /**
      * Request from context.
      */
-    private Request request;
+    private Request request = null;
     /**
      * Headers from context.
      */
-    private HttpHeaders httpHeaders;
+    private HttpHeaders httpHeaders = null;
 
     /**
      * Servlet request from context.
      */
-    private HttpServletRequest httpServletRequest;
+    private HttpServletRequest httpServletRequest = null;
 
     /**
      * The Request to get.

@@ -265,8 +265,7 @@ public class IovGroupsImpl implements IovGroupsCustom {
         // Get sql query.
         final String sql = SqlRequests.getRangeIovPayloadQuery(tablename, payloadTablename());
         // Execute request.
-        return jdbcTemplate.query(sql,
-                (rs, num) -> {
+        return jdbcTemplate.query(sql, (rs, num) -> {
                     final IovPayloadDto entity = new IovPayloadDto();
                     Instant inst = Instant.ofEpochMilli(rs.getTimestamp("INSERTION_TIME").getTime());
                     entity.setSince(rs.getBigDecimal("SINCE"));
@@ -316,12 +315,14 @@ public class IovGroupsImpl implements IovGroupsCustom {
         decoder.onMalformedInput(CodingErrorAction.REPORT)
                 .onUnmappableCharacter(CodingErrorAction.REPORT);
 
-        byte[] streaminfoByteArr = buf;
+        byte[] streaminfoByteArr = buf.clone();
         try {
+            // Use decoder to read the byte array into a string.
             return decoder.decode(ByteBuffer.wrap(streaminfoByteArr))
                     .toString();
         }
         catch (CharacterCodingException e) {
+            // If there are character encoding problems, then use a base64 encoder.
             log.warn("Cannot decode as String with charset US_ASCII, use base64: {}", e.getMessage());
             return Base64.getEncoder().encodeToString(streaminfoByteArr);
         }

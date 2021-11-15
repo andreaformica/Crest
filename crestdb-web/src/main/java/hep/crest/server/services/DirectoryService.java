@@ -4,7 +4,7 @@
 package hep.crest.server.services;
 
 import hep.crest.data.config.CrestProperties;
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.IIovCrud;
@@ -124,8 +124,7 @@ public class DirectoryService {
             du = new DirectoryUtilities();
         }
         fstagrepository.setDirtools(du);
-        Tag atag = fstagrepository.findOne(tagname);
-        return atag;
+        return fstagrepository.findOne(tagname);
     }
 
     /**
@@ -143,8 +142,7 @@ public class DirectoryService {
             du = new DirectoryUtilities();
         }
         fstagrepository.setDirtools(du);
-        Tag saved = fstagrepository.save(entity);
-        return saved;
+        return fstagrepository.save(entity);
     }
 
     /**
@@ -157,7 +155,7 @@ public class DirectoryService {
             List<Iov> iovlist = fsiovrepository.findByIdTagName(tagname);
             return edh.entityToDtoList(iovlist, IovDto.class);
         }
-        catch (final CdbServiceException e) {
+        catch (final AbstractCdbServiceException e) {
             log.error("Cannot find iov list for tag {}: {}", tagname, e.getMessage());
         }
         return new ArrayList<>();
@@ -169,13 +167,7 @@ public class DirectoryService {
      * @return PayloadDto
      */
     public PayloadDto getPayload(String hash) {
-        try {
-            return fspayloadrepository.find(hash);
-        }
-        catch (final CdbServiceException e) {
-            log.error("Cannot find payload for hash {} : {}", hash, e.getMessage());
-        }
-        return null;
+        return fspayloadrepository.find(hash);
     }
 
     /**
@@ -219,7 +211,7 @@ public class DirectoryService {
             return new AsyncResult<>(
                     "Dump a list of " + counter + " iovs into file system...");
         }
-        catch (final CdbServiceException e) {
+        catch (final AbstractCdbServiceException e) {
             log.error("Server exception, cannot dump tag {} in path {} : {}", tagname, path, e.getMessage());
         }
         return null;

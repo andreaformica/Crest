@@ -1,6 +1,6 @@
 package hep.crest.testutils;
 
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.ConflictException;
 
 public class ExceptionsExample {
@@ -24,7 +24,7 @@ public class ExceptionsExample {
             System.out.println("Send an Exception for IOV");
             throw new ConflictException("iov is already there");
         }
-        catch (CdbServiceException e) {
+        catch (AbstractCdbServiceException e) {
             e.printStackTrace();
             System.out.println("Cdb Exception message : " + e.getMessage());
         }

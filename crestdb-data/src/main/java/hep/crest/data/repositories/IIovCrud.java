@@ -1,6 +1,6 @@
 package hep.crest.data.repositories;
 
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.IovId;
 import hep.crest.data.utils.DirectoryUtilities;
@@ -12,14 +12,14 @@ public interface IIovCrud extends IIovQuery {
      *
      * @param id
      */
-    void deleteById(IovId id) throws CdbServiceException;
+    void deleteById(IovId id) throws AbstractCdbServiceException;
 
     /**
      * Remove an iov using the entity.
      *
      * @param entity
      */
-    void delete(Iov entity) throws CdbServiceException;
+    void delete(Iov entity) throws AbstractCdbServiceException;
 
     /**
      * Save an iov.
@@ -27,7 +27,7 @@ public interface IIovCrud extends IIovQuery {
      * @param entity the Iov to save.
      * @return Iov.
      */
-    Iov save(Iov entity) throws CdbServiceException;
+    Iov save(Iov entity) throws AbstractCdbServiceException;
 
     /**
      * Save an iov.
@@ -36,7 +36,7 @@ public interface IIovCrud extends IIovQuery {
      * @param entitylist the Iov list to save.
      * @return int
      */
-    int saveAll(String tag, Iterable<Iov> entitylist) throws CdbServiceException;
+    int saveAll(String tag, Iterable<Iov> entitylist) throws AbstractCdbServiceException;
 
     /**
      * Set directory utilities.

@@ -5,8 +5,8 @@ package hep.crest.data.repositories;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbNotFoundException;
-import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.IovId;
 import hep.crest.data.utils.DirectoryUtilities;
@@ -89,9 +89,8 @@ public class IovDirImpl implements IIovCrud {
             if (jsonstring.isEmpty()) {
                 return new ArrayList<>();
             }
-            List<IovDto> iovdtoList = dirtools.getMapper().readValue(jsonstring, new TypeReference<List<IovDto>>() {
+            return dirtools.getMapper().readValue(jsonstring, new TypeReference<List<IovDto>>() {
             });
-            return iovdtoList;
         }
         catch (final RuntimeException | IOException e) {
             log.error("Cannot find iov list for tag {} : {}", tagname, e);
@@ -107,10 +106,9 @@ public class IovDirImpl implements IIovCrud {
     public List<Iov> findByIdTagName(String name) throws CdbNotFoundException {
         try {
             List<IovDto> iovdtoList = readJsonFromFile(name);
-            final List<Iov> entitylist = StreamSupport.stream(iovdtoList.spliterator(), false).map(s -> mapper.map(s,
+            return StreamSupport.stream(iovdtoList.spliterator(), false).map(s -> mapper.map(s,
                     Iov.class))
                     .collect(Collectors.toList());
-            return entitylist;
         }
         catch (final RuntimeException e) {
             log.error("Cannot find iov list for tag {} : {}", name, e);
@@ -155,15 +153,14 @@ public class IovDirImpl implements IIovCrud {
                     iovdtoList.stream().filter(s -> s.getTagName().equalsIgnoreCase(name))
                             .filter(s -> s.getSince().compareTo(since) >= 0)
                             .filter(s -> s.getSince().compareTo(until) <= 0).collect(Collectors.toList());
-            final List<Iov> entitylist = StreamSupport.stream(selectedList.spliterator(), false)
+            return StreamSupport.stream(selectedList.spliterator(), false)
                     .map(s -> mapper.map(s, Iov.class))
                     .collect(Collectors.toList());
-            return entitylist;
         }
         catch (final RuntimeException e) {
             log.error("Exception searching iov for tag {}, since {}, until {} : {}", name, since, until, e);
         }
-        return null;
+        return new ArrayList<>();
     }
 
     /**
@@ -188,15 +185,14 @@ public class IovDirImpl implements IIovCrud {
                             .filter(s -> s.getSince().compareTo(until) <= 0)
                             .filter(s -> Date.from(s.getInsertionTime().toInstant())
                                     .before(snapshot)).collect(Collectors.toList());
-            final List<Iov> entitylist = StreamSupport.stream(selectedList.spliterator(), false)
+            return StreamSupport.stream(selectedList.spliterator(), false)
                     .map(s -> mapper.map(s, Iov.class))
                     .collect(Collectors.toList());
-            return entitylist;
         }
         catch (final RuntimeException e) {
             log.error("Exception searching iov for tag {}, since {}, until {} : {}", name, since, until, e);
         }
-        return null;
+        return new ArrayList<>();
     }
 
     /**
@@ -230,15 +226,14 @@ public class IovDirImpl implements IIovCrud {
                     iovdtoList.stream().filter(s -> s.getTagName().equalsIgnoreCase(name))
                             .filter(s -> (s.getSince().longValue() == cmax || s.getSince().longValue() == cmin))
                             .collect(Collectors.toList());
-            final List<Iov> entitylist = StreamSupport.stream(selectedList.spliterator(), false)
+            return StreamSupport.stream(selectedList.spliterator(), false)
                     .map(s -> mapper.map(s, Iov.class))
                     .collect(Collectors.toList());
-            return entitylist;
         }
         catch (final RuntimeException e) {
             log.error("Exception searching iov for tag {}, since {} : {}", name, since, e);
         }
-        return null;
+        return new ArrayList<>();
     }
 
     /**
@@ -250,7 +245,7 @@ public class IovDirImpl implements IIovCrud {
      */
     @Override
     public List<Iov> getRange(String name, BigDecimal since, BigDecimal until, Date snapshot) {
-        return null;
+        throw new UnsupportedOperationException("getRange not implemented here.");
     }
 
     /**
@@ -259,7 +254,7 @@ public class IovDirImpl implements IIovCrud {
      */
     @Override
     public List<Iov> selectLatestByTag(String name) {
-        return null;
+        throw new UnsupportedOperationException("selectLatestByTag not implemented here.");
     }
 
     /**
@@ -269,7 +264,7 @@ public class IovDirImpl implements IIovCrud {
      */
     @Override
     public List<Iov> selectSnapshot(String tagname, Date snapshot) {
-        return null;
+        throw new UnsupportedOperationException("selectSnapshot not implemented here.");
     }
 
     /**
@@ -278,7 +273,7 @@ public class IovDirImpl implements IIovCrud {
      * @param id the IovId.
      */
     @Override
-    public void deleteById(IovId id) throws CdbServiceException {
+    public void deleteById(IovId id) throws AbstractCdbServiceException {
         try {
             Predicate<Iov> isRemoved = item -> (item.id().equals(id));
             final Path iovfilepath = dirtools.createIfNotexistsIov(id.tagName());
@@ -302,7 +297,7 @@ public class IovDirImpl implements IIovCrud {
      * @param entity the Iov entity.
      */
     @Override
-    public void delete(Iov entity) throws CdbServiceException {
+    public void delete(Iov entity) throws AbstractCdbServiceException {
         try {
             Predicate<Iov> isRemoved = item -> (item.equals(entity));
             final Path iovfilepath = dirtools.createIfNotexistsIov(entity.id().tagName());
@@ -326,7 +321,7 @@ public class IovDirImpl implements IIovCrud {
      * @return Iov.
      */
     @Override
-    public Iov save(Iov entity) throws CdbServiceException {
+    public Iov save(Iov entity) throws AbstractCdbServiceException {
         try {
             final String tagname = entity.id().tagName();
             final Path iovfilepath = dirtools.createIfNotexistsIov(tagname);
@@ -354,7 +349,7 @@ public class IovDirImpl implements IIovCrud {
      *            the Iterable<Iov>
      * @return int
      */
-    public int saveAll(String tagname, Iterable<Iov> iovlist) throws CdbServiceException {
+    public int saveAll(String tagname, Iterable<Iov> iovlist) throws AbstractCdbServiceException {
 
         try {
             if (iovlist == null) {
@@ -381,7 +376,7 @@ public class IovDirImpl implements IIovCrud {
      *            the String
      * @param iovfilepath
      *            the Path
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
     protected void writeIovFile(String jsonstr, Path iovfilepath) {

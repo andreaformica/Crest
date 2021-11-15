@@ -1,7 +1,6 @@
 package hep.crest.data.serializers;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
@@ -30,7 +29,8 @@ public class CustomTimeSerializer extends JsonSerializer<OffsetDateTime> {
 
     @Override
     public void serialize(OffsetDateTime value, JsonGenerator gen, SerializerProvider provider)
-            throws IOException, JsonProcessingException {
+            throws IOException {
+        // Write the string using the formatter provided at creation time.
         gen.writeString(value.format(this.formatter));
     }
 }

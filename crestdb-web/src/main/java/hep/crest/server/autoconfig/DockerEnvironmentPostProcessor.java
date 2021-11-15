@@ -24,7 +24,7 @@ import org.springframework.core.env.PropertySources;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 
 /**
  * Post processor to retrieve secrets from Docker. This file requires a
@@ -77,8 +77,8 @@ public class DockerEnvironmentPostProcessor implements EnvironmentPostProcessor 
                 loadSecret(respath, springkey, environment, map);
             }
         }
-        catch (final CdbServiceException e) {
-            log.error("POSTPROCESS ENV Exception {}", e.getMessage());
+        catch (final AbstractCdbServiceException e) {
+            log.error("POSTPROCESS ENV Exception {}", e);
         }
     }
 
@@ -91,7 +91,7 @@ public class DockerEnvironmentPostProcessor implements EnvironmentPostProcessor 
      *            the ConfigurableEnvironment
      * @param map
      *            the Map<String,Object>
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
     private void loadSecret(String secpath, String springkey, ConfigurableEnvironment environment,

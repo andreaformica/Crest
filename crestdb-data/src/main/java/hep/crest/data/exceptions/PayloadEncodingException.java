@@ -23,7 +23,7 @@ import javax.ws.rs.core.Response;
  * @author formica
  *
  */
-public class PayloadEncodingException extends CdbServiceException {
+public class PayloadEncodingException extends AbstractCdbServiceException {
 
     /**
      * Serializer.

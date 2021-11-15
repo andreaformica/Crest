@@ -52,15 +52,16 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
     @Override
     public String exists(String id) {
         log.info("Find payload {} using JDBCTEMPLATE", id);
+        final JdbcTemplate jdbcTemplate = new JdbcTemplate(ds);
         try {
-            final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
             final String tablename = this.tablename();
             // Check if payload with a given hash exists.
             final String sql = SqlRequests.getExistsHashQuery(tablename);
-            return jdbcTemplate.queryForObject(sql, (rs, num) -> rs.getString("HASH"), new Object[]{id});
+            return jdbcTemplate.queryForObject(sql, (rs, num) -> rs.getString("HASH"), id);
         }
         catch (final DataAccessException e) {
-            log.warn("Hash {} does not exists, returning null", id);
+            String msg = "Error checking existence of hash " + id;
+            log.warn(msg + ": {}", e.getMessage());
         }
         return null;
     }
@@ -73,16 +74,16 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
      * Payload)
      */
     @Override
-    @Transactional
     public PayloadDto save(PayloadDto entity) {
         PayloadDto savedentity = null;
         try {
-            log.info("Saved payload {} of size {}", entity.getHash(), entity.getSize());
+            log.info("Saving payload {} of size {} using saveBlobAsBytes", entity.getHash(), entity.getSize());
             savedentity = this.saveBlobAsBytes(entity);
         }
         catch (final RuntimeException e) {
-            log.error("Error in save paylod dto : {}", e.getMessage());
-            throw new CdbSQLException(e);
+            String msg = "Error saving payload dto " + entity;
+            log.warn(msg);
+            throw new CdbSQLException(msg, e);
         }
         return savedentity;
     }
@@ -95,16 +96,16 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
      * model.PayloadDto, java.io.InputStream)
      */
     @Override
-    @Transactional
     public PayloadDto save(PayloadDto entity, InputStream is) {
         PayloadDto savedentity = null;
         try {
-            log.info("Saved payload {} from input stream of size {}", entity.getHash(), entity.getSize());
+            log.info("Saved payload {} of size {} using saveBlobAsStream", entity.getHash(), entity.getSize());
             savedentity = this.saveBlobAsStream(entity, is);
         }
         catch (final RuntimeException e) {
-            log.error("Exception during payload dto insertion: {}", e.getMessage());
-            throw new CdbSQLException(e);
+            String msg = "Error saving payload dto using input stream " + entity;
+            log.warn(msg);
+            throw new CdbSQLException(msg, e);
         }
         return savedentity;
     }
@@ -154,11 +155,12 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
                 entity.setStreamerInfo(getBlob(rs, "STREAMER_INFO"));
                 entity.setSize(rs.getInt("DATA_SIZE"));
                 return entity;
-            }, new Object[]{id});
+            }, id);
         }
         catch (final DataAccessException e) {
-            log.warn("Could not find entry for hash {}: {}", id, e);
-            throw new CdbNotFoundException(e);
+            String msg = "Could not find entry for hash " + id;
+            log.warn(msg);
+            throw new CdbSQLException(msg, e);
         }
     }
 
@@ -188,11 +190,12 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
                 entity.setStreamerInfo(getBlob(rs, "STREAMER_INFO"));
                 entity.setSize(rs.getInt("DATA_SIZE"));
                 return entity;
-            }, new Object[]{id});
+            }, id);
         }
         catch (final DataAccessException e) {
-            log.warn("Could not find meta info entry for hash {}: {}", id, e.getMessage());
-            throw new CdbNotFoundException(e);
+            String msg = "Could not find meta info entry for hash " + id;
+            log.warn(msg);
+            throw new CdbSQLException(msg, e);
         }
     }
 
@@ -212,11 +215,13 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
 
             final String sql = SqlRequests.getFindDataQuery(tablename);
             return jdbcTemplate.queryForObject(sql,
-                    (rs, num) -> getBlobAsStream(rs, "DATA"), new Object[]{id});
+                    (rs, num) -> getBlobAsStream(rs, "DATA"), id
+            );
         }
         catch (final DataAccessException e) {
-            log.error("Cannot find payload with data for hash {}: {}", id, e);
-            throw new CdbNotFoundException(e);
+            String msg = "Could not find data entry for hash " + id;
+            log.warn(msg);
+            throw new CdbSQLException(msg, e);
         }
     }
 
@@ -228,6 +233,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
      * @return number of updated rows.
      */
     @Override
+    @Transactional
     public int updateMetaInfo(String id, String streamerInfo) {
         log.info("Update payload streamer info {} using JDBCTEMPLATE", id);
         try {
@@ -238,26 +244,27 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
             return jdbcTemplate.update(sql, streamerInfo.getBytes(StandardCharsets.UTF_8), id);
         }
         catch (final DataAccessException e) {
-            log.error("Cannot update streamer info payload with data for hash {}: {}", id, e);
-            throw new CdbNotFoundException(e);
+            String msg = "Could not update streamerInfo entry for hash " + id;
+            log.warn(msg);
+            throw new CdbSQLException(msg, e);
         }
     }
 
     /**
-     * @param rs
-     * @param key
+     * @param rs  the result set.
+     * @param key the key.
      * @return byte[]
-     * @throws SQLException
+     * @throws SQLException if an Sql exception occurs.
      */
     protected abstract byte[] getBlob(ResultSet rs, String key) throws SQLException;
 
     /**
      * Transform the byte array from the Blob into a binary stream.
      *
-     * @param rs
-     * @param key
+     * @param rs  the result set.
+     * @param key the key.
      * @return InputStream
-     * @throws SQLException
+     * @throws SQLException If an Sql exception occurs.
      */
     protected abstract InputStream getBlobAsStream(ResultSet rs, String key) throws SQLException;
 
@@ -265,8 +272,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
      * @param is     the InputStream
      * @param sql    the String
      * @param entity the PayloadDto
-     * @return
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     protected void execute(InputStream is, String sql, PayloadDto entity) {
 
@@ -299,7 +305,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         }
         catch (final SQLException e) {
             log.error("Sql exception when storing payload with sql {} : {}", sql, e.getMessage());
-            throw new CdbSQLException(e);
+            throw new CdbSQLException("Cannot store payload", e);
         }
         finally {
             try {
@@ -317,7 +323,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
      * @param entity the PaloadDto
      * @param is     the InputStream
      * @return PayloadDto
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     protected PayloadDto saveBlobAsStream(PayloadDto entity, InputStream is) {
         final String tablename = this.tablename();
@@ -331,7 +337,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
     /**
      * @param entity the PayloadDto
      * @return PayloadDto
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     protected PayloadDto saveBlobAsBytes(PayloadDto entity) {
         final String tablename = this.tablename();

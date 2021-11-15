@@ -9,7 +9,7 @@ import javax.ws.rs.core.Response;
  * @author formica
  *
  */
-public class ConflictException extends CdbServiceException {
+public class ConflictException extends AbstractCdbServiceException {
 
     /**
      * Serializer.

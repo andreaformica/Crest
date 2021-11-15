@@ -237,7 +237,7 @@ public class QueryDslTests {
         final Date time = new Date(now.toEpochMilli());
 
         final PayloadDataDBImpl repobean = new PayloadDataDBImpl(mainDataSource);
-        final PayloadDto dto = DataGenerator.generatePayloadDto("myhash3", "myrepodata", "mystreamer",
+        final PayloadDto dto = DataGenerator.generatePayloadDto("dslmyhash3", "myrepodata", "mystreamer",
                 "test", time);
         log.debug("Save payload {}", dto);
         if (dto.getSize() == null) {

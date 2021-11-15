@@ -38,6 +38,9 @@ public class GlobalTagMap implements java.io.Serializable {
     private static final long serialVersionUID = -3535546379433341349L;
     /**
      * The global tag map ID.
+     * The parameter Record is used as a sort of Folder (or general tag name).
+     * The parameter Label is used for a flagging of the mapping entry, to state if it has
+     * to be used or not.
      */
     @EmbeddedId
     @AttributeOverride(name = "globalTagName",
@@ -49,12 +52,15 @@ public class GlobalTagMap implements java.io.Serializable {
     private GlobalTagMapId id;
     /**
      * The Tag.
+     * Reference to Tag entity object involved in the mapping.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "TAG_NAME", nullable = false)
     private Tag tag;
     /**
      * The Global Tag.
+     * Reference to the global tag object involved in the mapping.
+     * This same column is in the embedded ID. here in fact it is not insertable nor updatable.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "GLOBAL_TAG_NAME", nullable = false, insertable = false, updatable = false)

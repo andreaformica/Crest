@@ -1,7 +1,6 @@
 package hep.crest.data.serializers;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 
@@ -30,8 +29,8 @@ public class CustomTimeDeserializer extends JsonDeserializer<OffsetDateTime> {
 
     @Override
     public OffsetDateTime deserialize(JsonParser parser, DeserializationContext context)
-            throws IOException, JsonProcessingException {
-        OffsetDateTime odt = OffsetDateTime.parse(parser.getText(), this.formatter);
-        return odt;
+            throws IOException {
+        // Deserialize using formatter provided at creation time.
+        return OffsetDateTime.parse(parser.getText(), this.formatter);
     }
 }

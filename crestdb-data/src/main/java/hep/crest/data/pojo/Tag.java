@@ -4,6 +4,7 @@ package hep.crest.data.pojo;
 import hep.crest.data.config.DatabasePropertyConfigurator;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
@@ -29,7 +30,10 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "TAG", schema = DatabasePropertyConfigurator.SCHEMA_NAME)
+// This object represents a Tag.
+// Define default constructors.
 @Data
+@NoArgsConstructor
 @Accessors(fluent = true)
 public class Tag implements java.io.Serializable {
 
@@ -87,6 +91,7 @@ public class Tag implements java.io.Serializable {
     private Date modificationTime;
     /**
      * The mapping with global tags.
+     * We exclude them from equals and hashcode methods, as well as toString method.
      */
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "tag")
     @EqualsAndHashCode.Exclude

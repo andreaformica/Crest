@@ -64,10 +64,6 @@ public class PojoDtoConverterConfig {
         converterFactory.registerConverter(new GlobalTagMapConverter());
         converterFactory.registerConverter(new TagConverter());
         converterFactory.registerConverter(new IovConverter());
-        //this.initGlobalTagMap(mapperFactory);
-        //this.initGlobalTagMapsMap(mapperFactory);
-        //this.initTagMap(mapperFactory);
-        //this.initIovMap(mapperFactory);
         this.initPayloadMap(mapperFactory);
         this.initRunInfoMap(mapperFactory);
         this.initFolderMap(mapperFactory);
@@ -79,15 +75,18 @@ public class PojoDtoConverterConfig {
      * @return
      */
     protected void initGlobalTagMap(MapperFactory mapperFactory) {
+        // Not used, we prefer then implementation provided above.
         mapperFactory.classMap(GlobalTag.class, GlobalTagDto.class).exclude("globalTagMaps").byDefault()
                 .customize(new CustomMapper<GlobalTag, GlobalTagDto>() {
                     @Override
                     public void mapAtoB(GlobalTag a, GlobalTagDto b, MappingContext context) {
                         log.info("Orika: mapping global tag {} into dto {}", a, b);
+                        // Use insertion time provided when not null.
                         if (a.insertionTime() != null) {
                             Long instimemilli = (a.insertionTime().getTime());
                             b.insertionTimeMilli(instimemilli);
                         }
+                        // Use snapshot time provided when not null.
                         if (a.insertionTime() != null) {
                             Long snaptimemilli = (a.insertionTime().getTime());
                             b.snapshotTimeMilli(snaptimemilli);
@@ -107,6 +106,7 @@ public class PojoDtoConverterConfig {
      * @return
      */
     protected void initGlobalTagMapsMap(MapperFactory mapperFactory) {
+        // Not used, we prefer then implementation provided above.
         mapperFactory.classMap(GlobalTagMap.class, GlobalTagMapDto.class)
                 .field("id.globalTagName", "globalTagName").field("id.record", "record")
                 .field("id.label", "label").field("tag.name", "tagName").register();
@@ -117,6 +117,7 @@ public class PojoDtoConverterConfig {
      * @return
      */
     protected void initTagMap(MapperFactory mapperFactory) {
+        // Not used, we prefer then implementation provided above.
         mapperFactory.classMap(Tag.class, TagDto.class).field("objectType", "payloadSpec")
                 .exclude("globalTagMaps").byDefault().register();
     }
@@ -126,6 +127,7 @@ public class PojoDtoConverterConfig {
      * @return
      */
     protected void initIovMap(MapperFactory mapperFactory) {
+        // Not used, we prefer then implementation provided above.
         mapperFactory.classMap(Iov.class, IovDto.class).field("id.since", "since")
                 .field("id.insertionTime", "insertionTime")
                 .field("payloadHash", "payloadHash")
@@ -137,6 +139,7 @@ public class PojoDtoConverterConfig {
      * @return
      */
     protected void initPayloadMap(MapperFactory mapperFactory) {
+        // Provide a dedicated mapper, using UTC as time zone.
         mapperFactory.classMap(Payload.class, PayloadDto.class).byDefault()
                 .customize(new CustomMapper<Payload, PayloadDto>() {
                     @Override
@@ -172,6 +175,7 @@ public class PojoDtoConverterConfig {
      * @return
      */
     protected void initFolderMap(MapperFactory mapperFactory) {
+        // Use the default orika mapping.
         mapperFactory.classMap(CrestFolders.class, FolderDto.class).byDefault().register();
     }
 

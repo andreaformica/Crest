@@ -3,9 +3,9 @@
  */
 package hep.crest.server.services;
 
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbInternalException;
 import hep.crest.data.exceptions.CdbNotFoundException;
-import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
@@ -66,7 +66,7 @@ public class PayloadService {
      * @param hash
      *            the String
      * @return PayloadDto
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
     @Transactional
@@ -84,11 +84,11 @@ public class PayloadService {
      * @param hash
      *            the String payload hash
      * @return String
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
     @Transactional
-    public String removePayload(String tag, String hash) throws CdbServiceException {
+    public String removePayload(String tag, String hash) throws AbstractCdbServiceException {
         final PayloadDto pyld = payloaddataRepository.find(hash);
         if (pyld == null) {
             throw new CdbNotFoundException("Cannot find payload dto for hash " + hash);
@@ -117,7 +117,7 @@ public class PayloadService {
      * @param hash
      *            the String
      * @return PayloadDto
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
     @Transactional
@@ -135,11 +135,11 @@ public class PayloadService {
      * @param sinfo
      *            the String
      * @return int
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
     @Transactional
-    public int updatePayloadMetaInfo(String hash, String sinfo) throws CdbServiceException {
+    public int updatePayloadMetaInfo(String hash, String sinfo) throws AbstractCdbServiceException {
         int nrows = payloaddataRepository.updateMetaInfo(hash, sinfo);
         if (nrows <= 0) {
             throw new CdbNotFoundException("Cannot update payload meta data for hash " + hash);
@@ -154,7 +154,7 @@ public class PayloadService {
      * @param hash
      *            the String
      * @return InputStream
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
     @Transactional
@@ -173,16 +173,11 @@ public class PayloadService {
      * @throws ConflictException
      *             If an Exception occurred
      */
-    //@Transactional
+    @Transactional
     public PayloadDto insertPayload(PayloadDto dto) throws ConflictException {
         log.debug("Save payload dto {}", dto);
         if (dto.getSize() == null) {
             dto.setSize(dto.getData().length);
-        }
-        // Verify if hash exists
-        String dbhash = payloaddataRepository.exists(dto.getHash());
-        if (dbhash != null && dbhash.length() > 0) {
-            throw new ConflictException("Hash already exists " + dto.getHash());
         }
         // Store the payload dto
         final PayloadDto saved = payloaddataRepository.save(dto);
@@ -201,12 +196,6 @@ public class PayloadService {
      */
     public PayloadDto insertPayloadAndInputStream(PayloadDto dto, InputStream is) throws ConflictException {
         log.debug("Save payload {} creating blob from inputstream...", dto);
-        // Verify if hash exists
-        String dbhash = payloaddataRepository.exists(dto.getHash());
-        if (dbhash != null && dbhash.length() > 0) {
-            throw new ConflictException("Hash already exists " + dto.getHash());
-        }
-
         final PayloadDto saved = payloaddataRepository.save(dto, is);
         log.debug("Saved entity: {}", saved);
         return saved;
@@ -220,19 +209,22 @@ public class PayloadService {
      * @param pdto
      * @param filename
      * @return HTTPResponse
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      */
-    @Transactional(rollbackOn = {CdbServiceException.class})
-    public HTTPResponse saveIovAndPayload(IovDto dto, PayloadDto pdto, String filename) throws CdbServiceException {
-        log.debug("Save payload and iov dto with hash {},  using format <{}>, and filename {}", dto.getPayloadHash(),
-                pdto.getObjectType(), filename);
+    @Transactional(rollbackOn = {AbstractCdbServiceException.class})
+    public HTTPResponse saveIovAndPayload(IovDto dto, PayloadDto pdto, String filename)
+            throws AbstractCdbServiceException {
+        log.debug("Create iov and payload with hash {}", dto.getPayloadHash());
         try {
             PayloadDto saved = null;
-            if (filename != null) {
+            if (filename != null && pdto != null) {
                 saved = insertPayloadFromFile(filename, pdto, dto);
             }
-            else {
+            else if (pdto != null) {
                 saved = insertPayloadFromDto(pdto, dto);
+            }
+            else {
+                log.warn("Skip payload insertion, only Iov will be inserted for hash {}", dto.getPayloadHash());
             }
             String tagname = dto.getTagName();
             Iov entity = mapper.map(dto, Iov.class);
@@ -279,17 +271,17 @@ public class PayloadService {
      * @param dto
      * @return PayloadDto
      * @throws IOException
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      */
     protected PayloadDto insertPayloadFromFile(String filename, PayloadDto pdto, IovDto dto)
-            throws CdbServiceException, IOException {
+            throws AbstractCdbServiceException, IOException {
         try (InputStream is = new FileInputStream(filename);
              FileChannel tempchan = FileChannel.open(Paths.get(filename));) {
             pdto.size((int) tempchan.size());
             return insertPayloadAndInputStream(pdto, is);
         }
         catch (final ConflictException | FileNotFoundException e) {
-            log.warn("Payload hash duplication, will not store : {}", dto.getPayloadHash());
+            log.warn("Payload hash duplication, will not store hash {}: {}", dto.getPayloadHash(), e);
             return getPayloadMetaInfo(dto.getPayloadHash());
         }
     }

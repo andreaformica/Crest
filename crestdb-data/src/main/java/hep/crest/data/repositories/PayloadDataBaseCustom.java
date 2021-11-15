@@ -16,8 +16,7 @@
  **/
 package hep.crest.data.repositories;
 
-import hep.crest.data.exceptions.CdbSQLException;
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.pojo.Payload;
 import hep.crest.swagger.model.PayloadDto;
 
@@ -75,7 +74,7 @@ public interface PayloadDataBaseCustom {
      * @param entity
      *            the PayloadDto
      * @return Either the entity which has been saved or null.
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             It should in reality not throw any exception
      */
     PayloadDto save(PayloadDto entity) throws CdbSQLException;
@@ -86,7 +85,7 @@ public interface PayloadDataBaseCustom {
      * @param is
      *            the InputStream
      * @return Either the entity which has been saved or null.
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
     PayloadDto save(PayloadDto entity, InputStream is) throws CdbSQLException;

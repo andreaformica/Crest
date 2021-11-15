@@ -5,8 +5,8 @@ package hep.crest.server.services;
 
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbNotFoundException;
-import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
@@ -315,12 +315,12 @@ public class IovService {
      * @param entity
      *            the IovDto
      * @return Iov
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      * @throws DataIntegrityViolationException If an sql exception occurred.
      */
-    @Transactional(rollbackOn = {CdbServiceException.class})
-    public Iov insertIov(Iov entity) throws CdbServiceException {
+    @Transactional(rollbackOn = {AbstractCdbServiceException.class})
+    public Iov insertIov(Iov entity) throws AbstractCdbServiceException {
         log.debug("Create iov from {}", entity);
         final String tagname = entity.tag().name();
         // The IOV is not yet stored. Verify that the tag exists before inserting it.

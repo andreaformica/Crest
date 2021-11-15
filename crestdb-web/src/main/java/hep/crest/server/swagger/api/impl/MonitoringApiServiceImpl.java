@@ -1,6 +1,6 @@
 package hep.crest.server.swagger.api.impl;
 
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.monitoring.repositories.IMonitoringRepository;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.swagger.api.ApiResponseMessage;
@@ -81,7 +81,7 @@ public class MonitoringApiServiceImpl extends MonitoringApiService {
             // Return 200.
             return Response.ok().entity(setdto).build();
         }
-        catch (final CdbServiceException e) {
+        catch (final AbstractCdbServiceException e) {
             // Exception, send a 500.
             log.error("Exception listing payload tag info : {}", e.getMessage());
             final String message = e.getMessage();

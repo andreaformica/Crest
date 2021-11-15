@@ -104,7 +104,9 @@ public class GlobalTag implements java.io.Serializable {
      */
     @PrePersist
     public void prePersist() {
+        // Check the insertion time.
         if (this.insertionTime() == null) {
+            // Set to now.
             final Timestamp now = new Timestamp(new Date().getTime());
             this.insertionTime(now);
         }

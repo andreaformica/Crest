@@ -1,7 +1,7 @@
 package hep.crest.server.swagger.api.impl;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.repositories.querydsl.IFilteringCriteria;
 import hep.crest.data.repositories.querydsl.SearchCriteria;
 import hep.crest.server.controllers.PageRequestHelper;
@@ -66,12 +66,6 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
      */
     @Autowired
     private RunInfoService runinfoService;
-
-    /**
-     * Response helper.
-     */
-    @Autowired
-    private ResponseFormatHelper rfh;
 
     /*
      * (non-Javadoc)
@@ -189,10 +183,10 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
      * @param size the Integer
      * @param sort the String
      * @return CrestBaseResponse
-     * @throws CdbServiceException If an exception occurred
+     * @throws AbstractCdbServiceException If an exception occurred
      */
     protected CrestBaseResponse findRunLumiInfo(String by, Integer page, Integer size, String sort)
-            throws CdbServiceException {
+            throws AbstractCdbServiceException {
         final PageRequest preq = prh.createPageRequest(page, size, sort);
 
         List<RunLumiInfoDto> dtolist = null;
