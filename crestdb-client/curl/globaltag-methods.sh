@@ -6,7 +6,7 @@ generate_post_data()
   "validity": -1.0,
   "name": "GT-TAG-01",
   "release": "v1",
-  "snapshotTime": 0,
+  "snapshotTime": "2021-01-10T01:00:00.000+0000",
   "scenario": "data challenge",
   "workflow": "some wf",
   "type": "test"

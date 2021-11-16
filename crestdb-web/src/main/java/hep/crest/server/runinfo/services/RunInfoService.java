@@ -4,11 +4,10 @@
 package hep.crest.server.runinfo.services;
 
 import com.querydsl.core.types.Predicate;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.runinfo.pojo.RunLumiInfo;
 import hep.crest.data.runinfo.repositories.RunLumiInfoRepository;
 import hep.crest.swagger.model.RunLumiInfoDto;
-import hep.crest.data.exceptions.AbstractCdbServiceException;
-import hep.crest.data.exceptions.CdbBadRequestException;
 import ma.glasnost.orika.MapperFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +79,7 @@ public class RunInfoService {
      *             If an Exception occurred
      */
     @Transactional
-    public RunLumiInfoDto insertRunInfo(RunLumiInfoDto dto) throws CdbServiceException {
+    public RunLumiInfoDto insertRunInfo(RunLumiInfoDto dto) throws AbstractCdbServiceException {
         log.debug("Create runinfo from dto {}", dto);
         final RunLumiInfo entity = mapper.map(dto, RunLumiInfo.class);
         final RunLumiInfo saved = runinfoRepository.save(entity);

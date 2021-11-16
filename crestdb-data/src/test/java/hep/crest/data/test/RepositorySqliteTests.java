@@ -17,6 +17,16 @@ import java.util.Date;
 import javax.sql.DataSource;
 
 import hep.crest.data.exceptions.AbstractCdbServiceException;
+import hep.crest.data.handlers.PayloadHandler;
+import hep.crest.data.pojo.Tag;
+import hep.crest.data.repositories.PayloadDataBaseCustom;
+import hep.crest.data.repositories.PayloadDataSQLITEImpl;
+import hep.crest.data.repositories.TagMetaDataBaseCustom;
+import hep.crest.data.repositories.TagMetaSQLITEImpl;
+import hep.crest.data.repositories.TagRepository;
+import hep.crest.data.test.tools.DataGenerator;
+import hep.crest.swagger.model.PayloadDto;
+import hep.crest.swagger.model.TagMetaDto;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -161,7 +171,7 @@ public class RepositorySqliteTests {
             final TagMetaDto deletedmeta = tagmetarepobean.find(updmeta.getTagName());
             assertThat(deletedmeta).isNull();
         }
-        catch (CdbServiceException e) {
+        catch (AbstractCdbServiceException e) {
             log.error("Cannot find deleted meta info: it was deleted before {}", e.getMessage());
         }
     }

@@ -1,10 +1,9 @@
 package hep.crest.data.repositories;
 
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.CdbSQLException;
-import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.handlers.PayloadHandler;
-import hep.crest.data.pojo.TagMeta;
 import hep.crest.data.repositories.externals.TagMetaRequests;
 import hep.crest.swagger.model.TagMetaDto;
 import org.slf4j.Logger;
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.Table;
 import javax.sql.DataSource;
 import javax.validation.ConstraintViolationException;
 import java.io.IOException;
@@ -37,11 +35,23 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     /**
+     * The tag table.
+     */
+    private String tablename = "";
+
+    /**
      * @param ds the DataSource
      */
     protected TagMetaGeneral(DataSource ds) {
         super(ds);
-        super.setAnn(TagMeta.class.getAnnotation(Table.class));
+        tablename = tablename("TagMeta");
+    }
+
+    /**
+     * @return String the table name.
+     */
+    protected String getTablename() {
+        return tablename;
     }
 
     @Override
@@ -73,7 +83,7 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
     @Override
     @Transactional
     public void delete(String id) {
-        final String tablename = this.tablename();
+        // Get the SQL.
         final String sql = TagMetaRequests.getDeleteQuery(tablename);
         log.debug("Remove tag meta with tag name {} using JDBCTEMPLATE", id);
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
@@ -92,8 +102,7 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
         log.debug("Find tag meta {} using JDBCTEMPLATE", id);
         try {
             final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-            final String tablename = this.tablename();
-
+            // Get the SQL.
             final String sql = TagMetaRequests.getFindQuery(tablename);
             log.debug("Use sql request {}", sql);
             // Be careful, this seems not to work with Postgres: probably getBlob loads an
@@ -122,7 +131,6 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
         log.debug("Find tag meta info {} using JDBCTEMPLATE", id);
         try {
             final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-            final String tablename = this.tablename();
             final String sql = TagMetaRequests.getFindMetaQuery(tablename);
 
             return jdbcTemplate.queryForObject(sql, (rs, num) -> {
@@ -147,7 +155,7 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
      * @param sql    the String
      * @param entity the TagMetaDto
      * @return
-     * @throws CdbServiceException If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     protected void execute(InputStream is, String sql, TagMetaDto entity) {
 
@@ -204,11 +212,10 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
     /**
      * @param entity
      * @return TagMetaDto
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      */
     protected TagMetaDto saveBlobAsBytes(TagMetaDto entity) {
-
-        final String tablename = this.tablename();
+        // Get the SQL.
         final String sql = TagMetaRequests.getInsertAllQuery(tablename);
         log.info("Insert Tag meta {} using JDBCTEMPLATE ", entity.getTagName());
         execute(null, sql, entity);
@@ -218,11 +225,10 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
     /**
      * @param entity
      * @return TagMetaDto
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      */
     protected TagMetaDto updateAsBytes(TagMetaDto entity) {
-
-        final String tablename = this.tablename();
+        // Get the SQL.
         final String sql = TagMetaRequests.getUpdateQuery(tablename);
         log.info("Update Tag meta {} using JDBCTEMPLATE ", entity.getTagName());
         execute(null, sql, entity);

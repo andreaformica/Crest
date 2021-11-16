@@ -4,7 +4,7 @@
 package hep.crest.server.services;
 
 import hep.crest.data.exceptions.CdbNotFoundException;
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.repositories.TagMetaDataBaseCustom;
 import hep.crest.swagger.model.TagMetaDto;
@@ -39,7 +39,7 @@ public class TagMetaService {
      * @param dto
      *            the TagMetaDto
      * @return TagMetaDto
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
     public TagMetaDto insertTagMeta(TagMetaDto dto) {
@@ -67,7 +67,7 @@ public class TagMetaService {
      * @param dto
      *            the TagMetaDto
      * @return TagMetaDto
-     * @throws CdbServiceException If an exception occurred.
+     * @throws AbstractCdbServiceException If an exception occurred.
      */
     public TagMetaDto updateTagMeta(TagMetaDto dto) {
         log.debug("Update tag meta from dto {}", dto);
@@ -82,7 +82,7 @@ public class TagMetaService {
      * @param id
      *            the String
      * @return TagMetaDto
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
     public TagMetaDto findMeta(String id) {
@@ -94,7 +94,7 @@ public class TagMetaService {
      * Remote tag meta.
      *
      * @param name the name
-     * @throws CdbServiceException the cdb service exception
+     * @throws AbstractCdbServiceException the cdb service exception
      */
     public void removeTagMeta(String name) {
         log.debug("Remove tag meta info for {}", name);

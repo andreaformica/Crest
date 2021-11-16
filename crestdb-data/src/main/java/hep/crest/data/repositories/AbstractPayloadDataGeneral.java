@@ -1,10 +1,8 @@
 package hep.crest.data.repositories;
 
-import hep.crest.data.exceptions.CdbNotFoundException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbSQLException;
-import hep.crest.data.exceptions.CdbServiceException;
 import hep.crest.data.handlers.PayloadHandler;
-import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Payload;
 import hep.crest.data.repositories.externals.SqlRequests;
 import hep.crest.swagger.model.IovPayloadDto;
@@ -15,7 +13,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.Table;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,91 +44,40 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
      */
     private static final Logger log = LoggerFactory.getLogger(AbstractPayloadDataGeneral.class);
     /**
-     * The Data Source.
-     */
-    private final DataSource ds;
-    /**
      * The decoder.
      */
     private CharsetDecoder decoder = StandardCharsets.US_ASCII.newDecoder();
 
     /**
-     * The upload directory for files.
+     * The payload table.
      */
-    @Value("${crest.upload.dir:/tmp}")
-    private String serverUploadLocationFolder;
+    private String tablename = "";
+
     /**
-     * Default table name.
+     * The iov table.
      */
-    private String defaultTablename = null;
+    private String iovTableName = "";
 
     /**
      * @param ds the DataSource
      */
     protected AbstractPayloadDataGeneral(DataSource ds) {
-        super();
-        this.ds = ds;
+        super(ds);
+        tablename = tablename("Payload");
+        iovTableName = tablename("Iov");
     }
 
     /**
-     * @param defaultTablename the String
-     * @return
+     * @return String the table name.
      */
-    public void setDefaultTablename(String defaultTablename) {
-        if (this.defaultTablename == null) {
-            this.defaultTablename = defaultTablename;
-        }
-    }
-
-    /**
-     * @return String
-     */
-    protected String tablename() {
-        final Table ann = Payload.class.getAnnotation(Table.class);
-        String tablename = ann.name();
-        if (!DatabasePropertyConfigurator.SCHEMA_NAME.isEmpty()) {
-            tablename = DatabasePropertyConfigurator.SCHEMA_NAME + "." + tablename;
-        }
-        else if (this.defaultTablename != null) {
-            tablename = this.defaultTablename + "." + tablename;
-        }
+    protected String getTablename() {
         return tablename;
     }
-
     /**
-     * @return String
+     * @return String the iov table name.
      */
-    protected String iovtablename() {
-        final Table ann = Iov.class.getAnnotation(Table.class);
-        String tablename = ann.name();
-        if (!DatabasePropertyConfigurator.SCHEMA_NAME.isEmpty()) {
-            tablename = DatabasePropertyConfigurator.SCHEMA_NAME + "." + tablename;
-        }
-        else if (this.defaultTablename != null) {
-            tablename = this.defaultTablename + "." + tablename;
-        }
-        return tablename;
-    }
-
-    /**
-     * @return DataSource
-     */
-    protected DataSource getDs() {
-        return ds;
-    }
-
-    /**
-     * @return the serverUploadLocationFolder
-     */
-    protected String getServerUploadLocationFolder() {
-        return serverUploadLocationFolder;
-    }
-
-    /**
-     * @param serverUploadLocationFolder the serverUploadLocationFolder to set
-     */
-    protected void setServerUploadLocationFolder(String serverUploadLocationFolder) {
-        this.serverUploadLocationFolder = serverUploadLocationFolder;
+    protected String getIovTablename() {
+        return iovTableName;
     }
 
     /**
@@ -141,9 +87,8 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
     @Override
     public String exists(String id) {
         log.info("Find payload {} using JDBCTEMPLATE", id);
-        final JdbcTemplate jdbcTemplate = new JdbcTemplate(ds);
+        final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
         try {
-            final String tablename = this.tablename();
             // Check if payload with a given hash exists.
             final String sql = SqlRequests.getExistsHashQuery(tablename);
             return jdbcTemplate.queryForObject(sql, (rs, num) -> rs.getString("HASH"), id);
@@ -208,8 +153,6 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
     @Override
     @Transactional
     public void delete(String id) {
-        final String tablename = this.tablename();
-
         final String sql = SqlRequests.getDeleteQuery(tablename);
         log.info("Remove payload with hash {} using JDBCTEMPLATE", id);
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
@@ -226,8 +169,6 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         log.info("Find payload {} using JDBCTEMPLATE", id);
         try {
             final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-            final String tablename = this.tablename();
-
             final String sql = SqlRequests.getFindQuery(tablename);
 
             // Be careful, this seems not to work with Postgres: probably getBlob loads an
@@ -266,7 +207,6 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         log.info("Find payload meta info {} using JDBCTEMPLATE", id);
         try {
             final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-            final String tablename = this.tablename();
             final String sql = SqlRequests.getFindMetaQuery(tablename);
 
             return jdbcTemplate.queryForObject(sql, (rs, num) -> {
@@ -300,8 +240,6 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         log.info("Find payload data {} using JDBCTEMPLATE", id);
         try {
             final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-            final String tablename = this.tablename();
-
             final String sql = SqlRequests.getFindDataQuery(tablename);
             return jdbcTemplate.queryForObject(sql,
                     (rs, num) -> getBlobAsStream(rs, "DATA"), id
@@ -327,8 +265,6 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         log.info("Update payload streamer info {} using JDBCTEMPLATE", id);
         try {
             final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-            final String tablename = this.tablename();
-
             final String sql = SqlRequests.getUpdateMetaQuery(tablename);
             return jdbcTemplate.update(sql, streamerInfo.getBytes(StandardCharsets.UTF_8), id);
         }
@@ -350,11 +286,9 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
     public List<IovPayloadDto> getRangeIovPayloadInfo(String name, BigDecimal since,
                                                       BigDecimal until, Date snapshot) {
         log.debug("Select Iov and Payload meta info for tag  {} using JDBCTEMPLATE", name);
-        final JdbcTemplate jdbcTemplate = new JdbcTemplate(ds);
-        final String tablename = this.tablename();
-
+        final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
         // Get sql query.
-        final String sql = SqlRequests.getRangeIovPayloadQuery(iovtablename(), tablename);
+        final String sql = SqlRequests.getRangeIovPayloadQuery(iovTableName, tablename);
         // Execute request.
         return jdbcTemplate.query(sql, (rs, num) -> {
             final IovPayloadDto entity = new IovPayloadDto();
@@ -447,7 +381,6 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
      * @throws AbstractCdbServiceException If an Exception occurred
      */
     protected PayloadDto saveBlobAsStream(PayloadDto entity, InputStream is) {
-        final String tablename = this.tablename();
         // Save blob from stream
         final String sql = SqlRequests.getInsertAllQuery(tablename);
         log.debug("Insert Payload with hash {} using saveBlobAsStream", entity.getHash());
@@ -461,7 +394,6 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
      * @throws AbstractCdbServiceException If an Exception occurred
      */
     protected PayloadDto saveBlobAsBytes(PayloadDto entity) {
-        final String tablename = this.tablename();
         // Save blob from byte array
         final String sql = SqlRequests.getInsertAllQuery(tablename);
         log.debug("Insert Payload with hash {} using saveBlobAsBytes", entity.getHash());

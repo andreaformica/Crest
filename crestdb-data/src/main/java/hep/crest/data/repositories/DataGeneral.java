@@ -1,9 +1,8 @@
 package hep.crest.data.repositories;
 
-import hep.crest.data.config.DatabasePropertyConfigurator;
+import hep.crest.data.config.CrestTableNames;
 import org.springframework.beans.factory.annotation.Value;
 
-import javax.persistence.Table;
 import javax.sql.DataSource;
 
 public class DataGeneral {
@@ -22,9 +21,9 @@ public class DataGeneral {
     private String defaultTablename = null;
 
     /**
-     * Table annotation to be filled by sub classes.
+     * Create the utility class for table names.
      */
-    private Table ann = null;
+    private CrestTableNames crestTableNames = new CrestTableNames();
 
     /**
      * @param ds
@@ -42,36 +41,15 @@ public class DataGeneral {
         if (this.defaultTablename == null) {
             this.defaultTablename = defaultTablename;
         }
+        crestTableNames.setDefaultTablename(this.defaultTablename);
     }
 
     /**
+     * @param type the repository type.
      * @return String
      */
-    protected String tablename() {
-        String tablename = ann.name();
-        if (!DatabasePropertyConfigurator.SCHEMA_NAME.isEmpty()) {
-            tablename = DatabasePropertyConfigurator.SCHEMA_NAME + "." + tablename;
-        }
-        else if (this.defaultTablename != null) {
-            tablename = this.defaultTablename + "." + tablename;
-        }
-        return tablename;
-    }
-
-    /**
-     *
-     * @return Table
-     */
-    public Table getAnn() {
-        return ann;
-    }
-
-    /**
-     *
-     * @param ann
-     */
-    public void setAnn(Table ann) {
-        this.ann = ann;
+    protected String tablename(String type) {
+        return crestTableNames.tablename(type);
     }
 
     /**
@@ -93,5 +71,14 @@ public class DataGeneral {
      */
     protected void setServerUploadLocationFolder(String serverUploadLocationFolder) {
         this.serverUploadLocationFolder = serverUploadLocationFolder;
+    }
+
+    /**
+     * Get the default table name.
+     *
+     * @return String
+     */
+    public String getDefaultTablename() {
+        return defaultTablename;
     }
 }

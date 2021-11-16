@@ -1,7 +1,6 @@
 package hep.crest.server.swagger.api.impl;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
-import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.exceptions.CdbBadRequestException;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.querydsl.IFilteringCriteria;
@@ -86,11 +85,6 @@ public class TagsApiServiceImpl extends TagsApiService {
     @Autowired
     @Qualifier("mapper")
     private MapperFacade mapper;
-
-    /**
-     * Resource bundle.
-     */
-    private final ResourceBundle bundle = ResourceBundle.getBundle("messages", new Locale("US"));
 
     /*
      * (non-Javadoc)
@@ -256,8 +250,7 @@ public class TagsApiServiceImpl extends TagsApiService {
         final TagMetaDto dto = tagMetaService.findMeta(name);
         if (dto == null) {
             log.debug("Cannot update meta data on null tag meta entity for {}", name);
-            final String message = "TagMeta " + name + " not found...";
-            return rfh.notFoundPojo("updateTagMeta error: cannot find meta for tag " + name);
+            throw new CdbBadRequestException("Cannot update tag meta with null body");
         }
         for (final String key : body.keySet()) {
             if (key == "description") {

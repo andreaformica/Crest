@@ -16,7 +16,7 @@
  **/
 package hep.crest.data.repositories;
 
-import hep.crest.data.exceptions.CdbServiceException;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.handlers.PostgresBlobHandler;
 import hep.crest.data.repositories.externals.TagMetaRequests;
 import hep.crest.swagger.model.TagMetaDto;
@@ -81,7 +81,7 @@ public class TagMetaPostgresImpl extends TagMetaGeneral implements TagMetaDataBa
      *            the String
      * @param entity
      *            the TagMetaDto
-     * @throws CdbServiceException
+     * @throws AbstractCdbServiceException
      *             If an Exception occurred
      * @return
      */
@@ -122,13 +122,12 @@ public class TagMetaPostgresImpl extends TagMetaGeneral implements TagMetaDataBa
     @Transactional
     public void delete(String id) {
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDs());
-        final String tablename = this.tablename();
-        final String sqlget = TagMetaRequests.getFindTagInfoQuery(tablename);
-        final String sql = TagMetaRequests.getDeleteQuery(tablename);
+        final String sqlget = TagMetaRequests.getFindTagInfoQuery(getTablename());
+        final String sql = TagMetaRequests.getDeleteQuery(getTablename());
         log.info("Remove payload with hash {} using JDBC", id);
         Long oid = jdbcTemplate.queryForObject(sqlget,
                 (rs, row) -> rs.getLong(1),
-                new Object[]{id});
+                id);
         jdbcTemplate.execute("select lo_unlink(" + oid + ")");
         jdbcTemplate.update(sql, id);
         log.debug("Entity removal done...");
@@ -137,8 +136,7 @@ public class TagMetaPostgresImpl extends TagMetaGeneral implements TagMetaDataBa
 
     @Override
     protected TagMetaDto saveBlobAsBytes(TagMetaDto entity) {
-        final String tablename = this.tablename();
-        final String sql = TagMetaRequests.getInsertAllQuery(tablename);
+        final String sql = TagMetaRequests.getInsertAllQuery(getTablename());
         log.debug("Insert Tag meta {} using JDBCTEMPLATE ", entity.getTagName());
         final InputStream is = new ByteArrayInputStream(entity.getTagInfo().getBytes(StandardCharsets.UTF_8));
         execute(is, sql, entity);
@@ -149,8 +147,7 @@ public class TagMetaPostgresImpl extends TagMetaGeneral implements TagMetaDataBa
 
     @Override
     protected TagMetaDto updateAsBytes(TagMetaDto entity) {
-        final String tablename = this.tablename();
-        final String sql = TagMetaRequests.getUpdateQuery(tablename);
+        final String sql = TagMetaRequests.getUpdateQuery(getTablename());
         log.debug("Update Tag meta {} using JDBCTEMPLATE ", entity.getTagName());
         final InputStream is = new ByteArrayInputStream(entity.getTagInfo().getBytes(StandardCharsets.UTF_8));
         execute(is, sql, entity);

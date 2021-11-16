@@ -211,7 +211,7 @@ public class RepositoryPostgresTests {
             final TagMetaDto deletedmeta = tagmetarepobean.find(updmeta.getTagName());
             assertThat(deletedmeta).isNull();
         }
-        catch (CdbServiceException e) {
+        catch (AbstractCdbServiceException e) {
             log.error("Cannot find deleted meta info: it was deleted before {}", e.getMessage());
         }
     }

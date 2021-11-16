@@ -17,6 +17,7 @@
 package hep.crest.data.repositories;
 
 import hep.crest.data.exceptions.AbstractCdbServiceException;
+import hep.crest.data.exceptions.CdbSQLException;
 import hep.crest.data.pojo.Payload;
 import hep.crest.swagger.model.IovPayloadDto;
 import hep.crest.swagger.model.PayloadDto;

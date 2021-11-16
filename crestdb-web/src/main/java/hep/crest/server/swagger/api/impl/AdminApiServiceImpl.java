@@ -1,5 +1,6 @@
 package hep.crest.server.swagger.api.impl;
 
+import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.CdbSQLException;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.GlobalTagMap;
@@ -54,12 +55,6 @@ public class AdminApiServiceImpl extends AdminApiService {
      */
     @Autowired
     private TagMetaService tagMetaService;
-
-    /**
-     * Service.
-     */
-    @Autowired
-    private GlobalTagMapService globalTagMapService;
 
     /**
      * Service.
