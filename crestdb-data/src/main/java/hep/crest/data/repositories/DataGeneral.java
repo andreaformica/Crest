@@ -1,10 +1,12 @@
 package hep.crest.data.repositories;
 
 import hep.crest.data.config.CrestTableNames;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.sql.DataSource;
 
+@Slf4j
 public class DataGeneral {
     /**
      * The Data Source.
@@ -38,6 +40,7 @@ public class DataGeneral {
      * @return
      */
     public void setDefaultTablename(String defaultTablename) {
+        log.info("Setting default table name to {}", defaultTablename);
         if (this.defaultTablename == null) {
             this.defaultTablename = defaultTablename;
         }

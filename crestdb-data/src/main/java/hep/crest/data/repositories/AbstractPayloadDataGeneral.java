@@ -65,6 +65,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         super(ds);
         tablename = tablename("Payload");
         iovTableName = tablename("Iov");
+        log.debug("Setting table names for payload and iov: {} {}", tablename, iovTableName);
     }
 
     /**
