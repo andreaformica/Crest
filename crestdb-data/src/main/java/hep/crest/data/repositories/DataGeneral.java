@@ -21,6 +21,14 @@ public class DataGeneral {
      * Default table name.
      */
     private String defaultTablename = null;
+    /**
+     * The payload table.
+     */
+    private String tablename = "";
+    /**
+     * The iov table.
+     */
+    private String iovTableName = "";
 
     /**
      * Create the utility class for table names.
@@ -40,11 +48,14 @@ public class DataGeneral {
      * @return
      */
     public void setDefaultTablename(String defaultTablename) {
-        log.info("Setting default table name to {}", defaultTablename);
+        log.debug("Setting default table name to {}", defaultTablename);
         if (this.defaultTablename == null) {
             this.defaultTablename = defaultTablename;
         }
         crestTableNames.setDefaultTablename(this.defaultTablename);
+        tablename = tablename("Payload");
+        iovTableName = tablename("Iov");
+        log.debug("Setting table names for payload and iov: {} {}", tablename, iovTableName);
     }
 
     /**
@@ -84,4 +95,18 @@ public class DataGeneral {
     public String getDefaultTablename() {
         return defaultTablename;
     }
+
+    /**
+     * @return String the table name.
+     */
+    protected String getTablename() {
+        return tablename;
+    }
+    /**
+     * @return String the iov table name.
+     */
+    protected String getIovTablename() {
+        return iovTableName;
+    }
+
 }
