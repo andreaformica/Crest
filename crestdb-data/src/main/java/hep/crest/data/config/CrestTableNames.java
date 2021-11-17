@@ -46,6 +46,7 @@ public class CrestTableNames {
     public String tablename(String type) {
         String tablename = null;
         Table ann = null;
+        log.info("Getting table name for type {}", type);
         switch (type) {
             case "Iov":
                 ann = Iov.class.getAnnotation(Table.class);
@@ -67,12 +68,14 @@ public class CrestTableNames {
                 return "";
         }
         tablename = ann.name();
+        log.info("From annotation: {}", tablename);
         if (!DatabasePropertyConfigurator.SCHEMA_NAME.isEmpty()) {
             tablename = DatabasePropertyConfigurator.SCHEMA_NAME + "." + tablename;
         }
         else if (this.defaultTablename != null) {
             tablename = this.defaultTablename + "." + tablename;
         }
+        log.info("Registered table name: {}", tablename);
         return tablename;
     }
 
