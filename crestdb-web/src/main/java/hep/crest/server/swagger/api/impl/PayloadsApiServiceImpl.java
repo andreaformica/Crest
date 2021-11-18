@@ -9,11 +9,13 @@ import hep.crest.data.exceptions.CdbInternalException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.exceptions.PayloadEncodingException;
 import hep.crest.data.handlers.PayloadHandler;
+import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.PayloadDataBaseCustom;
 import hep.crest.server.annotations.CacheControlCdb;
 import hep.crest.server.caching.CachingPolicyService;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.PayloadService;
+import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.api.PayloadsApiService;
 import hep.crest.swagger.model.GenericMap;
 import hep.crest.swagger.model.HTTPResponse;
@@ -98,6 +100,11 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      */
     @Autowired
     private IovService iovService;
+    /**
+     * Service.
+     */
+    @Autowired
+    private TagService tagService;
     /**
      * Service.
      */
@@ -297,6 +304,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             if (fileDetail == null || tag == null || since == null || fileInputStream == null) {
                 throw new CdbBadRequestException("Cannot upload payload: form is missing a field");
             }
+            tagService.findOne(tag); // use to send back a NotFound if the tag does not exists.
+
             String fdetailsname = fileDetail.getFileName();
             if (fdetailsname == null || fdetailsname.isEmpty()) {
                 // Generate a fake filename.
@@ -380,6 +389,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             // Read input FormData as an IovSet object.
             final IovSetDto dto = jacksonMapper.readValue(iovsetupload, IovSetDto.class);
             log.info("Batch insertion of {} iovs using file formatted", dto.getSize());
+            // use to send back a NotFound if the tag does not exists.
+            tagService.findOne(tag);
             // Add object type.
             if (objectType == null) {
                 objectType = dto.getDatatype();
@@ -433,6 +444,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 "PayloadRestController processing request to store payload batch in tag {} with multi-iov",
                 tag);
         try {
+            // use to send back a NotFound if the tag does not exists.
+            tagService.findOne(tag);
             // Read the FormData as a IovSet object.
             final IovSetDto dto = jacksonMapper.readValue(iovsetupload, IovSetDto.class);
             log.info("Batch insertion of {} iovs using file formatted in {}", dto.getSize(),
@@ -492,7 +505,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 sinfomap.put("streamerInfo", streamerInfo);
             }
             // Here we generate objectType and version. We should probably allow for input arguments.
-            final PayloadDto pdto = new PayloadDto().objectType(objectType).hash("none")
+            PayloadDto pdto = new PayloadDto().objectType(objectType).hash("none")
                     .version(version);
             if (filesbodyparts == null) {
                 log.debug("Use the hash, it represents the payload : {}", piovDto.getPayloadHash());
@@ -512,6 +525,12 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 pdto.hash(hash);
             }
             pdto.streamerInfo(jacksonMapper.writeValueAsBytes(sinfomap));
+            // Verify if hash exists
+            String dbhash = payloaddataRepository.exists(pdto.getHash());
+            if (dbhash != null && dbhash.length() > 0) {
+                log.warn("Hash {} already exists, set payload dto to null to skip insertion", dbhash);
+                pdto = null;
+            }
             final IovDto iovDto = new IovDto().payloadHash(pdto.getHash()).since(piovDto.getSince())
                     .tagName(tag);
             try {
