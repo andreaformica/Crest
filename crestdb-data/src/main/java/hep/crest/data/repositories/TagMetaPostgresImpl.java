@@ -122,8 +122,8 @@ public class TagMetaPostgresImpl extends TagMetaGeneral implements TagMetaDataBa
     @Transactional
     public void delete(String id) {
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDs());
-        final String sqlget = TagMetaRequests.getFindTagInfoQuery(getTablename());
-        final String sql = TagMetaRequests.getDeleteQuery(getTablename());
+        final String sqlget = TagMetaRequests.getFindTagInfoQuery(getTagMetaTablename());
+        final String sql = TagMetaRequests.getDeleteQuery(getTagMetaTablename());
         log.info("Remove payload with hash {} using JDBC", id);
         Long oid = jdbcTemplate.queryForObject(sqlget,
                 (rs, row) -> rs.getLong(1),
@@ -136,7 +136,7 @@ public class TagMetaPostgresImpl extends TagMetaGeneral implements TagMetaDataBa
 
     @Override
     protected TagMetaDto saveBlobAsBytes(TagMetaDto entity) {
-        final String sql = TagMetaRequests.getInsertAllQuery(getTablename());
+        final String sql = TagMetaRequests.getInsertAllQuery(getTagMetaTablename());
         log.debug("Insert Tag meta {} using JDBCTEMPLATE ", entity.getTagName());
         final InputStream is = new ByteArrayInputStream(entity.getTagInfo().getBytes(StandardCharsets.UTF_8));
         execute(is, sql, entity);
@@ -147,7 +147,7 @@ public class TagMetaPostgresImpl extends TagMetaGeneral implements TagMetaDataBa
 
     @Override
     protected TagMetaDto updateAsBytes(TagMetaDto entity) {
-        final String sql = TagMetaRequests.getUpdateQuery(getTablename());
+        final String sql = TagMetaRequests.getUpdateQuery(getTagMetaTablename());
         log.debug("Update Tag meta {} using JDBCTEMPLATE ", entity.getTagName());
         final InputStream is = new ByteArrayInputStream(entity.getTagInfo().getBytes(StandardCharsets.UTF_8));
         execute(is, sql, entity);

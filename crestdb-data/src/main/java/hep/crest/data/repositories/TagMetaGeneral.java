@@ -35,23 +35,10 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     /**
-     * The tag table.
-     */
-    private String tablename = "";
-
-    /**
      * @param ds the DataSource
      */
     protected TagMetaGeneral(DataSource ds) {
         super(ds);
-        tablename = tablename("TagMeta");
-    }
-
-    /**
-     * @return String the table name.
-     */
-    protected String getTablename() {
-        return tablename;
     }
 
     @Override
@@ -84,7 +71,7 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
     @Transactional
     public void delete(String id) {
         // Get the SQL.
-        final String sql = TagMetaRequests.getDeleteQuery(tablename);
+        final String sql = TagMetaRequests.getDeleteQuery(getTagMetaTablename());
         log.debug("Remove tag meta with tag name {} using JDBCTEMPLATE", id);
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
         try {
@@ -103,7 +90,7 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
         try {
             final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
             // Get the SQL.
-            final String sql = TagMetaRequests.getFindQuery(tablename);
+            final String sql = TagMetaRequests.getFindQuery(getTagMetaTablename());
             log.debug("Use sql request {}", sql);
             // Be careful, this seems not to work with Postgres: probably getBlob loads an
             // OID and not the byte[]
@@ -131,7 +118,7 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
         log.debug("Find tag meta info {} using JDBCTEMPLATE", id);
         try {
             final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-            final String sql = TagMetaRequests.getFindMetaQuery(tablename);
+            final String sql = TagMetaRequests.getFindMetaQuery(getTagMetaTablename());
 
             return jdbcTemplate.queryForObject(sql, (rs, num) -> {
                 final TagMetaDto entity = new TagMetaDto();
@@ -216,7 +203,7 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
      */
     protected TagMetaDto saveBlobAsBytes(TagMetaDto entity) {
         // Get the SQL.
-        final String sql = TagMetaRequests.getInsertAllQuery(tablename);
+        final String sql = TagMetaRequests.getInsertAllQuery(getTagMetaTablename());
         log.info("Insert Tag meta {} using JDBCTEMPLATE ", entity.getTagName());
         execute(null, sql, entity);
         return findMetaInfo(entity.getTagName());
@@ -229,7 +216,7 @@ public abstract class TagMetaGeneral extends DataGeneral implements TagMetaDataB
      */
     protected TagMetaDto updateAsBytes(TagMetaDto entity) {
         // Get the SQL.
-        final String sql = TagMetaRequests.getUpdateQuery(tablename);
+        final String sql = TagMetaRequests.getUpdateQuery(getTagMetaTablename());
         log.info("Update Tag meta {} using JDBCTEMPLATE ", entity.getTagName());
         execute(null, sql, entity);
         return findMetaInfo(entity.getTagName());

@@ -29,6 +29,10 @@ public class DataGeneral {
      * The iov table.
      */
     private String iovTableName = "";
+    /**
+     * The iov table.
+     */
+    private String tagMetaTableName = "";
 
     /**
      * Create the utility class for table names.
@@ -55,6 +59,7 @@ public class DataGeneral {
         crestTableNames.setDefaultTablename(this.defaultTablename);
         tablename = tablename("Payload");
         iovTableName = tablename("Iov");
+        tagMetaTableName = tablename("TagMeta");
         log.debug("Setting table names for payload and iov: {} {}", tablename, iovTableName);
     }
 
@@ -107,6 +112,12 @@ public class DataGeneral {
      */
     protected String getIovTablename() {
         return iovTableName;
+    }
+    /**
+     * @return String the tag meta table name.
+     */
+    protected String getTagMetaTablename() {
+        return tagMetaTableName;
     }
 
 }
