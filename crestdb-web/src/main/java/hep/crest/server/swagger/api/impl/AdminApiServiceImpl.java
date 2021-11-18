@@ -1,5 +1,6 @@
 package hep.crest.server.swagger.api.impl;
 
+import hep.crest.data.exceptions.CdbInternalException;
 import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.CdbSQLException;
 import hep.crest.data.pojo.GlobalTag;
@@ -13,6 +14,7 @@ import hep.crest.server.swagger.api.AdminApiService;
 import hep.crest.swagger.model.GlobalTagDto;
 import hep.crest.swagger.model.TagMetaDto;
 import ma.glasnost.orika.MapperFacade;
+import org.hibernate.JDBCException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,12 +56,6 @@ public class AdminApiServiceImpl extends AdminApiService {
      * Service.
      */
     @Autowired
-    private TagMetaService tagMetaService;
-
-    /**
-     * Service.
-     */
-    @Autowired
     private GlobalTagMapService globalTagMapService;
 
     /**
@@ -96,19 +92,13 @@ public class AdminApiServiceImpl extends AdminApiService {
             throw new CdbSQLException("Cannot remove tag " + name + ": clean up associations with global tags");
         }
         // TODO: you can also test for locking of the tag or similar.
-        // Remove meta information associated with the tag.
-        TagMetaDto metadto;
         try {
-            metadto = tagMetaService.findMeta(name);
-            if (metadto != null) {
-                tagMetaService.removeTagMeta(name);
-            }
+            tagService.removeTag(name);
+            return Response.ok().build();
         }
-        catch (CdbNotFoundException e) {
-            log.warn("The meta information for tag {} is not present...", name);
+        catch (JDBCException e) {
+            throw new CdbSQLException("Error in SQL execution", e);
         }
-        tagService.removeTag(name);
-        return Response.ok().build();
     }
 
     /*

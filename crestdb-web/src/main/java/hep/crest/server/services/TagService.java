@@ -17,6 +17,7 @@ import hep.crest.data.repositories.TagRepository;
 import hep.crest.data.repositories.querydsl.IFilteringCriteria;
 import hep.crest.data.repositories.querydsl.SearchCriteria;
 import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.swagger.model.TagMetaDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,18 +49,21 @@ public class TagService {
      */
     @Autowired
     private TagRepository tagRepository;
-
     /**
      * Repository.
      */
     @Autowired
     private IovRepository iovRepository;
-
     /**
      * Repository.
      */
     @Autowired
     private PayloadService payloadService;
+    /**
+     * Service.
+     */
+    @Autowired
+    private TagMetaService tagMetaService;
 
     /**
      * Helper.
@@ -200,6 +204,18 @@ public class TagService {
         log.debug("Remove tag {} after checking if IOVs are present", name);
         Tag remTag = tagRepository.findById(name).orElseThrow(
                 () -> new CdbNotFoundException("Tag does not exists for name " + name));
+        // Remove meta information associated with the tag.
+        log.debug("Removing meta info on tag {}", remTag);
+        TagMetaDto metadto;
+        try {
+            metadto = tagMetaService.findMeta(name);
+            if (metadto != null) {
+                tagMetaService.removeTagMeta(name);
+            }
+        }
+        catch (CdbNotFoundException e) {
+            log.warn("The meta information for tag {} is not present...", name);
+        }
         log.debug("Removing tag {}", remTag);
         List<SearchCriteria> criteriaList = prh.createMatcherCriteria("tagname:" + name);
         BooleanExpression bytag = prh.buildWhere(filtering, criteriaList);
