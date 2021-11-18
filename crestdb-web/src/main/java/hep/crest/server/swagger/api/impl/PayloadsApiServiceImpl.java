@@ -526,12 +526,14 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             }
             pdto.streamerInfo(jacksonMapper.writeValueAsBytes(sinfomap));
             // Verify if hash exists
-            String dbhash = payloaddataRepository.exists(pdto.getHash());
+            String pyldhash = pdto.getHash();
+
+            String dbhash = payloaddataRepository.exists(pyldhash);
             if (dbhash != null && dbhash.length() > 0) {
                 log.warn("Hash {} already exists, set payload dto to null to skip insertion", dbhash);
                 pdto = null;
             }
-            final IovDto iovDto = new IovDto().payloadHash(pdto.getHash()).since(piovDto.getSince())
+            final IovDto iovDto = new IovDto().payloadHash(pyldhash).since(piovDto.getSince())
                     .tagName(tag);
             try {
                 log.debug("Save IOV and Payload : {} - {} using filename {}", iovDto, pdto, filename);
