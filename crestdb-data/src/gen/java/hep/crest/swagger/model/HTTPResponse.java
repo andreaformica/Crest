@@ -31,9 +31,9 @@ import javax.validation.Valid;
   HTTPResponse.JSON_PROPERTY_TIMESTAMP,
   HTTPResponse.JSON_PROPERTY_CODE,
   HTTPResponse.JSON_PROPERTY_ERROR,
+  HTTPResponse.JSON_PROPERTY_TYPE,
   HTTPResponse.JSON_PROPERTY_MESSAGE,
-  HTTPResponse.JSON_PROPERTY_ID,
-  HTTPResponse.JSON_PROPERTY_ACTION
+  HTTPResponse.JSON_PROPERTY_ID
 })
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class HTTPResponse   {
@@ -49,6 +49,10 @@ public class HTTPResponse   {
   @JsonProperty(JSON_PROPERTY_ERROR)
   private String error;
 
+  public static final String JSON_PROPERTY_TYPE = "type";
+  @JsonProperty(JSON_PROPERTY_TYPE)
+  private String type;
+
   public static final String JSON_PROPERTY_MESSAGE = "message";
   @JsonProperty(JSON_PROPERTY_MESSAGE)
   private String message;
@@ -56,10 +60,6 @@ public class HTTPResponse   {
   public static final String JSON_PROPERTY_ID = "id";
   @JsonProperty(JSON_PROPERTY_ID)
   private String id;
-
-  public static final String JSON_PROPERTY_ACTION = "action";
-  @JsonProperty(JSON_PROPERTY_ACTION)
-  private String action;
 
   public HTTPResponse timestamp(OffsetDateTime timestamp) {
     this.timestamp = timestamp;
@@ -121,6 +121,26 @@ public class HTTPResponse   {
     this.error = error;
   }
 
+  public HTTPResponse type(String type) {
+    this.type = type;
+    return this;
+  }
+
+  /**
+   * A generic string specifying the exception type.
+   * @return type
+   **/
+  @JsonProperty("type")
+  @ApiModelProperty(value = "A generic string specifying the exception type.")
+  
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
   public HTTPResponse message(String message) {
     this.message = message;
     return this;
@@ -161,26 +181,6 @@ public class HTTPResponse   {
     this.id = id;
   }
 
-  public HTTPResponse action(String action) {
-    this.action = action;
-    return this;
-  }
-
-  /**
-   * Action performed by the server
-   * @return action
-   **/
-  @JsonProperty("action")
-  @ApiModelProperty(value = "Action performed by the server")
-  
-  public String getAction() {
-    return action;
-  }
-
-  public void setAction(String action) {
-    this.action = action;
-  }
-
 
   @Override
   public boolean equals(Object o) {
@@ -194,14 +194,14 @@ public class HTTPResponse   {
     return Objects.equals(this.timestamp, htTPResponse.timestamp) &&
         Objects.equals(this.code, htTPResponse.code) &&
         Objects.equals(this.error, htTPResponse.error) &&
+        Objects.equals(this.type, htTPResponse.type) &&
         Objects.equals(this.message, htTPResponse.message) &&
-        Objects.equals(this.id, htTPResponse.id) &&
-        Objects.equals(this.action, htTPResponse.action);
+        Objects.equals(this.id, htTPResponse.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(timestamp, code, error, message, id, action);
+    return Objects.hash(timestamp, code, error, type, message, id);
   }
 
 
@@ -213,9 +213,9 @@ public class HTTPResponse   {
     sb.append("    timestamp: ").append(toIndentedString(timestamp)).append("\n");
     sb.append("    code: ").append(toIndentedString(code)).append("\n");
     sb.append("    error: ").append(toIndentedString(error)).append("\n");
+    sb.append("    type: ").append(toIndentedString(type)).append("\n");
     sb.append("    message: ").append(toIndentedString(message)).append("\n");
     sb.append("    id: ").append(toIndentedString(id)).append("\n");
-    sb.append("    action: ").append(toIndentedString(action)).append("\n");
     sb.append("}");
     return sb.toString();
   }

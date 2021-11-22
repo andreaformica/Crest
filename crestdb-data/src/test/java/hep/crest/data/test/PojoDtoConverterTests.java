@@ -519,7 +519,7 @@ public class PojoDtoConverterTests {
         groups.add(new BigDecimal(100L));
 
         final HTTPResponse resp = new HTTPResponse();
-        resp.action("test");
+        resp.type("OK");
         resp.code(200);
         resp.message("a successful test");
         resp.id("ahash");

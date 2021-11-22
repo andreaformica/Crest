@@ -1270,14 +1270,14 @@ components:
           description: HTTP status code of the response
         error:
           type: string
+        type:
+          type: string
+          description: A generic string specifying the exception type.
         message:
           type: string
         id:
           type: string
           description: path or URI of the requested or generated resource
-        action:
-          type: string
-          description: Action performed by the server
     CrestBaseResponse:
       type: object
       properties:

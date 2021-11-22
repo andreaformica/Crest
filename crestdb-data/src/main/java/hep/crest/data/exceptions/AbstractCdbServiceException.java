@@ -57,4 +57,8 @@ public abstract class AbstractCdbServiceException extends RuntimeException {
      */
     public abstract Response.StatusType getResponseStatus();
 
+    /*
+     * The type of the exception: ERROR, INFO, ...
+     */
+    public abstract String getType();
 }

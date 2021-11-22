@@ -62,4 +62,13 @@ public class ConflictException extends AbstractCdbServiceException {
     public Response.StatusType getResponseStatus() {
         return Response.Status.CONFLICT;
     }
+    /**
+     * Just put ERROR for every exception.
+     *
+     * @return the type of the exception.
+     */
+    @Override
+    public String getType() {
+        return "CONFLICT";
+    }
 }

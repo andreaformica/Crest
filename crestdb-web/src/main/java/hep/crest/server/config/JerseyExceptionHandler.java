@@ -1,9 +1,8 @@
 package hep.crest.server.config;
 
-import hep.crest.data.exceptions.CdbBadRequestException;
 import hep.crest.data.exceptions.AbstractCdbServiceException;
+import hep.crest.data.exceptions.CdbBadRequestException;
 import hep.crest.server.caching.CachingPolicyService;
-import hep.crest.server.swagger.api.ApiResponseMessage;
 import hep.crest.swagger.model.HTTPResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +76,7 @@ public class JerseyExceptionHandler implements ExceptionMapper<Exception> {
             HTTPResponse resp = new HTTPResponse().timestamp(OffsetDateTime.now())
                     .code(e.getResponseStatus().getStatusCode())
                     .error(e.getResponseStatus().getReasonPhrase())
+                    .type(e.getType())
                     .message(e.getMessage());
             // Set the response and the cachecontrol.
             return Response.status(e.getResponseStatus()).cacheControl(cc).entity(resp).build();
@@ -89,6 +89,7 @@ public class JerseyExceptionHandler implements ExceptionMapper<Exception> {
             HTTPResponse resp = new HTTPResponse().timestamp(OffsetDateTime.now())
                     .code(e.getResponseStatus().getStatusCode())
                     .error(e.getResponseStatus().getReasonPhrase())
+                    .type(e.getType())
                     .message(e.getMessage());
             // Set the response and the cachecontrol.
             return Response.status(e.getResponseStatus()).cacheControl(cc).entity(resp).build();
@@ -96,7 +97,12 @@ public class JerseyExceptionHandler implements ExceptionMapper<Exception> {
         // The exception is unhandled, so use INTERNAL_SERVER_ERROR as output code.
         log.error("Unhandled exception of type {}: internal server error: {}", exception.getClass(),
                 exception.getMessage());
-        ApiResponseMessage resp = new ApiResponseMessage(ApiResponseMessage.ERROR, exception.getMessage());
+        HTTPResponse resp = new HTTPResponse().timestamp(OffsetDateTime.now())
+                .code(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .error(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                .type("SERVER_UNHANDLED_ERROR")
+                .message(exception.getMessage());
+
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).cacheControl(cc).entity(resp).build();
     }
 }

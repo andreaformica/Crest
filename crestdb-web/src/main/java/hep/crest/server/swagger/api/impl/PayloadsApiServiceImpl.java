@@ -356,7 +356,6 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             final IovDto iovDto = new IovDto().payloadHash(hash).since(since).tagName(tag);
             // Save iov and payload and get the response object in return.
             final HTTPResponse resp = payloadService.saveIovAndPayload(iovDto, pdto, filename);
-            resp.action("storePayloadWithIovMultiForm");
             return Response.status(Response.Status.CREATED).entity(resp).build();
         }
         catch (IOException e) {

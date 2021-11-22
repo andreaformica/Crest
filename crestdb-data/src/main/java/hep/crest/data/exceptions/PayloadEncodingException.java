@@ -82,4 +82,13 @@ public class PayloadEncodingException extends AbstractCdbServiceException {
     public Response.StatusType getResponseStatus() {
         return Response.Status.BAD_REQUEST;
     }
+    /**
+     * Just put ERROR for every exception.
+     *
+     * @return the type of the exception.
+     */
+    @Override
+    public String getType() {
+        return "ENCODING_ERROR";
+    }
 }

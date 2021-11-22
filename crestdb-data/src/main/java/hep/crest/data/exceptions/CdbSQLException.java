@@ -62,4 +62,14 @@ public class CdbSQLException extends AbstractCdbServiceException {
     public Response.StatusType getResponseStatus() {
         return Response.Status.NOT_MODIFIED;
     }
+    /**
+     * Just put ERROR for every exception.
+     *
+     * @return the type of the exception.
+     */
+    @Override
+    public String getType() {
+        return "SQL_ERROR";
+    }
+
 }

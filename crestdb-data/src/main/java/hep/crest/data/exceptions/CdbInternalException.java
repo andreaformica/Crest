@@ -61,5 +61,14 @@ public class CdbInternalException extends AbstractCdbServiceException {
     public Response.StatusType getResponseStatus() {
         return Response.Status.INTERNAL_SERVER_ERROR;
     }
+    /**
+     * Just put ERROR for every exception.
+     *
+     * @return the type of the exception.
+     */
+    @Override
+    public String getType() {
+        return "INTERNAL_SERVER_ERROR";
+    }
 
 }

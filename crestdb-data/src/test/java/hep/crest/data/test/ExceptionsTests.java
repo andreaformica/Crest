@@ -44,26 +44,32 @@ public class ExceptionsTests {
         CdbSQLException sql = new CdbSQLException("Error in sql request");
         assertThat(sql.getResponseStatus()).isEqualTo(Response.Status.NOT_MODIFIED);
         assertThat(sql.getMessage()).contains("SQL");
+        assertThat(sql.getType()).contains("ERROR");
 
         CdbNotFoundException notfound = new CdbNotFoundException("Entity not found");
         assertThat(notfound.getResponseStatus()).isEqualTo(Response.Status.NOT_FOUND);
         assertThat(notfound.getMessage()).contains("Resource");
+        assertThat(notfound.getType()).contains("NOT_FOUND");
 
         CdbBadRequestException badr = new CdbBadRequestException("Some bad request");
         assertThat(badr.getResponseStatus()).isEqualTo(Response.Status.BAD_REQUEST);
         assertThat(badr.getMessage()).contains("Bad request");
+        assertThat(badr.getType()).contains("BAD_REQUEST");
 
         ConflictException conf = new ConflictException("Some conflict");
         assertThat(conf.getResponseStatus()).isEqualTo(Response.Status.CONFLICT);
         assertThat(conf.getMessage()).contains("Conflict");
+        assertThat(conf.getType()).contains("CONFLICT");
 
         CdbInternalException cint = new CdbInternalException("Some internal error");
         assertThat(cint.getResponseStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR);
         assertThat(cint.getMessage()).contains("Internal");
+        assertThat(cint.getType()).contains("ERROR");
 
         PayloadEncodingException pyld = new PayloadEncodingException("Some error in payload");
         assertThat(pyld.getResponseStatus()).isEqualTo(Response.Status.BAD_REQUEST);
         assertThat(pyld.getMessage()).contains("Encoding");
+        assertThat(pyld.getType()).contains("ERROR");
     }
 
     @Test
