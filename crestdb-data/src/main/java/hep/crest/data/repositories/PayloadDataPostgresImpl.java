@@ -93,7 +93,7 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
     @Override
     protected PayloadDto saveBlobAsBytes(PayloadDto entity) {
         // Set the SQL for insertion of a Payload entity.
-        final String sql = SqlRequests.getInsertAllQuery(getTablename());
+        final String sql = SqlRequests.getInsertAllQuery(getCrestTableNames().getPayloadTableName());
         // Here we print the hash used.
         log.debug("Insert Payload {} using JDBCTEMPLATE ", entity.getHash());
         // Prepare the input streams for data and streamerInfo LOBs.
@@ -109,7 +109,7 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
     @Override
     protected PayloadDto saveBlobAsStream(PayloadDto entity, InputStream is) {
         // Set the SQL for insertion of a Payload entity.
-        final String sql = SqlRequests.getInsertAllQuery(getTablename());
+        final String sql = SqlRequests.getInsertAllQuery(getCrestTableNames().getPayloadTableName());
         // Here we print the hash used.
         log.debug("Insert Payload {} using JDBCTEMPLATE", entity.getHash());
         log.debug("Streamer info {} ", entity.getStreamerInfo());
@@ -182,7 +182,7 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
         try (Connection conn = super.getDs().getConnection()) {
             conn.setAutoCommit(false);
             final JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDs());
-            final String sqlget = SqlRequests.getStreamerInfoQuery(getTablename());
+            final String sqlget = SqlRequests.getStreamerInfoQuery(getCrestTableNames().getPayloadTableName());
             // Retrieve oid to replace the content of the file.
             // This is done only for streamerInfo LOB.
             List<Long> oidlist = jdbcTemplate.query(sqlget,
@@ -208,7 +208,7 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
     public void delete(String id) {
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDs());
         // Create SQL for delete request.
-        final String sql = SqlRequests.getDeleteQuery(getTablename());
+        final String sql = SqlRequests.getDeleteQuery(getCrestTableNames().getPayloadTableName());
         log.info("Remove payload with hash {} using JDBC", id);
         // Remove the OIDs.
         this.deleteOids(id);
@@ -224,7 +224,7 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
      */
     protected void deleteOids(String hash) {
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDs());
-        final String sqlget = SqlRequests.getFindDataQuery(getTablename());
+        final String sqlget = SqlRequests.getFindDataQuery(getCrestTableNames().getPayloadTableName());
         // Get the list of OIDs to remove for the HASH in input.
         List<Long> oidlist = jdbcTemplate.query(sqlget,
                 (rs, row) -> rs.getLong(1),
@@ -234,7 +234,7 @@ public class PayloadDataPostgresImpl extends AbstractPayloadDataGeneral implemen
             // This method remove the underlying LOB in postgresql.
             jdbcTemplate.execute("select lo_unlink(" + oid + ")");
         }
-        final String sqlmetaget = SqlRequests.getStreamerInfoQuery(getTablename());
+        final String sqlmetaget = SqlRequests.getStreamerInfoQuery(getCrestTableNames().getPayloadTableName());
         oidlist = jdbcTemplate.query(sqlmetaget,
                 (rs, row) -> rs.getLong(1),
                 hash);

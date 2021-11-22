@@ -22,7 +22,26 @@ public class CrestTableNames {
      * Default table name.
      */
     private String defaultTablename = null;
-
+    /**
+     * The payload table.
+     */
+    private String payloadTableName = null;
+    /**
+     * The iov table.
+     */
+    private String iovTableName = null;
+    /**
+     * The iov table.
+     */
+    private String tagMetaTableName = null;
+    /**
+     * The iov table.
+     */
+    private String tagTableName = null;
+    /**
+     * The iov table.
+     */
+    private String globaltagTableName = null;
 
     /**
      * Default ctor.
@@ -37,6 +56,14 @@ public class CrestTableNames {
      */
     public void setDefaultTablename(String defaultTablename) {
         this.defaultTablename = defaultTablename;
+    }
+
+    /**
+     *
+     * @return the string
+     */
+    public String getDefaultTablename() {
+        return this.defaultTablename;
     }
 
     /**
@@ -79,4 +106,44 @@ public class CrestTableNames {
         return tablename;
     }
 
+    /**
+     *
+     * @return the table name.
+     */
+    public String getPayloadTableName() {
+        if (this.payloadTableName == null) {
+            this.payloadTableName = tablename("Payload");
+        }
+        return this.payloadTableName;
+    }
+    /**
+     *
+     * @return the table name.
+     */
+    public String getTagTableName() {
+        if (this.tagTableName == null) {
+            this.tagTableName = tablename("Tag");
+        }
+        return this.tagTableName;
+    }
+    /**
+     *
+     * @return the table name.
+     */
+    public String getIovTableName() {
+        if (this.iovTableName == null) {
+            this.iovTableName = tablename("Iov");
+        }
+        return this.iovTableName;
+    }
+    /**
+     *
+     * @return the table name.
+     */
+    public String getTagMetaTableName() {
+        if (this.tagMetaTableName == null) {
+            this.tagMetaTableName = tablename("TagMeta");
+        }
+        return this.tagMetaTableName;
+    }
 }

@@ -1,7 +1,6 @@
 package hep.crest.server.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hep.crest.server.swagger.api.ApiResponseMessage;
 import hep.crest.swagger.model.HTTPResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,11 +34,12 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
             log.warn("User: {} attempted to access the protected URL: {}", auth.getName(), request.getRequestURI());
         }
         log.warn("Redirect to accessDenied URL");
-        final ApiResponseMessage resp = new ApiResponseMessage(ApiResponseMessage.ERROR,
-                "Access denied to protected URL using " + request.getMethod());
+        String message = "Access denied to protected URL using " + request.getMethod();
         HTTPResponse httpresp =
                 new HTTPResponse().code(Response.Status.FORBIDDEN.getStatusCode())
-                        .message(resp.getMessage()).action(request.getMethod() + " " + request.getRequestURI());
+                        .error(Response.Status.FORBIDDEN.getReasonPhrase())
+                        .type("ACCESS_ERROR")
+                        .message(message).id(request.getRequestURI());
         OutputStream out = response.getOutputStream();
         ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(out, httpresp);

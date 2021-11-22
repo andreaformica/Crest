@@ -1,6 +1,7 @@
 package hep.crest.data.test;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import hep.crest.data.config.CrestTableNames;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.GlobalTagMap;
 import hep.crest.data.pojo.GlobalTagMapId;
@@ -93,6 +94,10 @@ public class QueryDslTests {
     @Autowired
     @Qualifier("dataSource")
     private DataSource mainDataSource;
+    /**
+     * Create the utility class for table names.
+     */
+    private CrestTableNames crestTableNames = null;
 
     @Before
     public void setUp() {
@@ -116,6 +121,7 @@ public class QueryDslTests {
                 e.printStackTrace();
             }
         }
+        crestTableNames = new CrestTableNames();
     }
 
 
@@ -237,6 +243,7 @@ public class QueryDslTests {
         final Date time = new Date(now.toEpochMilli());
 
         final PayloadDataDBImpl repobean = new PayloadDataDBImpl(mainDataSource);
+        repobean.setCrestTableNames(crestTableNames);
         final PayloadDto dto = DataGenerator.generatePayloadDto("dslmyhash3", "myrepodata", "mystreamer",
                 "test", time);
         log.debug("Save payload {}", dto);

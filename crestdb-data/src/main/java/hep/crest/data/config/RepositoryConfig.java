@@ -36,18 +36,34 @@ public class RepositoryConfig {
     private CrestProperties cprops;
 
     /**
-     * Create a monitoring bean.
+     * Create a helper bean.
      *
-     * @param mainDataSource the DataSource
-     * @return IMonitoringRepository
+     * @return CrestTableNames
      */
     @Bean
-    public IMonitoringRepository iMonitoringRepository(@Qualifier("dataSource") DataSource mainDataSource) {
-        final JdbcMonitoringRepository bean = new JdbcMonitoringRepository(mainDataSource);
+    public CrestTableNames crestTableNames() {
+        final CrestTableNames bean = new CrestTableNames();
         // Set default schema and table name taken from properties.
         if (!"none".equals(cprops.getSchemaname())) {
             bean.setDefaultTablename(cprops.getSchemaname());
         }
+        return bean;
+    }
+
+
+    /**
+     * Create a monitoring bean.
+     *
+     * @param mainDataSource the DataSource
+     * @param ctn the helper for table names
+     * @return IMonitoringRepository
+     */
+    @Bean
+    public IMonitoringRepository iMonitoringRepository(@Qualifier("dataSource") DataSource mainDataSource,
+                                                       @Qualifier("crestTableNames") CrestTableNames ctn) {
+        final JdbcMonitoringRepository bean = new JdbcMonitoringRepository(mainDataSource);
+        // Set default schema and table name taken from properties.
+        bean.setCrestTableNames(ctn);
         return bean;
     }
 
@@ -55,15 +71,15 @@ public class RepositoryConfig {
      * Create group repository.
      *
      * @param mainDataSource the DataSource
+     * @param ctn the helper for table names
      * @return IovGroupsCustom
      */
     @Bean(name = "iovgroupsrepo")
-    public IovGroupsCustom iovgroupsRepository(@Qualifier("dataSource") DataSource mainDataSource) {
+    public IovGroupsCustom iovgroupsRepository(@Qualifier("dataSource") DataSource mainDataSource,
+                                               @Qualifier("crestTableNames") CrestTableNames ctn) {
         final IovGroupsImpl bean = new IovGroupsImpl(mainDataSource);
         // Set default schema and table name taken from properties.
-        if (!"none".equals(cprops.getSchemaname())) {
-            bean.setDefaultTablename(cprops.getSchemaname());
-        }
+        bean.setCrestTableNames(ctn);
         return bean;
     }
 
@@ -71,18 +87,17 @@ public class RepositoryConfig {
      * Create payload repo...for all but postgres and sqlite.
      *
      * @param mainDataSource the DataSource
+     * @param ctn the helper for table names
      * @return PayloadDataBaseCustom
      */
-    @Profile({"test", "default", "ssl", "mysql", "cmsprep",
-            "oracle"})
+    @Profile({"test", "default", "ssl", "mysql", "cmsprep", "oracle"})
     @Bean(name = "payloaddatadbrepo")
     public PayloadDataBaseCustom payloadDefaultRepository(
-            @Qualifier("dataSource") DataSource mainDataSource) {
+            @Qualifier("dataSource") DataSource mainDataSource,
+            @Qualifier("crestTableNames") CrestTableNames ctn) {
         final PayloadDataDBImpl bean = new PayloadDataDBImpl(mainDataSource);
         // Set default schema and table name taken from properties.
-        if (!"none".equals(cprops.getSchemaname())) {
-            bean.setDefaultTablename(cprops.getSchemaname());
-        }
+        bean.setCrestTableNames(ctn);
         log.info("Creating default payload repository implementation.");
         return bean;
     }
@@ -91,17 +106,17 @@ public class RepositoryConfig {
      * Create payload repo...for postgres.
      *
      * @param mainDataSource the DataSource
+     * @param ctn the helper for table names
      * @return PayloadDataBaseCustom
      */
     @Profile({"postgres", "pgsvom"})
     @Bean(name = "payloaddatadbrepo")
     public PayloadDataBaseCustom payloadPostgresRepository(
-            @Qualifier("dataSource") DataSource mainDataSource) {
+            @Qualifier("dataSource") DataSource mainDataSource,
+            @Qualifier("crestTableNames") CrestTableNames ctn) {
         final PayloadDataPostgresImpl bean = new PayloadDataPostgresImpl(mainDataSource);
         // Set default schema and table name taken from properties.
-        if (!"none".equals(cprops.getSchemaname())) {
-            bean.setDefaultTablename(cprops.getSchemaname());
-        }
+        bean.setCrestTableNames(ctn);
         log.info("Creating postgres payload repository implementation.");
         return bean;
     }
@@ -110,19 +125,18 @@ public class RepositoryConfig {
      * Create payload repo...for sqlite.
      *
      * @param mainDataSource the DataSource
+     * @param ctn the helper for table names
      * @return PayloadDataBaseCustom
      */
     @Profile("sqlite")
     @Bean(name = "payloaddatadbrepo")
     public PayloadDataBaseCustom payloadSqliteRepository(
-            @Qualifier("dataSource") DataSource mainDataSource) {
+            @Qualifier("dataSource") DataSource mainDataSource,
+            @Qualifier("crestTableNames") CrestTableNames ctn) {
         final PayloadDataSQLITEImpl bean = new PayloadDataSQLITEImpl(mainDataSource);
         // Set default schema and table name taken from properties.
-        if (!"none".equals(cprops.getSchemaname())) {
-            bean.setDefaultTablename(cprops.getSchemaname());
-        }
+        bean.setCrestTableNames(ctn);
         log.info("Creating sqlite payload repository implementation.");
         return bean;
     }
-
 }

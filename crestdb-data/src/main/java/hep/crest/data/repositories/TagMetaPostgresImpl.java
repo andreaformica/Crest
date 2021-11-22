@@ -39,7 +39,6 @@ import java.time.ZoneOffset;
 
 /**
  * @author formica
- *
  */
 public class TagMetaPostgresImpl extends TagMetaGeneral implements TagMetaDataBaseCustom {
 
@@ -54,8 +53,7 @@ public class TagMetaPostgresImpl extends TagMetaGeneral implements TagMetaDataBa
     private PostgresBlobHandler bhandler = new PostgresBlobHandler();
 
     /**
-     * @param ds
-     *            the DataSource
+     * @param ds the DataSource
      */
     public TagMetaPostgresImpl(DataSource ds) {
         super(ds);
@@ -75,15 +73,11 @@ public class TagMetaPostgresImpl extends TagMetaGeneral implements TagMetaDataBa
     }
 
     /**
-     * @param tis
-     *            the InputStream
-     * @param sql
-     *            the String
-     * @param entity
-     *            the TagMetaDto
-     * @throws AbstractCdbServiceException
-     *             If an Exception occurred
+     * @param tis    the InputStream
+     * @param sql    the String
+     * @param entity the TagMetaDto
      * @return
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     @Override
     protected void execute(InputStream tis, String sql, TagMetaDto entity) {
@@ -122,8 +116,8 @@ public class TagMetaPostgresImpl extends TagMetaGeneral implements TagMetaDataBa
     @Transactional
     public void delete(String id) {
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDs());
-        final String sqlget = TagMetaRequests.getFindTagInfoQuery(getTagMetaTablename());
-        final String sql = TagMetaRequests.getDeleteQuery(getTagMetaTablename());
+        final String sqlget = TagMetaRequests.getFindTagInfoQuery(getCrestTableNames().getTagMetaTableName());
+        final String sql = TagMetaRequests.getDeleteQuery(getCrestTableNames().getTagMetaTableName());
         log.info("Remove payload with hash {} using JDBC", id);
         Long oid = jdbcTemplate.queryForObject(sqlget,
                 (rs, row) -> rs.getLong(1),
@@ -136,7 +130,7 @@ public class TagMetaPostgresImpl extends TagMetaGeneral implements TagMetaDataBa
 
     @Override
     protected TagMetaDto saveBlobAsBytes(TagMetaDto entity) {
-        final String sql = TagMetaRequests.getInsertAllQuery(getTagMetaTablename());
+        final String sql = TagMetaRequests.getInsertAllQuery(getCrestTableNames().getTagMetaTableName());
         log.debug("Insert Tag meta {} using JDBCTEMPLATE ", entity.getTagName());
         final InputStream is = new ByteArrayInputStream(entity.getTagInfo().getBytes(StandardCharsets.UTF_8));
         execute(is, sql, entity);
@@ -147,7 +141,7 @@ public class TagMetaPostgresImpl extends TagMetaGeneral implements TagMetaDataBa
 
     @Override
     protected TagMetaDto updateAsBytes(TagMetaDto entity) {
-        final String sql = TagMetaRequests.getUpdateQuery(getTagMetaTablename());
+        final String sql = TagMetaRequests.getUpdateQuery(getCrestTableNames().getTagMetaTableName());
         log.debug("Update Tag meta {} using JDBCTEMPLATE ", entity.getTagName());
         final InputStream is = new ByteArrayInputStream(entity.getTagInfo().getBytes(StandardCharsets.UTF_8));
         execute(is, sql, entity);

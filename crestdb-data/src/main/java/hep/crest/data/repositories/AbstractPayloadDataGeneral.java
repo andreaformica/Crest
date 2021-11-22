@@ -65,7 +65,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
         try {
             // Check if payload with a given hash exists.
-            final String sql = SqlRequests.getExistsHashQuery(getTablename());
+            final String sql = SqlRequests.getExistsHashQuery(getCrestTableNames().getPayloadTableName());
             return jdbcTemplate.queryForObject(sql, (rs, num) -> rs.getString("HASH"), id);
         }
         catch (final DataAccessException e) {
@@ -128,7 +128,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
     @Override
     @Transactional
     public void delete(String id) {
-        final String sql = SqlRequests.getDeleteQuery(getTablename());
+        final String sql = SqlRequests.getDeleteQuery(getCrestTableNames().getPayloadTableName());
         log.info("Remove payload with hash {} using JDBCTEMPLATE", id);
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
         jdbcTemplate.update(sql, id);
@@ -144,7 +144,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         log.info("Find payload {} using JDBCTEMPLATE", id);
         try {
             final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-            final String sql = SqlRequests.getFindQuery(getTablename());
+            final String sql = SqlRequests.getFindQuery(getCrestTableNames().getPayloadTableName());
 
             // Be careful, this seems not to work with Postgres: probably getBlob loads an
             // OID and not the byte[]
@@ -182,7 +182,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         log.info("Find payload meta info {} using JDBCTEMPLATE", id);
         try {
             final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-            final String sql = SqlRequests.getFindMetaQuery(getTablename());
+            final String sql = SqlRequests.getFindMetaQuery(getCrestTableNames().getPayloadTableName());
 
             return jdbcTemplate.queryForObject(sql, (rs, num) -> {
                 final PayloadDto entity = new PayloadDto();
@@ -215,7 +215,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         log.info("Find payload data {} using JDBCTEMPLATE", id);
         try {
             final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-            final String sql = SqlRequests.getFindDataQuery(getTablename());
+            final String sql = SqlRequests.getFindDataQuery(getCrestTableNames().getPayloadTableName());
             return jdbcTemplate.queryForObject(sql,
                     (rs, num) -> getBlobAsStream(rs, "DATA"), id
             );
@@ -240,7 +240,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         log.info("Update payload streamer info {} using JDBCTEMPLATE", id);
         try {
             final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-            final String sql = SqlRequests.getUpdateMetaQuery(getTablename());
+            final String sql = SqlRequests.getUpdateMetaQuery(getCrestTableNames().getPayloadTableName());
             return jdbcTemplate.update(sql, streamerInfo.getBytes(StandardCharsets.UTF_8), id);
         }
         catch (final DataAccessException e) {
@@ -263,7 +263,8 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
         log.debug("Select Iov and Payload meta info for tag  {} using JDBCTEMPLATE", name);
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
         // Get sql query.
-        final String sql = SqlRequests.getRangeIovPayloadQuery(getIovTablename(), getTablename());
+        final String sql = SqlRequests.getRangeIovPayloadQuery(getCrestTableNames().getIovTableName(),
+                getCrestTableNames().getPayloadTableName());
         // Execute request.
         return jdbcTemplate.query(sql, (rs, num) -> {
             final IovPayloadDto entity = new IovPayloadDto();
@@ -357,7 +358,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
      */
     protected PayloadDto saveBlobAsStream(PayloadDto entity, InputStream is) {
         // Save blob from stream
-        final String sql = SqlRequests.getInsertAllQuery(getTablename());
+        final String sql = SqlRequests.getInsertAllQuery(getCrestTableNames().getPayloadTableName());
         log.debug("Insert Payload with hash {} using saveBlobAsStream", entity.getHash());
         execute(is, sql, entity);
         return entity;
@@ -370,7 +371,7 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
      */
     protected PayloadDto saveBlobAsBytes(PayloadDto entity) {
         // Save blob from byte array
-        final String sql = SqlRequests.getInsertAllQuery(getTablename());
+        final String sql = SqlRequests.getInsertAllQuery(getCrestTableNames().getPayloadTableName());
         log.debug("Insert Payload with hash {} using saveBlobAsBytes", entity.getHash());
         execute(null, sql, entity);
         return entity;
@@ -387,7 +388,6 @@ public abstract class AbstractPayloadDataGeneral extends DataGeneral implements 
     }
 
     /**
-     *
      * @param buf
      * @return the String.
      */

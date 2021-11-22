@@ -32,48 +32,51 @@ public class AtlasRepositoryConfig {
     /**
      * @param mainDataSource
      *            the DataSource
+     * @param ctn the helper for table names
      * @return TagMetaDataBaseCustom
      */
     @Profile({ "test", "default", "prod", "h2", "oracle", "ssl", "dev", "mysql" })
     @Bean(name = "tagmetarepo")
     public TagMetaDataBaseCustom tagmetaDefaultRepository(
-            @Qualifier("dataSource") DataSource mainDataSource) {
+            @Qualifier("dataSource") DataSource mainDataSource,
+            @Qualifier("crestTableNames") CrestTableNames ctn) {
         final TagMetaDBImpl bean = new TagMetaDBImpl(mainDataSource);
-        if (!"none".equals(cprops.getSchemaname())) {
-            bean.setDefaultTablename(cprops.getSchemaname());
-        }
+        bean.setCrestTableNames(ctn);
         return bean;
     }
 
     /**
      * @param mainDataSource
      *            the DataSource
+     * @param ctn the helper for table names
      * @return TagMetaDataBaseCustom
      */
     @Profile({ "postgres" })
     @Bean(name = "tagmetarepo")
     public TagMetaDataBaseCustom tagmetaPostgresRepository(
-            @Qualifier("dataSource") DataSource mainDataSource) {
+            @Qualifier("dataSource") DataSource mainDataSource,
+            @Qualifier("crestTableNames") CrestTableNames ctn) {
         final TagMetaPostgresImpl bean = new TagMetaPostgresImpl(mainDataSource);
-        if (!"none".equals(cprops.getSchemaname())) {
-            bean.setDefaultTablename(cprops.getSchemaname());
-        }
+        bean.setCrestTableNames(ctn);
+
         return bean;
     }
 
     /**
      * @param mainDataSource
      *            the DataSource
+     * @param ctn the helper for table names
      * @return TagMetaDataBaseCustom
      */
     @Profile({ "sqlite" })
     @Bean(name = "tagmetarepo")
     public TagMetaDataBaseCustom tagmetaSqliteRepository(
-            @Qualifier("dataSource") DataSource mainDataSource) {
+            @Qualifier("dataSource") DataSource mainDataSource,
+            @Qualifier("crestTableNames") CrestTableNames ctn) {
+
         final TagMetaSQLITEImpl bean = new TagMetaSQLITEImpl(mainDataSource);
-        if (!"none".equals(cprops.getSchemaname())) {
-            bean.setDefaultTablename(cprops.getSchemaname());
-        }
+        bean.setCrestTableNames(ctn);
+
         return bean;
     }
 }
