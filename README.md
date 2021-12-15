@@ -196,39 +196,38 @@ The truststore has been created using a command like:
 keytool -genkey -alias crest_localhost_sslserver -keyalg RSA -keysize 2048 -validity 700 -keypass xxx -storepass xxxx -keystore ssl-crest-server.jks
 ```
 
-## Swagger
-You can view the swagger listing here (hopefully the server will be up!):
+## Openapi
+These instructions are ment to be used by developers of the vhf manager application.
+The file which contains the full API definition is:
+```
+./openapi/bundle/crestApi_all.yml
+```
+This file can also be used by applications like the swagger-ui for visualization of the API.
+### Openapi code generation
+In order to regenerate the API we use the schemas and templates which are stored in the directories:
 
 ```
-http://crest-undertow.web.cern.ch/crestapi/swagger.json
-```
-and if you want to play with the server using the swagger-ui you can access it here:
-
-```
-http://crest-undertow.web.cern.ch/ext/web/ui/index.html
+./openapi
+     - templates
+     - schemas
 ```
 
-Note that in principle you can get the same links working (a part from the hostname) if you run the server locally.
-
-The same kind of visualisation is available directly in gitlab when accessing the [specification file](./swagger_schemas/swagger/json/crestdb_full.json).
-
-### Swagger code generation
-In order to regenerate the API we use the JSON schemas and templates which are store in the directories:
-
-```
-./swagger_schemas
-./templates
-```
-
-To run code generation some scripts can be used as examples (`./scripts`).
-The server stub generation is implemented as well as a gradle task:
-
+The server stub generation is implemented as a gradle task:
 ```
 ./gradlew openApiGenerate
 ```
-For generating a client (e.g. typescript) : 
+The generated classes are in `api-generated/src/gen/java` and in case you want to change the server code these classes
+will need to be copied into `crestdb-data/src/gen/java` or `crestdb-web/src/gen/java`.
+You can do this using the following instructions:
 ```
-openapi-generator-cli generate -g typescript-axios -i ./swagger_schemas/swagger/yaml/crestdb_full.yaml -o out
+scp ./api-generated/src/gen/java/hep/crest/swagger/model/*java crestdb-data/src/gen/java/hep/crest/swagger/model/
+scp ./api-generated/src/gen/java/hep/crest/server/swagger/api/*java crestdb-web/src/gen/java/hep/crest/server/swagger/api/
+```
+You do not need to do this if you just want to use the server.
+
+For generating a client (e.g. typescript) :
+```
+openapi-generator-cli generate -g typescript-axios -i ./openapi/bundle/crestApi_all.yml -o out
 ```
 This can then be installed via npm with command like:
 ```
@@ -251,13 +250,7 @@ or
 ```
 docker run --env-file .environment -p 8080:8080 -v /mnt/data/dump:/data/dump -v /mnt/data/web:/data/web --net=host -d crest:test
 ```
-In the last example we have been mounting external volumes. These are useful for the swagger-ui and the possibility to dump a tag in a file system based structure. You can use the swagger-ui version that is provided within this project in the directory
-
-```
-./web/ui/
-```
-A special note about the file `.environment` . You need to have this file to set variables which are used at the startup of the server. Some of the variables are already provided in the version in git, but other are not. For example, to access Oracle at CERN (for the moment only integration cluster contains a crest schema) you need to have the variable `crest.db.password=xxxxx` correctly set for a writer account.
-If you use `spring.profiles.active=default` you will have an h2 database created in `jdbc:h2:/tmp/cresth2;DB_CLOSE_ON_EXIT=FALSE`.
+In the last example we have been mounting external volumes, used for logs and uploads or retrieval of payload files. 
 
 You can connect to a running container using commands like:
 
@@ -289,14 +282,10 @@ We have been merging our clients in this repository with the contribution of som
 > This is work in progress...documentation needs to be improved....
 
 ### Python
-A small client is available in `crestdb-client/python/cli` that can be installed via `pip`.
-One can also generate a python client via swagger.
+Client is generated via *OpenApi*. (complete here)
 ### C++
 Ask Juno colleagues.
 ### gatling
-Generated via swagger. Used for testing REST API.
+Generated via *OpenApi*. Used for testing REST API.
 ### qt5cpp
-Generated via swagger. This is just a demo.
-
-In addition we have recently added a Web GUI in *VueJS*. The project can be found in *web-ui/crest-ui*.
-In order to run it one can simply follow the readme file. It can use for development purpose *npm* and *node*.
+Generated via *OpenApi*. This is just a demo.

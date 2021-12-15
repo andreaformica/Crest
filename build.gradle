@@ -229,6 +229,7 @@ subprojects {
 
     configurations {
         compile.exclude module: "tomcat-jdbc"
+        compile.exclude module: 'log4j-api'
     }
 
     dependencies {
