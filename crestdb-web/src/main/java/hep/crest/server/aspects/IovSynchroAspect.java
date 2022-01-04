@@ -62,6 +62,7 @@ public class IovSynchroAspect {
      * @param entity
      *            the Tag
      * @return Object
+     * @throws Throwable If an Exception occurred
      */
     @Around("execution(* hep.crest.server.services.IovService.insertIov(*)) && args(entity)")
     public Object checkSynchro(ProceedingJoinPoint pjp, Iov entity) throws Throwable {

@@ -198,6 +198,7 @@ public class TagService {
     /**
      * @param name
      *            the String
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     @Transactional
     public void removeTag(String name) throws AbstractCdbServiceException {
