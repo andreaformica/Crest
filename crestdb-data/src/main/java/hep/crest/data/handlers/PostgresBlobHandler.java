@@ -1,10 +1,9 @@
 package hep.crest.data.handlers;
 
 import hep.crest.swagger.model.PayloadDto;
+import lombok.extern.slf4j.Slf4j;
 import org.postgresql.largeobject.LargeObject;
 import org.postgresql.largeobject.LargeObjectManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,12 +14,8 @@ import java.sql.SQLException;
  * Handler for Postgres LOB.
  * @author formica
  */
+@Slf4j
 public class PostgresBlobHandler {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(PostgresBlobHandler.class);
 
     /**
      * This method is inspired to the postgres documentation on the JDBC driver. For
@@ -33,6 +28,7 @@ public class PostgresBlobHandler {
      * @param entity
      *            the PayloadDto
      * @return long
+     * @throws SQLException If an Exception occurred.
      */
     public long writeLargeObjectId(Connection conn, InputStream is, PayloadDto entity) throws SQLException {
         // Open the large object for writing
@@ -89,7 +85,6 @@ public class PostgresBlobHandler {
      *            the InputStream
      * @param oid
      *            the large object id
-     * @return
      */
     public void updateLargeObjectId(Connection conn, InputStream is, long oid) {
         // Open the large object for writing

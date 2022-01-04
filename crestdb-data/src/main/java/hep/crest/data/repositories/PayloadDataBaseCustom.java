@@ -38,6 +38,8 @@ public interface PayloadDataBaseCustom {
      * @param id
      *            the String
      * @return String or null.
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      */
     String exists(String id) throws CdbSQLException;
 
@@ -45,6 +47,8 @@ public interface PayloadDataBaseCustom {
      * @param id
      *            the String
      * @return PayloadDto or null.
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      */
     PayloadDto find(String id) throws CdbSQLException;
 
@@ -52,6 +56,8 @@ public interface PayloadDataBaseCustom {
      * @param id
      *            the String
      * @return Payload Stream or null.
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      */
     InputStream findData(String id) throws CdbSQLException;
 
@@ -61,6 +67,8 @@ public interface PayloadDataBaseCustom {
      * @param id
      *            the String
      * @return PayloadDto or null.
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      */
     PayloadDto findMetaInfo(String id) throws CdbSQLException;
 
@@ -72,6 +80,8 @@ public interface PayloadDataBaseCustom {
      * @param streamerInfo
      *            the String
      * @return The number of updated rows.
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      */
     int updateMetaInfo(String id, String streamerInfo) throws CdbSQLException;
 
@@ -117,7 +127,8 @@ public interface PayloadDataBaseCustom {
     /**
      * @param id
      *            the String
-     * @return
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      */
     void delete(String id) throws CdbSQLException;
 }

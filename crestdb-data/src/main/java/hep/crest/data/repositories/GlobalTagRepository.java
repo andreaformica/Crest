@@ -31,6 +31,8 @@ public interface GlobalTagRepository extends PagingAndSortingRepository<GlobalTa
      * @param name
      *            the String
      * @return Optional<GlobalTag>
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      */
     @Query("SELECT distinct p FROM GlobalTag p JOIN FETCH p.globalTagMaps maps JOIN FETCH maps.tag "
            + "WHERE maps.id.globalTagName = (:name)")
@@ -42,6 +44,8 @@ public interface GlobalTagRepository extends PagingAndSortingRepository<GlobalTa
      * @param record
      *            the String
      * @return Optional<GlobalTag>
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      */
     @Query("SELECT distinct p FROM GlobalTag p JOIN FETCH p.globalTagMaps maps JOIN FETCH maps.tag "
            + "WHERE maps.id.globalTagName = (:name) and maps.id.record = (:record)")
@@ -57,6 +61,8 @@ public interface GlobalTagRepository extends PagingAndSortingRepository<GlobalTa
      * @param label
      *            the String
      * @return Optional<GlobalTag>
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      */
     @Query("SELECT distinct p FROM GlobalTag p JOIN FETCH p.globalTagMaps maps JOIN FETCH maps.tag "
            + "WHERE maps.id.globalTagName = (:name) and maps.id.record = (:record) and maps.id.label = (:label) ")
@@ -71,6 +77,8 @@ public interface GlobalTagRepository extends PagingAndSortingRepository<GlobalTa
      * @param tag
      *            the String
      * @return Optional<GlobalTag>
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      */
     @Query("SELECT distinct p FROM GlobalTag p JOIN FETCH p.globalTagMaps maps JOIN FETCH maps.tag "
            + "WHERE maps.id.globalTagName = (:name) and maps.tag.name like (:tag)")
@@ -81,6 +89,8 @@ public interface GlobalTagRepository extends PagingAndSortingRepository<GlobalTa
      * @param name
      *            the String
      * @return Optional<GlobalTag>
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      */
     Optional<GlobalTag> findByName(@Param("name") String name) throws AbstractCdbServiceException;
 

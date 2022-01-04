@@ -1,5 +1,6 @@
 package hep.crest.data.repositories;
 
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.pojo.Iov;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +14,8 @@ public interface IIovQuery {
     /**
      * @param name the String
      * @return List<Iov>
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      */
     List<Iov> findByIdTagName(@Param("name") String name) throws CdbNotFoundException;
 
@@ -21,6 +24,8 @@ public interface IIovQuery {
      * @param since the BigDecimal
      * @param hash  the String
      * @return Iov
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      */
     @Query("SELECT distinct p FROM Iov p JOIN FETCH p.tag tag "
            + "WHERE tag.name = (:name) and p.id.since = :since and p.payloadHash = (:hash)")
@@ -32,6 +37,8 @@ public interface IIovQuery {
      * @param since the BigDecimal
      * @param until the BigDecimal
      * @return List<Iov>
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      */
     @Query("SELECT distinct p FROM Iov p JOIN FETCH p.tag tag "
            + "WHERE tag.name = (:name) and p.id.since >= :since AND  p.id.since < :until "
@@ -49,6 +56,8 @@ public interface IIovQuery {
      * @param until    the BigDecimal
      * @param snapshot the Date
      * @return List<Iov>
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      */
     @Query("SELECT distinct p FROM Iov p JOIN FETCH p.tag tag "
            + "WHERE tag.name = (:name) AND p.id.since >= :since AND  p.id.since < :until "
@@ -63,6 +72,8 @@ public interface IIovQuery {
      * @param since    the BigDecimal
      * @param snapshot the Date
      * @return List<Iov>
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred
      */
     @Query("SELECT distinct p FROM Iov p JOIN FETCH p.tag tag "
            + "WHERE tag.name = (:name) AND p.id.since = ("
