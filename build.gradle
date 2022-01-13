@@ -16,7 +16,6 @@ plugins {
 }
 
 apply plugin: 'java'
-apply plugin: 'maven'
 
 apply plugin: 'io.github.swagger2markup'
 
@@ -149,7 +148,6 @@ allprojects {
     sourceCompatibility = 11
     targetCompatibility = 11
 
-    apply plugin: 'maven'
     apply plugin: 'jacoco'
     apply plugin: 'java'
     apply plugin: "io.freefair.lombok"
@@ -219,12 +217,7 @@ subprojects {
     }
 
     repositories {
-        mavenLocal()
         mavenCentral()
-        maven { url "https://repo.spring.io/milestone" }
-        maven { url "https://jcenter.bintray.com/" }
-        maven { url "https://hibernate-sqlite.googlecode.com/svn/trunk/mavenrepo" }
-        maven { url "https://repo.maven.apache.org/maven2" }
     }
 
     configurations {
