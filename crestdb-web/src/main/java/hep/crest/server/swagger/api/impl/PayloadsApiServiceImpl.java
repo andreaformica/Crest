@@ -9,9 +9,7 @@ import hep.crest.data.exceptions.CdbInternalException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.exceptions.PayloadEncodingException;
 import hep.crest.data.handlers.PayloadHandler;
-import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.PayloadDataBaseCustom;
-import hep.crest.server.annotations.CacheControlCdb;
 import hep.crest.server.caching.CachingPolicyService;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.PayloadService;
@@ -23,13 +21,12 @@ import hep.crest.swagger.model.IovDto;
 import hep.crest.swagger.model.IovSetDto;
 import hep.crest.swagger.model.PayloadDto;
 import hep.crest.swagger.model.PayloadSetDto;
+import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.hibernate.JDBCException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -65,6 +62,7 @@ import java.util.Map;
  * @author formica
  */
 @Component
+@Slf4j
 public class PayloadsApiServiceImpl extends PayloadsApiService {
 
     /**
@@ -80,10 +78,6 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      */
     private static final List<String> payloadlist = Arrays.asList("png", "svg", "json", "xml", "csv", "txt", "tgz",
             "gz", "pdf");
-    /**
-     * Logger.
-     */
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
     /**
      * Service.
      */

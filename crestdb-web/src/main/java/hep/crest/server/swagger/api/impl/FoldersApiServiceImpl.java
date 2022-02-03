@@ -13,9 +13,8 @@ import hep.crest.swagger.model.FolderDto;
 import hep.crest.swagger.model.FolderSetDto;
 import hep.crest.swagger.model.GenericMap;
 import hep.crest.swagger.model.RespPage;
+import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -39,13 +38,8 @@ import java.util.List;
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen",
         date = "2018-05-10T14:57:11.305+02:00")
 @Component
+@Slf4j
 public class FoldersApiServiceImpl extends FoldersApiService {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(FoldersApiServiceImpl.class);
-
     /**
      * Helper.
      */

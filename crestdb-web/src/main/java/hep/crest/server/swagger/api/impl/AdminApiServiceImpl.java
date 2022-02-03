@@ -1,22 +1,17 @@
 package hep.crest.server.swagger.api.impl;
 
-import hep.crest.data.exceptions.CdbInternalException;
-import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.CdbSQLException;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.GlobalTagMap;
 import hep.crest.data.pojo.Tag;
 import hep.crest.server.services.GlobalTagMapService;
 import hep.crest.server.services.GlobalTagService;
-import hep.crest.server.services.TagMetaService;
 import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.api.AdminApiService;
 import hep.crest.swagger.model.GlobalTagDto;
-import hep.crest.swagger.model.TagMetaDto;
+import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
 import org.hibernate.JDBCException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -24,7 +19,6 @@ import org.springframework.stereotype.Component;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import java.util.Set;
 
 /**
  * Rest endpoint for administration task. Essentially allows to remove
@@ -33,13 +27,8 @@ import java.util.Set;
  * @author formica
  */
 @Component
+@Slf4j
 public class AdminApiServiceImpl extends AdminApiService {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(AdminApiServiceImpl.class);
-
     /**
      * Service.
      */
@@ -83,7 +72,7 @@ public class AdminApiServiceImpl extends AdminApiService {
      */
     @Override
     public Response removeTag(String name, SecurityContext securityContext, UriInfo info) {
-        log.info("AdminRestController processing request for removing a tag");
+        log.info("AdminRestController processing request for removing tag {}", name);
         // Remove the tag with name.
         Tag removableTag = tagService.findOne(name);
         Iterable<GlobalTagMap> assgt = globalTagMapService.getTagMapByTagName(name);
@@ -109,7 +98,7 @@ public class AdminApiServiceImpl extends AdminApiService {
      */
     @Override
     public Response updateGlobalTag(String name, GlobalTagDto body, SecurityContext securityContext, UriInfo info) {
-        log.info("AdminRestController processing request for updating a global tag using " + body);
+        log.info("AdminRestController processing request for updating global tag {} using {}", name, body);
         final char type = body.getType() != null ? body.getType().charAt(0) : 'N';
 
         // Find the global tag corresponding to input name.

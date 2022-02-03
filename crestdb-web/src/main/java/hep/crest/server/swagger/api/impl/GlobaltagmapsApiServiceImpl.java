@@ -8,9 +8,8 @@ import hep.crest.swagger.model.CrestBaseResponse;
 import hep.crest.swagger.model.GenericMap;
 import hep.crest.swagger.model.GlobalTagMapDto;
 import hep.crest.swagger.model.GlobalTagMapSetDto;
+import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -28,13 +27,8 @@ import java.util.List;
  * @author formica
  */
 @Component
+@Slf4j
 public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(GlobaltagmapsApiServiceImpl.class);
-
     /**
      * Service.
      */

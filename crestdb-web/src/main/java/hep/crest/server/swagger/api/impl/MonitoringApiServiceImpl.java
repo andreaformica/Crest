@@ -8,8 +8,7 @@ import hep.crest.swagger.model.CrestBaseResponse;
 import hep.crest.swagger.model.GenericMap;
 import hep.crest.swagger.model.PayloadTagInfoDto;
 import hep.crest.swagger.model.PayloadTagInfoSetDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -26,12 +25,8 @@ import java.util.List;
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-11-07T14:29"
                                                                                                    + ":18.354+01:00")
 @Component
+@Slf4j
 public class MonitoringApiServiceImpl extends MonitoringApiService {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(MonitoringApiServiceImpl.class);
 
     /**
      * Helper.

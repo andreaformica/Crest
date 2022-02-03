@@ -15,9 +15,8 @@ import hep.crest.swagger.model.GlobalTagSetDto;
 import hep.crest.swagger.model.RespPage;
 import hep.crest.swagger.model.TagDto;
 import hep.crest.swagger.model.TagSetDto;
+import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -40,13 +39,8 @@ import java.util.ResourceBundle;
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen",
         date = "2017-09-05T16:23:23.401+02:00")
 @Component
+@Slf4j
 public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(GlobaltagsApiServiceImpl.class);
-
     /**
      * Helper.
      */
