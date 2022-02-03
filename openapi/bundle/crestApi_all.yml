@@ -467,6 +467,86 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/TagDto'
+  '/tags/{name}/meta':
+    get:
+      tags:
+        - tags
+      summary: Finds a TagMetaDto by name
+      description: This method will search for a tag metadata with the given name. Only one tag should be returned.
+      operationId: findTagMeta
+      parameters:
+        - name: name
+          in: path
+          description: 'name: the tag name'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagMetaSetDto'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/TagMetaSetDto'
+    post:
+      tags:
+        - tags
+      summary: Create a TagMeta in the database.
+      description: 'This method allows to insert a TagMeta.Arguments: TagMetaDto should be provided in the body as a JSON file.'
+      operationId: createTagMeta
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagMetaDto'
+      parameters:
+        - name: name
+          in: path
+          description: 'name: the tag name'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagMetaDto'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/TagMetaDto'
+    put:
+      tags:
+        - tags
+      summary: Update a TagMetaDto by name
+      description: 'This method will search for a tag with the given name, and update its content for the provided body fields. Only the following fields can be updated: description, timeType, objectTime, endOfValidity, lastValidatedTime.'
+      operationId: updateTagMeta
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericMap'
+      parameters:
+        - name: name
+          in: path
+          description: 'name: the tag name'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagMetaDto'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/TagMetaDto'
   /iovs:
     get:
       tags:
@@ -856,7 +936,10 @@ paths:
         '200':
           description: successful operation
           content:
-            application/json:
+            application/*:
+              schema:
+                type: string
+            text/plain:
               schema:
                 type: string
   '/payloads/{hash}/meta':
@@ -1174,7 +1257,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RunInfoSetDto'
+                $ref: '#/components/schemas/RunLumiSetDto'
   /runinfo:
     post:
       tags:
@@ -1186,14 +1269,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RunInfoSetDto'
+              $ref: '#/components/schemas/RunLumiSetDto'
       responses:
         '200':
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RunInfoSetDto'
+                $ref: '#/components/schemas/RunLumiSetDto'
     get:
       tags:
         - runinfo
@@ -1226,18 +1309,18 @@ paths:
             format: int32
         - name: sort
           in: query
-          description: 'sort: the sort pattern {runNumber:ASC}'
+          description: 'sort: the sort pattern {since:ASC}'
           required: false
           schema:
             type: string
-            default: 'runNumber:ASC'
+            default: 'since:ASC'
       responses:
         '200':
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RunInfoSetDto'
+                $ref: '#/components/schemas/RunLumiSetDto'
 components:
   securitySchemes:
     BearerAuth:
@@ -1350,6 +1433,33 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/TagDto'
+    TagMetaSetDto:
+      description: An Set containing TagMetaDto objects.
+      allOf:
+        - $ref: '#/components/schemas/CrestBaseResponse'
+        - properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/TagMetaDto'
+    TagMetaDto:
+      type: object
+      properties:
+        tagName:
+          type: string
+        description:
+          type: string
+        chansize:
+          type: integer
+          format: int32
+        colsize:
+          type: integer
+          format: int32
+        tagInfo:
+          type: string
+        insertionTime:
+          type: string
+          format: date-time
     GlobalTagDto:
       type: object
       properties:
@@ -1553,23 +1663,28 @@ components:
         niovs:
           type: integer
           format: int64
-    RunInfoSetDto:
-      description: An RunInfoSet containing RunInfoDto objects.
+    RunLumiSetDto:
+      description: An RunLumiSet containing RunLumiInfoDto objects.
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
         - properties:
+            format:
+              type: string
+              default: RunLumiSetDto
             resources:
               type: array
               items:
-                $ref: '#/components/schemas/RunInfoDto'
-    RunInfoDto:
+                $ref: '#/components/schemas/RunLumiInfoDto'
+    RunLumiInfoDto:
       type: object
       properties:
+        since:
+          type: number
         runNumber:
           type: number
-        startTime:
-          type: string
-          format: date-time
-        endTime:
-          type: string
-          format: date-time
+        lb:
+          type: number
+        starttime:
+          type: number
+        endtime:
+          type: number

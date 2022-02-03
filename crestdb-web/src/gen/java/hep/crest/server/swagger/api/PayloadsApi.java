@@ -76,7 +76,7 @@ public class PayloadsApi  {
     @GET
     @Path("/{hash}")
     @CacheControlCdb("public, max-age=604800")
-    @Produces({ "application/json" })
+    @Produces({ "application/_*", "text/plain" })
     @io.swagger.annotations.ApiOperation(value = "Finds a payload resource associated to the hash.", notes = "This method retrieves a payload resource.Arguments: hash=<hash> the hash of the payload", response = String.class, authorizations = {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "payloads", })

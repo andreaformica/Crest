@@ -256,7 +256,10 @@ paths:
         '200':
           description: successful operation
           content:
-            application/json:
+            application/*:
+              schema:
+                type: string
+            text/plain:
               schema:
                 type: string
   /payloads/{hash}/meta:
