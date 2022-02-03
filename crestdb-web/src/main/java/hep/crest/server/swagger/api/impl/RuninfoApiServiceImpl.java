@@ -13,8 +13,7 @@ import hep.crest.swagger.model.CrestBaseResponse;
 import hep.crest.swagger.model.GenericMap;
 import hep.crest.swagger.model.RunLumiInfoDto;
 import hep.crest.swagger.model.RunLumiSetDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.PageRequest;
@@ -41,13 +40,8 @@ import java.util.List;
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen",
         date = "2017-11-07T14:29:18.354+01:00")
 @Component
+@Slf4j
 public class RuninfoApiServiceImpl extends RuninfoApiService {
-
-    /**
-     * Logger.
-     */
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
-
     /**
      * Helper.
      */
