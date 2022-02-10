@@ -100,7 +100,7 @@ public class DockerEnvironmentPostProcessor implements EnvironmentPostProcessor 
         try {
             if (resource.exists()) {
                 String mPassword = getStringFromInputStream(resource.getInputStream());
-                mPassword = mPassword.replace("\\n", "");
+                mPassword = mPassword.replace("\n", "");
                 map.put(springkey, mPassword);
                 if ("store.password".equals(springkey)) {
                     System.setProperty("javax.net.ssl.trustStorePassword", mPassword);
