@@ -1,15 +1,9 @@
 /**
- * 
+ *
  */
 package hep.crest.server.autoconfig;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbInternalException;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -24,7 +18,12 @@ import org.springframework.core.env.PropertySources;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
-import hep.crest.data.exceptions.AbstractCdbServiceException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Post processor to retrieve secrets from Docker. This file requires a
@@ -41,7 +40,7 @@ public class DockerEnvironmentPostProcessor implements EnvironmentPostProcessor 
      * The property source.
      */
     private static final String PROPERTY_SOURCE_NAME = "crestpassProperties";
-    
+
     /**
      * The secret map.
      */
@@ -52,9 +51,17 @@ public class DockerEnvironmentPostProcessor implements EnvironmentPostProcessor 
      */
     private static final Logger log = LoggerFactory.getLogger(DockerEnvironmentPostProcessor.class);
 
+    /**
+     * Secret dir.
+     */
+    static final String SECRET_DIR = System.getenv().getOrDefault("ENV_SECRET_PATH", "/run/secrets");
+
+    /**
+     * Secrets mappings.
+     */
     static {
         SECRETS_MAP = new HashMap<>();
-        SECRETS_MAP.put("/run/secrets/svom-pg-crest", "crest.db.password");
+        SECRETS_MAP.put(SECRET_DIR + "/crest-db-password", "crest.db.password");
     }
 
     /*
@@ -67,7 +74,7 @@ public class DockerEnvironmentPostProcessor implements EnvironmentPostProcessor 
      */
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment,
-            SpringApplication application) {
+                                       SpringApplication application) {
         log.info("POSTPROCESS ENV is configuring {}", PROPERTY_SOURCE_NAME);
         final Map<String, Object> map = new HashMap<>();
         try {
@@ -95,7 +102,7 @@ public class DockerEnvironmentPostProcessor implements EnvironmentPostProcessor 
      *             If an Exception occurred
      */
     private void loadSecret(String secpath, String springkey, ConfigurableEnvironment environment,
-            Map<String, Object> map) {
+                            Map<String, Object> map) {
         final Resource resource = new FileSystemResource(secpath);
         try {
             if (resource.exists()) {
@@ -104,7 +111,7 @@ public class DockerEnvironmentPostProcessor implements EnvironmentPostProcessor 
                 map.put(springkey, mPassword);
                 if ("store.password".equals(springkey)) {
                     System.setProperty("javax.net.ssl.trustStorePassword", mPassword);
-                    System.setProperty("javax.net.ssl.trustStore", "/run/secrets/truststore.jks");
+                    System.setProperty("javax.net.ssl.trustStore", SECRET_DIR + "/truststore.jks");
                 }
                 addOrReplace(environment.getPropertySources(), map);
             }
