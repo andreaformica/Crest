@@ -4,4 +4,5 @@ crest.web.static=/data/web
 crest.dump.dir=/data/dump
 crest.log.dir=/data/logs
 crest.db.password=xxx
+crest.server.security=none
 management.endpoint.health.show-details=ALWAYS

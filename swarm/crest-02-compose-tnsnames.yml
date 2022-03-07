@@ -1,0 +1,67 @@
+#_______________________________________________________________________________
+#
+# Andrea Formica - October 2018
+#
+# Instructions to deploy CREST server (taken from H.Louvin: messaging example)
+#
+# docker stack deploy --with-registry-auth -c docker-compose.yml crest
+#
+#_______________________________________________________________________________
+
+version: '3.6'
+
+services:
+  http:
+    ###    image: gitlab-registry.cern.ch/formica/swagger_crestdb:latest
+    image: gitlab-registry.cern.ch/formica/crest:latest
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == crest-02.cern.ch
+    ports:
+      - "8090:8080"
+    networks:
+      - crestnet
+    configs:
+      - source: crest-conf
+        target: /home/crest/application.properties
+      - source: crest-logs
+        target: /home/crest/logback.xml
+      - source: crest-jopts
+        target: /home/crest/javaopts.properties
+      - source: tnsnames-ora
+        target: /home/crest/tnsnames.ora
+    secrets:
+      - source: crest-db-password
+    environment:
+      - crest.server.port=8080
+      - spring.profiles.active=oracle,nosecurity
+      - oracle.net.tns_admin=/home/crest
+    volumes:
+      - crest_data_logs:/data/logs
+      - crest_data_dump:/data/dump
+      - crest_data_web:/data/web
+
+networks:
+  crestnet:
+    external: true
+
+configs:
+  crest-logs:
+    external: true
+  crest-conf:
+    external: true
+  crest-jopts:
+    external: true
+  tnsnames-ora:
+    external: true
+
+secrets:
+  crest-db-password:
+    external: true
+
+volumes:
+  crest_data_logs:
+  crest_data_dump:
+  crest_data_web:
+#______________________________________________________________________________
