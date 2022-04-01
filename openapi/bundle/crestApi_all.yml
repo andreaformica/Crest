@@ -259,8 +259,9 @@ paths:
         '404':
           description: resource not found
           content:
-            application/json: {}
-            application/xml: {}
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPResponse'
     post:
       tags:
         - globaltags
@@ -310,8 +311,9 @@ paths:
         '404':
           description: resource not found
           content:
-            application/json: {}
-            application/xml: {}
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPResponse'
   '/globaltags/{name}/tags':
     get:
       tags:
@@ -391,9 +393,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TagSetDto'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/TagSetDto'
     post:
       tags:
         - tags
@@ -410,9 +409,6 @@ paths:
           description: successful operation
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/TagDto'
-            application/xml:
               schema:
                 $ref: '#/components/schemas/TagDto'
   '/tags/{name}':
@@ -434,9 +430,6 @@ paths:
           description: successful operation
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/TagSetDto'
-            application/xml:
               schema:
                 $ref: '#/components/schemas/TagSetDto'
     put:
@@ -464,9 +457,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TagDto'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/TagDto'
   '/tags/{name}/meta':
     get:
       tags:
@@ -486,9 +476,6 @@ paths:
           description: successful operation
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/TagMetaSetDto'
-            application/xml:
               schema:
                 $ref: '#/components/schemas/TagMetaSetDto'
     post:
@@ -514,9 +501,6 @@ paths:
           description: successful operation
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/TagMetaDto'
-            application/xml:
               schema:
                 $ref: '#/components/schemas/TagMetaDto'
     put:
@@ -806,9 +790,6 @@ paths:
           description: successful operation
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/IovSetDto'
-            application/xml:
               schema:
                 $ref: '#/components/schemas/IovSetDto'
   /iovs/selectGroups:

@@ -140,10 +140,6 @@ task buildHtmlDoc(type: org.openapitools.generator.gradle.plugin.tasks.GenerateT
     ]
 }
 
-configurations.compile.each {
-    println "compile: $it"
-}
-
 allprojects {
     sourceCompatibility = 11
     targetCompatibility = 11

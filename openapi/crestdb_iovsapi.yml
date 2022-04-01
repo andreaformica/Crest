@@ -234,9 +234,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/IovSetDto"
-            application/xml:
-              schema:
-                $ref: "#/components/schemas/IovSetDto"
 
   /iovs/selectIovPayloads:
     get:

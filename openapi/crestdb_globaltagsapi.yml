@@ -62,8 +62,9 @@ paths:
         '404':
           description: resource not found
           content:
-            'application/json': {}
-            'application/xml': {}
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPResponse"
     post:
       tags:
         - globaltags
@@ -113,8 +114,9 @@ paths:
         '404':
           description: resource not found
           content:
-            'application/json': {}
-            'application/xml': {}
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPResponse"
   /globaltags/{name}/tags:
     get:
       tags:
