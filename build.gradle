@@ -2,22 +2,12 @@ buildscript {
 	repositories {
 		jcenter()
 	}
-
-	dependencies {
-		classpath 'io.github.swagger2markup:swagger2markup-gradle-plugin:1.3.3'
-	}
 }
 plugins {
     id "org.sonarqube" version "3.0"
-    id "org.openapi.generator" version "5.1.0"
-    id 'org.hidetake.swagger.generator' version '2.9.0'
     id "io.freefair.lombok" version "5.0.1" apply false
     id 'jacoco'
 }
-
-apply plugin: 'java'
-
-apply plugin: 'io.github.swagger2markup'
 
 ext {
     swagger_annotations_version = "1.5.13"
@@ -26,8 +16,8 @@ ext {
     springboot_version = "2.1.0.RELEASE"
     junit_version = "4.12"
     oltu_version = "1.0.1"
-    orika_version = "1.5.1"
-    querydsl_version = "4.2.1"
+    orika_version = "1.5.4"
+    querydsl_version = "4.4.0"
     swaggerDirectory = "$rootDir/openapi".toString()
     swaggerSpecDirectory =  "$swaggerDirectory".toString()
     swaggerBundleDirectory = "$swaggerDirectory/bundle".toString()
@@ -38,112 +28,7 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    swaggerCodegen 'io.swagger:swagger-codegen-cli:2.3.1'
-}
-
-task openApiBundle {
-    // Bundle the openapi spec files together, to mitigate a bug with the main openapi generator
-    // Bug: https://github.com/OpenAPITools/openapi-generator/issues/1976
-    // For this to work, the swagger-cli (from the javascript world) needs to be installed
-    // with e.g: npm install -g @apidevtools/swagger-cli
-    inputs.files(fileTree(dir: swaggerSpecDirectory, include: '**/*.yml'))
-    outputs.file("$swaggerBundleDirectory/crestAtlasApi_all.yml".toString())
-    outputs.file("$swaggerBundleDirectory/admin_api.yml".toString())
-    outputs.file("$swaggerBundleDirectory/globaltags_api.yml".toString())
-    outputs.file("$swaggerBundleDirectory/tags_api.yml".toString())
-/// not for CMS
-    ///outputs.file("$swaggerBundleDirectory/tagsmeta_api.yml".toString())
-    outputs.file("$swaggerBundleDirectory/globaltagmaps_api.yml".toString())
-    outputs.file("$swaggerBundleDirectory/iovs_api.yml".toString())
-    outputs.file("$swaggerBundleDirectory/payloads_api.yml".toString())
-    outputs.file("$swaggerBundleDirectory/monitoring_api.yml".toString())
-    outputs.file("$swaggerBundleDirectory/runinfo_api.yml".toString())
-
-    doLast {
-        exec {
-            workingDir swaggerSpecDirectory
-            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/crestApi_all.yml".toString(), "$swaggerSpecDirectory/crestAtlasApi_all.yml".toString()
-        }
-        exec {
-            workingDir swaggerSpecDirectory
-            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/admin_api.yml".toString(), "$swaggerSpecDirectory/admin_api.yml".toString()
-        }
-        exec {
-            workingDir swaggerSpecDirectory
-            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/globaltags_api.yml".toString(), "$swaggerSpecDirectory/globaltags_api.yml".toString()
-        }
-        exec {
-            workingDir swaggerSpecDirectory
-            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/tags_api.yml".toString(), "$swaggerSpecDirectory/tags_api.yml".toString()
-        }
-        exec {
-            workingDir swaggerSpecDirectory
-            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/globaltagmaps_api.yml".toString(), "$swaggerSpecDirectory/globaltagmaps_api.yml".toString()
-        }
-        exec {
-            workingDir swaggerSpecDirectory
-            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/iovs_api.yml".toString(), "$swaggerSpecDirectory/iovs_api.yml".toString()
-        }
-        exec {
-            workingDir swaggerSpecDirectory
-            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/payloads_api.yml".toString(), "$swaggerSpecDirectory/payloads_api.yml".toString()
-        }
-        exec {
-            workingDir swaggerSpecDirectory
-            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/runinfo_api.yml".toString(), "$swaggerSpecDirectory/runinfo_api.yml".toString()
-        }
-        exec {
-            workingDir swaggerSpecDirectory
-            commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/monitoring_api.yml".toString(), "$swaggerSpecDirectory/monitoring_api.yml".toString()
-        }
-    }
-}
-
-openApiGenerate {
-    generatorName = "jaxrs-jersey"
-    inputSpec = "$swaggerBundleDirectory/crestApi_all.yml".toString()
-    outputDir = "$projectDir/api-generated".toString()
-    templateDir = "$swaggerJaxrsTemplateDirectory".toString()
-    apiPackage = "hep.crest.server.swagger.api"
-    modelPackage = "hep.crest.swagger.model"
-//    globalProperties = [
-//            apis: "",
-//            models: ""
-//    ]
-    configOptions = [
-            dateLibrary: "java8",
-            hideGenerationTimestamp: "true",
-    ]
-}
-
-task buildCrestPythonClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask){
-    generatorName = "python"
-    inputSpec = "$swaggerBundleDirectory/crestApi_all.yml".toString()
-    outputDir = "$rootDir/pycrest".toString()
-    packageName = "hep.crest.client"
-}
-
-task buildCrestShellClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask){
-    generatorName = "bash"
-    inputSpec = "$swaggerBundleDirectory/crestApi_all.yml".toString()
-    outputDir = "$rootDir/crestsh".toString()
-}
-task buildHtmlDoc(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask){
-    generatorName = "html2"
-    inputSpec = "$swaggerBundleDirectory/crestApi_all.yml".toString()
-    outputDir = "$buildDir/htmldoc".toString()
-    apiPackage = "hep.crest.server.swagger.api"
-    modelPackage = "hep.crest.swagger.model"
-    configOptions = [
-            hideGenerationTimestamp: "true",
-    ]
-}
-
 allprojects {
-    sourceCompatibility = 11
-    targetCompatibility = 11
-
     apply plugin: 'jacoco'
     apply plugin: 'java'
     apply plugin: "io.freefair.lombok"
@@ -159,6 +44,17 @@ allprojects {
         reportsDir = file("$buildDir/reports/jacoco")
     }
     jacocoTestReport {
+        dependsOn test // tests are required to run before generating the report
+
+        afterEvaluate {
+            classDirectories.setFrom(files(classDirectories.files.collect {
+                fileTree(dir: it, exclude: [
+                        "hep/crest/data/**/Q*.*",
+                        "hep/crest/server/swagger/**/*"
+                ])
+            }))
+        }
+
         reports {
             xml.enabled true
             csv.enabled false
@@ -198,12 +94,10 @@ subprojects {
     ext {
         swagger_annotations_version = "1.5.13"
         jackson_version = "2.10.5"
-        springboot_version = "2.3.1.RELEASE"
         junit_version = "4.12"
         oltu_version = "1.0.1"
-        orika_version = "1.5.1"
+        orika_version = "1.5.4"
         jersey2_version = "2.22.2"
-        swagger_core_version = "1.5.13"
         querydsl_version = "4.4.0"
         server = "undertow"
     }
@@ -222,25 +116,21 @@ subprojects {
     }
 
     dependencies {
+
         // JAX-B dependencies for JDK 9+
         implementation "jakarta.xml.bind:jakarta.xml.bind-api:2.3.2"
         implementation "org.glassfish.jaxb:jaxb-runtime:2.3.2"
         // javassist for JDK 9+
         implementation "org.javassist:javassist:3.23.1-GA"
-        // swagger
-        implementation "io.swagger:swagger-annotations:$swagger_annotations_version"
-        implementation "io.swagger:swagger-core:$swagger_core_version"
-        implementation "io.swagger:swagger-jersey2-jaxrs:$swagger_core_version"
+
         implementation group: 'ma.glasnost.orika', name: 'orika-core', version: orika_version
 
-
-        implementation "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:$jackson_version"
-        implementation "com.fasterxml.jackson.core:jackson-core:$jackson_version"
-        implementation "com.fasterxml.jackson.core:jackson-annotations:$jackson_version"
-        implementation "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
-        implementation "com.fasterxml.jackson.datatype:jackson-datatype-joda:$jackson_version"
-        implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson_version"
-
+        implementation (group: 'io.swagger.core.v3', name: 'swagger-core', version: '2.1.1') {
+            exclude group: 'javax.xml.bind', module: 'jaxb-api'
+        }
+        implementation group: 'io.swagger.core.v3', name: 'swagger-annotations', version: '2.1.1'
+        implementation group: 'io.swagger.core.v3', name: 'swagger-models', version: '2.1.1'
+        implementation "io.swagger:swagger-annotations:1.5.13"
         // DATABASES
         //implementation group: 'com.oracle', name: 'ojdbc7', version:'12.1.0.2'
         //implementation files("${project.rootDir}/jarlib/ojdbc8-12.2.0.1.jar")
@@ -269,10 +159,6 @@ subprojects {
         delete '/tmp/cdms'
     }
     test.dependsOn purgedb
-}
-
-compileJava {
-    dependsOn buildHtmlDoc
 }
 
 

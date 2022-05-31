@@ -21,6 +21,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -69,12 +70,14 @@ public class GlobalTag implements java.io.Serializable {
      */
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "INSERTION_TIME", nullable = false, updatable = false, length = 11)
+    @EqualsAndHashCode.Exclude
     private Date insertionTime;
     /**
      * The snapshot time.
      */
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "SNAPSHOT_TIME", nullable = false, length = 11)
+    @EqualsAndHashCode.Exclude
     private Date snapshotTime;
     /**
      * The scenario.
@@ -90,7 +93,8 @@ public class GlobalTag implements java.io.Serializable {
      * The type.
      */
     @Column(name = "TYPE", nullable = false, length = 1)
-    private char type;
+    private char type = "N".charAt(0);
+
     /**
      * Linked list of tags.
      */
@@ -107,7 +111,7 @@ public class GlobalTag implements java.io.Serializable {
         // Check the insertion time.
         if (this.insertionTime() == null) {
             // Set to now.
-            final Timestamp now = new Timestamp(new Date().getTime());
+            final Timestamp now = Timestamp.from(Instant.now());
             this.insertionTime(now);
         }
         if (this.snapshotTime == null) {

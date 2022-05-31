@@ -2,12 +2,8 @@ package hep.crest.data.pojo;
 // Generated Aug 2, 2016 3:50:25 PM by Hibernate Tools 3.2.2.GA
 
 import hep.crest.data.config.DatabasePropertyConfigurator;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import javax.persistence.AttributeOverride;
@@ -24,12 +20,8 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "GLOBAL_TAG_MAP", schema = DatabasePropertyConfigurator.SCHEMA_NAME)
+@Data
 @Accessors(fluent = true)
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
 public class GlobalTagMap implements java.io.Serializable {
 
     /**
@@ -56,6 +48,7 @@ public class GlobalTagMap implements java.io.Serializable {
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "TAG_NAME", nullable = false)
+    @EqualsAndHashCode.Exclude
     private Tag tag;
     /**
      * The Global Tag.
@@ -64,6 +57,7 @@ public class GlobalTagMap implements java.io.Serializable {
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "GLOBAL_TAG_NAME", nullable = false, insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
     private GlobalTag globalTag;
 
 }

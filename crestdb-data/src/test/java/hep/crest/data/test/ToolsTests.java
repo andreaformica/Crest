@@ -4,39 +4,41 @@
 package hep.crest.data.test;
 
 import hep.crest.data.config.CrestProperties;
+import hep.crest.data.config.CrestTableNames;
+import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbInternalException;
 import hep.crest.data.exceptions.CdbNotFoundException;
-import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.PayloadEncodingException;
 import hep.crest.data.handlers.DateFormatterHandler;
 import hep.crest.data.handlers.HashGenerator;
+import hep.crest.data.handlers.PayloadHandler;
+import hep.crest.data.repositories.DataGeneral;
 import hep.crest.data.test.tools.DataGenerator;
 import hep.crest.data.utils.RunIovConverter;
-import ma.glasnost.orika.MapperFacade;
-import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -45,16 +47,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  */
 @SpringBootTest
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 public class ToolsTests {
 
     private static final Logger log = LoggerFactory.getLogger(ToolsTests.class);
 
-    @Autowired
-    private MapperFacade mapper;
-
-    @Before
-    public void setUp() {
+    @BeforeAll
+    public static void setUp() {
         final Path bpath = Paths.get("/tmp/cdms");
         if (!bpath.toFile().exists()) {
             try {
@@ -114,7 +113,7 @@ public class ToolsTests {
         // getCoolTimeString(Long, iovbase)
         final String cooltimestr = RunIovConverter.getCoolTimeString(runlumi.longValue(), "run-lb");
         assertThat(cooltimestr).isNull();
-        final Long nowms = Instant.now().getMillis();
+        final Long nowms = Instant.now().toEpochMilli();
         assertThat(RunIovConverter.getCoolTimeString(nowms, "time")).isNotNull();
 
         final String coolstr = RunIovConverter.getCoolTimeRunLumiString(runlumi.longValue(),
@@ -218,4 +217,59 @@ public class ToolsTests {
         assertThat(ee.getCause()).isNotNull();
     }
 
+    @Test
+    public void payloadHandlerTest() {
+        try {
+            Path filepath = Paths.get("/tmp/cdms/file.blob");
+            Files.write(filepath, "Some fake data".getBytes(StandardCharsets.UTF_8));
+            InputStream is = new FileInputStream(filepath.toFile());
+            byte[] lob = PayloadHandler.getBytesFromInputStream(is);
+            assertThat(lob.length).isPositive();
+            is.close();
+
+            Path filepath2 = Paths.get("/tmp/cdms/file2.blob");
+            Files.write(filepath2, "Some other fake data".getBytes(StandardCharsets.UTF_8));
+            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filepath2.toFile()));
+            String hash = PayloadHandler.getHashFromStream(bis);
+            assertThat(hash.length()).isPositive();
+            bis.close();
+
+            Path filepath2a = Paths.get("/tmp/cdms/file2a.blob");
+            Files.write(filepath2a, "Some fake data".getBytes(StandardCharsets.UTF_8));
+            InputStream iis = new FileInputStream(filepath2a.toFile());
+            PayloadHandler.saveStreamToFile(iis, "/tmp/cdms/tofill.lob");
+            Path filepath2b = Paths.get("/tmp/cdms/tofill.lob");
+            assertThat(filepath2b.toFile().length()).isPositive();
+
+            Path filepath3 = Paths.get("/tmp/cdms/file3.blob");
+            Files.write(filepath3, "Some new fake data".getBytes(StandardCharsets.UTF_8));
+            BufferedInputStream bis3 = new BufferedInputStream(new FileInputStream(filepath3.toFile()));
+            String hash3 = PayloadHandler.saveToFileGetHash(bis3, "/tmp/cdms/tofillhash.lob");
+            assertThat(hash3.length()).isPositive();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void tableNamesTest() {
+        final CrestTableNames tn = new CrestTableNames();
+        tn.setDefaultTablename("CREST");
+        assertThat(tn.getDefaultTablename()).isEqualTo("CREST");
+        assertThat(tn.getIovTableName()).contains("IOV");
+        assertThat(tn.getPayloadTableName()).contains("PAYLOAD");
+        assertThat(tn.getTagTableName()).contains("TAG");
+        assertThat(tn.getTagMetaTableName()).contains("TAG");
+        assertThat(tn.tablename("GlobalTag")).contains("GLOBAL");
+        assertThat(tn.tablename("Pippo")).isEmpty();
+    }
+
+    @Test
+    public void dataGeneralTest() {
+        final CrestTableNames tn = new CrestTableNames();
+        final DataGeneral dg = new DataGeneral(null);
+        dg.setCrestTableNames(tn);
+        assertThat(dg).isNotNull();
+    }
 }

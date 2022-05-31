@@ -7,13 +7,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 
 /**
@@ -70,38 +67,6 @@ public final class PayloadHandler {
     }
 
     /**
-     * Save the inputStream to the outputStream.
-     *
-     * @param uploadedInputStream the InputStream
-     * @param out                 the OutputStream
-     */
-    public static void saveToOutStream(InputStream uploadedInputStream, OutputStream out) {
-
-        try {
-            // Read from inputstream and copy to output stream.
-            int read = 0;
-            final byte[] bytes = new byte[MAX_LENGTH];
-            while ((read = uploadedInputStream.read(bytes)) != -1) {
-                out.write(bytes, 0, read);
-            }
-            out.flush();
-        }
-        catch (final IOException e) {
-            log.error("Exception in saveToOutStream : {}", e.getMessage());
-        }
-        finally {
-            try {
-                // Close all streams.
-                uploadedInputStream.close();
-                out.close();
-            }
-            catch (final IOException e) {
-                log.error("Exception in saveToOutStream when closing : {}", e.getMessage());
-            }
-        }
-    }
-
-    /**
      * Get hash while reading the stream and saving it to a file. The internal
      * method will close the output and input stream but we also do it here just in
      * case.
@@ -114,7 +79,7 @@ public final class PayloadHandler {
     public static String saveToFileGetHash(InputStream uploadedInputStream,
                                            String uploadedFileLocation) throws PayloadEncodingException {
         // Generate hash.
-        try (OutputStream out = new FileOutputStream(new File(uploadedFileLocation))) {
+        try (OutputStream out = new FileOutputStream(uploadedFileLocation)) {
             return HashGenerator.hashoutstream(uploadedInputStream, out);
         }
         catch (NoSuchAlgorithmException | IOException e) {
@@ -156,88 +121,12 @@ public final class PayloadHandler {
     public static void saveStreamToFile(InputStream uploadedInputStream,
                                         String uploadedFileLocation) {
         // Save input stream to file.
-        try (OutputStream out = new FileOutputStream(new File(uploadedFileLocation))) {
+        try (OutputStream out = new FileOutputStream(uploadedFileLocation)) {
             StreamUtils.copy(uploadedInputStream, out);
         }
         catch (final IOException e) {
             log.error("Exception in saveStreamToFile: {}", e.getMessage());
         }
-    }
-
-    /**
-     * @param uploadedFileLocation the String
-     * @return byte[]
-     */
-    public static byte[] readFromFile(String uploadedFileLocation) {
-        byte[] databarr = null;
-        try {
-            // Read from File into byte array.
-            final java.nio.file.Path path = Paths.get(uploadedFileLocation);
-            databarr = Files.readAllBytes(path);
-        }
-        catch (final IOException e) {
-            log.error("Exception in readFromFile: {}", e.getMessage());
-            databarr = new byte[0];
-        }
-        return databarr;
-
-    }
-
-    /**
-     * @param uploadedFileLocation the String
-     * @return long
-     */
-    public static long lengthOfFile(String uploadedFileLocation) {
-        long flength = 0;
-        try {
-            // Get length of file.
-            final java.nio.file.Path path = Paths.get(uploadedFileLocation);
-            Files.size(path);
-            flength = Files.size(path);
-        }
-        catch (final IOException e) {
-            log.error("Exception in lengthOfFile: {}", e.getMessage());
-        }
-        return flength;
-    }
-
-    /**
-     * Return a byte array from the input stream blob.
-     *
-     * @param is the inputstream
-     * @return byte[]
-     */
-    public static byte[] getByteArr(InputStream is) {
-        if (is == null) {
-            return new byte[0];
-        }
-        // Get byte array from input stream.
-        try (ByteArrayOutputStream buffer = new ByteArrayOutputStream();) {
-            int read = 0;
-            final byte[] bytes = new byte[2048];
-            // Read input bytes and write in output stream
-            while ((read = is.read(bytes, 0, bytes.length)) != -1) {
-                buffer.write(bytes, 0, read);
-                log.trace("Copying {} bytes into the output...", read);
-            }
-            // Flush data
-            buffer.flush();
-            return buffer.toByteArray();
-        }
-        catch (IOException e) {
-            log.error("Exception in reading byte array from input stream: {}", e.getMessage());
-        }
-        finally {
-            // Close all streames to avoid memory leaks.
-            log.debug("closing streams...");
-            try {
-                is.close();
-            }
-            catch (IOException e) {
-                log.error("Cannot close input stream from SQLITE blob: {}", e.getMessage());
-            }
-        }
-        return new byte[0];
     }
 
 }

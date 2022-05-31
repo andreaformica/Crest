@@ -9,23 +9,11 @@ import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.CdbSQLException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.exceptions.PayloadEncodingException;
-import hep.crest.data.pojo.GlobalTag;
-import hep.crest.data.pojo.GlobalTagMap;
-import hep.crest.data.pojo.GlobalTagMapId;
-import hep.crest.data.pojo.IovId;
-import hep.crest.data.pojo.Payload;
-import hep.crest.data.pojo.Tag;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.ws.rs.core.Response;
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,8 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author formica
  *
  */
-@SpringBootTest
-@RunWith(SpringRunner.class)
 public class ExceptionsTests {
 
     private static final Logger log = LoggerFactory.getLogger(ExceptionsTests.class);

@@ -1,12 +1,7 @@
 package hep.crest.data.pojo;
 // Generated Aug 2, 2016 3:50:25 PM by Hibernate Tools 3.2.2.GA
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 import lombok.experimental.Accessors;
 
 import javax.persistence.Column;
@@ -21,18 +16,9 @@ import javax.persistence.Embeddable;
 // These are essential for ID comparison.
 @Embeddable
 @Accessors(fluent = true)
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
-@EqualsAndHashCode
+@Data
 public class GlobalTagMapId implements java.io.Serializable {
 
-    /**
-     * Serializer.
-     */
-    private static final long serialVersionUID = -2041411292811311312L;
     /**
      * The global tag name.
      */

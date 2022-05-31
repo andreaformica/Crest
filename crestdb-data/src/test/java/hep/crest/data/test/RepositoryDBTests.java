@@ -1,354 +1,280 @@
 package hep.crest.data.test;
 
-import hep.crest.data.config.PojoDtoConverterConfig;
-import hep.crest.data.exceptions.AbstractCdbServiceException;
-import hep.crest.data.exceptions.PayloadEncodingException;
-import hep.crest.data.handlers.PayloadHandler;
-import hep.crest.data.monitoring.repositories.IMonitoringRepository;
-import hep.crest.data.monitoring.repositories.JdbcMonitoringRepository;
+import hep.crest.data.pojo.GlobalTag;
+import hep.crest.data.pojo.GlobalTagMap;
+import hep.crest.data.pojo.GlobalTagMapId;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.IovId;
 import hep.crest.data.pojo.Tag;
-import hep.crest.data.repositories.IovGroupsImpl;
+import hep.crest.data.repositories.GlobalTagMapRepository;
+import hep.crest.data.repositories.GlobalTagRepository;
 import hep.crest.data.repositories.IovRepository;
-import hep.crest.data.repositories.PayloadDataBaseCustom;
-import hep.crest.data.repositories.PayloadDataDBImpl;
-import hep.crest.data.repositories.TagMetaDBImpl;
-import hep.crest.data.repositories.PayloadDataSQLITEImpl;
 import hep.crest.data.repositories.TagRepository;
+import hep.crest.data.repositories.args.GtagQueryArgs;
+import hep.crest.data.repositories.args.IovModeEnum;
+import hep.crest.data.repositories.args.IovQueryArgs;
+import hep.crest.data.repositories.args.TagQueryArgs;
+import hep.crest.data.runinfo.pojo.RunLumiInfo;
+import hep.crest.data.runinfo.repositories.RunLumiInfoRepository;
 import hep.crest.data.security.pojo.CrestFolders;
 import hep.crest.data.security.pojo.CrestFoldersRepository;
-import hep.crest.data.test.tools.DataGenerator;
-import hep.crest.swagger.model.IovPayloadDto;
-import hep.crest.swagger.model.PayloadDto;
-import hep.crest.swagger.model.TagDto;
-import hep.crest.swagger.model.TagMetaDto;
-import hep.crest.swagger.model.PayloadTagInfoDto;
-import hep.crest.swagger.model.TagSummaryDto;
-import ma.glasnost.orika.MapperFacade;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import hep.crest.data.test.tools.RandomGenerator;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.sql.DataSource;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.OPTIONAL;
 
-@RunWith(SpringRunner.class)
 @DataJpaTest
 @ActiveProfiles("test")
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@Slf4j
 public class RepositoryDBTests {
 
-    private static final Logger log = LoggerFactory.getLogger(RepositoryDBTests.class);
 
+    /**
+     * Repository.
+     */
     @Autowired
     private TagRepository tagrepository;
 
+    /**
+     * Repository.
+     */
     @Autowired
     private IovRepository iovrepository;
 
     /**
      * Repository.
      */
-    private IMonitoringRepository monitoringrepo;
-
+    @Autowired
+    private GlobalTagRepository globalTagRepository;
     /**
      * Repository.
      */
-    private PayloadDataBaseCustom repobean;
-
+    @Autowired
+    private GlobalTagMapRepository globalTagMapRepository;
+    /**
+     * Repository.
+     */
+    @Autowired
+    private RunLumiInfoRepository runLumiInfoRepository;
+    /**
+     * Repository.
+     */
     @Autowired
     private CrestFoldersRepository crestFoldersRepository;
 
-    @Autowired
-    @Qualifier("dataSource")
-    private DataSource mainDataSource;
-
-    private MapperFacade mapper;
-
-    @Before
-    public void setUp() {
-        repobean = new PayloadDataDBImpl(mainDataSource);
-        monitoringrepo = new JdbcMonitoringRepository(mainDataSource);
-
-        final Path bpath = Paths.get("/tmp/cdms");
-        if (!bpath.toFile().exists()) {
-            try {
-                Files.createDirectories(bpath);
-            }
-            catch (final IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-        final Path cpath = Paths.get("/tmp/crest-dump");
-        if (!cpath.toFile().exists()) {
-            try {
-                Files.createDirectories(cpath);
-            }
-            catch (final IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-        final PojoDtoConverterConfig cf = new PojoDtoConverterConfig();
-        mapper = cf.createOrikaMapperFactory().getMapperFacade();
-    }
+    private RandomGenerator rnd = new RandomGenerator();
 
     @Test
-    public void testPayload() throws Exception {
+    public void testGlobalTags() throws Exception {
+        log.info("====> testGlobalTags: ");
+        final GlobalTag mtag = (GlobalTag) rnd.generate(GlobalTag.class);
+        log.info("Created global tag via random gen: {}", mtag);
+        mtag.snapshotTime(null);
+        mtag.insertionTime(null);
+        final GlobalTag savedtag = globalTagRepository.save(mtag);
+        assertThat(savedtag).isNotNull();
+        assertThat(savedtag.toString().length()).isPositive();
+        assertThat(mtag.name()).isEqualTo(savedtag.name());
 
-        final Instant now = Instant.now();
-        final Date time = new Date(now.toEpochMilli());
+        log.info("...find global tags: {}", mtag);
+        List<GlobalTag> found = globalTagRepository.findByNameLike("%");
+        assertThat(found).isNotNull();
+        assertThat(found.size()).isPositive();
 
-        final PayloadDto dto = DataGenerator.generatePayloadDto("myhash1", "mydata", "mystreamer",
-                "test", time);
-        log.debug("Save payload {}", dto);
-        if (dto.getSize() == null) {
-            dto.setSize(dto.getData().length);
-        }
-        final PayloadDto saved = repobean.save(dto);
-        assertThat(saved).isNotNull();
-        final PayloadDto loaded = repobean.find("myhash1");
-        assertThat(loaded.toString().length()).isPositive();
-
-        DataGenerator.generatePayloadData("/tmp/cdms/payloadata.blob", "none");
-        final File f = new File("/tmp/cdms/payloadata.blob");
-        InputStream ds = new BufferedInputStream(new FileInputStream(f));
-
-        dto.hash("mynewhash1");
-        final PayloadDto savedfromblob = repobean.save(dto, ds);
-        assertThat(savedfromblob.toString().length()).isPositive();
-        if (ds != null) {
-            ds.close();
-        }
-        final InputStream loadedblob = repobean.findData(savedfromblob.getHash());
-        assertThat(loadedblob.available()).isPositive();
-        repobean.delete(savedfromblob.getHash());
-
-        ds = new BufferedInputStream(new FileInputStream(f));
-        PayloadHandler.saveStreamToFile(ds, "/tmp/cdms/payloadatacopy.blob");
-        final File f1 = new File("/tmp/cdms/payloadatacopy.blob");
-        final InputStream ds1 = new BufferedInputStream(new FileInputStream(f1));
-        final byte[] barr = PayloadHandler.getBytesFromInputStream(ds1);
-        assertThat(barr).isNotEmpty();
-        if (ds1 != null) {
-            ds1.close();
-        }
-
-        ds = new BufferedInputStream(new FileInputStream(f));
-        final OutputStream out = new FileOutputStream(
-                new File("/tmp/cdms/payloadatacopy.blob.copy"));
-        PayloadHandler.saveToOutStream(ds, out);
-//        lobhandler.createBlobFromFile("/tmp/cdms/payloadatacopy.blob.copy");
-
-        try {
-            final PayloadDto loadedblob1 = repobean.find(savedfromblob.getHash());
-            assertThat(loadedblob1).isNull();
-            log.info("loaded payload 1 {}", loadedblob1);
-        }
-        catch (AbstractCdbServiceException e) {
-            log.error("Cannot load payload for hash {}: {}", savedfromblob.getHash(), e);
-        }
-        final byte[] parr = PayloadHandler.readFromFile("/tmp/cdms/payloadatacopy.blob.copy");
-        assertThat(parr).isNotNull().isNotEmpty();
-
-        final long fsize = PayloadHandler.lengthOfFile("/tmp/cdms/payloadatacopy.blob.copy");
-        assertThat(fsize).isPositive();
-
-        final String fhash = PayloadHandler.saveToFileGetHash(
-                new BufferedInputStream(new FileInputStream(f)),
-                "/tmp/cdms/payloadatacopy.blob.copy2");
-        assertThat(fhash).isNotNull();
+        PageRequest req = PageRequest.of(0, 10);
+        GtagQueryArgs args = new GtagQueryArgs();
+        args.name(mtag.name()+"%");
+        args.workflow(savedtag.workflow()).scenario(savedtag.scenario())
+        .description(savedtag.description()).release(savedtag.release())
+        .validity(savedtag.validity());
+        Page<GlobalTag> pageselect = globalTagRepository.findGlobalTagList(args, req);
+        assertThat(pageselect).isNotNull();
+        assertThat(pageselect.getTotalElements()).isPositive();
+        // Now use tagname equal ...
+        args.name(mtag.name());
+        pageselect = globalTagRepository.findGlobalTagList(args, req);
+        assertThat(pageselect).isNotNull();
+        assertThat(pageselect.getTotalElements()).isEqualTo(1L);
     }
 
     @Test
     public void testTags() throws Exception {
-        final Instant now = Instant.now();
-        final Date time = new Date(now.toEpochMilli());
-
-        final TagMetaDBImpl metarepo = new TagMetaDBImpl(mainDataSource);
-        final Tag mtag = DataGenerator.generateTag("A-TEST-FOR-META", "test");
+        log.info("====> testTags: ");
+        final Tag mtag = (Tag) rnd.generate(Tag.class);
+        log.info("...created tag via random gen: {}", mtag);
+        mtag.insertionTime(null);
+        mtag.modificationTime(null);
         final Tag savedtag = tagrepository.save(mtag);
-        final TagMetaDto metadto = DataGenerator.generateTagMetaDto("A-TEST-FOR-META", "{ \"key\" : \"val\" }", time);
-        final TagMetaDto savedmeta = metarepo.save(metadto);
-        assertThat(savedmeta).isNotNull();
-        assertThat(savedmeta.toString().length()).isPositive();
-        assertThat(savedmeta.getTagName()).isEqualTo(savedtag.name());
+        assertThat(savedtag).isNotNull();
+        assertThat(savedtag.toString().length()).isPositive();
+        assertThat(mtag.name()).isEqualTo(savedtag.name());
+        log.info("...update the tag {} by changing description:", mtag.name());
+        savedtag.description("I changed the description");
+        Tag updtag = tagrepository.save(savedtag);
+        assertThat(updtag.description()).isNotEqualTo(mtag.description());
+        assertThat(updtag.modificationTime()).isAfterOrEqualTo(savedtag.modificationTime());
 
-        final TagMetaDto storedmeta = metarepo.find(savedmeta.getTagName());
-        assertThat(storedmeta).isNotNull();
-        storedmeta.tagInfo("{ \"key1\" : \"val1\" }");
-        final TagMetaDto updmeta = metarepo.update(storedmeta);
-        assertThat(updmeta).isNotNull();
+        log.info("...find tags: {}", mtag);
+        List<Tag> found = tagrepository.findByNameLike("%");
+        assertThat(found).isNotNull();
+        assertThat(found.size()).isPositive();
+
+        PageRequest req = PageRequest.of(0, 10);
+        TagQueryArgs args = new TagQueryArgs();
+        // Use tagname like ...
+        args.name(mtag.name()+"%").timeType(savedtag.timeType())
+                .description(savedtag.description())
+                .objectType(savedtag.objectType());
+        Page<Tag> pageselect = tagrepository.findTagList(args, req);
+        assertThat(pageselect).isNotNull();
+        assertThat(pageselect.getTotalElements()).isPositive();
+        // Now use tagname equal ...
+        args.name(mtag.name());
+        pageselect = tagrepository.findTagList(args, req);
+        assertThat(pageselect).isNotNull();
+        assertThat(pageselect.getTotalElements()).isEqualTo(1L);
     }
 
     @Test
     public void testIovs() throws Exception {
-
-        final IovGroupsImpl iovsrepobean = new IovGroupsImpl(mainDataSource);
-        final Instant now = Instant.now();
-        final Date time = new Date(now.toEpochMilli());
-
-        final PayloadDto dto = DataGenerator.generatePayloadDto("myhash2", "mynewdata",
-                "mystreamer", "test", time);
-        log.debug("Save payload {}", dto);
-        if (dto.getSize() == null) {
-            dto.setSize(dto.getData().length);
-        }
-        final PayloadDto saved = repobean.save(dto);
-        assertThat(saved).isNotNull();
-        final PayloadDto loaded = repobean.find("myhash2");
-
-        final Tag mtag = DataGenerator.generateTag("A-TEST-01", "test");
+        log.info("====> testIovs: ");
+        final Tag mtag = (Tag) rnd.generate(Tag.class);
         final Tag savedtag = tagrepository.save(mtag);
-        final IovId id = new IovId("A-TEST-01", new BigDecimal(999L), new Date());
-        final Iov miov = new Iov(id, savedtag, loaded.getHash());
+        final IovId id = new IovId().tagName(savedtag.name()).since(new BigDecimal(999L)).insertionTime(new Date());
+        final Iov miov = (Iov) rnd.generate(Iov.class);
+        miov.id(id);
+        miov.id().insertionTime(null);
+        log.info("...created iov via random gen: {}", miov);
         final Iov savediov = iovrepository.save(miov);
         assertThat(savediov.toString().length()).isPositive();
-        log.info("Stored iov {}", savediov);
 
-        final IovId id2 = new IovId("A-TEST-01", new BigDecimal(1999L), new Date());
-        final Iov miov2 = new Iov(id2, savedtag, loaded.getHash());
+        final IovId id2 = new IovId().tagName(savedtag.name()).since(new BigDecimal(1010L)).insertionTime(new Date());
+        final Iov miov2 = (Iov) rnd.generate(Iov.class);
+        miov2.id(id2);
+        miov2.id().insertionTime(null);
         final Iov savediov2 = iovrepository.save(miov2);
-        log.info("Stored iov2 {}", savediov2);
         assertThat(savediov2.toString().length()).isPositive();
-        assertThat(id2.hashCode()).isNotZero();
-        assertThat(id2).isNotEqualTo(id);
 
-        final Iterable<Iov> storedlist = iovrepository.findAll();
-        for (final Iov iov : storedlist) {
-            log.info("Found iov {}", iov);
+        log.info("...find iov by tag: {}", mtag);
+        PageRequest req = PageRequest.of(0, 10);
+        Page<Iov> pagefound = iovrepository.findByIdTagName(mtag.name(), req);
+        assertThat(pagefound).isNotNull();
+        assertThat(pagefound.getTotalElements()).isPositive();
+
+        IovQueryArgs args = new IovQueryArgs();
+        args.mode(IovModeEnum.RANGES);
+        args.since(BigDecimal.valueOf(1000L)).until(BigDecimal.valueOf(1020L)).tagName(savedtag.name());
+        if (args.checkArgsNull(null)) {
+            log.warn("Relevant arguments are null");
         }
-        final Long s = iovsrepobean.getSize("A-TEST-01");
-        assertThat(s).isPositive();
+        else {
+            Page<Iov> pageselect = iovrepository.findIovList(args, req);
+            assertThat(pageselect).isNotNull();
+            assertThat(pageselect.getTotalElements()).isPositive();
 
-        final Long ssnap = iovsrepobean.getSizeBySnapshot("A-TEST-01", new Date());
-        assertThat(ssnap).isPositive();
-
-        final List<TagSummaryDto> iovlist = iovsrepobean.getTagSummaryInfo("A-TEST-01");
-        assertThat(iovlist.size()).isPositive();
-
-        final List<BigDecimal> groups = iovsrepobean.selectGroups("A-TEST-01", 10L);
-        assertThat(groups.size()).isPositive();
-
-        final List<BigDecimal> groupsnap = iovsrepobean.selectSnapshotGroups("A-TEST-01",
-                new Date(), 10L);
-        assertThat(groupsnap.size()).isPositive();
-
-        final List<IovPayloadDto> pdtolist = repobean.getRangeIovPayloadInfo("A-TEST-01", new BigDecimal(99L),
-                new BigDecimal(1200L), new Date());
-        assertThat(pdtolist.size()).isNotNegative();
-
-        List<PayloadTagInfoDto> dtolist = monitoringrepo.selectTagInfo("A-TEST-01");
-        assertThat(dtolist.size()).isPositive();
+            args.snapshot(Timestamp.from(Instant.now()));
+            args.mode(IovModeEnum.IOVS);
+            args.tagName(mtag.name() + "%");
+            //args.hash(savediov.payloadHash());
+            pageselect = iovrepository.findIovList(args, req);
+            assertThat(pageselect).isNotNull();
+            assertThat(pageselect.getTotalElements()).isPositive();
+        }
+        log.info("Try to get back one IOV only using AT");
+        args.mode(IovModeEnum.AT);
+        args.since(BigDecimal.valueOf(1001L)).until(null).tagName(savedtag.name());
+        if (args.checkArgsNull(null)) {
+            log.warn("Relevant arguments are null");
+        }
+        else {
+            Page<Iov> pageselect = iovrepository.findIovList(args, req);
+            log.info("Found AT: {}", pageselect.toList());
+            assertThat(pageselect).isNotNull();
+            assertThat(pageselect.getTotalElements()).isPositive();
+        }
     }
 
     @Test
-    public void testFolders() {
-        final CrestFolders entity = DataGenerator.generateFolder("RTBLOB", "/MDT/RTBLOB",
-                "COOLOFL_MDT");
+    public void testMappings() throws Exception {
+        log.info("====> testMappings: ");
+        final Tag mtag = (Tag) rnd.generate(Tag.class);
+        final Tag savedtag = tagrepository.save(mtag);
+        final GlobalTag gtag = (GlobalTag) rnd.generate(GlobalTag.class);
+        log.info("...created global tag via random gen: {}", gtag);
+        final GlobalTag savedgtag = globalTagRepository.save(gtag);
+        GlobalTagMap map = new GlobalTagMap();
+        map.tag(savedtag);
+        map.globalTag(savedgtag);
+        GlobalTagMapId id = new GlobalTagMapId();
+        id.label("testlabel");
+        id.record("testrecord");
+        id.globalTagName(savedgtag.name());
+        map.id(id);
+        log.info("...created mapping : {}", map);
+        final GlobalTagMap savedmap = globalTagMapRepository.save(map);
+        assertThat(savedmap.toString().length()).isPositive();
+        List<GlobalTagMap> found = globalTagMapRepository.findByGlobalTagName(savedgtag.name());
+        assertThat(found).isNotNull();
+        assertThat(found.size()).isPositive();
+        Optional<GlobalTag> gt = globalTagRepository.findGlobalTagFetchTags(savedgtag.name(), "testrecord",
+                "testlabel");
+        assertThat(gt.isPresent()).isTrue();
+        assertThat(gt.get().name()).isEqualTo(savedgtag.name());
+        log.info("Found global tag {}", gt.get());
+
+        Optional<GlobalTag> gt1 = globalTagRepository.findGlobalTagFetchTags(savedgtag.name(), "testrecord",
+                "notthere");
+        assertThat(gt1.isPresent()).isFalse();
+        log.info("Cannot found global tag for label notthere");
+    }
+
+    @Test
+    public void testCrestFolders() throws Exception {
+        log.info("====> testCrestFolders: ");
+        final CrestFolders entity = (CrestFolders) rnd.generate(CrestFolders.class);
         final CrestFolders saved = crestFoldersRepository.save(entity);
-        assertThat(saved.groupRole()).isEqualTo(entity.groupRole());
-
-        final List<CrestFolders> flist = crestFoldersRepository.findBySchemaName("COOLOFL_MDT");
-        assertThat(flist.size()).isPositive();
+        log.info("...created folder via random gen: {}", entity);
+        assertThat(saved.toString().length()).isPositive();
+        String grouprole = entity.groupRole();
+        List<CrestFolders> found = crestFoldersRepository.findByGroupRole(grouprole);
+        assertThat(found).isNotNull();
+        assertThat(found.size()).isPositive();
     }
 
     @Test
-    public void testLobHandlers() {
-        //final CrestLobHandler clh = new CrestLobHandler(mainDataSource);
-        DataGenerator.generatePayloadData("/tmp/cdms/payloadataforhandler.blob", "none");
-        final File f = new File("/tmp/cdms/payloadataforhandler.blob");
-        final PayloadDataDBImpl repobean = new PayloadDataDBImpl(mainDataSource);
-
-        try {
-            //final Blob b = clh.createBlobFromFile("/tmp/cdms/payloadataforhandler.blob");
-            //assertThat(b).isNotNull();
-            final InputStream ds = new BufferedInputStream(new FileInputStream(f));
-            //final Blob bs = clh.createBlobFromStream(ds);
-            //assertThat(bs).isNotNull();
-            final Instant now = Instant.now();
-            final Date time = new Date(now.toEpochMilli());
-            ds.close();
-            final PayloadDto dto = DataGenerator.generatePayloadDto("myhash3", "mynewdataforhandler",
-                    "mystreamer", "test", time);
-            if (dto.getSize() == null) {
-                dto.setSize(dto.getData().length);
-            }
-            final PayloadDto saved = repobean.save(dto);
-            assertThat(saved).isNotNull();
-            final InputStream ds1 = new BufferedInputStream(new FileInputStream(f));
-            final byte[] barr = PayloadHandler.getBytesFromInputStream(ds1);
-            assertThat(barr).isNotEmpty();
-
-        }
-        catch (final IOException e) {
-            log.error("Cannot create or operate on blob: {}", e.getMessage());
-        }
-        try {
-            final File fbad = new File("/tmp/cdms/payloadataforhandler.blob");
-            final BufferedInputStream dsbad = new BufferedInputStream(new FileInputStream(fbad));
-            dsbad.close();
-            PayloadHandler.getHashFromStream(dsbad);
-        }
-        catch (final PayloadEncodingException e) {
-            log.error("Bad stream");
-        }
-        catch (final FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        catch (final IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+    public void testRunInfo() throws Exception {
+        log.info("====> testRunInfo: ");
+        final RunLumiInfo entity = (RunLumiInfo) rnd.generate(RunLumiInfo.class);
+        entity.runNumber(BigInteger.valueOf(1000L));
+        entity.insertionTime(null);
+        final RunLumiInfo saved = runLumiInfoRepository.save(entity);
+        final RunLumiInfo entity2 = (RunLumiInfo) rnd.generate(RunLumiInfo.class);
+        entity2.runNumber(BigInteger.valueOf(1020L));
+        final RunLumiInfo saved2 = runLumiInfoRepository.save(entity2);
+        log.info("...created runlumi via random gen: {}, {}", entity, entity2);
+        assertThat(saved.toString().length()).isPositive();
+        assertThat(saved2.toString().length()).isPositive();
+        Page<RunLumiInfo> found =
+                runLumiInfoRepository.findByRunNumberInclusive(BigInteger.valueOf(900L),
+                        BigInteger.valueOf(1010L), PageRequest.of(0,10));
+        assertThat(found).isNotNull();
+        assertThat(found.getTotalElements()).isPositive();
     }
 
-    @Test
-    public void testLobHandlersExceptions() {
-        //final CrestLobHandler clh = new CrestLobHandler(mainDataSource);
-        DataGenerator.generatePayloadData("/tmp/cdms/payloadataforhandler.blob", "none");
-        final File f = new File("/tmp/cdms/payloadataforhandler.blob");
-        byte[] barr = PayloadHandler.getBytesFromInputStream(null);
-        long fs = PayloadHandler.lengthOfFile("/tmp/cdms/payloadataforhandler.blob");
-        try {
-            final InputStream is = new BufferedInputStream(new FileInputStream(f));
-            PayloadHandler.saveStreamToFile(is, "/tmp/notthere/payloadataforhandler_copy.blob");
-            final BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
-            String hash = PayloadHandler.getHashFromStream(bis);
-            assertThat(hash).isNotEmpty();
-            final InputStream is1 = new BufferedInputStream(new FileInputStream(f));
-            byte[] barr2 = PayloadHandler.getByteArr(is1);
-            assertThat(barr2.length).isPositive();
-        }
-        catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
 }

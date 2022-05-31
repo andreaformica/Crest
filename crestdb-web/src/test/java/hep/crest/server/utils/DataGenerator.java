@@ -1,7 +1,7 @@
 /**
  *
  */
-package hep.crest.data.test.tools;
+package hep.crest.server.utils;
 
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.GlobalTagMap;
