@@ -36,17 +36,43 @@ paths:
     get:
       tags:
         - runinfo
-      summary: Finds a RunLumiInfoDto lists.
-      description: 'This method allows to perform search and sorting.Arguments: by=<pattern>, page={ipage}, size={isize}, sort=<sortpattern>. The pattern <pattern> is in the form <param-name><operation><param-value>       <param-name> is the name of one of the fields in the dto       <operation> can be [< : >] ; for string use only [:]        <param-value> depends on the chosen parameter. A list of this criteria can be provided       using comma separated strings for <pattern>.      The pattern <sortpattern> is <field>:[DESC|ASC]'
+      summary: Finds a RunLumiInfoDto lists using parameters.
+      description: 'This method allows to perform search.Arguments: from=<someformat>,to=<someformat>, format=<describe previous types>, page={ipage}, size={isize}, sort=<sortpattern>. The pattern <pattern> is in the form <param-name><operation><param-value>       <param-name> is the name of one of the fields in the dto       <operation> can be [< : >] ; for string use only [:]        <param-value> depends on the chosen parameter. A list of this criteria can be provided       using comma separated strings for <pattern>.      The pattern <sortpattern> is <field>:[DESC|ASC]'
       operationId: listRunInfo
       parameters:
-        - name: by
+        - name: from
           in: query
-          description: 'by: the search pattern {none}'
+          description: 'from: the starting time or run-lumi'
           required: false
           schema:
             type: string
             default: none
+        - name: to
+          in: query
+          description: 'to: the ending time or run-lumi'
+          required: false
+          schema:
+            type: string
+            default: none
+        - name: format
+          in: query
+          description: |
+            the format to digest previous arguments [iso], [number].
+            Time(iso) = yyyymmddhhmiss, Run(number) = runnumber,
+            Time(number) = milliseconds
+          required: false
+          schema:
+            type: string
+            default: number
+        - name: mode
+          in: query
+          description: |
+            the mode for the request : [daterange] or [runrange]
+          required: false
+          schema:
+            type: string
+            enum: [daterange, runrange]
+            default: runrange
         - name: page
           in: query
           description: 'page: the page number {0}'
@@ -65,54 +91,11 @@ paths:
             format: int32
         - name: sort
           in: query
-          description: 'sort: the sort pattern {since:ASC}'
+          description: 'sort: the sort pattern {name:ASC}'
           required: false
           schema:
             type: string
-            default: 'since:ASC'
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RunLumiSetDto"
-  /runinfo/select:
-    get:
-      tags:
-        - runinfo
-      summary: Finds a RunLumiInfoDto lists using parameters.
-      description: 'This method allows to perform search.Arguments: from=<someformat>,to=<someformat>, format=<describe previous types>, page={ipage}, size={isize}, sort=<sortpattern>. The pattern <pattern> is in the form <param-name><operation><param-value>       <param-name> is the name of one of the fields in the dto       <operation> can be [< : >] ; for string use only [:]        <param-value> depends on the chosen parameter. A list of this criteria can be provided       using comma separated strings for <pattern>.      The pattern <sortpattern> is <field>:[DESC|ASC]'
-      operationId: selectRunInfo
-      parameters:
-        - name: from
-          in: query
-          description: 'from: the starting time or run-lumi'
-          required: false
-          schema:
-            type: string
-            default: none
-        - name: to
-          in: query
-          description: 'to: the ending time or run-lumi'
-          required: false
-          schema:
-            type: string
-            default: none
-        - name: format
-          in: query
-          description: 'format: the format to digest previous arguments [iso], [number]. Time(iso) = yyyymmddhhmiss, Run(number) = runnumber, Time(number) = milliseconds'
-          required: false
-          schema:
-            type: string
-            default: number
-        - name: mode
-          in: query
-          description: 'mode: the mode for the request : [daterange] or [runrange]. Interprets'
-          required: false
-          schema:
-            type: string
-            default: runrange
+            default: 'runNumber:ASC'
       responses:
         '200':
           description: successful operation

@@ -3,25 +3,23 @@
  */
 package hep.crest.server.services;
 
-import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
-import hep.crest.data.repositories.IovGroupsCustom;
 import hep.crest.data.repositories.IovRepository;
-import hep.crest.data.repositories.PayloadDataBaseCustom;
 import hep.crest.data.repositories.TagRepository;
-import hep.crest.data.repositories.querydsl.IFilteringCriteria;
+import hep.crest.data.repositories.args.IovQueryArgs;
 import hep.crest.server.annotations.ProfileAndLog;
 import hep.crest.server.controllers.PageRequestHelper;
-import hep.crest.swagger.model.CrestBaseResponse;
-import hep.crest.swagger.model.IovDto;
-import hep.crest.swagger.model.IovPayloadDto;
-import hep.crest.swagger.model.IovSetDto;
-import hep.crest.swagger.model.TagSummaryDto;
+import hep.crest.server.repositories.IovGroupsCustom;
+import hep.crest.server.repositories.PayloadDataBaseCustom;
+import hep.crest.server.swagger.model.CrestBaseResponse;
+import hep.crest.server.swagger.model.IovDto;
+import hep.crest.server.swagger.model.IovPayloadDto;
+import hep.crest.server.swagger.model.IovSetDto;
+import hep.crest.server.swagger.model.TagSummaryDto;
 import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -83,59 +80,6 @@ public class IovService {
     private PageRequestHelper prh;
 
     /**
-     * Filtering.
-     */
-    @Autowired
-    @Qualifier("iovFiltering")
-    private IFilteringCriteria filtering;
-
-    /**
-     * @param tagname
-     *            the String
-     * @param since
-     *            the String
-     * @param dateformat
-     *            the String
-     * @return IovDto
-     */
-    public Iov latest(String tagname, String since, String dateformat) {
-
-        final PageRequest preq = prh.createPageRequest(0, 10, "id.since:DESC");
-        if ("now".equals(since)) {
-            since = ((Long) Instant.now().getMillis()).toString();
-        }
-        final String by = "tagname:" + tagname + ",since<" + since;
-        final BooleanExpression wherepred = prh.buildWhere(filtering, by);
-
-        final Iterable<Iov> entitylist = this.findAllIovs(wherepred, preq);
-        if (entitylist != null && entitylist.iterator().hasNext()) {
-            return entitylist.iterator().next();
-        }
-        return null;
-    }
-
-    /**
-     * @param qry
-     *            the Predicate
-     * @param req
-     *            the Pageable
-     * @return Page<Iov>
-     */
-    public Page<Iov> findAllIovs(Predicate qry, Pageable req) {
-        Page<Iov> entitylist = null;
-        if (req == null) {
-            req = PageRequest.of(0, 1000);
-        }
-        if (qry == null) {
-            entitylist = iovRepository.findAll(req);
-        }
-        else {
-            entitylist = iovRepository.findAll(qry, req);
-        }
-        return entitylist;
-    }
-
-    /**
      * @param tagname
      *            the String
      * @param snapshot
@@ -174,49 +118,27 @@ public class IovService {
                                                                     Long groupsize) {
         final List<BigDecimal> minsincelist = selectGroupsByTagNameAndSnapshotTime(tagname,
                 snapshot, groupsize);
-        final List<IovDto> iovlist = minsincelist.stream().map(s -> new IovDto().since(s))
+        final List<IovDto> iovlist = minsincelist.stream().map(s -> new IovDto().since(s).tagName(tagname))
                 .collect(Collectors.toList());
         return new IovSetDto().resources(iovlist).size((long) iovlist.size());
     }
 
     /**
-     * @param tagname
-     *            the String
-     * @param since
-     *            the BigDecimal
-     * @param until
-     *            the BigDecimal
-     * @param snapshot
-     *            the Date
-     * @param flag
-     *            the String
-     * @return Iterable<Iov>
+     * Select Iovs.
+     *
+     * @param args
+     * @param preq
+     * @return Page of Iov
      */
-    public Iterable<Iov> selectIovsByTagRangeSnapshot(String tagname, BigDecimal since,
-                                                      BigDecimal until, Date snapshot, String flag) {
-        log.debug("Search for iovs by tag name {}  and range time {} -> {} using snapshot {} and flag {}",
-                tagname, since, until, snapshot, flag);
-        Iterable<Iov> entities = null;
-        if (snapshot == null && "groups".equals(flag)) {
-            entities = iovRepository.selectLatestByGroup(tagname, since, until);
+    public Page<Iov> selectIovList(IovQueryArgs args, Pageable preq) {
+        Page<Iov> entitylist = null;
+        if (preq == null) {
+            String sort = "id.since:ASC,id.insertionTime:DESC";
+            preq = prh.createPageRequest(0, 1000, sort);
         }
-        else if ("groups".equals(flag)) {
-            entities = iovRepository.selectSnapshotByGroup(tagname, since, until, snapshot);
-        }
-        else if ("ranges".equals(flag)) {
-            if (snapshot == null) {
-                snapshot = Instant.now().toDate();
-            }
-            entities = iovRepository.getRange(tagname, since, until, snapshot);
-        }
-        else {
-            log.warn("Unkown header flag {}, sending empty Iov list.", flag);
-        }
-        if (entities == null) {
-            log.warn("Cannot find iovs for tag {}", tagname);
-            return new ArrayList<>();
-        }
-        return entities;
+        entitylist = iovRepository.findIovList(args, preq);
+        log.trace("Retrieved list of iovs {}", entitylist);
+        return entitylist;
     }
 
     /**
@@ -246,18 +168,6 @@ public class IovService {
             return new ArrayList<>();
         }
         return entities;
-    }
-
-    /**
-     * @param tagname
-     *            the String
-     * @param snapshot
-     *            the Date
-     * @return Iterable<Iov>
-     */
-    public Iterable<Iov> selectSnapshotByTag(String tagname, Date snapshot) {
-        log.debug("Search for snapshot by tag name {} using snapshot {}", tagname, snapshot);
-        return iovRepository.selectSnapshot(tagname, snapshot);
     }
 
     /**
@@ -297,6 +207,21 @@ public class IovService {
     }
 
     /**
+     * Return the last iov of a tag.
+     * @param tagname
+     * @return Iov
+     */
+    public Iov latest(String tagname) {
+        String sort = "id.since:DESC,id.insertionTime:DESC";
+        Pageable preq = prh.createPageRequest(0, 1, sort);
+        Page<Iov> lastiovlist = iovRepository.findByIdTagName(tagname, preq);
+        if (lastiovlist == null || lastiovlist.getSize() == 0) {
+            throw new CdbNotFoundException("Cannot find last iov for tag " + tagname);
+        }
+        return lastiovlist.toList().get(0);
+    }
+
+    /**
      * @param tagname
      *            the String
      * @param since
@@ -307,7 +232,7 @@ public class IovService {
      */
     public boolean existsIov(String tagname, BigDecimal since, String hash) {
         log.debug("Verify if the same IOV is already stored with the same hash....");
-        final Iov tmpiov = iovRepository.findBySinceAndTagNameAndHash(tagname, since, hash);
+        final Iov tmpiov = iovRepository.exists(tagname, since, hash);
         return tmpiov != null;
     }
 
@@ -343,15 +268,5 @@ public class IovService {
         final Iov saved = iovRepository.save(entity);
         log.debug("Saved entity: {}", saved);
         return saved;
-    }
-
-    /**
-     * List iovs with a given hash.
-     *
-     * @param hash
-     * @return List of Iov
-     */
-    public List<Iov> findIovsWithHash(String hash) {
-        return iovRepository.findByPayloadHash(hash);
     }
 }

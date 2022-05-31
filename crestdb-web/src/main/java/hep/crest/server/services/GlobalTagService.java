@@ -3,19 +3,20 @@
  */
 package hep.crest.server.services;
 
-import com.querydsl.core.types.Predicate;
 import hep.crest.data.exceptions.AbstractCdbServiceException;
+import hep.crest.data.exceptions.CdbBadRequestException;
 import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.GlobalTagMap;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.GlobalTagRepository;
+import hep.crest.data.repositories.args.GtagQueryArgs;
+import hep.crest.server.controllers.PageRequestHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -42,28 +43,36 @@ public class GlobalTagService {
      */
     @Autowired
     private GlobalTagRepository globalTagRepository;
+    /**
+     * Helper.
+     */
+    @Autowired
+    private PageRequestHelper prh;
 
     /**
-     * @param qry
-     *            the Predicate
-     * @param req
-     *            the Pageable
-     * @return Page<GlobalTag>
+     * Select GlobalTags.
+     *
+     * @param args
+     * @param preq
+     * @throws AbstractCdbServiceException
+     *             Bad request
+     * @return Page of GlobalTags
      */
-    public Page<GlobalTag> findAllGlobalTags(Predicate qry, Pageable req) {
+    public Page<GlobalTag> selectGlobalTagList(GtagQueryArgs args, Pageable preq) throws AbstractCdbServiceException {
         Page<GlobalTag> entitylist = null;
-        if (req == null) {
-            req = PageRequest.of(0, 1000);
+        try {
+            if (preq == null) {
+                String sort = "id.since:ASC,id.insertionTime:DESC";
+                preq = prh.createPageRequest(0, 1000, sort);
+            }
+            entitylist = globalTagRepository.findGlobalTagList(args, preq);
+            log.trace("Retrieved list of global tags {}", entitylist);
+            return entitylist;
         }
-        if (qry == null) {
-            entitylist = globalTagRepository.findAll(req);
+        catch (RuntimeException e) {
+            throw new CdbBadRequestException("Something wrong with the request: " + e.getMessage());
         }
-        else {
-            entitylist = globalTagRepository.findAll(qry, req);
-        }
-        return entitylist;
     }
-
 
     /**
      * @param globaltagname
@@ -91,32 +100,18 @@ public class GlobalTagService {
      */
     public List<Tag> getGlobalTagByNameFetchTags(String globaltagname, String record, String label)
             throws AbstractCdbServiceException {
-        GlobalTag entity = null;
-        log.debug("Search for (record, label) specified tag list for GlobalTag={}", globaltagname);
-        if ("none".equalsIgnoreCase(record)) {
-            record = "";
+        String rec = null;
+        String lab = null;
+        log.debug("Search for specified tag list for GlobalTag={} using {} {}", globaltagname, record, label);
+        if (record != null && !"none".equalsIgnoreCase(record)) {
+            rec = record;
         }
-        if ("none".equalsIgnoreCase(label)) {
-            label = "";
+        if (label != null && !"none".equalsIgnoreCase(label)) {
+            lab = label;
         }
-        final String rec = record;
-        final String lab = label;
-        if (rec.isEmpty() && lab.isEmpty()) {
-            entity =
-                    globalTagRepository.findByNameAndFetchTagsEagerly(globaltagname).orElseThrow(
-                            () -> new CdbNotFoundException("Cannot find tags for globaltag " + globaltagname));
-        }
-        else if (lab.isEmpty()) {
-            entity = globalTagRepository.findByNameAndFetchRecordTagsEagerly(globaltagname, record).orElseThrow(
-                    () -> new CdbNotFoundException("Cannot find tags for globaltag " + globaltagname
-                                                   + " and record " + rec));
-        }
-        else {
-            entity = globalTagRepository.findByNameAndFetchSpecifiedTagsEagerly(globaltagname,
-                    record, label).orElseThrow(
-                    () -> new CdbNotFoundException("Cannot find tags for globaltag " + globaltagname
-                                                   + ", record " + rec + ", label " + lab));
-        }
+        GlobalTag entity = globalTagRepository.findGlobalTagFetchTags(globaltagname, rec, lab).orElseThrow(
+                () -> new CdbNotFoundException("Cannot find global tag for " + globaltagname));
+
         return entity.globalTagMaps().stream().map(GlobalTagMap::tag).collect(Collectors.toList());
     }
 

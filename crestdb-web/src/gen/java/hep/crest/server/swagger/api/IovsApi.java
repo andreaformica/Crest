@@ -1,17 +1,16 @@
 package hep.crest.server.swagger.api;
 
-import hep.crest.server.swagger.api.impl.JAXRSContext;
-import hep.crest.swagger.model.*;
+import hep.crest.server.swagger.model.*;
 import hep.crest.server.swagger.api.IovsApiService;
 
 import io.swagger.annotations.ApiParam;
-import io.swagger.jaxrs.*;
 
-import hep.crest.swagger.model.CrestBaseResponse;
-import hep.crest.swagger.model.IovDto;
-import hep.crest.swagger.model.IovPayloadSetDto;
-import hep.crest.swagger.model.IovSetDto;
-import hep.crest.swagger.model.TagSummarySetDto;
+import hep.crest.server.swagger.api.impl.JAXRSContext;
+
+import hep.crest.server.swagger.model.IovDto;
+import hep.crest.server.swagger.model.IovPayloadSetDto;
+import hep.crest.server.swagger.model.IovSetDto;
+import hep.crest.server.swagger.model.TagSummarySetDto;
 
 import java.util.Map;
 import java.util.List;
@@ -25,9 +24,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
@@ -62,82 +61,44 @@ public class IovsApi  {
     })
     public Response createIov(@ApiParam(value = "") @Valid  IovDto iovDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
         return delegate.createIov(iovDto, securityContext, info);
     }
     @GET
     
     
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Finds a IovDtos lists.", notes = "This method allows to perform search by tagname and sorting.Arguments: tagname={a tag name}, page={ipage}, size={isize},      sort=<pattern>, where pattern is <field>:[DESC|ASC]", response = IovSetDto.class, authorizations = {
+    @io.swagger.annotations.ApiOperation(value = "Finds a IovDtos lists.", notes = "Retrieves IOVs, with parameterizable method and arguments ", response = IovSetDto.class, authorizations = {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovSetDto.class)
     })
-    public Response findAllIovs(@ApiParam(value = "you need a mandatory tagname:xxxx. Additional field can be since or insertionTime rules.", required = true, defaultValue = "none") @DefaultValue("none") @QueryParam("by") @NotNull  String by,@ApiParam(value = "page: the page number {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("page")  Integer page,@ApiParam(value = "size: the page size {10000}", defaultValue = "10000") @DefaultValue("10000") @QueryParam("size")  Integer size,@ApiParam(value = "sort: the sort pattern {id.since:ASC}", defaultValue = "id.since:ASC") @DefaultValue("id.since:ASC") @QueryParam("sort")  String sort,@ApiParam(value = "The format of the input time fields: {yyyyMMdd'T'HHmmssX | ms} DEFAULT: ms (so it is a long). Used for insertionTime comparaison." , defaultValue="ms")@HeaderParam("dateformat") String dateformat,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response findAllIovs(@ApiParam(value = "the method used will determine which query is executed IOVS, RANGE and AT is a standard IOV query requiring a precise tag name GROUPS is a group query type ", required = true, allowableValues="IOVS, GROUPS, MONITOR", defaultValue = "IOVS") @DefaultValue("IOVS") @Pattern(regexp="IOVS|GROUPS|MONITOR") @QueryParam("method") @NotNull  String method,@ApiParam(value = "the tag name", defaultValue = "none") @DefaultValue("none") @QueryParam("tagname")  String tagname,@ApiParam(value = "snapshot: the snapshot time {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot")  Long snapshot,@ApiParam(value = "the since time as a string {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("since")  String since,@ApiParam(value = "the until time as a string {INF}", defaultValue = "INF") @DefaultValue("INF") @QueryParam("until")  String until,@ApiParam(value = "the format for since and until {number | ms | iso | run-lumi | custom (yyyyMMdd'T'HHmmssX)} If timeformat is equal number, we just parse the argument as a long. ", allowableValues="NUMBER, MS, ISO, RUN, RUN_LUMI, CUSTOM", defaultValue = "NUMBER") @DefaultValue("NUMBER") @Pattern(regexp="NUMBER|MS|ISO|RUN|RUN_LUMI|CUSTOM") @QueryParam("timeformat")  String timeformat,@ApiParam(value = "The group size represent the pagination type provided for GROUPS query method. ") @QueryParam("groupsize")  Long groupsize,@ApiParam(value = "the hash for searching specific IOV list for a given hash. ") @QueryParam("hash")  String hash,@ApiParam(value = "the page number {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("page")  Integer page,@ApiParam(value = "the page size {10000}", defaultValue = "10000") @DefaultValue("10000") @QueryParam("size")  Integer size,@ApiParam(value = "the sort pattern {id.since:ASC}", defaultValue = "id.since:ASC") @DefaultValue("id.since:ASC") @QueryParam("sort")  String sort,@ApiParam(value = "The query type. The header parameter X-Crest-Query can be : iovs, ranges, at. The iovs represents an exclusive interval, while ranges and at include previous since. This has an impact on how the since and until ranges are applied. " , allowableValues="IOVS, RANGES, AT", defaultValue="IOVS")@HeaderParam("X-Crest-Query") String xCrestQuery,@ApiParam(value = "The since type required in the query. It can be : ms, cool. Since and until will be transformed in these units. It differs from timeformat which indicates how to interpret the since and until strings in input. " , allowableValues="MS, COOL, NUMBER", defaultValue="NUMBER")@HeaderParam("X-Crest-Since") String xCrestSince,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.findAllIovs(by, page, size, sort, dateformat, securityContext, info);
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
+        return delegate.findAllIovs(method, tagname, snapshot, since, until, timeformat, groupsize, hash, page, size, sort, xCrestQuery, xCrestSince, securityContext, info);
     }
     @GET
-    @Path("/getSize")
+    @Path("/size")
     
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Get the number o iovs for the given tag.", notes = "This method allows to select the count of iovs in a tag. Also possible to get the size of snapshot, if the time added.Arguments: tagname={a tag name}, snapshotTime={snapshot time in milliseconds (Long) from epoch}", response = CrestBaseResponse.class, authorizations = {
-        @io.swagger.annotations.Authorization(value = "BearerAuth")
-    }, tags={ "iovs", })
-    @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = CrestBaseResponse.class)
-    })
-    public Response getSize(@ApiParam(value = "tagname: the tag name {none}", required = true, defaultValue = "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname,@ApiParam(value = "snapshot: the snapshot time {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot")  Long snapshot,@Context SecurityContext securityContext,@Context UriInfo info)
-    throws NotFoundException {
-        return delegate.getSize(tagname, snapshot, securityContext, info);
-    }
-    @GET
-    @Path("/getSizeByTag")
-    
-    @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Get the number o iovs for tags matching pattern.", notes = "This method allows to select the count of iovs in a tag. Also possible to get the size of snapshot, if the time is added. Arguments: tagname={a tag name}", response = TagSummarySetDto.class, authorizations = {
+    @io.swagger.annotations.ApiOperation(value = "Get the number o iovs for tags matching pattern.", notes = "This method allows to retrieve the number of iovs in a tag (or pattern). ", response = TagSummarySetDto.class, authorizations = {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagSummarySetDto.class)
     })
-    public Response getSizeByTag(@ApiParam(value = "tagname: the tag name {none}", required = true, defaultValue = "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response getSizeByTag(@ApiParam(value = "the tag name, can be a pattern like MDT%", required = true, defaultValue = "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
         return delegate.getSizeByTag(tagname, securityContext, info);
     }
     @GET
-    @Path("/lastIov")
-    
-    @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Select last iov for a given tagname and before a given since.", notes = "This method allows to select the last iov in a tag, before a given time and (optionally) for a given snapshot time.Arguments: tagname={a tag name}, since={since time as string}, snapshot={snapshot time as long}", response = IovSetDto.class, authorizations = {
-        @io.swagger.annotations.Authorization(value = "BearerAuth")
-    }, tags={ "iovs", })
-    @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovSetDto.class)
-    })
-    public Response lastIov(@ApiParam(value = "tagname: the tag name {none}", defaultValue = "none") @DefaultValue("none") @QueryParam("tagname")  String tagname,@ApiParam(value = "since: the since time ", defaultValue = "now") @DefaultValue("now") @QueryParam("since")  String since,@ApiParam(value = "snapshot: the snapshot time {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot")  Long snapshot,@ApiParam(value = "The format of the input time fields: {yyyyMMdd'T'HHmmssX | ms} DEFAULT: ms (so it is a long). Used for insertionTime comparaison." , defaultValue="ms")@HeaderParam("dateformat") String dateformat,@Context SecurityContext securityContext,@Context UriInfo info)
-    throws NotFoundException {
-        return delegate.lastIov(tagname, since, snapshot, dateformat, securityContext, info);
-    }
-    @GET
-    @Path("/selectGroups")
-    
-    @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Select groups for a given tagname.", notes = "This method allows to select a list of groups.Arguments: tagname={a tag name}, snapshot={snapshot time as long}", response = IovSetDto.class, authorizations = {
-        @io.swagger.annotations.Authorization(value = "BearerAuth")
-    }, tags={ "iovs", })
-    @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovSetDto.class)
-    })
-    public Response selectGroups(@ApiParam(value = "tagname: the tag name {none}", required = true, defaultValue = "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname,@ApiParam(value = "snapshot: the snapshot time {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot")  Long snapshot,@Context SecurityContext securityContext,@Context UriInfo info)
-    throws NotFoundException {
-       context.setHttpHeaders(headers);
-       context.setRequest(request);
-        return delegate.selectGroups(tagname, snapshot, securityContext, info);
-    }
-    @GET
-    @Path("/selectIovPayloads")
+    @Path("/infos")
     
     @Produces({ "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Select iovs and payload meta info for a given tagname and in a given range.", notes = "This method allows to select a list of iovs+payload meta in a tag, using a given range in time and (optionally) for a given snapshot time.Arguments: tagname={a tag name}, since={since time as string}, until={until time as string}, snapshot={snapshot time as long}", response = IovPayloadSetDto.class, authorizations = {
@@ -146,39 +107,11 @@ public class IovsApi  {
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovPayloadSetDto.class)
     })
-    public Response selectIovPayloads(@ApiParam(value = "The query type. The header parameter X-Crest-Query can be : groups (default) or ranges (include previous since)." , defaultValue="groups")@HeaderParam("X-Crest-Query") String xCrestQuery,@ApiParam(value = "tagname: the tag name {none}", defaultValue = "none") @DefaultValue("none") @QueryParam("tagname")  String tagname,@ApiParam(value = "since: the since time as a string {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("since")  String since,@ApiParam(value = "until: the until time as a string {INF}", defaultValue = "INF") @DefaultValue("INF") @QueryParam("until")  String until,@ApiParam(value = "snapshot: the snapshot time {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot")  Long snapshot,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response selectIovPayloads(@ApiParam(value = "the tag name", required = true, defaultValue = "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname,@ApiParam(value = "the since time as a string {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("since")  String since,@ApiParam(value = "the until time as a string {INF}", defaultValue = "INF") @DefaultValue("INF") @QueryParam("until")  String until,@ApiParam(value = "the format for since and until {number | ms | iso | custom (yyyyMMdd'T'HHmmssX)} If timeformat is equal number, we just parse the argument as a long. ", defaultValue = "number") @DefaultValue("number") @QueryParam("timeformat")  String timeformat,@ApiParam(value = "the page number {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("page")  Integer page,@ApiParam(value = "the page size {10000}", defaultValue = "10000") @DefaultValue("10000") @QueryParam("size")  Integer size,@ApiParam(value = "the sort pattern {id.since:ASC}", defaultValue = "id.since:ASC") @DefaultValue("id.since:ASC") @QueryParam("sort")  String sort,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.selectIovPayloads(xCrestQuery, tagname, since, until, snapshot, securityContext, info);
-    }
-    @GET
-    @Path("/selectIovs")
-    
-    @Produces({ "application/json", "application/xml" })
-    @io.swagger.annotations.ApiOperation(value = "Select iovs for a given tagname and in a given range.", notes = "This method allows to select a list of iovs in a tag, using a given range in time and (optionally) for a given snapshot time.Arguments: tagname={a tag name}, since={since time as string}, until={until time as string}, snapshot={snapshot time as long}", response = IovSetDto.class, authorizations = {
-        @io.swagger.annotations.Authorization(value = "BearerAuth")
-    }, tags={ "iovs", })
-    @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovSetDto.class)
-    })
-    public Response selectIovs(@ApiParam(value = "The query type. The header parameter X-Crest-Query can be : groups (default) or ranges (include previous since)." , defaultValue="groups")@HeaderParam("X-Crest-Query") String xCrestQuery,@ApiParam(value = "tagname: the tag name {none}", defaultValue = "none") @DefaultValue("none") @QueryParam("tagname")  String tagname,@ApiParam(value = "since: the since time as a string {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("since")  String since,@ApiParam(value = "until: the until time as a string {INF}", defaultValue = "INF") @DefaultValue("INF") @QueryParam("until")  String until,@ApiParam(value = "snapshot: the snapshot time {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot")  Long snapshot,@Context SecurityContext securityContext,@Context UriInfo info)
-    throws NotFoundException {
-       context.setHttpHeaders(headers);
-       context.setRequest(request);
-        return delegate.selectIovs(xCrestQuery, tagname, since, until, snapshot, securityContext, info);
-    }
-    @GET
-    @Path("/selectSnapshot")
-    
-    @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Select snapshot for a given tagname and insertion time.", notes = "This method allows to select a list of all iovs in a tag, using (optionally) a given snapshot time.Arguments: tagname={a tag name}, snapshot={snapshot time as long}", response = IovSetDto.class, authorizations = {
-        @io.swagger.annotations.Authorization(value = "BearerAuth")
-    }, tags={ "iovs", })
-    @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovSetDto.class)
-    })
-    public Response selectSnapshot(@ApiParam(value = "tagname: the tag name {none}", required = true, defaultValue = "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname,@ApiParam(value = "snapshot: the snapshot time {0}", required = true, defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot") @NotNull  Long snapshot,@Context SecurityContext securityContext,@Context UriInfo info)
-    throws NotFoundException {
-        return delegate.selectSnapshot(tagname, snapshot, securityContext, info);
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
+        return delegate.selectIovPayloads(tagname, since, until, timeformat, page, size, sort, securityContext, info);
     }
     @POST
     @Path("/storebatch")
@@ -192,6 +125,8 @@ public class IovsApi  {
     })
     public Response storeBatchIovMultiForm(@ApiParam(value = "") @Valid  IovSetDto iovSetDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
         return delegate.storeBatchIovMultiForm(iovSetDto, securityContext, info);
     }
 }

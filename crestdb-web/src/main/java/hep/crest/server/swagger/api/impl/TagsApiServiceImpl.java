@@ -1,22 +1,22 @@
 package hep.crest.server.swagger.api.impl;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
 import hep.crest.data.exceptions.CdbBadRequestException;
+import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.Tag;
-import hep.crest.data.repositories.querydsl.IFilteringCriteria;
+import hep.crest.data.repositories.args.TagQueryArgs;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.services.TagMetaService;
 import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.api.NotFoundException;
 import hep.crest.server.swagger.api.TagsApiService;
-import hep.crest.swagger.model.CrestBaseResponse;
-import hep.crest.swagger.model.GenericMap;
-import hep.crest.swagger.model.RespPage;
-import hep.crest.swagger.model.TagDto;
-import hep.crest.swagger.model.TagMetaDto;
-import hep.crest.swagger.model.TagMetaSetDto;
-import hep.crest.swagger.model.TagSetDto;
+import hep.crest.server.swagger.model.CrestBaseResponse;
+import hep.crest.server.swagger.model.GenericMap;
+import hep.crest.server.swagger.model.RespPage;
+import hep.crest.server.swagger.model.TagDto;
+import hep.crest.server.swagger.model.TagMetaDto;
+import hep.crest.server.swagger.model.TagMetaSetDto;
+import hep.crest.server.swagger.model.TagSetDto;
 import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,12 +58,6 @@ public class TagsApiServiceImpl extends TagsApiService {
      */
     @Autowired
     private PageRequestHelper prh;
-    /**
-     * Filtering.
-     */
-    @Autowired
-    @Qualifier("tagFiltering")
-    private IFilteringCriteria filtering;
     /**
      * Service.
      */
@@ -177,21 +171,22 @@ public class TagsApiServiceImpl extends TagsApiService {
      * javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response listTags(String by, Integer page, Integer size, String sort,
+    public Response listTags(String name, String timeType, String objectType, String description, Integer page,
+                             Integer size, String sort,
                              SecurityContext securityContext, UriInfo info) {
-        log.debug("Search resource list using by={}, page={}, size={}, sort={}", by, page, size,
+        log.debug("Search resource list using name={}, page={}, size={}, sort={}", name, page, size,
                 sort);
-        // Create filters
-        GenericMap filters = prh.getFilters(prh.createMatcherCriteria(by));
-        // Create pagination request.
-        final PageRequest preq = prh.createPageRequest(page, size, sort);
-        BooleanExpression wherepred = null;
-        if (!"none".equals(by)) {
-            // Create search conditions for where statement in SQL
-            wherepred = prh.buildWhere(filtering, by);
+        if (name.equalsIgnoreCase("all")) {
+            name = "%";
         }
-        // Retrieve tag list using filtering.
-        Page<Tag> entitypage = tagService.findAllTags(wherepred, preq);
+        // Create query params object
+        TagQueryArgs args = new TagQueryArgs();
+        args.name(name).description(description).objectType(objectType).timeType(timeType);
+        // Create pagination request
+        final PageRequest preq = prh.createPageRequest(page, size, sort);
+        // Launch query
+        // Search for global tags using where conditions.
+        final Page<Tag> entitypage = tagService.selectTagList(args, preq);
         RespPage respPage = new RespPage().size(entitypage.getSize())
                 .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
                 .number(entitypage.getNumber());
@@ -200,9 +195,13 @@ public class TagsApiServiceImpl extends TagsApiService {
         final CrestBaseResponse setdto = new TagSetDto().resources(dtolist)
                 .page(respPage)
                 .size((long) dtolist.size()).datatype("tags");
-        if (filters != null) {
-            setdto.filter(filters);
-        }
+        // Create filters
+        GenericMap filters = new GenericMap();
+        filters.put("name", name);
+        filters.put("objectType", objectType);
+        filters.put("description", description);
+        filters.put("timeType", timeType);
+        setdto.filter(filters);
         // Response is 200.
         return Response.ok().entity(setdto).build();
     }

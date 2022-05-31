@@ -1,11 +1,11 @@
 package hep.crest.server.swagger.api.impl;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
-import hep.crest.data.config.CrestProperties;
 import hep.crest.data.exceptions.CdbBadRequestException;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
-import hep.crest.data.repositories.querydsl.IFilteringCriteria;
+import hep.crest.data.repositories.args.IovModeEnum;
+import hep.crest.data.repositories.args.IovQueryArgs;
+import hep.crest.server.serializers.ArgTimeUnit;
 import hep.crest.server.caching.CachingPolicyService;
 import hep.crest.server.caching.CachingProperties;
 import hep.crest.server.controllers.EntityDtoHelper;
@@ -15,15 +15,15 @@ import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.api.ApiResponseMessage;
 import hep.crest.server.swagger.api.IovsApiService;
 import hep.crest.server.swagger.api.NotFoundException;
-import hep.crest.swagger.model.CrestBaseResponse;
-import hep.crest.swagger.model.GenericMap;
-import hep.crest.swagger.model.IovDto;
-import hep.crest.swagger.model.IovPayloadDto;
-import hep.crest.swagger.model.IovPayloadSetDto;
-import hep.crest.swagger.model.IovSetDto;
-import hep.crest.swagger.model.RespPage;
-import hep.crest.swagger.model.TagSummaryDto;
-import hep.crest.swagger.model.TagSummarySetDto;
+import hep.crest.server.swagger.model.CrestBaseResponse;
+import hep.crest.server.swagger.model.GenericMap;
+import hep.crest.server.swagger.model.IovDto;
+import hep.crest.server.swagger.model.IovPayloadDto;
+import hep.crest.server.swagger.model.IovPayloadSetDto;
+import hep.crest.server.swagger.model.IovSetDto;
+import hep.crest.server.swagger.model.RespPage;
+import hep.crest.server.swagger.model.TagSummaryDto;
+import hep.crest.server.swagger.model.TagSummarySetDto;
 import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +42,12 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Rest endpoint for iov management. It allows to create and find iovs.
@@ -66,13 +69,6 @@ public class IovsApiServiceImpl extends IovsApiService {
      */
     @Autowired
     EntityDtoHelper edh;
-
-    /**
-     * Filtering.
-     */
-    @Autowired
-    @Qualifier("iovFiltering")
-    private IFilteringCriteria filtering;
 
     /**
      * Service.
@@ -193,40 +189,101 @@ public class IovsApiServiceImpl extends IovsApiService {
         return Response.created(info.getRequestUri()).entity(saveddto).build();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * hep.crest.server.swagger.api.IovsApiService#findAllIovs(java.lang.String,
-     * java.lang.Integer, java.lang.Integer, java.lang.String,
-     * javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
-     */
     @Override
-    public Response findAllIovs(String by, Integer page, Integer size, String sort,
-                                String dateformat, SecurityContext securityContext, UriInfo info) {
-        log.debug("Search resource list using by={}, page={}, size={}, sort={}", by, page, size,
-                sort);
+    public Response findAllIovs(String method, String tagname, Long snapshot, String since, String until,
+                                String timeformat,
+                                Long groupsize,
+                                String hash,
+                                Integer page, Integer size, String sort,
+                                String xCrestQuery, String xCrestSince, SecurityContext securityContext,
+                                UriInfo info) {
+        log.debug("Search resource list using method={}, tag={}, timeformat={}, page={}, size={}, sort={}", method,
+                tagname,
+                timeformat,
+                page,
+                size, sort);
         // Date format. Default is milliseconds.
-        if (dateformat == null) {
-            dateformat = "ms";
+        if (timeformat == null) {
+            timeformat = "MS";
         }
-        // A filter on tag name should be mandatory in by.
-        if (!by.matches("(.*)tag.ame(.*)") && !by.matches("(.*)hash(.*)")) {
-            // If the tagname or hash is not among the parameter then return a 406.
-            final String message = "Cannot search iovs without a tagname selection.";
-            throw new CdbBadRequestException(message);
+        if (xCrestSince == null) {
+            xCrestSince = "NUMBER";
+        }
+        if (xCrestQuery == null) {
+            xCrestQuery = "IOVS";
+        }
+        log.debug("Use input time format: {}", timeformat);
+        log.debug("Use iov query mode: {}", xCrestQuery);
+        ArgTimeUnit inputformat = ArgTimeUnit.valueOf(timeformat);
+        ArgTimeUnit outformat = ArgTimeUnit.valueOf(xCrestSince);
+        IovModeEnum queryMode = IovModeEnum.valueOf(xCrestQuery);
+
+        // The following is valid for method: iovs or groups.
+        // Search if tag exists: if it is not modified send back the NOT-MODIFIED.
+        // Else it will continue to perform the query.
+        if (IovModeEnum.IOVS.mode().equalsIgnoreCase(method) || IovModeEnum.GROUPS.mode().equalsIgnoreCase(method)) {
+            if (tagname == null || tagname.contains("%")) {
+                throw new CdbBadRequestException("Cannot search iovs with tag " + tagname);
+            }
+            final Tag tagentity = tagService.findOne(tagname);
+            log.debug("Found tag " + tagentity);
+            HttpHeaders headers = context.getHttpHeaders();
+            Request request = context.getRequest();
+            // Apply caching on iov selections.
+            // Use cache service to detect if a tag was modified.
+            final ResponseBuilder builder = cachesvc.verifyLastModified(request, tagentity);
+            if (builder != null) {
+                // Get request headers: this is just to dump the If-Modified-Since
+                final String ifmodsince = headers.getHeaderString("If-Modified-Since");
+                log.debug("The output data are not modified since " + ifmodsince);
+                // Send back the response via the builder.
+                return builder.build();
+            }
+        }
+        // If it is a group method query, immediately call the method
+        if (IovModeEnum.GROUPS.mode().equalsIgnoreCase(method)) {
+            return this.selectGroups(tagname, snapshot, groupsize);
+        }
+
+        // From now on, it is an iovs or monitor or attime query.
+        IovQueryArgs args = new IovQueryArgs();
+        Timestamp snap = null;
+        if (snapshot != null && snapshot > 0) {
+            Instant inst = Instant.ofEpochMilli(snapshot);
+            snap = Timestamp.from(inst);
+            log.debug("Use snapshot {}", snap);
+        }
+        // It is an IOV query, then tagname should be provided without regexp.
+        if (IovModeEnum.IOVS.mode().equalsIgnoreCase(method) ||
+            IovModeEnum.AT.mode().equalsIgnoreCase(method)) {
+            if (tagname == null || tagname.contains("%")) {
+                throw new CdbBadRequestException("IOVS or AT query need a full tagname");
+            }
+        }
+        BigDecimal rsince = prh.getTimeFromArg(since, inputformat, outformat, null);
+        BigDecimal runtil = prh.getTimeFromArg(until, inputformat, outformat, null);
+        // Set arguments for query.
+        if (queryMode.equals(IovModeEnum.AT)) {
+            runtil = null;
+        }
+        args.mode(queryMode).hash(hash).tagName(tagname).snapshot(snap)
+                .since(rsince).until(runtil);
+        if (args.checkArgsNull(method)) {
+            throw new CdbBadRequestException("Arguments not compatible with method " + method);
         }
         // Create filters
-        GenericMap filters = prh.getFilters(prh.createMatcherCriteria(by));
+        GenericMap filters = new GenericMap();
+        filters.put("tagName", tagname);
+        filters.put("since", rsince.toString());
+        filters.put("until", runtil.toString());
+        filters.put("timeformat", timeformat);
+        filters.put("method", method);
+        filters.put("mode", xCrestQuery);
         // Create pagination request
         final PageRequest preq = prh.createPageRequest(page, size, sort);
-        BooleanExpression wherepred = null;
-        if (!"none".equals(by)) {
-            // Create search conditions for where statement in SQL
-            wherepred = prh.buildWhere(filtering, by);
-        }
+
         // Search for global tags using where conditions.
-        Page<Iov> entitypage = iovService.findAllIovs(wherepred, preq);
+        Page<Iov> entitypage = iovService.selectIovList(args, preq);
         RespPage respPage = new RespPage().size(entitypage.getSize())
                 .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
                 .number(entitypage.getNumber());
@@ -240,40 +297,6 @@ public class IovsApiServiceImpl extends IovsApiService {
         return Response.status(rstatus).entity(saveddto).build();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see hep.crest.server.swagger.api.IovsApiService#getSize(java.lang.String,
-     * java.lang.Long, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
-     */
-    @Override
-    public Response getSize(@NotNull String tagname, Long snapshot, SecurityContext securityContext,
-                            UriInfo info) {
-        // Get the size of a tag (i.e. the total number of IOVs).
-        Long size = 0L;
-        if (snapshot != 0L) {
-            // snapshot is not null, use it for the request.
-            Date snap = null;
-            snap = new Date(snapshot);
-            size = iovService.getSizeByTagAndSnapshot(tagname, snap);
-        }
-        else {
-            // snapshot is null, ignore it for the request, get simply all iovs.
-            size = iovService.getSizeByTag(tagname);
-        }
-        // Prepare the response set.
-        final CrestBaseResponse respdto = new IovSetDto();
-        respdto.datatype("size");
-        final GenericMap filters = new GenericMap();
-        filters.put("tagName", tagname);
-        filters.put("snapshot", snapshot.toString());
-
-        // The size is filled in this response. There are no resources.
-        respdto.size(size).datatype("count").filter(filters);
-
-        // Send a response and status 200.
-        return Response.ok().entity(respdto).build();
-    }
 
     /*
      * (non-Javadoc)
@@ -298,20 +321,14 @@ public class IovsApiServiceImpl extends IovsApiService {
         return Response.ok().entity(respdto).build();
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Custom query to return groups.
      *
-     * @see
-     * hep.crest.server.swagger.api.IovsApiService#selectGroups(java.lang.String,
-     * java.lang.Long, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo,
-     * javax.ws.rs.core.Request, javax.ws.rs.core.HttpHeaders)
+     * @param tagname
+     * @param snapshot
+     * @return
      */
-    @Override
-    public Response selectGroups(@NotNull String tagname, Long snapshot,
-                                 SecurityContext securityContext, UriInfo info)
-            throws NotFoundException {
-        log.info("IovRestController processing request for iovs groups using tag name {}", tagname);
-        // Search for tag in order to load the time type:
+    protected Response selectGroups(String tagname, Long snapshot, Long groupsize) {
         final Tag tagentity = tagService.findOne(tagname);
         HttpHeaders headers = context.getHttpHeaders();
         Request request = context.getRequest();
@@ -324,24 +341,27 @@ public class IovsApiServiceImpl extends IovsApiService {
             log.debug("The output data are not modified since " + ifmodsince);
             return builder.build();
         }
-        Long groupsize = null;
         // Get the time type to apply different group selections.
+        // This are typical values representative for COOL types (NANO_SEC).
+        // The groupsize can be provided in input.
         final String timetype = tagentity.timeType();
-        if (timetype.equalsIgnoreCase("run")) {
-            // The iov is of type RUN. Use the group size from properties.
-            groupsize = new Long(cprops.getRuntypeGroupsize());
-        }
-        else if (timetype.equalsIgnoreCase("run-lumi")) {
-            // The iov is of type RUN-LUMI. Use the group size from properties.
-            groupsize = new Long(cprops.getRuntypeGroupsize());
-            // transform to COOL run-lumi
-            groupsize = groupsize * 4294967296L;
-        }
-        else {
-            // Assume COOL time format...
-            groupsize = new Long(cprops.getTimetypeGroupsize());
-            // transform to COOL nanosec
-            groupsize = groupsize * 1000000000L;
+        if (groupsize == null) {
+            if (timetype.equalsIgnoreCase("run")) {
+                // The iov is of type RUN. Use the group size from properties.
+                groupsize = new Long(cprops.getRuntypeGroupsize());
+            }
+            else if (timetype.equalsIgnoreCase("run-lumi")) {
+                // The iov is of type RUN-LUMI. Use the group size from properties.
+                groupsize = new Long(cprops.getRuntypeGroupsize());
+                // transform to COOL run-lumi
+                groupsize = groupsize * 4294967296L;
+            }
+            else {
+                // Assume COOL time format...
+                groupsize = new Long(cprops.getTimetypeGroupsize());
+                // transform to COOL nanosec
+                groupsize = groupsize * 1000000000L;
+            }
         }
         // Set caching policy depending on snapshot argument
         // this is filling a max-age parameter in the header
@@ -364,187 +384,30 @@ public class IovsApiServiceImpl extends IovsApiService {
         return Response.ok().entity(respdto).cacheControl(cc).lastModified(tagentity.modificationTime()).build();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see hep.crest.server.swagger.api.IovsApiService#selectIovs(java.lang.String,
-     * java.lang.String, java.lang.String, java.lang.String, java.lang.Long,
-     * javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo,
-     * javax.ws.rs.core.Request, javax.ws.rs.core.HttpHeaders)
-     */
     @Override
-    public Response selectIovs(String xCrestQuery, String tagname, String since, String until,
-                               Long snapshot, SecurityContext securityContext, UriInfo info) {
-        log.info(
-                "IovRestController processing request for iovs using tag name {} and range {} - {} ",
-                tagname, since, until);
-        // Start IOV selection in the given time range.
-        // Search if tag exists.
-        final Tag tagentity = tagService.findOne(tagname);
-        log.debug("Found tag " + tagentity);
-        HttpHeaders headers = context.getHttpHeaders();
-        Request request = context.getRequest();
-        // Apply caching on iov selections.
-        // Use cache service to detect if a tag was modified.
-        final ResponseBuilder builder = cachesvc.verifyLastModified(request, tagentity);
-        if (builder != null) {
-            // Get request headers: this is just to dump the If-Modified-Since
-            final String ifmodsince = headers.getHeaderString("If-Modified-Since");
-            log.debug("The output data are not modified since " + ifmodsince);
-            // Send back the response via the builder.
-            return builder.build();
-        }
-        // The query was not cached.
-        log.debug("Setting iov range to : {}, {}", since, until);
-        BigDecimal runtil = null;
-        if (until.equals("INF")) {
-            // Until time is INF.
-            log.debug("The end time will be set to : {}", CrestProperties.INFINITY);
-            runtil = CrestProperties.INFINITY;
-        }
-        else {
-            // set until time.
-            runtil = new BigDecimal(until);
-            log.debug("The end time will be set to : " + runtil);
-        }
-        final BigDecimal rsince = new BigDecimal(since);
-        Date snap = null;
-        if (snapshot != 0L) {
-            // Set the snapshot.
-            snap = new Date(snapshot);
-        }
-        // Set caching policy depending on snapshot argument
-        // this is filling a mag-age parameter in the header
-        final CacheControl cc = cachesvc.getIovsCacheControlForUntil(snapshot, runtil);
-        // Retrieve all iovs
-        if (xCrestQuery == null) {
-            // Set the default header parameters.
-            xCrestQuery = "groups";
-        }
-        // Retrieve IOV list.
-        Iterable<Iov> entitylist = iovService.selectIovsByTagRangeSnapshot(tagname, rsince, runtil, snap,
-                xCrestQuery);
-        // create dto list
-        List<IovDto> dtolist = edh.entityToDtoList(entitylist, IovDto.class);
+    public Response selectIovPayloads(@NotNull String tagname, String since, String until, String timeformat,
+                                      Integer page, Integer size, String sort, SecurityContext securityContext,
+                                      UriInfo info)
+            throws NotFoundException {
 
-        // Prepare the response set.
-        final GenericMap filters = new GenericMap();
-        filters.put("tagName", tagname);
-        filters.put("snapshot", snapshot.toString());
-        filters.put("since", rsince.toString());
-        filters.put("until", runtil.toString());
-        final CrestBaseResponse respdto = buildEntityResponse(dtolist, filters);
-        // Send the cache control in the response.
-        return Response.ok().entity(respdto).cacheControl(cc).lastModified(tagentity.modificationTime()).build();
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * hep.crest.server.swagger.api.IovsApiService#selectSnapshot(java.lang.String,
-     * java.lang.Long, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
-     */
-    @Override
-    public Response selectSnapshot(@NotNull String tagname, @NotNull Long snapshot,
-                                   SecurityContext securityContext, UriInfo info) throws NotFoundException {
-        Date snap = new Date();
-        if (snapshot != 0L) {
-            // Set the snapshot
-            snap = new Date(snapshot);
-        }
-        // Search if tag exists.
-        tagService.findOne(tagname);
-        // Select IOVs using tag and snapshot. All IOVs will be retrieved.
-        final Iterable<Iov> entitylist = iovService.selectSnapshotByTag(tagname, snap);
-        // Create dto list
-        List<IovDto> dtolist = edh.entityToDtoList(entitylist, IovDto.class);
-        // Create the Set for the response.
-        final GenericMap filters = new GenericMap();
-        filters.put("tagName", tagname);
-        filters.put("snapshot", snapshot.toString());
-        final CrestBaseResponse respdto = buildEntityResponse(dtolist, filters);
-
-        // Send 200.
-        return Response.ok().entity(respdto).build();
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see hep.crest.server.swagger.api.IovsApiService#lastIov(java.lang.String,
-     * java.lang.String, java.lang.Long, javax.ws.rs.core.SecurityContext,
-     * javax.ws.rs.core.UriInfo)
-     */
-    @Override
-    public Response lastIov(String tagname, String since, Long snapshot, String dateformat,
-                            SecurityContext securityContext, UriInfo info) {
-        log.debug(
-                "Search resource list using tagname={} and before since={}, using date format {}",
-                tagname, since, dateformat);
-
-        if (dateformat == null) {
-            // Set default date format to milliseconds.
-            dateformat = "ms";
-        }
-        // Search if tag exists.
-        tagService.findOne(tagname);
-        // Get the last IOV.
-        final Iov last = iovService.latest(tagname, since, dateformat);
-        if (last == null) {
-            final String message = "No resource has been found";
-            final ApiResponseMessage resp = new ApiResponseMessage(ApiResponseMessage.INFO,
-                    message);
-            return Response.status(Response.Status.NOT_FOUND).entity(resp).build();
-        }
-        final GenericMap filters = new GenericMap();
-        filters.put("tagName", tagname);
-        filters.put("since", since);
-        // Store the last IOV into a list for Set creation.
-        final List<IovDto> dtolist = new ArrayList<>();
-        IovDto dto = mapper.map(last, IovDto.class);
-        dtolist.add(dto);
-        final CrestBaseResponse saveddto = buildEntityResponse(dtolist, filters);
-        return Response.ok().entity(saveddto).build();
-
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see hep.crest.server.swagger.api.IovsApiService#selectIovPayloads(java.lang.
-     * String, java.lang.String, java.lang.String, java.lang.String, java.lang.Long,
-     * javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
-     */
-    @Override
-    public Response selectIovPayloads(String xCrestQuery, String tagname, String since,
-                                      String until, Long snapshot, SecurityContext securityContext, UriInfo info) {
         log.info(
                 "IovRestController processing request for iovs and payloads meta using tag name {} and range {} - {} ",
                 tagname, since, until);
         List<IovPayloadDto> dtolist = null;
+        if (timeformat == null) {
+            timeformat = "ms";
+        }
+        log.debug("Use input time format: {}", timeformat);
+        ArgTimeUnit inputformat = ArgTimeUnit.valueOf(timeformat);
+        ArgTimeUnit outformat = ArgTimeUnit.valueOf("COOL");
+
         // Retrieve all iovs
         final Tag tagentity = tagService.findOne(tagname);
         log.debug("Found tag " + tagentity);
-
+        BigDecimal rsince = prh.getTimeFromArg(since, inputformat, outformat, null);
+        BigDecimal runtil = prh.getTimeFromArg(until, inputformat, outformat, null);
         log.debug("Setting iov range to : {}, {}", since, until);
-        BigDecimal runtil = null;
-        if (until.equals("INF")) {
-            // Until is INF.
-            log.debug("The end time will be set to : {}", CrestProperties.INFINITY);
-            runtil = CrestProperties.INFINITY;
-        }
-        else {
-            // Set the until time.
-            runtil = new BigDecimal(until);
-            log.debug("The end time will be set to : " + runtil);
-        }
-        final BigDecimal rsince = new BigDecimal(since);
         Date snap = new Date();
-        if (snapshot != 0L) {
-            // Set the snapshot.
-            snap = new Date(snapshot);
-        }
         log.debug("Use snapshot {}", snap);
         // Get the IOV list.
         dtolist = iovService.selectIovPayloadsByTagRangeSnapshot(tagname, rsince, runtil, snap);
@@ -554,7 +417,6 @@ public class IovsApiServiceImpl extends IovsApiService {
                 .size((long) dtolist.size());
         final GenericMap filters = new GenericMap();
         filters.put("tagName", tagname);
-        filters.put("snapshot", snapshot.toString());
         filters.put("since", rsince.toString());
         filters.put("until", runtil.toString());
         respdto.filter(filters);

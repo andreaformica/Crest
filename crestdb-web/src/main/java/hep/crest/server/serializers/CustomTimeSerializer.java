@@ -1,4 +1,4 @@
-package hep.crest.data.serializers;
+package hep.crest.server.serializers;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;

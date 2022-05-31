@@ -1,17 +1,11 @@
 /**
- * 
+ *
  */
 package hep.crest.server.controllers;
 
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import hep.crest.data.config.CrestProperties;
+import hep.crest.data.exceptions.CdbBadRequestException;
+import hep.crest.server.serializers.ArgTimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
@@ -20,11 +14,15 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Component;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
-
-import hep.crest.data.repositories.querydsl.IFilteringCriteria;
-import hep.crest.data.repositories.querydsl.SearchCriteria;
-import hep.crest.swagger.model.GenericMap;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * PageRequestHelper is a utility class to treat input parameter from HTTP
@@ -55,6 +53,35 @@ public class PageRequestHelper {
      * Logger.
      */
     private static final Logger log = LoggerFactory.getLogger(PageRequestHelper.class);
+    /**
+     * ISO pattern in input.
+     */
+    private static final String ISO_PATTERN = "yyyyMMdd'T'HHmmssz";
+
+    /**
+     * Cool Max data in COOL format.
+     */
+    public static final long COOL_MAX_DATE = 9223372036854775807L;
+    /**
+     * Cool Max run in COOL format.
+     */
+    public static final long COOL_MAX_RUN = 2147483647L;
+    /**
+     * Cool Max lumi block in COOL format.
+     */
+    public static final long COOL_MAX_LUMIBLOCK = 4294967295L;
+    /**
+     *
+     */
+    private static final int COOLIOV_RUN_MASK = 32;
+    /**
+     *
+     */
+    public static final BigInteger LUMIMASK = new BigInteger("00000000FFFFFFFF", 16);
+    /**
+     *
+     */
+    public static final BigDecimal TO_NANO_SECONDS = new BigDecimal(1000000L);
 
     /**
      * Default ctor.
@@ -103,148 +130,160 @@ public class PageRequestHelper {
     }
 
     /**
-     * @param by
-     *            the String
-     * @return List<SearchCriteria>
+     * Return time in ArgTimeUnit since epoch, using the format provided in dateformat.
+     * If the dateformat is msec or sec then it will just interpret the string as a long.
+     * The value will then depend on the provided input argument.
+     *
+     * @param val the time string.
+     * @param inputformat the time format (sec, msec, iso, run).
+     * @param outunit the time unit (sec or msec).
+     * @param customdateformat a user defined date format.
+     * @return Long
      */
-    public List<SearchCriteria> createMatcherCriteria(String by) {
-
-        final Pattern pattern = Pattern.compile(QRY_PATTERN);
-        final Matcher matcher = pattern.matcher(by + ",");
-        log.debug("Pattern is {}", pattern);
-        log.debug("Matcher is {}", matcher);
-        final List<SearchCriteria> params = new ArrayList<>();
-        while (matcher.find()) {
-            params.add(new SearchCriteria(matcher.group(1), matcher.group(2), matcher.group(3)));
-        }
-        log.debug("List of search criteria: {}", params.size());
-        return params;
-    }
-
-    /**
-     * @param params
-     *            the List<SearchCriteria>
-     * @param key
-     *            the String
-     * @return String
-     */
-    public String getParam(List<SearchCriteria> params, String key) {
-        for (final SearchCriteria searchCriteria : params) {
-            if (key.equalsIgnoreCase(searchCriteria.getKey())) {
-                return searchCriteria.getValue().toString();
+    public BigDecimal getTimeFromArg(String val, ArgTimeUnit inputformat, ArgTimeUnit outunit,
+                                     String customdateformat) {
+        try {
+            log.debug("Get time from args: {} {} {} {}", val, inputformat, outunit, customdateformat);
+            DateTimeFormatter dtformatter = null;
+            BigDecimal tepoch = null;
+            if (val == null) {
+                return tepoch;
             }
-        }
-        return null;
-    }
-
-    /**
-     * @param by
-     *            the String
-     * @param dateformat
-     *            The date format : ms or some ISO like date string
-     *            yyyyMMdd'T'HHmmssX.
-     * @return List<SearchCriteria>
-     */
-    public List<SearchCriteria> createMatcherCriteria(String by, String dateformat) {
-        DateTimeFormatter dtformatter = null;
-        if (!"ms".equals(dateformat)) {
-            dtformatter = DateTimeFormatter.ofPattern(dateformat);
-        }
-        log.debug("Date format used is {}", dateformat);
-        final Pattern pattern = Pattern.compile(QRY_PATTERN);
-        final Matcher matcher = pattern.matcher(by + ",");
-        log.debug("Pattern is {}", pattern);
-        log.debug("Matcher is {}", matcher);
-        final List<SearchCriteria> params = new ArrayList<>();
-        while (matcher.find()) {
-            final String varname = matcher.group(1).toLowerCase(Locale.ENGLISH);
-            final String op = matcher.group(2);
-            String val = matcher.group(3);
-            val = val.replace("\\*", "\\%");
-            if (dtformatter != null && varname.contains("time")) {
-                final ZonedDateTime zdtInstanceAtOffset = ZonedDateTime.parse(val, dtformatter);
-                final ZonedDateTime zdtInstanceAtUTC = zdtInstanceAtOffset
-                        .withZoneSameInstant(ZoneOffset.UTC);
-                final Long tepoch = zdtInstanceAtUTC.toInstant().toEpochMilli();
-                log.info("Parsed date at UTC : {}; use epoch {}", zdtInstanceAtUTC, tepoch);
-                val = tepoch.toString();
+            if (inputformat == null) {
+                inputformat = ArgTimeUnit.MS;
             }
-            params.add(new SearchCriteria(varname, op, val));
+            if (val.equalsIgnoreCase("INF")) {
+                // Until time is INF.
+                log.warn("The time will be set to INF : {}", CrestProperties.INFINITY);
+                return CrestProperties.INFINITY;
+            }
+            boolean iscoolformat = Boolean.FALSE;
+            log.trace("Getting time from arg {}, {}, {}, {}", val, inputformat, outunit, customdateformat);
+            switch (inputformat) {
+                // Tepoch will always be millisec since 1970 at the end of this block.
+                case MS:
+                    log.trace("Use MS to parse {}", val);
+                    tepoch = BigDecimal.valueOf(Long.parseLong(val));
+                    break;
+                case SEC:
+                    log.trace("Use SEC to parse {} (*1000 to get epoch)", val);
+                    tepoch = BigDecimal.valueOf(Long.parseLong(val) * 1000L);
+                    break;
+                case RUN:
+                    log.trace("Use run...{}", val);
+                    tepoch = BigDecimal.valueOf(Long.parseLong(val));
+                    iscoolformat = Boolean.TRUE;
+                    break;
+                case RUN_LUMI:
+                    log.trace("Use run-lumi...{}", val);
+                    String[] rl = val.split("-");
+                    tepoch = getCoolRunLumi(rl[0], rl[1]);
+                    iscoolformat = Boolean.TRUE;
+                    break;
+                case ISO:
+                    log.trace("Use ISO pattern {} to parse {}", ISO_PATTERN, val);
+                    dtformatter = DateTimeFormatter.ofPattern(ISO_PATTERN);
+                    ZonedDateTime zdtInstanceAtOffset = ZonedDateTime.parse(val, dtformatter);
+                    ZonedDateTime zdtInstanceAtUTC = zdtInstanceAtOffset
+                            .withZoneSameInstant(ZoneOffset.UTC);
+                    tepoch = BigDecimal.valueOf(zdtInstanceAtUTC.toInstant().toEpochMilli());
+                    log.trace("Parsed date using -iso- format {}; time from epoch is {}", zdtInstanceAtUTC, tepoch);
+                    break;
+                case CUSTOM:
+                    log.debug("Use CUSTOM pattern {} to parse {}", customdateformat, val);
+                    if (customdateformat == null) {
+                        customdateformat = ISO_PATTERN;
+                    }
+                    dtformatter = DateTimeFormatter.ofPattern(customdateformat);
+                    ZonedDateTime customzdtInstanceAtOffset = ZonedDateTime.parse(val, dtformatter);
+                    ZonedDateTime customzdtInstanceAtUTC = customzdtInstanceAtOffset
+                            .withZoneSameInstant(ZoneOffset.UTC);
+                    tepoch = BigDecimal.valueOf(customzdtInstanceAtUTC.toInstant().toEpochMilli());
+                    log.trace("Parsed date using custom format {} - {}; time from epoch is {}", customdateformat,
+                            customzdtInstanceAtUTC, tepoch);
+                    break;
+                case NUMBER:
+                    log.debug("Use number to parse {}", val);
+                    tepoch = new BigDecimal(val);
+                    iscoolformat = Boolean.TRUE;
+                    break;
+                default:
+                    // cannot arrive here.
+                    log.error("Cannot process argument time parsing");
+                    break;
+            }
+            // Assume we return milli seconds.
+            log.trace("Time arg parsing will return {} ", tepoch, outunit);
+            if (outunit != null && outunit.equals(ArgTimeUnit.SEC)) {
+                // Here we return seconds since Epoch.
+                return tepoch.divide(BigDecimal.valueOf(1000L));
+            }
+            else if (outunit != null && outunit.equals(ArgTimeUnit.COOL) && !iscoolformat) {
+                return tepoch.multiply(TO_NANO_SECONDS);
+            }
+            return tepoch;
         }
-        log.debug("List of search criteria: {}", params.size());
-        return params;
+        catch (RuntimeException e) {
+            log.error("Got exception while parsing time arguments: {}", e.getMessage());
+            throw new CdbBadRequestException("Error while parsing time", e);
+        }
     }
 
     /**
-     * @param key
-     *            the String
-     * @param op
-     *            the String
-     * @param val
-     *            the String
-     * @return List<SearchCriteria>
+     * @param arun
+     *            The run number as a String.
+     * @param lb
+     *            The lumi block as a String.
+     * @return The COOL time.
      */
-    public List<SearchCriteria> createCriteria(String key, String op, String val) {
-
-        final List<SearchCriteria> params = new ArrayList<>();
-        params.add(new SearchCriteria(key, op, val));
-        return params;
-    }
-
-    /**
-     * @param expressions
-     *            the List<BooleanExpression>
-     * @return BooleanExpression
-     */
-    public BooleanExpression getWhere(List<BooleanExpression> expressions) {
-        BooleanExpression wherepred = null;
-
-        for (final BooleanExpression exp : expressions) {
-            if (wherepred == null) {
-                wherepred = exp;
+    public BigDecimal getCoolRunLumi(final String arun, final String lb) {
+        Long runlong = null;
+        Long lblong = null;
+        if (arun == null) {
+            return null;
+        }
+        if (arun.equalsIgnoreCase("INF")) {
+            runlong = COOL_MAX_RUN;
+            lblong = COOL_MAX_LUMIBLOCK;
+        }
+        else {
+            if (lb.equals("MAXLB")) {
+                lblong = COOL_MAX_LUMIBLOCK;
             }
             else {
-                wherepred = wherepred.and(exp);
+                lblong = Long.parseLong(lb);
             }
+            runlong = Long.parseLong(arun);
         }
-        return wherepred;
+        return getCoolRunLumi(runlong, lblong);
     }
 
     /**
-     * @param params
-     *            the List<SearchCriteria>
-     * @return GenericMap
+     * @param arun
+     *            The run in long.
+     * @param lb
+     *            The lb in long.
+     * @return The COOL time.
      */
-    public GenericMap getFilters(List<SearchCriteria> params) {
-        final GenericMap filters = new GenericMap();
-        for (final SearchCriteria sc : params) {
-            filters.put(sc.getKey(), sc.getValue().toString());
+    public BigDecimal getCoolRunLumi(final Long arun, final Long lb) {
+        BigInteger irun = null;
+        BigInteger ilb = null;
+        BigInteger runlumi = null;
+        BigInteger run = null;
+        if (arun == null) {
+            return null;
         }
-        return filters;
-    }
-
-    /**
-     * @param filter
-     *            the IFilteringCriteria
-     * @param by
-     *            the String
-     * @return BooleanExpression
-     */
-    public BooleanExpression buildWhere(IFilteringCriteria filter, String by) {
-        final List<SearchCriteria> params = createMatcherCriteria(by);
-        final List<BooleanExpression> expressions = filter.createFilteringConditions(params);
-        return getWhere(expressions);
-    }
-
-    /**
-     * @param filter
-     *            the IFilteringCriteria
-     * @param params
-     *            the List<SearchCriteria>
-     * @return BooleanExpression
-     */
-    public BooleanExpression buildWhere(IFilteringCriteria filter, List<SearchCriteria> params) {
-        final List<BooleanExpression> expressions = filter.createFilteringConditions(params);
-        return getWhere(expressions);
+        else {
+            irun = new BigDecimal(arun).toBigIntegerExact();
+            if (lb == null) {
+                ilb = new BigDecimal(0L).toBigIntegerExact();
+            }
+            else {
+                ilb = new BigDecimal(lb).toBigIntegerExact();
+            }
+            run = irun.shiftLeft(COOLIOV_RUN_MASK);
+            runlumi = run.or(ilb);
+        }
+        return new BigDecimal(runlumi);
     }
 }

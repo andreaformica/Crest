@@ -1,4 +1,4 @@
-package hep.crest.data.config.converters;
+package hep.crest.server.converters;
 
 import ma.glasnost.orika.MappingContext;
 import ma.glasnost.orika.converter.BidirectionalConverter;

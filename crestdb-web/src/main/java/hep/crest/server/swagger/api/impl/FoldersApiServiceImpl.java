@@ -1,24 +1,20 @@
 package hep.crest.server.swagger.api.impl;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
-import hep.crest.data.repositories.querydsl.IFilteringCriteria;
 import hep.crest.data.security.pojo.CrestFolders;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.services.FolderService;
 import hep.crest.server.swagger.api.FoldersApiService;
 import hep.crest.server.swagger.api.NotFoundException;
-import hep.crest.swagger.model.CrestBaseResponse;
-import hep.crest.swagger.model.FolderDto;
-import hep.crest.swagger.model.FolderSetDto;
-import hep.crest.swagger.model.GenericMap;
-import hep.crest.swagger.model.RespPage;
+import hep.crest.server.swagger.model.CrestBaseResponse;
+import hep.crest.server.swagger.model.FolderDto;
+import hep.crest.server.swagger.model.FolderSetDto;
+import hep.crest.server.swagger.model.GenericMap;
+import hep.crest.server.swagger.model.RespPage;
 import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.core.Response;
@@ -59,13 +55,6 @@ public class FoldersApiServiceImpl extends FoldersApiService {
     private MapperFacade mapper;
 
     /**
-     * Filtering.
-     */
-    @Autowired
-    @Qualifier("folderFiltering")
-    private IFilteringCriteria filtering;
-
-    /**
      * Service.
      */
     @Autowired
@@ -97,26 +86,20 @@ public class FoldersApiServiceImpl extends FoldersApiService {
      * java.lang.String, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response listFolders(String by, String sort, SecurityContext securityContext,
+    public Response listFolders(String schema, SecurityContext securityContext,
                                 UriInfo info) throws NotFoundException {
-        log.debug("Search resource list using by={}, sort={}", by, sort);
+        log.debug("Search resource list using schema={}", schema);
         // Create filters
-        GenericMap filters = prh.getFilters(prh.createMatcherCriteria(by));
-        // Create a default page requests with 10000 size for retrieval.
-        // This method does not allow to set pagination.
-        final PageRequest preq = prh.createPageRequest(0, 10000, sort);
-        BooleanExpression wherepred = null;
-        if (!"none".equals(by)) {
-            // Create search conditions for where statement in SQL
-            wherepred = prh.buildWhere(filtering, by);
-        }
-        // Search for global tags using where conditions.
-        Page<CrestFolders> entitypage = folderService.findAllFolders(wherepred, preq);
-        RespPage respPage = new RespPage().size(entitypage.getSize())
-                .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
-                .number(entitypage.getNumber());
+        GenericMap filters = new GenericMap();
+        filters.put("schema", schema);
+
+        // Search for folders using schema where condition.
+        List<CrestFolders> entitypage = folderService.findFoldersBySchema(schema);
+        RespPage respPage = new RespPage().size(entitypage.size())
+                .totalElements(Long.valueOf(entitypage.size())).totalPages(1)
+                .number(0);
         // Now pass back the dto list.
-        final List<FolderDto> dtolist = edh.entityToDtoList(entitypage.toList(), FolderDto.class);
+        final List<FolderDto> dtolist = edh.entityToDtoList(entitypage, FolderDto.class);
         Response.Status rstatus = Response.Status.OK;
         // Create the response object using also the page.
         final CrestBaseResponse setdto = new FolderSetDto().resources(dtolist)

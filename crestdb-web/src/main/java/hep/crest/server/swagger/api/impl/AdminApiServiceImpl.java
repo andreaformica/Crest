@@ -8,7 +8,7 @@ import hep.crest.server.services.GlobalTagMapService;
 import hep.crest.server.services.GlobalTagService;
 import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.api.AdminApiService;
-import hep.crest.swagger.model.GlobalTagDto;
+import hep.crest.server.swagger.model.GlobalTagDto;
 import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
 import org.hibernate.JDBCException;

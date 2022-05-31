@@ -1,11 +1,11 @@
 package hep.crest.server.swagger.api;
 
 import hep.crest.server.swagger.api.*;
-import hep.crest.swagger.model.*;
+import hep.crest.server.swagger.model.*;
 
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 
-import hep.crest.swagger.model.GlobalTagDto;
+import hep.crest.server.swagger.model.GlobalTagDto;
 
 import java.util.List;
 import hep.crest.server.swagger.api.NotFoundException;

@@ -3,10 +3,7 @@
  */
 package hep.crest.server.services;
 
-import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import hep.crest.data.exceptions.AbstractCdbServiceException;
-import hep.crest.data.exceptions.CdbBadRequestException;
 import hep.crest.data.exceptions.CdbInternalException;
 import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.ConflictException;
@@ -14,17 +11,16 @@ import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.IovRepository;
 import hep.crest.data.repositories.TagRepository;
-import hep.crest.data.repositories.querydsl.IFilteringCriteria;
-import hep.crest.data.repositories.querydsl.SearchCriteria;
+import hep.crest.data.repositories.args.TagQueryArgs;
 import hep.crest.server.controllers.PageRequestHelper;
-import hep.crest.swagger.model.TagMetaDto;
+import hep.crest.server.repositories.IovGroupsCustom;
+import hep.crest.server.swagger.model.TagMetaDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -58,24 +54,29 @@ public class TagService {
      * Repository.
      */
     @Autowired
+    private IovService iovService;
+    /**
+     * Repository.
+     */
+    @Autowired
     private PayloadService payloadService;
     /**
      * Service.
      */
     @Autowired
     private TagMetaService tagMetaService;
+    /**
+     * Repository.
+     */
+    @Autowired
+    @Qualifier("iovgroupsrepo")
+    private IovGroupsCustom iovgroupsrepo;
 
     /**
      * Helper.
      */
     @Autowired
     private PageRequestHelper prh;
-    /**
-     * Filtering.
-     */
-    @Autowired
-    @Qualifier("iovFiltering")
-    private IFilteringCriteria filtering;
 
     /**
      * @param tagname
@@ -95,15 +96,6 @@ public class TagService {
     }
 
     /**
-     * Count the total number of tags. Use with care and do not expose.
-     * @return long
-     */
-    public long count() {
-        log.debug("Search for tag count...");
-        return tagRepository.count();
-    }
-
-    /**
      * @param id
      *            the String representing the Tag name
      * @return Tag
@@ -112,41 +104,25 @@ public class TagService {
      */
     public Tag findOne(String id) throws AbstractCdbServiceException {
         log.debug("Search for tag by Id...{}", id);
-        if (id == null) {
-            throw new CdbBadRequestException("Wrong null argument");
-        }
         return tagRepository.findById(id).orElseThrow(() -> new CdbNotFoundException(
                 "Tag not found: " + id));
     }
 
     /**
-     * @param ids
-     *            the Iterable<String>
-     * @return Iterable<Tag>
+     * Select Tags.
+     *
+     * @param args
+     * @param preq
+     * @return Page of Tag
      */
-    public Iterable<Tag> findAllTags(Iterable<String> ids) {
-        log.debug("Search for all tags by Id list...");
-        return tagRepository.findAllById(ids);
-    }
-
-    /**
-     * @param qry
-     *            the Predicate
-     * @param req
-     *            the Pageable
-     * @return Iterable<Tag>
-     */
-    public Page<Tag> findAllTags(Predicate qry, Pageable req) {
+    public Page<Tag> selectTagList(TagQueryArgs args, Pageable preq) {
         Page<Tag> entitylist = null;
-        if (req == null) {
-            req = PageRequest.of(0, 1000);
+        if (preq == null) {
+            String sort = "id.since:ASC,id.insertionTime:DESC";
+            preq = prh.createPageRequest(0, 1000, sort);
         }
-        if (qry == null) {
-            entitylist = tagRepository.findAll(req);
-        }
-        else {
-            entitylist = tagRepository.findAll(qry, req);
-        }
+        entitylist = tagRepository.findTagList(args, preq);
+        log.trace("Retrieved list of tags {}", entitylist);
         return entitylist;
     }
 
@@ -218,24 +194,25 @@ public class TagService {
             log.warn("The meta information for tag {} is not present...", name);
         }
         log.debug("Removing tag {}", remTag);
-        List<SearchCriteria> criteriaList = prh.createMatcherCriteria("tagname:" + name);
-        BooleanExpression bytag = prh.buildWhere(filtering, criteriaList);
-        long niovs = iovRepository.count(bytag);
+        long niovs = iovgroupsrepo.getSize(name);
         if (niovs > 0) {
-            List<Iov> iovlist = iovRepository.findByIdTagName(name);
-            log.info("Delete {} payloads associated to iovs....", niovs);
-            for (Iov iov : iovlist) {
-                log.debug("Delete iov {}....", iov);
-                iovRepository.delete(iov);
-            }
-            for (Iov iov : iovlist) {
-                // Delete iov payloads one by one because we need to check the payload
-                // It could belong as well to another tag, in that case we cannot remove it
-                // but we can remove the iov.
-                log.debug("Delete payload {}....", iov.payloadHash());
-                String rem = payloadService.removePayload(name, iov.payloadHash());
-                if (!rem.equals(iov.payloadHash())) {
-                    log.warn("Skip removal of payload for hash {}", iov.payloadHash());
+            String sort = "id.since:ASC,id.insertionTime:DESC";
+            Pageable preq = prh.createPageRequest(0, 1000, sort);
+            Page<Iov> iovspage = iovRepository.findByIdTagName(name, preq);
+            for (int ip = 0; ip < iovspage.getTotalPages(); ip++) {
+                List<Iov> iovlist = iovspage.getContent();
+                log.info("Delete {} payloads associated to iovs....", niovs);
+                for (Iov iov : iovlist) {
+                    log.debug("Delete iov {}....", iov);
+                    iovRepository.delete(iov);
+                    log.debug("Delete payload {}....", iov.payloadHash());
+                    // Delete iov payloads one by one because we need to check the payload
+                    // It could belong as well to another tag, in that case we cannot remove it
+                    // but we can remove the iov.
+                    String rem = payloadService.removePayload(name, iov.payloadHash());
+                    if (!rem.equals(iov.payloadHash())) {
+                        log.warn("Skip removal of payload for hash {}", iov.payloadHash());
+                    }
                 }
             }
         }

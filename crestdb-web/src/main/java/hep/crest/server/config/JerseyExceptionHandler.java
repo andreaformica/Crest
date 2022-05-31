@@ -3,7 +3,7 @@ package hep.crest.server.config;
 import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbBadRequestException;
 import hep.crest.server.caching.CachingPolicyService;
-import hep.crest.swagger.model.HTTPResponse;
+import hep.crest.server.swagger.model.HTTPResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

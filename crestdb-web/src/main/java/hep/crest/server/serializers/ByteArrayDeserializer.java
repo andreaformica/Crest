@@ -15,18 +15,15 @@
  *   You should have received a copy of the GNU General Public License
  *   along with PhysCondDB.  If not, see <http://www.gnu.org/licenses/>.
  **/
-package hep.crest.data.serializers;
-
-import java.io.IOException;
-import java.util.Base64;
-
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package hep.crest.server.serializers;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.util.Base64;
 
 /**
  * @author formica

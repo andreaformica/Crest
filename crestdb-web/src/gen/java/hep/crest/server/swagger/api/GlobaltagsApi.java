@@ -1,14 +1,17 @@
 package hep.crest.server.swagger.api;
 
-import hep.crest.swagger.model.*;
+import hep.crest.server.swagger.model.*;
 import hep.crest.server.swagger.api.GlobaltagsApiService;
 
 import io.swagger.annotations.ApiParam;
-import io.swagger.jaxrs.*;
 
-import hep.crest.swagger.model.GlobalTagDto;
-import hep.crest.swagger.model.GlobalTagSetDto;
-import hep.crest.swagger.model.TagSetDto;
+import hep.crest.server.swagger.api.impl.JAXRSContext;
+
+import java.math.BigDecimal;
+import hep.crest.server.swagger.model.GlobalTagDto;
+import hep.crest.server.swagger.model.GlobalTagSetDto;
+import hep.crest.server.swagger.model.HTTPResponse;
+import hep.crest.server.swagger.model.TagSetDto;
 
 import java.util.Map;
 import java.util.List;
@@ -23,6 +26,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
@@ -38,6 +43,12 @@ import javax.validation.Valid;
 public class GlobaltagsApi  {
    @Autowired
    private GlobaltagsApiService delegate;
+   @Context
+   protected Request request;
+   @Context
+   protected HttpHeaders headers;
+   @Autowired
+   protected JAXRSContext context;
 
     @POST
     
@@ -51,6 +62,8 @@ public class GlobaltagsApi  {
     })
     public Response createGlobalTag(@ApiParam(value = "force: tell the server if it should use or not the insertion time provided {default: false}", defaultValue = "false") @DefaultValue("false") @QueryParam("force")  String force,@ApiParam(value = "") @Valid  GlobalTagDto globalTagDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
         return delegate.createGlobalTag(force, globalTagDto, securityContext, info);
     }
     @GET
@@ -61,10 +74,13 @@ public class GlobaltagsApi  {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "globaltags", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagSetDto.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagSetDto.class),
+        @io.swagger.annotations.ApiResponse(code = 404, message = "resource not found", response = HTTPResponse.class)
     })
     public Response findGlobalTag(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
         return delegate.findGlobalTag(name, securityContext, info);
     }
     @GET
@@ -79,20 +95,25 @@ public class GlobaltagsApi  {
     })
     public Response findGlobalTagFetchTags(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "record:  the record string {}", defaultValue = "none") @DefaultValue("none") @QueryParam("record")  String record,@ApiParam(value = "label:  the label string {}", defaultValue = "none") @DefaultValue("none") @QueryParam("label")  String label,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
         return delegate.findGlobalTagFetchTags(name, record, label, securityContext, info);
     }
     @GET
     
     
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Finds a GlobalTagDtos lists.", notes = "This method allows to perform search and sorting.Arguments: by=<pattern>, page={ipage}, size={isize}, sort=<sortpattern>. The pattern <pattern> is in the form <param-name><operation><param-value>       <param-name> is the name of one of the fields in the dto       <operation> can be [< : >] ; for string use only [:]        <param-value> depends on the chosen parameter. A list of this criteria can be provided       using comma separated strings for <pattern>.      The pattern <sortpattern> is <field>:[DESC|ASC]", response = GlobalTagSetDto.class, authorizations = {
+    @io.swagger.annotations.ApiOperation(value = "Finds a GlobalTagDtos lists.", notes = "This method allows to perform search and sorting. Arguments: name=<pattern>, workflow, scenario, release, validity, description page={ipage}, size={isize}, sort=<sortpattern>. ", response = GlobalTagSetDto.class, authorizations = {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "globaltags", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagSetDto.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagSetDto.class),
+        @io.swagger.annotations.ApiResponse(code = 404, message = "resource not found", response = HTTPResponse.class)
     })
-    public Response listGlobalTags(@ApiParam(value = "by: the search pattern {none}", defaultValue = "none") @DefaultValue("none") @QueryParam("by")  String by,@ApiParam(value = "page: the page number {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("page")  Integer page,@ApiParam(value = "size: the page size {1000}", defaultValue = "1000") @DefaultValue("1000") @QueryParam("size")  Integer size,@ApiParam(value = "sort: the sort pattern {name:ASC}", defaultValue = "name:ASC") @DefaultValue("name:ASC") @QueryParam("sort")  String sort,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response listGlobalTags(@ApiParam(value = "the global tag name search pattern {none}", defaultValue = "all") @DefaultValue("all") @QueryParam("name")  String name,@ApiParam(value = "the global tag workflow search pattern {none}") @QueryParam("workflow")  String workflow,@ApiParam(value = "the global tag scenario search pattern {none}") @QueryParam("scenario")  String scenario,@ApiParam(value = "the global tag release search pattern {none}") @QueryParam("release")  String release,@ApiParam(value = "the global tag validity low limit {x>=validity}") @QueryParam("validity") @Valid  BigDecimal validity,@ApiParam(value = "the global tag description search pattern {none}") @QueryParam("description")  String description,@ApiParam(value = "page: the page number {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("page")  Integer page,@ApiParam(value = "size: the page size {1000}", defaultValue = "1000") @DefaultValue("1000") @QueryParam("size")  Integer size,@ApiParam(value = "sort: the sort pattern {name:ASC}", defaultValue = "name:ASC") @DefaultValue("name:ASC") @QueryParam("sort")  String sort,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.listGlobalTags(by, page, size, sort, securityContext, info);
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
+        return delegate.listGlobalTags(name, workflow, scenario, release, validity, description, page, size, sort, securityContext, info);
     }
 }

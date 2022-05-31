@@ -3,26 +3,23 @@
  */
 package hep.crest.server.runinfo.services;
 
-import com.querydsl.core.types.Predicate;
 import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.runinfo.pojo.RunLumiInfo;
 import hep.crest.data.runinfo.repositories.RunLumiInfoRepository;
-import hep.crest.swagger.model.RunLumiInfoDto;
+import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.swagger.model.RunLumiInfoDto;
 import ma.glasnost.orika.MapperFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.math.BigInteger;
 import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * @author formica
@@ -48,28 +45,11 @@ public class RunInfoService {
     @Autowired
     @Qualifier("mapper")
     private MapperFacade mapper;
-
     /**
-     * @param qry
-     *            the Predicate
-     * @param req
-     *            the Pageable
-     * @return List<RunLumiInfoDto>
-     * @throws AbstractCdbServiceException
-     *             If an Exception occurred
+     * Helper.
      */
-    public List<RunLumiInfoDto> findAllRunInfo(Predicate qry, Pageable req) {
-        Iterable<RunLumiInfo> entitylist = null;
-        if (qry == null) {
-            entitylist = runinfoRepository.findAll(req);
-        }
-        else {
-            entitylist = runinfoRepository.findAll(qry, req);
-        }
-
-        return StreamSupport.stream(entitylist.spliterator(), false)
-                .map(s -> mapper.map(s, RunLumiInfoDto.class)).collect(Collectors.toList());
-    }
+    @Autowired
+    private PageRequestHelper prh;
 
     /**
      * @param dto
@@ -89,23 +69,23 @@ public class RunInfoService {
 
     /**
      * @param from
-     *            the BigDecimal.
+     *            the BigInteger.
      * @param to
-     *            the BigDecimal.
+     *            the BigInteger.
+     * @param preq the PageRequest
      * @throws AbstractCdbServiceException
      *             If an Exception occurred.
-     * @return List<RunLumiInfoDto>
+     * @return List<RunLumiInfo>
      */
-    public List<RunLumiInfoDto> selectInclusiveByRun(BigDecimal from, BigDecimal to) {
-        List<RunLumiInfo> entitylist = null;
-        entitylist = runinfoRepository.findByRunNumberInclusive(from, to);
-        if (entitylist == null) {
-            log.warn("Empty list for run information retrieved from selectInclusiveByRun {} {}",
-                    from, to);
-            return new ArrayList<>();
+    public Page<RunLumiInfo> selectInclusiveByRun(BigInteger from, BigInteger to, Pageable preq) {
+        Page<RunLumiInfo> entitylist = null;
+        if (preq == null) {
+            String sort = "runNumber:ASC";
+            preq = prh.createPageRequest(0, 1000, sort);
         }
-        return entitylist.stream()
-                .map(s -> mapper.map(s, RunLumiInfoDto.class)).collect(Collectors.toList());
+        entitylist = runinfoRepository.findByRunNumberInclusive(from, to, preq);
+        log.trace("Retrieved list of runs {}", entitylist.getNumberOfElements());
+        return entitylist;
     }
 
     /**
@@ -113,20 +93,20 @@ public class RunInfoService {
      *            the Date.
      * @param to
      *            the Date.
+     * @param preq the PageRequest
      * @throws AbstractCdbServiceException
      *             If an Exception occurred.
-     * @return List<RunLumiInfoDto>
+     * @return Page<RunLumiInfo>
      */
-    public List<RunLumiInfoDto> selectInclusiveByDate(Date from, Date to) {
-        List<RunLumiInfo> entitylist = null;
-        entitylist = runinfoRepository.findByDateInclusive(new BigDecimal(from.getTime()),
-                new BigDecimal(to.getTime()));
-        if (entitylist == null) {
-            log.warn("Empty list for run information retrieved from selectInclusiveByDate {} {}",
-                    from, to);
-            return new ArrayList<>();
+    public Page<RunLumiInfo> selectInclusiveByDate(Date from, Date to, Pageable preq) {
+        Page<RunLumiInfo> entitylist = null;
+        if (preq == null) {
+            String sort = "runNumber:ASC";
+            preq = prh.createPageRequest(0, 1000, sort);
         }
-        return entitylist.stream()
-                .map(s -> mapper.map(s, RunLumiInfoDto.class)).collect(Collectors.toList());
+        entitylist = runinfoRepository.findByDateInclusive(BigInteger.valueOf(from.getTime()),
+                BigInteger.valueOf(to.getTime()), preq);
+        log.trace("Retrieved list of runs {}", entitylist.getNumberOfElements());
+        return entitylist;
     }
 }

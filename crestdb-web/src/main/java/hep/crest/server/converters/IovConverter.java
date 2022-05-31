@@ -1,4 +1,4 @@
-package hep.crest.data.config.converters;
+package hep.crest.server.converters;
 
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.IovId;

@@ -1,12 +1,13 @@
 package hep.crest.server.swagger.api;
 
-import hep.crest.swagger.model.*;
+import hep.crest.server.swagger.model.*;
 import hep.crest.server.swagger.api.MonitoringApiService;
 
 import io.swagger.annotations.ApiParam;
-import io.swagger.jaxrs.*;
 
-import hep.crest.swagger.model.PayloadTagInfoSetDto;
+import hep.crest.server.swagger.api.impl.JAXRSContext;
+
+import hep.crest.server.swagger.model.PayloadTagInfoSetDto;
 
 import java.util.Map;
 import java.util.List;
@@ -21,6 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
@@ -36,6 +39,12 @@ import javax.validation.Valid;
 public class MonitoringApi  {
    @Autowired
    private MonitoringApiService delegate;
+   @Context
+   protected Request request;
+   @Context
+   protected HttpHeaders headers;
+   @Autowired
+   protected JAXRSContext context;
 
     @GET
     
@@ -49,6 +58,8 @@ public class MonitoringApi  {
     })
     public Response listPayloadTagInfo(@ApiParam(value = "tagname: the search pattern {none}", defaultValue = "none") @DefaultValue("none") @QueryParam("tagname")  String tagname,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
         return delegate.listPayloadTagInfo(tagname, securityContext, info);
     }
 }

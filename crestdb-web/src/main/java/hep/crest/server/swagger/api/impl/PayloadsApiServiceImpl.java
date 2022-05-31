@@ -9,18 +9,18 @@ import hep.crest.data.exceptions.CdbInternalException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.exceptions.PayloadEncodingException;
 import hep.crest.data.handlers.PayloadHandler;
-import hep.crest.data.repositories.PayloadDataBaseCustom;
 import hep.crest.server.caching.CachingPolicyService;
+import hep.crest.server.repositories.PayloadDataBaseCustom;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.PayloadService;
 import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.api.PayloadsApiService;
-import hep.crest.swagger.model.GenericMap;
-import hep.crest.swagger.model.HTTPResponse;
-import hep.crest.swagger.model.IovDto;
-import hep.crest.swagger.model.IovSetDto;
-import hep.crest.swagger.model.PayloadDto;
-import hep.crest.swagger.model.PayloadSetDto;
+import hep.crest.server.swagger.model.GenericMap;
+import hep.crest.server.swagger.model.HTTPResponse;
+import hep.crest.server.swagger.model.IovDto;
+import hep.crest.server.swagger.model.IovSetDto;
+import hep.crest.server.swagger.model.PayloadDto;
+import hep.crest.server.swagger.model.PayloadSetDto;
 import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
@@ -380,6 +380,9 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 tag);
         try {
             // Read input FormData as an IovSet object.
+            if (tag == null || iovsetupload == null || filesBodypart == null) {
+                throw new CdbBadRequestException("Cannot upload payload in batch mode : form is missing a field");
+            }
             final IovSetDto dto = jacksonMapper.readValue(iovsetupload, IovSetDto.class);
             log.info("Batch insertion of {} iovs using file formatted", dto.getSize());
             // use to send back a NotFound if the tag does not exists.
@@ -438,6 +441,9 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 tag);
         try {
             // use to send back a NotFound if the tag does not exists.
+            if (tag == null || iovsetupload == null) {
+                throw new CdbBadRequestException("Cannot store payload in batch mode : form is missing a field");
+            }
             tagService.findOne(tag);
             // Read the FormData as a IovSet object.
             final IovSetDto dto = jacksonMapper.readValue(iovsetupload, IovSetDto.class);

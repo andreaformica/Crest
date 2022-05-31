@@ -1,4 +1,4 @@
-package hep.crest.data.config.converters;
+package hep.crest.server.converters;
 
 import hep.crest.data.pojo.GlobalTagMap;
 import hep.crest.data.pojo.GlobalTagMapId;
@@ -31,7 +31,9 @@ public class GlobalTagMapConverter extends BidirectionalConverter<GlobalTagMap, 
                                     MappingContext mappingContext) {
         GlobalTagMap entity = new GlobalTagMap();
         // Create a map ID from the fields in DTO.
-        GlobalTagMapId id = new GlobalTagMapId(source.getGlobalTagName(), source.getRecord(), source.getLabel());
+        GlobalTagMapId id =
+                new GlobalTagMapId().globalTagName(source.getGlobalTagName()).record(source.getRecord())
+                        .label(source.getLabel());
         Tag atag = new Tag();
         // Create a tag using the provided tag name.
         atag.name(source.getTagName());

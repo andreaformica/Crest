@@ -9,10 +9,11 @@ import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
-import hep.crest.data.repositories.PayloadDataBaseCustom;
-import hep.crest.swagger.model.HTTPResponse;
-import hep.crest.swagger.model.IovDto;
-import hep.crest.swagger.model.PayloadDto;
+import hep.crest.data.repositories.IovRepository;
+import hep.crest.server.repositories.PayloadDataBaseCustom;
+import hep.crest.server.swagger.model.HTTPResponse;
+import hep.crest.server.swagger.model.IovDto;
+import hep.crest.server.swagger.model.PayloadDto;
 import ma.glasnost.orika.MapperFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,11 @@ public class PayloadService {
      */
     private static final Logger log = LoggerFactory.getLogger(PayloadService.class);
 
+    /**
+     * Repository.
+     */
+    @Autowired
+    private IovRepository iovRepository;
     /**
      * Repository.
      */
@@ -94,7 +100,7 @@ public class PayloadService {
             throw new CdbNotFoundException("Cannot find payload dto for hash " + hash);
         }
         Boolean canremove = Boolean.TRUE;
-        List<Iov> iovwithhash = iovService.findIovsWithHash(hash);
+        List<Iov> iovwithhash = iovRepository.findByPayloadHash(hash);
         if (iovwithhash.size() > 1) {
             log.debug("The hash {} is associated to more than one iov...remove only if tag name is the same", hash);
             for (Iov iov : iovwithhash) {

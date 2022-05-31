@@ -3,7 +3,6 @@
  */
 package hep.crest.server.services;
 
-import com.querydsl.core.types.Predicate;
 import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.security.pojo.CrestFolders;
@@ -11,11 +10,10 @@ import hep.crest.data.security.pojo.CrestFoldersRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -41,25 +39,6 @@ public class FolderService {
     private CrestFoldersRepository crestFoldersRepository;
 
     /**
-     * @param qry
-     *            the Predicate
-     * @param req
-     *            the Pageable
-     * @return Page<CrestFolders>
-     */
-    public Page<CrestFolders> findAllFolders(Predicate qry, Pageable req) {
-        Page<CrestFolders> entitylist = null;
-        if (qry == null) {
-            // The req object is always filled here because of the default.
-            entitylist = crestFoldersRepository.findAll(req);
-        }
-        else {
-            entitylist = crestFoldersRepository.findAll(qry, req);
-        }
-        return entitylist;
-    }
-
-    /**
      * @param entity
      *            the CrestFolders
      * @return CrestFolders
@@ -80,5 +59,14 @@ public class FolderService {
         final CrestFolders saved = crestFoldersRepository.save(entity);
         log.trace("Saved entity: {}", saved);
         return saved;
+    }
+
+    /**
+     *
+     * @param schema
+     * @return List of CrestFolders
+     */
+    public List<CrestFolders> findFoldersBySchema(String schema) {
+        return crestFoldersRepository.findBySchemaName(schema);
     }
 }

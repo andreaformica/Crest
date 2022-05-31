@@ -118,7 +118,7 @@ public class IovSynchroAspect {
     protected boolean evaluateCondition(Tag tagentity, Iov entity) {
         final String synchro = tagentity.synchronization();
         Boolean acceptTime = Boolean.FALSE;
-        Iov latest = iovService.latest(tagentity.name(), "now", "ms");
+        Iov latest = iovService.latest(tagentity.name());
         switch (synchro) {
             case "SV":
                 log.warn("Can only append IOVs....");
