@@ -60,6 +60,7 @@ before_script:
 stages:
  - package_application
  - build
+ - build_docker_image
  - release
  - sonar_application
  - redeploy
@@ -135,11 +136,6 @@ sonar_application:
 package_cern_application:
   stage: package_application
   environment: cern
-  only:
-    refs:
-      - master
-    variables:
-      - $REMOTE_NAME == "cern"
   image: adoptopenjdk:11-jdk-openj9
   script:
    - ./gradlew -g /cache/.gradle clean assemble -PwarName=crest.war
@@ -147,6 +143,25 @@ package_cern_application:
   artifacts:
    paths:
    - ./crestdb-web/build/libs/crest.war
+
+build_docker_image_job:
+  stage: build_docker_image
+  environment: cern
+  image:
+    # We recommend using the CERN version of the Kaniko image: gitlab-registry.cern.ch/ci-tools/docker-image-builder
+    name: gitlab-registry.cern.ch/ci-tools/docker-image-builder
+    entrypoint: [""]
+  script:
+    - mkdir -p /kaniko/.docker
+    # Prepare Kaniko configuration file
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+      # Build and push the image from the Dockerfile at the root of the project.
+      # To push to a specific docker tag, amend the --destination parameter, e.g. --destination $CI_REGISTRY_IMAGE:$CI_BUILD_REF_NAME
+    # See https://docs.gitlab.com/ee/ci/variables/predefined_variables.html#variables-reference for available variables
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+  allow_failure: false
+  rules:
+    - if: $DO_DOCKER_IMAGE == "yes" && $CI_PIPELINE_SOURCE != 'merge_request_event'
 
 build_cern_docker_image:
   stage: build
