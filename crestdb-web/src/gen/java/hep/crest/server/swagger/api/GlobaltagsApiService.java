@@ -5,7 +5,6 @@ import hep.crest.server.swagger.model.*;
 
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 
-import java.math.BigDecimal;
 import hep.crest.server.swagger.model.GlobalTagDto;
 import hep.crest.server.swagger.model.GlobalTagSetDto;
 import hep.crest.server.swagger.model.HTTPResponse;
@@ -26,5 +25,5 @@ public abstract class GlobaltagsApiService {
     public abstract Response createGlobalTag(String force,GlobalTagDto globalTagDto,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response findGlobalTag(String name,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response findGlobalTagFetchTags(String name,String record,String label,SecurityContext securityContext, UriInfo info) throws NotFoundException;
-    public abstract Response listGlobalTags(String name,String workflow,String scenario,String release,BigDecimal validity,String description,Integer page,Integer size,String sort,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response listGlobalTags(String name,String workflow,String scenario,String release,Long validity,String description,Integer page,Integer size,String sort,SecurityContext securityContext, UriInfo info) throws NotFoundException;
 }

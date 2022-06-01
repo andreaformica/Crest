@@ -55,7 +55,8 @@ paths:
           description: 'the global tag validity low limit {x>=validity}'
           required: false
           schema:
-            type: BigDecimal
+            type: integer
+            format: int64
         - name: description
           in: query
           description: 'the global tag description search pattern {none}'

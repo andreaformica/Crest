@@ -7,7 +7,6 @@ import io.swagger.annotations.ApiParam;
 
 import hep.crest.server.swagger.api.impl.JAXRSContext;
 
-import java.math.BigDecimal;
 import hep.crest.server.swagger.model.GlobalTagDto;
 import hep.crest.server.swagger.model.GlobalTagSetDto;
 import hep.crest.server.swagger.model.HTTPResponse;
@@ -110,7 +109,7 @@ public class GlobaltagsApi  {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagSetDto.class),
         @io.swagger.annotations.ApiResponse(code = 404, message = "resource not found", response = HTTPResponse.class)
     })
-    public Response listGlobalTags(@ApiParam(value = "the global tag name search pattern {none}", defaultValue = "all") @DefaultValue("all") @QueryParam("name")  String name,@ApiParam(value = "the global tag workflow search pattern {none}") @QueryParam("workflow")  String workflow,@ApiParam(value = "the global tag scenario search pattern {none}") @QueryParam("scenario")  String scenario,@ApiParam(value = "the global tag release search pattern {none}") @QueryParam("release")  String release,@ApiParam(value = "the global tag validity low limit {x>=validity}") @QueryParam("validity") @Valid  BigDecimal validity,@ApiParam(value = "the global tag description search pattern {none}") @QueryParam("description")  String description,@ApiParam(value = "page: the page number {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("page")  Integer page,@ApiParam(value = "size: the page size {1000}", defaultValue = "1000") @DefaultValue("1000") @QueryParam("size")  Integer size,@ApiParam(value = "sort: the sort pattern {name:ASC}", defaultValue = "name:ASC") @DefaultValue("name:ASC") @QueryParam("sort")  String sort,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response listGlobalTags(@ApiParam(value = "the global tag name search pattern {none}", defaultValue = "all") @DefaultValue("all") @QueryParam("name")  String name,@ApiParam(value = "the global tag workflow search pattern {none}") @QueryParam("workflow")  String workflow,@ApiParam(value = "the global tag scenario search pattern {none}") @QueryParam("scenario")  String scenario,@ApiParam(value = "the global tag release search pattern {none}") @QueryParam("release")  String release,@ApiParam(value = "the global tag validity low limit {x>=validity}") @QueryParam("validity")  Long validity,@ApiParam(value = "the global tag description search pattern {none}") @QueryParam("description")  String description,@ApiParam(value = "page: the page number {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("page")  Integer page,@ApiParam(value = "size: the page size {1000}", defaultValue = "1000") @DefaultValue("1000") @QueryParam("size")  Integer size,@ApiParam(value = "sort: the sort pattern {name:ASC}", defaultValue = "name:ASC") @DefaultValue("name:ASC") @QueryParam("sort")  String sort,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
