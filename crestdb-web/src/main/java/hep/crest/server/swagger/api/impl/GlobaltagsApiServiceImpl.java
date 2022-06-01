@@ -151,8 +151,9 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
     }
 
     @Override
-    public Response listGlobalTags(String name, String workflow, String scenario, String release, BigDecimal validity
-            , String description, Integer page, Integer size, String sort, SecurityContext securityContext, UriInfo info)
+    public Response listGlobalTags(String name, String workflow, String scenario, String release, Long validity
+            , String description, Integer page, Integer size, String sort, SecurityContext securityContext,
+                                   UriInfo info)
             throws NotFoundException {
         log.debug("Search resource list using name={}, page={}, size={}, sort={}", name, page, size,
                 sort);
@@ -161,7 +162,7 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
         }
         // Create query params object
         GtagQueryArgs args = new GtagQueryArgs();
-        args.name(name).validity(validity).release(release).workflow(workflow).description(description).scenario(scenario);
+        args.name(name).validity(BigDecimal.valueOf(validity)).release(release).workflow(workflow).description(description).scenario(scenario);
         // Create pagination request
         final PageRequest preq = prh.createPageRequest(page, size, sort);
         // Launch query
