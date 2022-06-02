@@ -116,9 +116,10 @@ public class IovRepositoryImpl implements IovRepositoryCustom {
         // Build the query.
         log.info("Launch query for iovs....");
         QIov iov = QIov.iov;
-        query = query.select(iov).from(iov)
-                .where(where)               //// do we need this: .leftJoin(tag).fetchJoin()
-                .distinct();
+        // Here we did remove "distinct()" because it does not work with multiple columns.
+        query = query.select(iov)
+                .from(iov)
+                .where(where);
 
         log.debug("created JPQL query: {}", query.toString());
 
