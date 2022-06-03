@@ -161,8 +161,10 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
             name = "%";
         }
         // Create query params object
+        BigDecimal vd = (validity != null) ? BigDecimal.valueOf(validity) : null;
         GtagQueryArgs args = new GtagQueryArgs();
-        args.name(name).validity(BigDecimal.valueOf(validity)).release(release).workflow(workflow).description(description).scenario(scenario);
+        args.name(name).validity(vd)
+                .release(release).workflow(workflow).description(description).scenario(scenario);
         // Create pagination request
         final PageRequest preq = prh.createPageRequest(page, size, sort);
         // Launch query
