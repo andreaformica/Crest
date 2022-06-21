@@ -82,8 +82,8 @@ public class CrestBaseResponse   {
    * @return size
    **/
   @JsonProperty("size")
-  @ApiModelProperty(value = "")
-  
+  @ApiModelProperty(required = true, value = "")
+  @NotNull 
   public Long getSize() {
     return size;
   }
@@ -122,8 +122,8 @@ public class CrestBaseResponse   {
    * @return format
    **/
   @JsonProperty("format")
-  @ApiModelProperty(value = "")
-  
+  @ApiModelProperty(required = true, value = "")
+  @NotNull 
   public String getFormat() {
     return format;
   }

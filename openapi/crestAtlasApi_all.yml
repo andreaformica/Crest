@@ -65,10 +65,8 @@ paths:
     $ref: 'crestdb_payloadsapi.yml#/paths/~1payloads~1{hash}'
   /payloads/{hash}/meta:
     $ref: 'crestdb_payloadsapi.yml#/paths/~1payloads~1{hash}~1meta'
-  /payloads/storebatch:
-    $ref: 'crestdb_payloadsapi.yml#/paths/~1payloads~1storebatch'
-  /payloads/uploadbatch:
-    $ref: 'crestdb_payloadsapi.yml#/paths/~1payloads~1uploadbatch'
+  /payloads/batch:
+    $ref: 'crestdb_payloadsapi.yml#/paths/~1payloads~1batch'
   /payloads/store:
     $ref: 'crestdb_payloadsapi.yml#/paths/~1payloads~1store'
   /payloads/upload:

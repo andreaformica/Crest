@@ -50,7 +50,7 @@ public class MonitoringApi  {
     
     
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieves monitoring information on payload as a list of PayloadTagInfoDtos.", notes = "This method allows to perform search and sorting.Arguments: by=<pattern>, page={ipage}, size={isize}, sort=<sortpattern>. The pattern <pattern> is in the form <param-name><operation><param-value>       <param-name> is the name of one of the fields in the dto       <operation> can be [< : >] ; for string use only [:]        <param-value> depends on the chosen parameter. A list of this criteria can be provided       using comma separated strings for <pattern>.      The pattern <sortpattern> is <field>:[DESC|ASC]", response = PayloadTagInfoSetDto.class, authorizations = {
+    @io.swagger.annotations.ApiOperation(value = "Retrieves monitoring information on payload as a list of PayloadTagInfoDtos.", notes = "This method allows to perform search and sorting.Arguments: tagname=<pattern>, page={ipage}, size={isize}, sort=<sortpattern>. The pattern <pattern> is in the form <param-name><operation><param-value>       <param-name> is the name of one of the fields in the dto       <operation> can be [< : >] ; for string use only [:]        <param-value> depends on the chosen parameter. A list of this criteria can be provided       using comma separated strings for <pattern>.      The pattern <sortpattern> is <field>:[DESC|ASC]", response = PayloadTagInfoSetDto.class, authorizations = {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "monitoring", })
     @io.swagger.annotations.ApiResponses(value = {

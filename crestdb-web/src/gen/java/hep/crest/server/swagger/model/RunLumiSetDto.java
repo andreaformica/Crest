@@ -57,8 +57,8 @@ public class RunLumiSetDto extends CrestBaseResponse  {
    * @return format
    **/
   @JsonProperty("format")
-  @ApiModelProperty(value = "")
-  
+  @ApiModelProperty(required = true, value = "")
+  @NotNull 
   public String getFormat() {
     return format;
   }

@@ -64,9 +64,9 @@ EOF
 function get_data() {
   echo "Execute $1 : get data of type $2 from server using search $3"
   if [ ${token} == "" ]; then
-     resp=`curl -X GET -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$2?by=$3"`
+     resp=`curl -X GET -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$2?$3"`
   else
-     resp=`curl -X GET -H "Authorization: Bearer ${token}" -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$2?by=$3"`
+     resp=`curl -X GET -H "Authorization: Bearer ${token}" -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$2?$3"`
   fi  
   echo "Received response "
   echo $resp | json_pp
@@ -77,7 +77,7 @@ function post_data() {
   pdata=$2
   if [ "${token}" == "" ]; then
      echo "Request: curl -X POST -H \"Accept: application/json\" -H \"Content-Type: application/json\" \"${host}/${apiname}/$1\" --data \"${pdata}\""
-     resp=`curl -X POST -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$1" --data "${pdata}"`
+     resp=`curl -X POST -H "X-Crest-PayloadFormat: FILE" -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$1" --data "${pdata}"`
   else
      echo "Request: curl -X POST -H \"Authorization: Bearer ${token}\" -H \"Accept: application/json\" -H \"Content-Type: application/json\" \"${host}/${apiname}/$1\" --data \"${pdata}\""
      resp=`curl -X POST -H "Authorization: Bearer ${token}" -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$1" --data "${pdata}"`
@@ -101,8 +101,8 @@ generate_multi_upload_data()
   "datatype" : "iovs",
   "format": "IovSetDto",
   "resources":[
-  { "since" : $since1, "payloadHash": "file:///tmp/test-01.txt"},
-  { "since" : $since2, "payloadHash": "file:///tmp/test-02.txt"}
+  { "tagName": $1, "since" : $since1, "payloadHash": "file:///tmp/test-01.txt"},
+  { "tagName": $1, "since" : $since2, "payloadHash": "file:///tmp/test-02.txt"}
   ]
 }
 EOF
@@ -151,10 +151,12 @@ function multi_upload() {
     echo $(generate_multi_upload_data $tag)
 
   echo "Using token ${token}"
+  iovset=$(generate_multi_upload_data)
+  echo "Using tag ${tag}, iovset ${iovset}"
   if [ "${token}" == "" ]; then
-    resp=`curl -X POST --form tag="${tag}" --form endtime=0 --form iovsetupload="$(generate_multi_upload_data)"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads/uploadbatch"`
+    resp=`curl -X POST --form tag="${tag}" --form endtime=0 --form iovsetupload="${iovset}"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads/batch"`
   else
-    resp=`curl -X POST -H "Authorization: Bearer ${token}" --form tag="${tag}" --form endtime=0 --form iovsetupload="$(generate_multi_upload_data)"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads/uploadbatch"`
+    resp=`curl -X POST -H "Authorization: Bearer ${token}" --form tag="${tag}" --form endtime=0 --form iovsetupload="$(generate_multi_upload_data)"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads/batch"`
   fi
     echo "Post returned : $resp"
     #sleep 1

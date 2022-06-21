@@ -113,6 +113,7 @@ public class TestCrestTag {
 
         final IovSetDto setdto = new IovSetDto();
         setdto.size(2L);
+        setdto.format("IovSetDto");
         final GenericMap filters = new GenericMap();
         filters.put("tagName", dto.getName());
         setdto.datatype("iovs").filter(filters);
