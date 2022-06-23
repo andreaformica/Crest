@@ -25,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -202,21 +203,37 @@ public class TagService {
             for (int ip = 0; ip < iovspage.getTotalPages(); ip++) {
                 List<Iov> iovlist = iovspage.getContent();
                 log.info("Delete {} payloads associated to iovs....", niovs);
-                for (Iov iov : iovlist) {
-                    log.debug("Delete iov {}....", iov);
-                    iovRepository.delete(iov);
-                    log.debug("Delete payload {}....", iov.payloadHash());
+                List<String> hashList = this.removeIovList(iovlist);
+                for (String hash : hashList) {
+                    log.debug("Delete payload {}....", hash);
                     // Delete iov payloads one by one because we need to check the payload
                     // It could belong as well to another tag, in that case we cannot remove it
                     // but we can remove the iov.
-                    String rem = payloadService.removePayload(name, iov.payloadHash());
-                    if (!rem.equals(iov.payloadHash())) {
-                        log.warn("Skip removal of payload for hash {}", iov.payloadHash());
+                    String rem = payloadService.removePayload(name, hash);
+                    if (!rem.equals(hash)) {
+                        log.warn("Skip removal of payload for hash {}", hash);
                     }
                 }
             }
         }
         tagRepository.deleteById(name);
         log.debug("Removed entity: {}", name);
+    }
+
+    /**
+     * Remove a list of iovs, send back the hash of payloads.
+     *
+     * @param iovList
+     * @return List<String>
+     */
+    @Transactional
+    protected List<String> removeIovList(List<Iov> iovList) {
+        List<String> hashList = new ArrayList<>();
+        for (Iov iov : iovList) {
+            log.debug("Delete iov {}....", iov);
+            hashList.add(iov.payloadHash());
+            iovRepository.delete(iov);
+        }
+        return hashList;
     }
 }
