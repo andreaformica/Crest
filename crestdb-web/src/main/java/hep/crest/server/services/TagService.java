@@ -226,7 +226,7 @@ public class TagService {
      * @param iovList
      * @return List<String>
      */
-    @Transactional
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
     protected List<String> removeIovList(List<Iov> iovList) {
         List<String> hashList = new ArrayList<>();
         for (Iov iov : iovList) {

@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+
 /**
  * @author rsipos
  *
@@ -96,6 +98,7 @@ public class TagMetaService {
      * @param name the name
      * @throws AbstractCdbServiceException the cdb service exception
      */
+    @Transactional
     public void removeTagMeta(String name) {
         log.debug("Remove tag meta info for {}", name);
         tagmetaRepository.delete(name);
