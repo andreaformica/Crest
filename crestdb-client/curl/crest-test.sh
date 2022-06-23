@@ -101,8 +101,8 @@ generate_multi_upload_data()
   "datatype" : "iovs",
   "format": "IovSetDto",
   "resources":[
-  { "tagName": $1, "since" : $since1, "payloadHash": "file:///tmp/test-01.txt"},
-  { "tagName": $1, "since" : $since2, "payloadHash": "file:///tmp/test-02.txt"}
+  { "since" : $since1, "payloadHash": "file:///tmp/test-01.txt"},
+  { "since" : $since2, "payloadHash": "file:///tmp/test-02.txt"}
   ]
 }
 EOF
@@ -154,9 +154,9 @@ function multi_upload() {
   iovset=$(generate_multi_upload_data)
   echo "Using tag ${tag}, iovset ${iovset}"
   if [ "${token}" == "" ]; then
-    resp=`curl -X POST --form tag="${tag}" --form endtime=0 --form iovsetupload="${iovset}"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads/batch"`
+    resp=`curl -X POST --form "tag=${tag}" --form endtime=0 --form "iovsetupload=${iovset}"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads/batch"`
   else
-    resp=`curl -X POST -H "Authorization: Bearer ${token}" --form tag="${tag}" --form endtime=0 --form iovsetupload="$(generate_multi_upload_data)"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads/batch"`
+    resp=`curl -X POST -H "Authorization: Bearer ${token}" --form "tag=${tag}" --form endtime=0 --form "iovsetupload=${iovset}"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads/batch"`
   fi
     echo "Post returned : $resp"
     #sleep 1

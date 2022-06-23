@@ -11,8 +11,8 @@ spring:
       include: crest
     servlet:
       multipart:
-        max-file-size: 50MB
-        max-request-size: 50MB
+        max-file-size: 200MB
+        max-request-size: 400MB
     jersey:
       application-path: ${crest.api.name}
     datasource:
