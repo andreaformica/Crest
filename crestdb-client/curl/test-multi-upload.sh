@@ -8,16 +8,19 @@ generate_post_data()
   "size": 2,
   "datatype": "PYL",
   "format": "IovSetDto",
+  "page": null,
+  "filter": null,
   "resources":[
   { "since" : $since1, "payloadHash": "file:///tmp/newfile-01.txt"},
   { "since" : $since2, "payloadHash": "file:///tmp/newfile-02.txt"}
   ]
-}
+};type=application/json
 EOF
 }
 
 function get_rndm_pyld() {
-  dd if=/dev/urandom of=/tmp/newfile.stuff bs=1m count=10
+##  dd if=/dev/urandom of=/tmp/newfile.stuff bs=1m count=10
+  dd if=/dev/urandom of=/tmp/newfile.stuff bs=2048 count=1
 }
 
 host=$1
@@ -36,7 +39,7 @@ for a in {1001..1010}; do echo $a;
   since1=$a
   since2=$b
   echo $(generate_post_data)
-  resp=`curl --form tag=$tag --form endtime=0 --form iovsetupload="$(generate_post_data)"  --form "files=@/tmp/newfile-01.txt" --form "files=@/tmp/newfile-02.txt"  "${host}/${apiname}/payloads/uploadbatch"`
+  resp=`curl --form tag=$tag --form endtime=0 --form iovsetupload="$(generate_post_data)"  --form "files=@/tmp/newfile-01.txt" --form "files=@/tmp/newfile-02.txt" --form objectType="JSON" --form version="1.0" "${host}/${apiname}/payloads/batch"`
   echo "Received response $resp"
   sleep 1
 done

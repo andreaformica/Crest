@@ -19,4 +19,4 @@ echo "Use data $tagdata"
 resp=`curl -X POST -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/tags" --data "${tagdata}"`
 echo "Received response $resp"
 echo "Try to get back data from server"
-curl -X GET "${host}/${apiname}/tags?by=name:TAG"
+curl -X GET "${host}/${apiname}/tags?name=%25TAG%25"
