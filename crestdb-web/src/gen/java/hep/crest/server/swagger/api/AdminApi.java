@@ -1,12 +1,13 @@
 package hep.crest.server.swagger.api;
 
-import hep.crest.swagger.model.*;
+import hep.crest.server.swagger.model.*;
 import hep.crest.server.swagger.api.AdminApiService;
 
 import io.swagger.annotations.ApiParam;
-import io.swagger.jaxrs.*;
 
-import hep.crest.swagger.model.GlobalTagDto;
+import hep.crest.server.swagger.api.impl.JAXRSContext;
+
+import hep.crest.server.swagger.model.GlobalTagDto;
 
 import java.util.Map;
 import java.util.List;
@@ -21,6 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
@@ -36,6 +39,12 @@ import javax.validation.Valid;
 public class AdminApi  {
    @Autowired
    private AdminApiService delegate;
+   @Context
+   protected Request request;
+   @Context
+   protected HttpHeaders headers;
+   @Autowired
+   protected JAXRSContext context;
 
     @DELETE
     @Path("/globaltags/{name}")
@@ -49,6 +58,8 @@ public class AdminApi  {
     })
     public Response removeGlobalTag(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
         return delegate.removeGlobalTag(name, securityContext, info);
     }
     @DELETE
@@ -63,6 +74,8 @@ public class AdminApi  {
     })
     public Response removeTag(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
         return delegate.removeTag(name, securityContext, info);
     }
     @PUT
@@ -77,6 +90,8 @@ public class AdminApi  {
     })
     public Response updateGlobalTag(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "") @Valid  GlobalTagDto globalTagDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
         return delegate.updateGlobalTag(name, globalTagDto, securityContext, info);
     }
 }

@@ -13,25 +13,15 @@ tags:
   - name: iovs
 
 paths:
-  # tags
+  # iovs
   /iovs:
     $ref: 'crestdb_iovsapi.yml#/paths/~1iovs'
   /iovs/storebatch:
     $ref: 'crestdb_iovsapi.yml#/paths/~1iovs~1storebatch'
-  /iovs/selectSnapshot:
-    $ref: 'crestdb_iovsapi.yml#/paths/~1iovs~1selectSnapshot'
-  /iovs/lastIov:
-    $ref: 'crestdb_iovsapi.yml#/paths/~1iovs~1lastIov'
-  /iovs/selectIovPayloads:
-    $ref: 'crestdb_iovsapi.yml#/paths/~1iovs~1selectIovPayloads'
-  /iovs/selectIovs:
-    $ref: 'crestdb_iovsapi.yml#/paths/~1iovs~1selectIovs'
-  /iovs/selectGroups:
-    $ref: 'crestdb_iovsapi.yml#/paths/~1iovs~1selectGroups'
-  /iovs/getSizeByTag:
-    $ref: 'crestdb_iovsapi.yml#/paths/~1iovs~1getSizeByTag'
-  /iovs/getSize:
-    $ref: 'crestdb_iovsapi.yml#/paths/~1iovs~1getSize'
+  /iovs/infos:
+    $ref: 'crestdb_iovsapi.yml#/paths/~1iovs~1infos'
+  /iovs/size:
+    $ref: 'crestdb_iovsapi.yml#/paths/~1iovs~1size'
 
 components:
   securitySchemes:

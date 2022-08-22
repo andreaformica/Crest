@@ -1,5 +1,6 @@
 plugins {
   	id 'checkstyle'
+    id 'java-library'
     //id 'org.springframework.boot' version '2.3.1.RELEASE'
     id 'org.springframework.boot' version '2.4.4'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
@@ -24,7 +25,7 @@ checkCode.doLast {
 }
 
 checkstyleMain {
-    setExcludes(new HashSet(['**/org/**/*java','**/hep/crest/data/**/Q*java','src/gen/**','**/hep/crest/data/repositories/externals/*','**/hep/crest/data/dialect/*','**/hep/crest/swagger/**', '**/hep/crest/server/swagger/api/**']))
+    setExcludes(new HashSet(['**/org/**/*java','**/hep/crest/data/**/Q*java','**/hep/crest/data/repositories/externals/*','**/hep/crest/data/dialect/*']))
 }
 
 tasks.withType(Checkstyle) {
@@ -40,26 +41,39 @@ tasks.withType(Checkstyle) {
 
 dependencies {
 ////   	compile files("${project.rootDir}/jarlib/ojdbc7-12.1.0.2.jar")   
-    annotationProcessor     'com.querydsl:querydsl-apt:4.2.1:jpa'
+    annotationProcessor     "com.querydsl:querydsl-apt:$querydsl_version:jpa"
     annotationProcessor     'org.springframework.boot:spring-boot-starter-data-jpa' // needed because the query dsl annotation processor doesn't recognize javax.persistence.Entity
-    implementation  group: 'com.querydsl', name: 'querydsl-jpa', version: querydsl_version
+    implementation (group: 'com.querydsl', name: 'querydsl-core', version: querydsl_version) {
+        exclude group: 'com.google.code.findbugs', module: 'jsr305'
+        exclude group: 'com.google.code.findbugs', module: 'annotations'
+    }
+    implementation (group: 'com.querydsl', name: 'querydsl-jpa', version: querydsl_version) {
+        exclude group: 'com.google.code.findbugs', module: 'jsr305'
+        exclude group: 'com.google.code.findbugs', module: 'annotations'
+    }
 
     implementation ("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation group: 'org.apache.commons', name: 'commons-compress', version: '1.15'
-    implementation group: 'ma.glasnost.orika', name: 'orika-core', version: orika_version
-    
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.1.0")
-    testImplementation 'org.testcontainers:postgresql:1.15.0-rc2'
+    implementation group: 'org.glassfish.jersey.core', name: 'jersey-common', version: '2.30.1'
+
+//    testImplementation('org.junit.jupiter:junit-jupiter:5.4.0')
+//    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.4.0")
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+        exclude group: 'com.vaadin.external.google', module: 'android-json'
+    }
+
+    //testImplementation('org.junit.platform:junit-platform-launcher:1.5.2')
 }
 
 jar {
     enabled = true
 }
+
 sourceSets {
 	main {
 		java {
-		  srcDirs = ['src/main/java','src/gen/java','generated/java']
+		  srcDirs = ['src/main/java', 'generated/java']
 		}
 	}
 }
@@ -81,5 +95,10 @@ compileJava {
 clean.doLast {
     // clean-up directory when necessary
     file(new File(projectDir, "/generated")).deleteDir()
+    file(new File("/tmp/cdms")).deleteDir()
+}
+
+test {
+    useJUnitPlatform()
 }
 

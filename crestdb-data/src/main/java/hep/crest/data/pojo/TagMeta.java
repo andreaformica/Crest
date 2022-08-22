@@ -3,6 +3,7 @@ package hep.crest.data.pojo;
 
 import java.sql.Blob;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -68,7 +69,6 @@ public class TagMeta implements java.io.Serializable {
     @Column(name = "INSERTION_TIME", nullable = false, updatable = true, length = 11)
     private Date insertionTime;
 
-
     /**
      * 
      * @return
@@ -76,19 +76,8 @@ public class TagMeta implements java.io.Serializable {
     @PrePersist
     public void prePersist() {
         if (this.insertionTime == null) {
-            final Timestamp now = new Timestamp(new Date().getTime());
+            final Timestamp now = Timestamp.from(Instant.now());
             this.insertionTime = now;
         }
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return "TagMeta [tagName=" + tagName + ", description=" + description + ", chansize="
-                + chansize + ", colsize=" + colsize + ", insertionTime=" + insertionTime + "]";
     }
 }

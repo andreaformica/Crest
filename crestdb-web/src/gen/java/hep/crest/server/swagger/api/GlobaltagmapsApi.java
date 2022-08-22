@@ -1,12 +1,13 @@
 package hep.crest.server.swagger.api;
 
-import hep.crest.swagger.model.*;
+import hep.crest.server.swagger.model.*;
 import hep.crest.server.swagger.api.GlobaltagmapsApiService;
 
 import io.swagger.annotations.ApiParam;
-import io.swagger.jaxrs.*;
 
-import hep.crest.swagger.model.GlobalTagMapDto;
+import hep.crest.server.swagger.api.impl.JAXRSContext;
+
+import hep.crest.server.swagger.model.GlobalTagMapDto;
 
 import java.util.Map;
 import java.util.List;
@@ -21,6 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
@@ -36,6 +39,12 @@ import javax.validation.Valid;
 public class GlobaltagmapsApi  {
    @Autowired
    private GlobaltagmapsApiService delegate;
+   @Context
+   protected Request request;
+   @Context
+   protected HttpHeaders headers;
+   @Autowired
+   protected JAXRSContext context;
 
     @POST
     
@@ -49,6 +58,8 @@ public class GlobaltagmapsApi  {
     })
     public Response createGlobalTagMap(@ApiParam(value = "") @Valid  GlobalTagMapDto globalTagMapDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
         return delegate.createGlobalTagMap(globalTagMapDto, securityContext, info);
     }
     @DELETE
@@ -63,6 +74,8 @@ public class GlobaltagmapsApi  {
     })
     public Response deleteGlobalTagMap(@ApiParam(value = "the global tag name", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "label: the generic name labelling all tags of a certain kind.", required = true, defaultValue = "none") @DefaultValue("none") @QueryParam("label") @NotNull  String label,@ApiParam(value = "tagname: the name of the tag associated.", required = true, defaultValue = "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname,@ApiParam(value = "record: the record.") @QueryParam("record")  String record,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
         return delegate.deleteGlobalTagMap(name, label, tagname, record, securityContext, info);
     }
     @GET
@@ -77,6 +90,8 @@ public class GlobaltagmapsApi  {
     })
     public Response findGlobalTagMap(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "If the mode is BackTrace then it will search for global tags containing the tag <name>" , defaultValue="Trace")@HeaderParam("X-Crest-MapMode") String xCrestMapMode,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
         return delegate.findGlobalTagMap(name, xCrestMapMode, securityContext, info);
     }
 }

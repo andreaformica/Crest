@@ -21,6 +21,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -82,12 +83,14 @@ public class Tag implements java.io.Serializable {
      */
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "INSERTION_TIME", nullable = false, updatable = true, length = 11)
+    @EqualsAndHashCode.Exclude
     private Date insertionTime;
     /**
      * The modification time.
      */
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "MODIFICATION_TIME", nullable = false, length = 11)
+    @EqualsAndHashCode.Exclude
     private Date modificationTime;
     /**
      * The mapping with global tags.
@@ -106,7 +109,7 @@ public class Tag implements java.io.Serializable {
     @PrePersist
     public void prePersist() {
         if (this.insertionTime == null) {
-            final Timestamp now = new Timestamp(new Date().getTime());
+            final Timestamp now = Timestamp.from(Instant.now());
             this.insertionTime = now;
             this.modificationTime = now;
         }
@@ -119,7 +122,7 @@ public class Tag implements java.io.Serializable {
      */
     @PreUpdate
     public void preUpdate() {
-        final Timestamp now = new Timestamp(new Date().getTime());
+        final Timestamp now = Timestamp.from(Instant.now());
         this.modificationTime = now;
     }
 }

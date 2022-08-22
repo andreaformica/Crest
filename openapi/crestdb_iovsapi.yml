@@ -19,19 +19,78 @@ paths:
       tags:
         - iovs
       summary: Finds a IovDtos lists.
-      description: 'This method allows to perform search by tagname and sorting.Arguments: tagname={a tag name}, page={ipage}, size={isize},      sort=<pattern>, where pattern is <field>:[DESC|ASC]'
+      description: |
+        Retrieves IOVs, with parameterizable method and arguments
       operationId: findAllIovs
       parameters:
-        - name: by
+        - name: method
           in: query
-          description: 'you need a mandatory tagname:xxxx. Additional field can be since or insertionTime rules.'
+          description: |
+            the method used will determine which query is executed
+            IOVS, RANGE and AT is a standard IOV query requiring a precise tag name
+            GROUPS is a group query type
           required: true
           schema:
             type: string
+            enum: [IOVS, GROUPS, MONITOR]
+            default: IOVS
+        - name: tagname
+          in: query
+          description: the tag name
+          required: false
+          schema:
+            type: string
             default: none
+        - name: snapshot
+          in: query
+          description: 'snapshot: the snapshot time {0}'
+          required: false
+          schema:
+            type: integer
+            default: 0
+            format: int64
+        - name: since
+          in: query
+          description: the since time as a string {0}
+          required: false
+          schema:
+            type: string
+            default: 0
+        - name: until
+          in: query
+          description: the until time as a string {INF}
+          required: false
+          schema:
+            type: string
+            default: INF
+        - name: timeformat
+          in: query
+          description: |
+            the format for since and until {number | ms | iso | run-lumi | custom (yyyyMMdd'T'HHmmssX)}
+            If timeformat is equal number, we just parse the argument as a long.
+          required: false
+          schema:
+            type: string
+            enum: [NUMBER, MS, ISO, RUN, RUN_LUMI, CUSTOM]
+            default: NUMBER
+        - name: groupsize
+          in: query
+          description: |
+            The group size represent the pagination type provided for GROUPS query method.
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: hash
+          in: query
+          description: |
+            the hash for searching specific IOV list for a given hash.
+          required: false
+          schema:
+            type: string
         - name: page
           in: query
-          description: 'page: the page number {0}'
+          description: the page number {0}
           required: false
           schema:
             type: integer
@@ -39,7 +98,7 @@ paths:
             format: int32
         - name: size
           in: query
-          description: 'size: the page size {10000}'
+          description: the page size {10000}
           required: false
           schema:
             type: integer
@@ -47,17 +106,32 @@ paths:
             format: int32
         - name: sort
           in: query
-          description: 'sort: the sort pattern {id.since:ASC}'
+          description: the sort pattern {id.since:ASC}
           required: false
           schema:
             type: string
             default: 'id.since:ASC'
-        - in: header
-          name: dateformat
-          description: 'The format of the input time fields: {yyyyMMdd''T''HHmmssX | ms} DEFAULT: ms (so it is a long). Used for insertionTime comparaison.'
+        - name: X-Crest-Query
+          in: header
+          description: |
+            The query type. The header parameter X-Crest-Query can be : iovs, ranges, at.
+            The iovs represents an exclusive interval, while ranges and at include previous since.
+            This has an impact on how the since and until ranges are applied.
           schema:
-            default: ms
+            enum: [IOVS, RANGES, AT]
+            default: IOVS
             type: string
+        - name: X-Crest-Since
+          in: header
+          description: |
+            The since type required in the query. It can be : ms, cool.
+            Since and until will be transformed in these units.
+            It differs from timeformat which indicates how to interpret the since and until
+            strings in input.
+          schema:
+            type: string
+            enum: [MS, COOL, NUMBER]
+            default: NUMBER
       responses:
         '200':
           description: successful operation
@@ -102,47 +176,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/IovSetDto"
-  /iovs/getSize:
-    get:
-      tags:
-        - iovs
-      summary: Get the number o iovs for the given tag.
-      description: 'This method allows to select the count of iovs in a tag. Also possible to get the size of snapshot, if the time added.Arguments: tagname={a tag name}, snapshotTime={snapshot time in milliseconds (Long) from epoch}'
-      operationId: getSize
-      parameters:
-        - name: tagname
-          in: query
-          description: 'tagname: the tag name {none}'
-          required: true
-          schema:
-            type: string
-            default: none
-        - name: snapshot
-          in: query
-          description: 'snapshot: the snapshot time {0}'
-          required: false
-          schema:
-            type: integer
-            default: 0
-            format: int64
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CrestBaseResponse"
-  /iovs/getSizeByTag:
+  /iovs/size:
     get:
       tags:
         - iovs
       summary: Get the number o iovs for tags matching pattern.
-      description: 'This method allows to select the count of iovs in a tag. Also possible to get the size of snapshot, if the time is added. Arguments: tagname={a tag name}'
+      description: |
+        This method allows to retrieve the number of iovs in a tag (or pattern).
       operationId: getSizeByTag
       parameters:
         - name: tagname
           in: query
-          description: 'tagname: the tag name {none}'
+          description: the tag name, can be a pattern like MDT%
           required: true
           schema:
             type: string
@@ -154,88 +199,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TagSummarySetDto"
-  /iovs/selectGroups:
-    get:
-      tags:
-        - iovs
-      summary: Select groups for a given tagname.
-      description: 'This method allows to select a list of groups.Arguments: tagname={a tag name}, snapshot={snapshot time as long}'
-      operationId: selectGroups
-      parameters:
-        - name: tagname
-          in: query
-          description: 'tagname: the tag name {none}'
-          required: true
-          schema:
-            type: string
-            default: none
-        - name: snapshot
-          in: query
-          description: 'snapshot: the snapshot time {0}'
-          required: false
-          schema:
-            type: integer
-            default: 0
-            format: int64
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/IovSetDto"
-  /iovs/selectIovs:
-    get:
-      tags:
-        - iovs
-      summary: Select iovs for a given tagname and in a given range.
-      description: 'This method allows to select a list of iovs in a tag, using a given range in time and (optionally) for a given snapshot time.Arguments: tagname={a tag name}, since={since time as string}, until={until time as string}, snapshot={snapshot time as long}'
-      operationId: selectIovs
-      parameters:
-        - name: X-Crest-Query
-          in: header
-          description: 'The query type. The header parameter X-Crest-Query can be : groups (default) or ranges (include previous since).'
-          schema:
-            default: groups
-            type: string
-        - name: tagname
-          in: query
-          description: 'tagname: the tag name {none}'
-          required: false
-          schema:
-            type: string
-            default: none
-        - name: since
-          in: query
-          description: 'since: the since time as a string {0}'
-          required: false
-          schema:
-            type: string
-            default: '0'
-        - name: until
-          in: query
-          description: 'until: the until time as a string {INF}'
-          required: false
-          schema:
-            type: string
-            default: INF
-        - name: snapshot
-          in: query
-          description: 'snapshot: the snapshot time {0}'
-          required: false
-          schema:
-            type: integer
-            default: 0
-            format: int64
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/IovSetDto"
 
-  /iovs/selectIovPayloads:
+  /iovs/infos:
     get:
       tags:
         - iovs
@@ -243,41 +208,59 @@ paths:
       description: 'This method allows to select a list of iovs+payload meta in a tag, using a given range in time and (optionally) for a given snapshot time.Arguments: tagname={a tag name}, since={since time as string}, until={until time as string}, snapshot={snapshot time as long}'
       operationId: selectIovPayloads
       parameters:
-        - name: X-Crest-Query
-          in: header
-          description: 'The query type. The header parameter X-Crest-Query can be : groups (default) or ranges (include previous since).'
-          schema:
-            default: groups
-            type: string
         - name: tagname
           in: query
-          description: 'tagname: the tag name {none}'
-          required: false
+          description: the tag name
+          required: true
           schema:
             type: string
             default: none
         - name: since
           in: query
-          description: 'since: the since time as a string {0}'
+          description: the since time as a string {0}
           required: false
           schema:
             type: string
-            default: '0'
+            default: 0
         - name: until
           in: query
-          description: 'until: the until time as a string {INF}'
+          description: the until time as a string {INF}
           required: false
           schema:
             type: string
             default: INF
-        - name: snapshot
+        - name: timeformat
           in: query
-          description: 'snapshot: the snapshot time {0}'
+          description: |
+            the format for since and until {number | ms | iso | custom (yyyyMMdd'T'HHmmssX)}
+            If timeformat is equal number, we just parse the argument as a long.
+          required: false
+          schema:
+            type: string
+            default: number
+        - name: page
+          in: query
+          description: the page number {0}
           required: false
           schema:
             type: integer
             default: 0
-            format: int64
+            format: int32
+        - name: size
+          in: query
+          description: the page size {10000}
+          required: false
+          schema:
+            type: integer
+            default: 10000
+            format: int32
+        - name: sort
+          in: query
+          description: the sort pattern {id.since:ASC}
+          required: false
+          schema:
+            type: string
+            default: 'id.since:ASC'
       responses:
         '200':
           description: successful operation
@@ -285,80 +268,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/IovPayloadSetDto"
-  /iovs/lastIov:
-    get:
-      tags:
-        - iovs
-      summary: Select last iov for a given tagname and before a given since.
-      description: 'This method allows to select the last iov in a tag, before a given time and (optionally) for a given snapshot time.Arguments: tagname={a tag name}, since={since time as string}, snapshot={snapshot time as long}'
-      operationId: lastIov
-      parameters:
-        - name: tagname
-          in: query
-          description: 'tagname: the tag name {none}'
-          required: false
-          schema:
-            type: string
-            default: none
-        - name: since
-          in: query
-          description: 'since: the since time '
-          required: false
-          schema:
-            type: string
-            default: now
-        - name: snapshot
-          in: query
-          description: 'snapshot: the snapshot time {0}'
-          required: false
-          schema:
-            type: integer
-            default: 0
-            format: int64
-        - in: header
-          name: dateformat
-          description: 'The format of the input time fields: {yyyyMMdd''T''HHmmssX | ms} DEFAULT: ms (so it is a long). Used for insertionTime comparaison.'
-          schema:
-            default: ms
-            type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/IovSetDto"
-  /iovs/selectSnapshot:
-    get:
-      tags:
-        - iovs
-      summary: Select snapshot for a given tagname and insertion time.
-      description: 'This method allows to select a list of all iovs in a tag, using (optionally) a given snapshot time.Arguments: tagname={a tag name}, snapshot={snapshot time as long}'
-      operationId: selectSnapshot
-      parameters:
-        - name: tagname
-          in: query
-          description: 'tagname: the tag name {none}'
-          required: true
-          schema:
-            type: string
-            default: none
-        - name: snapshot
-          in: query
-          description: 'snapshot: the snapshot time {0}'
-          required: true
-          schema:
-            type: integer
-            default: 0
-            format: int64
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/IovSetDto"
-
 components:
   securitySchemes:
     $ref: 'schemas/common.yml#/components/securitySchemes'

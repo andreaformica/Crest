@@ -1,13 +1,14 @@
 package hep.crest.server.swagger.api;
 
-import hep.crest.swagger.model.*;
+import hep.crest.server.swagger.model.*;
 import hep.crest.server.swagger.api.FoldersApiService;
 
 import io.swagger.annotations.ApiParam;
-import io.swagger.jaxrs.*;
 
-import hep.crest.swagger.model.FolderDto;
-import hep.crest.swagger.model.FolderSetDto;
+import hep.crest.server.swagger.api.impl.JAXRSContext;
+
+import hep.crest.server.swagger.model.FolderDto;
+import hep.crest.server.swagger.model.FolderSetDto;
 
 import java.util.Map;
 import java.util.List;
@@ -22,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
@@ -37,6 +40,12 @@ import javax.validation.Valid;
 public class FoldersApi  {
    @Autowired
    private FoldersApiService delegate;
+   @Context
+   protected Request request;
+   @Context
+   protected HttpHeaders headers;
+   @Autowired
+   protected JAXRSContext context;
 
     @POST
     
@@ -50,6 +59,8 @@ public class FoldersApi  {
     })
     public Response createFolder(@ApiParam(value = "") @Valid  FolderDto folderDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
         return delegate.createFolder(folderDto, securityContext, info);
     }
     @GET
@@ -62,8 +73,10 @@ public class FoldersApi  {
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = FolderSetDto.class)
     })
-    public Response listFolders(@ApiParam(value = "by: the search pattern {none}", defaultValue = "none") @DefaultValue("none") @QueryParam("by")  String by,@ApiParam(value = "sort: the sort pattern {nodeFullpath:ASC}", defaultValue = "nodeFullpath:ASC") @DefaultValue("nodeFullpath:ASC") @QueryParam("sort")  String sort,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response listFolders(@ApiParam(value = "the schema pattern {none}", defaultValue = "none") @DefaultValue("none") @QueryParam("schema")  String schema,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
-        return delegate.listFolders(by, sort, securityContext, info);
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
+        return delegate.listFolders(schema, securityContext, info);
     }
 }

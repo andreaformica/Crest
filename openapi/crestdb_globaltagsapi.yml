@@ -19,16 +19,50 @@ paths:
       tags:
         - globaltags
       summary: Finds a GlobalTagDtos lists.
-      description: 'This method allows to perform search and sorting.Arguments: by=<pattern>, page={ipage}, size={isize}, sort=<sortpattern>. The pattern <pattern> is in the form <param-name><operation><param-value>       <param-name> is the name of one of the fields in the dto       <operation> can be [< : >] ; for string use only [:]        <param-value> depends on the chosen parameter. A list of this criteria can be provided       using comma separated strings for <pattern>.      The pattern <sortpattern> is <field>:[DESC|ASC]'
+      description: |
+        This method allows to perform search and sorting.
+        Arguments: name=<pattern>, workflow, scenario, release, validity, description
+        page={ipage}, size={isize}, sort=<sortpattern>.
       operationId: listGlobalTags
       parameters:
-        - name: by
+        - name: name
           in: query
-          description: 'by: the search pattern {none}'
+          description: 'the global tag name search pattern {none}'
           required: false
           schema:
             type: string
-            default: none
+            default: all
+        - name: workflow
+          in: query
+          description: 'the global tag workflow search pattern {none}'
+          required: false
+          schema:
+            type: string
+        - name: scenario
+          in: query
+          description: 'the global tag scenario search pattern {none}'
+          required: false
+          schema:
+            type: string
+        - name: release
+          in: query
+          description: 'the global tag release search pattern {none}'
+          required: false
+          schema:
+            type: string
+        - name: validity
+          in: query
+          description: 'the global tag validity low limit {x>=validity}'
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: description
+          in: query
+          description: 'the global tag description search pattern {none}'
+          required: false
+          schema:
+            type: string
         - name: page
           in: query
           description: 'page: the page number {0}'

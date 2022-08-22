@@ -1,6 +1,5 @@
 package hep.crest.server.swagger.api.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.data.config.CrestProperties;
 import hep.crest.data.exceptions.AbstractCdbServiceException;
@@ -9,18 +8,19 @@ import hep.crest.data.exceptions.CdbInternalException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.exceptions.PayloadEncodingException;
 import hep.crest.data.handlers.PayloadHandler;
-import hep.crest.data.repositories.PayloadDataBaseCustom;
 import hep.crest.server.caching.CachingPolicyService;
+import hep.crest.server.repositories.PayloadDataBaseCustom;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.PayloadService;
 import hep.crest.server.services.TagService;
+import hep.crest.server.swagger.api.NotFoundException;
 import hep.crest.server.swagger.api.PayloadsApiService;
-import hep.crest.swagger.model.GenericMap;
-import hep.crest.swagger.model.HTTPResponse;
-import hep.crest.swagger.model.IovDto;
-import hep.crest.swagger.model.IovSetDto;
-import hep.crest.swagger.model.PayloadDto;
-import hep.crest.swagger.model.PayloadSetDto;
+import hep.crest.server.swagger.model.GenericMap;
+import hep.crest.server.swagger.model.HTTPResponse;
+import hep.crest.server.swagger.model.IovDto;
+import hep.crest.server.swagger.model.IovSetDto;
+import hep.crest.server.swagger.model.PayloadDto;
+import hep.crest.server.swagger.model.PayloadSetDto;
 import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
@@ -138,54 +138,34 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         return Response.created(info.getRequestUri()).entity(saved).build();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * hep.crest.server.swagger.api.PayloadsApiService#createPayloadMultiForm(java.
-     * io.InputStream,
-     * org.glassfish.jersey.media.multipart.FormDataContentDisposition,
-     * org.glassfish.jersey.media.multipart.FormDataBodyPart,
-     * javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
-     */
     @Override
-    public Response createPayloadMultiForm(FormDataBodyPart fileBodypart, String payload,
+    public Response createPayloadMultiForm(FormDataBodyPart fileBodypart, PayloadDto payload,
                                            SecurityContext securityContext, UriInfo info) {
         this.log.info("PayloadRestController processing request to upload payload from stream");
-        // PayloadDto payload = new PayloadDto();
-        PayloadDto payloaddto = null;
         try {
             // Assume the FormDataBodyPart is a JSON string.
             // Get the DTO.
-            payloaddto = jacksonMapper.readValue(payload, PayloadDto.class);
-            log.debug("Received body json " + payloaddto);
+            log.debug("Received body json " + payload);
             // Verify if hash exists
-            String dbhash = payloaddataRepository.exists(payloaddto.getHash());
+            String dbhash = payloaddataRepository.exists(payload.getHash());
             if (dbhash != null && dbhash.length() > 0) {
-                throw new ConflictException("Hash already exists " + payloaddto.getHash());
+                throw new ConflictException("Hash already exists " + payload.getHash());
             }
             // Create the payload taking binary content from the input stream.
             FormDataContentDisposition fileDetail = fileBodypart.getFormDataContentDisposition();
             InputStream fileInputStream = fileBodypart.getValueAs(InputStream.class);
             // Create the payload taking binary content from the input stream.
-            final PayloadDto saved = payloadService.insertPayloadAndInputStream(payloaddto,
+            final PayloadDto saved = payloadService.insertPayloadAndInputStream(payload,
                     fileInputStream);
             return Response.created(info.getRequestUri()).entity(saved).build();
         }
-        catch (final NullPointerException | JsonProcessingException e) {
+        catch (final NullPointerException e) {
             // Exception, send 500.
             final String msg = "Error creating payload resource : " + e.getCause();
             throw new CdbInternalException(msg);
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * hep.crest.server.swagger.api.PayloadsApiService#getPayload(java.lang.String,
-     * java.lang.String, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
-     */
     //     @CacheControlCdb("public, max-age=604800") : this has to be set on the API class itself.
     //     For the moment we decide to use the cachecontrol filter (if active) via the method
     //     name definition, by looking for the annotation @Path
@@ -271,13 +251,6 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     }
 
 
-    /*
-     * (non-javadoc)
-     * storePayloadWithIovMultiForm: @see hep.crest.server.swagger.api.PayloadsApiService#storePayloadWithIovMultiForm(
-     * java.io.InputStream, org.glassfish.jersey.media.multipart.FormDataContentDisposition,
-     * java.lang.String, java.math.BigDecimal, java.lang.String, java.lang.String,
-     * java.lang.String, java.math.BigDecimal, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
-     */
     @Override
     public Response storePayloadWithIovMultiForm(FormDataBodyPart fileBodypart, String tag, BigDecimal since,
                                                  String format,
@@ -312,7 +285,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             }
             // Create a temporary file name from tag name and time of validity.
             String filename = cprops.getDumpdir() + SLASH + tag + "_" + since
-                                    + fdetailsname;
+                              + fdetailsname;
             if (format == null) {
                 format = "JSON";
             }
@@ -358,115 +331,60 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see hep.crest.server.swagger.api.PayloadsApiService#
-     * storePayloadBatchWithIovMultiForm(java.util.List,
-     * org.glassfish.jersey.media.multipart.FormDataContentDisposition,
-     * java.lang.String, org.glassfish.jersey.media.multipart.FormDataBodyPart,
-     * java.lang.String, java.math.BigDecimal, javax.ws.rs.core.SecurityContext,
-     * javax.ws.rs.core.UriInfo)
-     */
     @Override
-    public Response uploadPayloadBatchWithIovMultiForm(List<FormDataBodyPart> filesBodypart, String tag,
-                                                       String iovsetupload,
-                                                       String xCrestPayloadFormat, String objectType, String version,
-                                                       BigDecimal endtime, String streamerInfo,
-                                                       SecurityContext securityContext,
-                                                       UriInfo info) {
+    public Response storeBatch(List<FormDataBodyPart> filesBodypart, String tag, IovSetDto iovsetupload,
+                               String xCrestPayloadFormat, String objectType, String version, BigDecimal endtime,
+                               String streamerInfo, SecurityContext securityContext, UriInfo info)
+            throws NotFoundException {
         this.log.info(
-                "PayloadRestController processing request to upload payload batch in tag {} with multi-iov ",
+                "PayloadRestController processing request to store payload batch in tag {} with multi-iov ",
                 tag);
         try {
             // Read input FormData as an IovSet object.
-            final IovSetDto dto = jacksonMapper.readValue(iovsetupload, IovSetDto.class);
-            log.info("Batch insertion of {} iovs using file formatted", dto.getSize());
+            if (tag == null || iovsetupload == null) {
+                throw new CdbBadRequestException(
+                        "Cannot upload payload in batch mode : form is missing a field, " + tag + " - " + iovsetupload);
+            }
+            log.info("Batch insertion of {} iovs using file formatted", iovsetupload.getSize());
             // use to send back a NotFound if the tag does not exists.
             tagService.findOne(tag);
             // Add object type.
             if (objectType == null) {
-                objectType = dto.getDatatype();
+                objectType = iovsetupload.getDatatype();
             }
             // Add version.
             if (version == null) {
                 version = "default";
             }
             // Set default for payload format.
-            if (xCrestPayloadFormat == null) {
+            if (xCrestPayloadFormat == null && filesBodypart != null) {
                 xCrestPayloadFormat = "FILE";
             }
-            // Check that number of files is not too much.
-            if (filesBodypart.size() > MAX_FILE_UPLOAD) {
-                final String msg = "Too many files attached to the request...> MAX_FILE_UPLOAD = "
-                                   + MAX_FILE_UPLOAD;
-                throw new IOException(msg);
+            IovSetDto outdto = null;
+            if ("FILE".equalsIgnoreCase(xCrestPayloadFormat)) {
+                // Check that number of files is not too much.
+                if (filesBodypart == null) {
+                    throw new CdbBadRequestException("Cannot use header FILE with empty list of files");
+                }
+                if (filesBodypart.size() > MAX_FILE_UPLOAD) {
+                    final String msg = "Too many files attached to the request...> MAX_FILE_UPLOAD = "
+                                       + MAX_FILE_UPLOAD;
+                    throw new CdbBadRequestException("Too many files uploaded : more than " + MAX_FILE_UPLOAD);
+                }
+                // Only the payload format FILE is allowed here.
+                // This was created to eventually merge with other methods later on.
+                outdto = storeIovs(iovsetupload, tag, objectType, version, streamerInfo, filesBodypart);
             }
-            // Only the payload format FILE is allowed here.
-            // This was created to eventually merge with other methods later on.
-            if (xCrestPayloadFormat.equals("FILE")) {
-                final IovSetDto outdto = storeIovs(dto, tag, objectType, version, streamerInfo, filesBodypart);
-                return Response.created(info.getRequestUri()).entity(outdto).build();
+            else if ("JSON".equalsIgnoreCase(xCrestPayloadFormat)) {
+                outdto = storeIovs(iovsetupload, tag, objectType, version, streamerInfo, null);
             }
             else {
-                throw new CdbBadRequestException("Wrong header parameter " + xCrestPayloadFormat);
+                throw new CdbBadRequestException("Bad header parameter: " + xCrestPayloadFormat);
             }
+            return Response.created(info.getRequestUri()).entity(outdto).build();
         }
         catch (IOException e) {
             log.warn("uploadPayloadBatchWithIovMultiForm bad request: {}", e.getMessage());
-            throw new CdbBadRequestException(e.getMessage());
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see hep.crest.server.swagger.api.PayloadsApiService#
-     * storePayloadBatchWithIovMultiForm(java.lang.String,
-     * org.glassfish.jersey.media.multipart.FormDataBodyPart, java.lang.String,
-     * java.math.BigDecimal, javax.ws.rs.core.SecurityContext,
-     * javax.ws.rs.core.UriInfo)
-     */
-    @Override
-    public Response storePayloadBatchWithIovMultiForm(String tag, String iovsetupload,
-                                                      String xCrestPayloadFormat, String objectType, String version,
-                                                      BigDecimal endtime, String streamerInfo,
-                                                      SecurityContext securityContext,
-                                                      UriInfo info) {
-        this.log.info(
-                "PayloadRestController processing request to store payload batch in tag {} with multi-iov",
-                tag);
-        try {
-            // use to send back a NotFound if the tag does not exists.
-            tagService.findOne(tag);
-            // Read the FormData as a IovSet object.
-            final IovSetDto dto = jacksonMapper.readValue(iovsetupload, IovSetDto.class);
-            log.info("Batch insertion of {} iovs using file formatted in {}", dto.getSize(),
-                    dto.getDatatype());
-            // Add object type.
-            if (objectType == null) {
-                objectType = dto.getDatatype();
-            }
-            // Add version.
-            if (version == null) {
-                version = "default";
-            }
-            // Set default for payload format.
-            if (xCrestPayloadFormat == null) {
-                xCrestPayloadFormat = "JSON";
-            }
-            // This method only accept JSON in header format.
-            // It can probably be merged with the previous method.
-            if (xCrestPayloadFormat.equalsIgnoreCase("JSON")) {
-                final IovSetDto outdto = storeIovs(dto, tag, objectType, version, streamerInfo, null);
-                return Response.created(info.getRequestUri()).entity(outdto).build();
-            }
-            else {
-                throw new IOException("Wrong header parameter " + xCrestPayloadFormat);
-            }
-        }
-        catch (IOException e) {
-            log.warn("storePayloadBatchWithIovMultiForm bad request: {}", e.getMessage());
             throw new CdbBadRequestException(e.getMessage());
         }
     }
@@ -478,9 +396,9 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      * @param tag            the String
      * @param filesbodyparts the List<FormDataBodyPart>
      * @return IovSetDto
-     * @throws PayloadEncodingException If an Exception occurred
-     * @throws IOException              If an Exception occurred
-     * @throws AbstractCdbServiceException      if an exception occurred in insertion.
+     * @throws PayloadEncodingException    If an Exception occurred
+     * @throws IOException                 If an Exception occurred
+     * @throws AbstractCdbServiceException if an exception occurred in insertion.
      */
     protected IovSetDto storeIovs(IovSetDto dto, String tag, String objectType, String version,
                                   String streamerInfo, List<FormDataBodyPart> filesbodyparts)

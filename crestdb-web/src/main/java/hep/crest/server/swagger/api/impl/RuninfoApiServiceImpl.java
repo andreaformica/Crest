@@ -1,28 +1,26 @@
 package hep.crest.server.swagger.api.impl;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
-import hep.crest.data.exceptions.AbstractCdbServiceException;
-import hep.crest.data.repositories.querydsl.IFilteringCriteria;
-import hep.crest.data.repositories.querydsl.SearchCriteria;
+import hep.crest.data.runinfo.pojo.RunLumiInfo;
+import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.runinfo.services.RunInfoService;
-import hep.crest.server.swagger.api.ApiResponseMessage;
 import hep.crest.server.swagger.api.NotFoundException;
 import hep.crest.server.swagger.api.RuninfoApiService;
-import hep.crest.swagger.model.CrestBaseResponse;
-import hep.crest.swagger.model.GenericMap;
-import hep.crest.swagger.model.RunLumiInfoDto;
-import hep.crest.swagger.model.RunLumiSetDto;
+import hep.crest.server.swagger.model.CrestBaseResponse;
+import hep.crest.server.swagger.model.GenericMap;
+import hep.crest.server.swagger.model.RespPage;
+import hep.crest.server.swagger.model.RunLumiInfoDto;
+import hep.crest.server.swagger.model.RunLumiSetDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -47,13 +45,11 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
      */
     @Autowired
     private PageRequestHelper prh;
-
     /**
-     * Filtering.
+     * Helper.
      */
     @Autowired
-    @Qualifier("runFiltering")
-    private IFilteringCriteria filtering;
+    EntityDtoHelper edh;
 
     /**
      * Service.
@@ -91,49 +87,27 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
     /*
      * (non-Javadoc)
      *
-     * @see hep.crest.server.swagger.api.RuninfoApiService#listRunLumiInfo(java.lang.
-     * String, java.lang.Integer, java.lang.Integer, java.lang.String,
-     * javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
-     */
-    @Override
-    public Response listRunInfo(String by, Integer page, Integer size, String sort,
-                                SecurityContext securityContext, UriInfo info) throws NotFoundException {
-        log.debug("Search resource list using by={}, page={}, size={}, sort={}", by, page, size,
-                sort);
-        // Find a RunInfo resource.
-        final CrestBaseResponse setdto = this.findRunLumiInfo(by, page, size, sort);
-        if (setdto == null) {
-            // Return 404.
-            final String message = "No resource has been found";
-            final ApiResponseMessage resp = new ApiResponseMessage(ApiResponseMessage.INFO,
-                    message);
-            return Response.status(Response.Status.NOT_FOUND).entity(resp).build();
-        }
-        // Return 200.
-        return Response.ok().entity(setdto).build();
-    }
-
-    /*
-     * (non-Javadoc)
-     *
      * @see hep.crest.server.swagger.api.RuninfoApiService#selectRunInfo(java.lang.
      * String, java.lang.String, java.lang.String, java.lang.Integer,
      * java.lang.Integer, java.lang.String, javax.ws.rs.core.SecurityContext,
      * javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response selectRunInfo(String from, String to, String format, String mode,
-                                  SecurityContext securityContext, UriInfo info) throws NotFoundException {
+    public Response listRunInfo(String from, String to, String format, String mode,
+                                Integer page, Integer size, String sort,
+                                SecurityContext securityContext, UriInfo info) throws NotFoundException {
         log.debug("Search resource list using from={}, to={}, format={}, mode={}", from, to,
                 format, mode);
         // Select RunInfo in a range.
-        List<RunLumiInfoDto> dtolist = new ArrayList<>();
+        // Create pagination request
+        final PageRequest preq = prh.createPageRequest(page, size, sort);
+        Page<RunLumiInfo> entitypage = null;
         if (mode.equalsIgnoreCase("runrange")) {
             // Interpret as Runs
-            final BigDecimal bfrom = new BigDecimal(from);
-            final BigDecimal bto = new BigDecimal(to);
+            final BigInteger bfrom = BigInteger.valueOf(Long.valueOf(from));
+            final BigInteger bto = BigInteger.valueOf(Long.valueOf(to));
             // Inclusive selection.
-            dtolist = runinfoService.selectInclusiveByRun(bfrom, bto);
+            entitypage = runinfoService.selectInclusiveByRun(bfrom, bto, preq);
         }
         else if (mode.equalsIgnoreCase("daterange")) {
             // Interpret as Dates
@@ -155,56 +129,42 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
                 tsto = new Timestamp(new Long(to));
             }
             // Inclusive selection.
-            dtolist = runinfoService.selectInclusiveByDate(new Date(tsfrom.getTime()),
-                    new Date(tsto.getTime()));
+            entitypage = runinfoService.selectInclusiveByDate(new Date(tsfrom.getTime()),
+                    new Date(tsto.getTime()), preq);
         }
-        // Create response Set.
-        final CrestBaseResponse setdto = new RunLumiSetDto().resources(dtolist)
-                .size((long) dtolist.size()).datatype("runs");
-        final GenericMap filters = new GenericMap();
-        filters.put("from", from);
-        filters.put("to", to);
+        // Create filters
+        GenericMap filters = new GenericMap();
+        filters.put("from", from.toString());
+        filters.put("to", to.toString());
         filters.put("mode", mode);
-        if (filters != null) {
-            setdto.filter(filters);
-        }
-        return Response.ok().entity(setdto).build();
+
+        // Search for global tags using where conditions.
+        RespPage respPage = new RespPage().size(entitypage.getSize())
+                .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
+                .number(entitypage.getNumber());
+
+        final List<RunLumiInfoDto> dtolist = edh.entityToDtoList(entitypage.toList(), RunLumiInfoDto.class);
+        Response.Status rstatus = Response.Status.OK;
+        // Prepare the Set.
+        final CrestBaseResponse saveddto = buildEntityResponse(dtolist, filters);
+        saveddto.page(respPage);
+        // Send a response and status 200.
+        return Response.status(rstatus).entity(saveddto).build();
     }
 
     /**
-     * @param by   the String
-     * @param page the Integer
-     * @param size the Integer
-     * @param sort the String
-     * @return CrestBaseResponse
-     * @throws AbstractCdbServiceException If an exception occurred
+     * Factorise code to build the RunLumiSetDto.
+     *
+     * @param dtolist the List<RunLumiInfoDto>
+     * @param filters the GenericMap
+     * @return RunLumiSetDto
      */
-    protected CrestBaseResponse findRunLumiInfo(String by, Integer page, Integer size, String sort)
-            throws AbstractCdbServiceException {
-        final PageRequest preq = prh.createPageRequest(page, size, sort);
-
-        List<RunLumiInfoDto> dtolist = null;
-        List<SearchCriteria> params = null;
-        GenericMap filters = null;
-        if (by.equals("none")) {
-            dtolist = runinfoService.findAllRunInfo(null, preq);
-        }
-        else {
-            params = prh.createMatcherCriteria(by);
-            filters = prh.getFilters(params);
-            final List<BooleanExpression> expressions = filtering.createFilteringConditions(params);
-            final BooleanExpression wherepred = prh.getWhere(expressions);
-            dtolist = runinfoService.findAllRunInfo(wherepred, preq);
-        }
-        if (dtolist == null) {
-            return null;
-        }
-        final CrestBaseResponse setdto = new RunLumiSetDto().resources(dtolist)
-                .size((long) dtolist.size()).datatype("runs");
-        if (filters != null) {
-            setdto.filter(filters);
-        }
-        return setdto;
+    protected RunLumiSetDto buildEntityResponse(List<RunLumiInfoDto> dtolist, GenericMap filters) {
+        final RunLumiSetDto respdto = new RunLumiSetDto();
+        // Create the Set for the response.
+        ((RunLumiSetDto) respdto.datatype("runs")).resources(dtolist)
+                .size((long) dtolist.size());
+        respdto.filter(filters);
+        return respdto;
     }
-
 }

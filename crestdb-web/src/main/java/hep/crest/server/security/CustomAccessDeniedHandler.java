@@ -1,7 +1,7 @@
 package hep.crest.server.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hep.crest.swagger.model.HTTPResponse;
+import hep.crest.server.swagger.model.HTTPResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;

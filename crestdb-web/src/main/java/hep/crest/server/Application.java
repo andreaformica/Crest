@@ -27,7 +27,7 @@ import java.util.Arrays;
  *
  */
 @SpringBootApplication
-@EnableJpaRepositories("hep.crest.data")
+@EnableJpaRepositories("hep.crest")
 @EntityScan("hep.crest.data")
 @ComponentScan("hep.crest")
 public class Application {

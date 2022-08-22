@@ -6,13 +6,15 @@ package hep.crest.server.services;
 import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.ConflictException;
-import hep.crest.data.repositories.TagMetaDataBaseCustom;
-import hep.crest.swagger.model.TagMetaDto;
+import hep.crest.server.repositories.TagMetaDataBaseCustom;
+import hep.crest.server.swagger.model.TagMetaDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+
+import javax.transaction.Transactional;
 
 /**
  * @author rsipos
@@ -96,6 +98,7 @@ public class TagMetaService {
      * @param name the name
      * @throws AbstractCdbServiceException the cdb service exception
      */
+    @Transactional
     public void removeTagMeta(String name) {
         log.debug("Remove tag meta info for {}", name);
         tagmetaRepository.delete(name);

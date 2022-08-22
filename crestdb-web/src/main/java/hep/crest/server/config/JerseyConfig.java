@@ -11,7 +11,6 @@ import hep.crest.server.swagger.api.MonitoringApi;
 import hep.crest.server.swagger.api.PayloadsApi;
 import hep.crest.server.swagger.api.RuninfoApi;
 import hep.crest.server.swagger.api.TagsApi;
-import io.swagger.jaxrs.config.BeanConfig;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletProperties;
@@ -77,15 +76,6 @@ public class JerseyConfig extends ResourceConfig {
      */
     private void configureSwagger() {
         // Register swagger listing classes for jaxrs.
-        super.register(io.swagger.jaxrs.listing.ApiListingResource.class);
-        super.register(io.swagger.jaxrs.listing.SwaggerSerializers.class);
 
-        final BeanConfig beanConfig = new BeanConfig();
-        beanConfig.setVersion("1.0");
-        beanConfig.setSchemes(new String[] {"http"});
-        // Define the baseapi path: it is used only in swagger ui.
-        beanConfig.setBasePath("/crestapi");
-        beanConfig.setResourcePackage("hep.crest.server.swagger.api");
-        beanConfig.setScan(true);
     }
 }

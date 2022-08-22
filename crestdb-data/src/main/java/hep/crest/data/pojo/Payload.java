@@ -3,6 +3,7 @@ package hep.crest.data.pojo;
 
 import java.sql.Blob;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -85,7 +86,7 @@ public class Payload {
     @PrePersist
     public void prePersist() {
         if (this.insertionTime == null) {
-            final Timestamp now = new Timestamp(new Date().getTime());
+            final Timestamp now = Timestamp.from(Instant.now());
             this.insertionTime = now;
         }
     }

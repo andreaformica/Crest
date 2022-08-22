@@ -13,9 +13,7 @@ tags:
   - name: runinfo
 
 paths:
-  # tags
-  /runinfo/select:
-    $ref: 'crestdb_runinfoapi.yml#/paths/~1runinfo~1select'
+  # runs
   /runinfo:
     $ref: 'crestdb_runinfoapi.yml#/paths/~1runinfo'
 

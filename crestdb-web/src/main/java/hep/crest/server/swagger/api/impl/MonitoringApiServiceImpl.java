@@ -1,13 +1,13 @@
 package hep.crest.server.swagger.api.impl;
 
-import hep.crest.data.monitoring.repositories.IMonitoringRepository;
 import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.repositories.monitoring.IMonitoringRepository;
 import hep.crest.server.swagger.api.MonitoringApiService;
 import hep.crest.server.swagger.api.NotFoundException;
-import hep.crest.swagger.model.CrestBaseResponse;
-import hep.crest.swagger.model.GenericMap;
-import hep.crest.swagger.model.PayloadTagInfoDto;
-import hep.crest.swagger.model.PayloadTagInfoSetDto;
+import hep.crest.server.swagger.model.CrestBaseResponse;
+import hep.crest.server.swagger.model.GenericMap;
+import hep.crest.server.swagger.model.PayloadTagInfoDto;
+import hep.crest.server.swagger.model.PayloadTagInfoSetDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

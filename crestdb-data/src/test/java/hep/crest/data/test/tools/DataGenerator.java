@@ -12,22 +12,13 @@ import hep.crest.data.pojo.Payload;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.runinfo.pojo.RunLumiInfo;
 import hep.crest.data.security.pojo.CrestFolders;
-import hep.crest.swagger.model.FolderDto;
-import hep.crest.swagger.model.GlobalTagDto;
-import hep.crest.swagger.model.GlobalTagMapDto;
-import hep.crest.swagger.model.IovDto;
-import hep.crest.swagger.model.PayloadDto;
-import hep.crest.swagger.model.RunLumiInfoDto;
-import hep.crest.swagger.model.TagDto;
-import hep.crest.swagger.model.TagMetaDto;
-import hep.crest.swagger.model.TagSummaryDto;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.Date;
 
 /**
@@ -41,7 +32,7 @@ public class DataGenerator {
         final Date snapshotTime = new Date(now.toEpochMilli());
         final GlobalTag entity = new GlobalTag();
         entity.name(name);
-        entity.description("A test global tag "+name);
+        entity.description("A test global tag " + name);
         entity.release("rel-1");
         entity.scenario("test");
         entity.type('T');
@@ -51,57 +42,20 @@ public class DataGenerator {
         return entity;
     }
 
-    public static GlobalTagDto generateGlobalTagDto(String name, Date it) {
-        final GlobalTagDto entity = new GlobalTagDto();
-        Instant inst = Instant.ofEpochMilli(it.getTime());
-        entity.name(name);
-        entity.description("A test global tag " + name);
-        entity.release("rel-1");
-        entity.scenario("test");
-        entity.type("T");
-        entity.workflow("none");
-        entity.validity(new BigDecimal(0L));
-        entity.snapshotTime(inst.atOffset(ZoneOffset.UTC));
-        entity.insertionTime(inst.atOffset(ZoneOffset.UTC));
-        entity.setInsertionTimeMilli(10L);
-        entity.setSnapshotTimeMilli(10L);
-        return entity;
-    }
-
     public static Tag generateTag(String name, String ttype) {
         final Tag entity = new Tag();
-        entity.name(name).description("A test tag "+name).endOfValidity(new BigDecimal(-1L))
-        .lastValidatedTime(new BigDecimal(-1L))
-        .objectType("type")
-        .synchronization("synchro")
-        .timeType(ttype);
-        return entity;
-    }
-
-    public static TagDto generateTagDto(String name, String ttype) {
-        final TagDto entity = new TagDto();
-        entity.name(name);
-        entity.payloadSpec("sometype");
-        entity.description("A test tag " + name);
-        entity.endOfValidity(new BigDecimal(-1L));
-        entity.lastValidatedTime(new BigDecimal(-1L));
-        entity.synchronization("synchro");
-        entity.timeType(ttype);
+        entity.name(name).description("A test tag " + name)
+                .endOfValidity(new BigDecimal(-1L))
+                .lastValidatedTime(new BigDecimal(-1L))
+                .objectType("type")
+                .synchronization("synchro")
+                .timeType(ttype);
         return entity;
     }
 
     public static GlobalTagMap generateMapping(GlobalTag gt, Tag at, GlobalTagMapId id) {
         final GlobalTagMap entity = new GlobalTagMap();
         entity.id(id).globalTag(gt).tag(at);
-        return entity;
-    }
-
-    public static GlobalTagMapDto generateMappingDto(String tagName, String gtagName, String record, String label) {
-        final GlobalTagMapDto entity = new GlobalTagMapDto();
-        entity.tagName(tagName);
-        entity.globalTagName(gtagName);
-        entity.record(record);
-        entity.label(label);
         return entity;
     }
 
@@ -113,79 +67,30 @@ public class DataGenerator {
         return entity;
     }
 
-    public static IovDto generateIovDto(String hash, String tagname, BigDecimal since) {
-        final IovDto dto = new IovDto();
-        dto.payloadHash(hash).tagName(tagname).since(since);
-        return dto;
-    }
-
     public static Iov generateIov(String hash, String tagname, BigDecimal since) {
-        final IovId id = new IovId(tagname,since,new Date());
+        final IovId id = new IovId().tagName(tagname).since(since).insertionTime(new Date());
         final Tag tag = new Tag().name(tagname);
-        final Iov entity = new Iov(id,tag,hash);
+        final Iov entity = new Iov().id(id).tag(tag).payloadHash(hash);
         return entity;
     }
 
-    public static PayloadDto generatePayloadDto(String hash, String payloaddata, String stinfo, String objtype,
-                                                Date it) {
-        final PayloadDto dto = new PayloadDto();
-        final byte[] bindata = payloaddata.getBytes();
-        final byte[] binstinfo = stinfo.getBytes();
-        Instant inst = Instant.ofEpochMilli(it.getTime());
-        dto.insertionTime(inst.atOffset(ZoneOffset.UTC)).data(bindata).hash(hash).objectType(objtype)
-                .streamerInfo(binstinfo).version("v1");
-        dto.size(bindata.length);
-        return dto;
-    }
-
-    public static TagMetaDto generateTagMetaDto(String tagname, String taginfodata, Date it) {
-        final TagMetaDto dto = new TagMetaDto();
-        Instant inst = Instant.ofEpochMilli(it.getTime());
-        dto.tagName(tagname).chansize(1).colsize(5).tagInfo(taginfodata).insertionTime(inst.atOffset(ZoneOffset.UTC));
-        dto.description("Test tag meta");
-        return dto;
-    }
-
-    public static RunLumiInfoDto generateRunLumiInfoDto(BigDecimal since, BigDecimal run, BigDecimal lb) {
-        final RunLumiInfoDto dto = new RunLumiInfoDto();
-        dto.since(since).lb(lb).runNumber(run);
-        dto.starttime(new BigDecimal(0L)).endtime(new BigDecimal(99L));
-        return dto;
-    }
-
-    public static RunLumiInfo generateRunLumiInfo(BigDecimal since, BigDecimal run, BigDecimal lb) {
+    public static RunLumiInfo generateRunLumiInfo(BigInteger since, BigInteger run, BigInteger lb) {
         final RunLumiInfo entity = new RunLumiInfo();
-        entity.setRunNumber(run);
-        entity.setEndtime(new BigDecimal(99L));
-        entity.setStarttime(new BigDecimal(1L));
-        entity.setLb(lb);
-        entity.setSince(since);
+        entity.runNumber(run);
+        entity.endtime(BigInteger.valueOf(99L));
+        entity.starttime(BigInteger.valueOf(1L));
+        entity.lb(lb);
+        entity.since(since);
         return entity;
     }
 
-    public static TagSummaryDto generateTagSummaryDto(String name, Long niovs) {
-        final TagSummaryDto dto = new TagSummaryDto();
-        dto.tagname(name).niovs(niovs);
-        return dto;
-    }
-
-    public static FolderDto generateFolderDto(String name, String fullpath, String schema) {
-        final FolderDto dto = new FolderDto();
-        dto.schemaName(schema);
-        dto.nodeFullpath(fullpath);
-        dto.nodeName(name);
-        dto.tagPattern("MY-TEST");
-        dto.nodeDescription("Some node");
-        dto.groupRole("TEST");
-        return dto;
-    }
 
     public static CrestFolders generateFolder(String name, String fullpath, String schema) {
         final CrestFolders entity = new CrestFolders();
         entity.schemaName(schema);
         entity.nodeFullpath(fullpath);
         entity.nodeName(name);
-        entity.tagPattern(name+"-MY-TEST");
+        entity.tagPattern(name + "-MY-TEST");
         entity.nodeDescription("Some node");
         entity.groupRole("TEST");
         return entity;
