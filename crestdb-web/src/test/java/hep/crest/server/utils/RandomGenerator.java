@@ -19,6 +19,7 @@ import java.util.Random;
 
 @Slf4j
 public class RandomGenerator {
+
     private final Random rnd = new Random();
 
     public boolean isAttributeSetter(Field[] fields, String methname) {
