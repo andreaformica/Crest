@@ -5,6 +5,7 @@ import hep.crest.server.swagger.model.*;
 
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 
+import hep.crest.server.swagger.model.HTTPResponse;
 import hep.crest.server.swagger.model.PayloadTagInfoSetDto;
 
 import java.util.List;

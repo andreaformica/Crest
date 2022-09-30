@@ -109,6 +109,8 @@ components:
     $ref: 'schemas/common.yml#/components/securitySchemes'
   requestBodies:
     $ref: 'schemas/common.yml#/components/requestBodies'
+  responses:
+    $ref: 'schemas/common.yml#/components/responses'
 
   schemas:
     # commons

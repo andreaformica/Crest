@@ -61,7 +61,8 @@ public class PayloadsApi  {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "payloads", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = PayloadDto.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = PayloadDto.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response createPayload(@ApiParam(value = "") @Valid  PayloadDto payloadDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
@@ -77,7 +78,8 @@ public class PayloadsApi  {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "payloads", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = PayloadDto.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = PayloadDto.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response createPayloadMultiForm(
  @FormDataParam("file") FormDataBodyPart _fileBodypart ,@ApiParam(value = "", required=true)@FormDataParam("payload")  PayloadDto payload,@Context SecurityContext securityContext,@Context UriInfo info)
@@ -89,12 +91,14 @@ public class PayloadsApi  {
     @GET
     @Path("/{hash}")
     
-    @Produces({ "application/_*", "text/plain" })
+    @Produces({ "application/_*", "text/plain", "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Finds a payload resource associated to the hash.", notes = "This method retrieves a payload resource.Arguments: hash=<hash> the hash of the payload", response = String.class, authorizations = {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "payloads", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = String.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = String.class),
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response getPayload(@ApiParam(value = "hash:  the hash of the payload", required = true) @PathParam("hash") @NotNull  String hash,@ApiParam(value = "The format of the output data. The header parameter X-Crest-PayloadFormat can be : BLOB (default) or DTO (in JSON format)." , allowableValues="BLOB, DTO", defaultValue="BLOB")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
@@ -110,7 +114,9 @@ public class PayloadsApi  {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "payloads", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = PayloadSetDto.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = PayloadSetDto.class),
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response getPayloadMetaInfo(@ApiParam(value = "hash:  the hash of the payload", required = true) @PathParam("hash") @NotNull  String hash,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
@@ -126,7 +132,8 @@ public class PayloadsApi  {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "payloads", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = IovSetDto.class)
+        @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = IovSetDto.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response storeBatch(
  @FormDataParam("files") List<FormDataBodyPart> filesBodypart ,@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,@ApiParam(value = "", required=true)@FormDataParam("iovsetupload")  IovSetDto iovsetupload,@ApiParam(value = "The format of the input data" , allowableValues="FILE, JSON", defaultValue="FILE")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time")@FormDataParam("endtime")  BigDecimal endtime,@ApiParam(value = "The streamerInfo CLOB as a string")@FormDataParam("streamerInfo")  String streamerInfo,@Context SecurityContext securityContext,@Context UriInfo info)
@@ -143,7 +150,8 @@ public class PayloadsApi  {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "payloads", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = HTTPResponse.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = HTTPResponse.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response storePayloadWithIovMultiForm(
  @FormDataParam("file") FormDataBodyPart _fileBodypart ,@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,@ApiParam(value = "The since time", required=true)@FormDataParam("since")  BigDecimal since,@ApiParam(value = "The format of the input data" , allowableValues="JSON, TXT, BLOB, BIN", defaultValue="JSON")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time")@FormDataParam("endtime")  BigDecimal endtime,@ApiParam(value = "The streamerInfo CLOB as a string")@FormDataParam("streamerInfo")  String streamerInfo,@Context SecurityContext securityContext,@Context UriInfo info)
@@ -160,7 +168,9 @@ public class PayloadsApi  {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "payloads", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = PayloadSetDto.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = PayloadSetDto.class),
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response updatePayload(@ApiParam(value = "hash:  the hash of the payload", required = true) @PathParam("hash") @NotNull  String hash,@ApiParam(value = "") @Valid  Map<String, String> requestBody,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {

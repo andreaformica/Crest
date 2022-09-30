@@ -32,6 +32,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PayloadDto"
+        default:
+          $ref: "#/components/responses/genericError"
   /payloads/upload:
     post:
       tags:
@@ -60,6 +62,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PayloadDto"
+        default:
+          $ref: "#/components/responses/genericError"
   /payloads/store:
     post:
       tags:
@@ -120,6 +124,8 @@ paths:
             application/xml:
               schema:
                 $ref: "#/components/schemas/HTTPResponse"
+        default:
+          $ref: "#/components/responses/genericError"
 
   /payloads/batch:
     post:
@@ -187,6 +193,8 @@ paths:
             application/xml:
               schema:
                 $ref: "#/components/schemas/IovSetDto"
+        default:
+          $ref: "#/components/responses/genericError"
 
   /payloads/{hash}:
     get:
@@ -219,6 +227,10 @@ paths:
             text/plain:
               schema:
                 type: string
+        '404':
+          $ref: "#/components/responses/404"
+        default:
+          $ref: "#/components/responses/genericError"
   /payloads/{hash}/meta:
     get:
       tags:
@@ -243,6 +255,10 @@ paths:
             application/xml:
               schema:
                 $ref: "#/components/schemas/PayloadSetDto"
+        '404':
+          $ref: "#/components/responses/404"
+        default:
+          $ref: "#/components/responses/genericError"
     put:
       tags:
         - payloads
@@ -271,12 +287,18 @@ paths:
             application/xml:
               schema:
                 $ref: "#/components/schemas/PayloadSetDto"
+        '404':
+          $ref: "#/components/responses/404"
+        default:
+          $ref: "#/components/responses/genericError"
 
 components:
   securitySchemes:
     $ref: 'schemas/common.yml#/components/securitySchemes'
   requestBodies:
     $ref: 'schemas/common.yml#/components/requestBodies'
+  responses:
+    $ref: 'schemas/common.yml#/components/responses'
 
   schemas:
     # commons

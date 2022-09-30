@@ -1,5 +1,5 @@
 info:
-  version: "1.0"
+  version: "2.0"
   title: "CREST Server"
   description: "OpenApi3 for CREST Server"
   license:
@@ -15,6 +15,33 @@ security:
       - openid
 
 components:
+  responses:
+    "400":
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/HTTPResponse"
+    "404":
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/HTTPResponse"
+    "409":
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/HTTPResponse"
+    genericError:
+      description: Generic error response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/HTTPResponse"
+
+
   securitySchemes:
     BearerAuth:
       type: http

@@ -33,6 +33,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GlobalTagMapDto"
+        default:
+          $ref: "#/components/responses/genericError"
   /globaltagmaps/{name}:
     get:
       tags:
@@ -59,6 +61,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GlobalTagMapDto"
+        '404':
+          $ref: "#/components/responses/404"
+        default:
+          $ref: "#/components/responses/genericError"
     delete:
       tags:
         - globaltagmaps
@@ -99,12 +105,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GlobalTagMapDto"
+        '404':
+          $ref: "#/components/responses/404"
+        default:
+          $ref: "#/components/responses/genericError"
 
 components:
   securitySchemes:
     $ref: 'schemas/common.yml#/components/securitySchemes'
   requestBodies:
     $ref: 'schemas/common.yml#/components/requestBodies'
+  responses:
+    $ref: 'schemas/common.yml#/components/responses'
 
   schemas:
     # commons

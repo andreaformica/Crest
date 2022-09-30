@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiParam;
 
 import hep.crest.server.swagger.api.impl.JAXRSContext;
 
+import hep.crest.server.swagger.model.HTTPResponse;
 import hep.crest.server.swagger.model.PayloadTagInfoSetDto;
 
 import java.util.Map;
@@ -54,7 +55,9 @@ public class MonitoringApi  {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "monitoring", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = PayloadTagInfoSetDto.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = PayloadTagInfoSetDto.class),
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response listPayloadTagInfo(@ApiParam(value = "tagname: the search pattern {none}", defaultValue = "none") @DefaultValue("none") @QueryParam("tagname")  String tagname,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
