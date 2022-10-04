@@ -147,7 +147,9 @@ paths:
       tags:
         - iovs
       summary: Create a Iov in the database.
-      description: 'This method allows to insert a Iov.Arguments: IovDto should be provided in the body as a JSON file.'
+      description:  |
+        Insert a single Iov using an IovDto in the request body. The related
+        payload hash should already exists in the DB.
       operationId: createIov
       requestBody:
         content:
@@ -167,8 +169,10 @@ paths:
     post:
       tags:
         - iovs
-      summary: 'Create many IOVs in the database, associated to a tag name.'
-      description: 'This method allows to insert multiple IOVs. Arguments: tagname,end time.'
+      summary: 'Create IOVs in the database, associated to a tag name.'
+      description: |
+        Insert a list of Iovs using an IovSetDto in the request body. It is mandatory
+        to provide an existing tag in input.
       operationId: storeBatchIovMultiForm
       requestBody:
         content:
@@ -217,7 +221,10 @@ paths:
       tags:
         - iovs
       summary: Select iovs and payload meta info for a given tagname and in a given range.
-      description: 'This method allows to select a list of iovs+payload meta in a tag, using a given range in time and (optionally) for a given snapshot time.Arguments: tagname={a tag name}, since={since time as string}, until={until time as string}, snapshot={snapshot time as long}'
+      description: |
+        Retrieve a list of iovs with payload metadata associated. The arguments are:
+        tagname={a tag name}, since={since time as string}, until={until time as string}, snapshot={snapshot time as long}'
+        and timeformat={format of since/until}.
       operationId: selectIovPayloads
       parameters:
         - name: tagname
