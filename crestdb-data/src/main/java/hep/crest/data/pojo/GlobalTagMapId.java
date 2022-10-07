@@ -30,7 +30,7 @@ public class GlobalTagMapId implements java.io.Serializable {
     @Column(name = "RECORD", nullable = false, length = 100)
     private String record;
     /**
-     * The label. It represent a generic tag name, similarly to COOL folder.
+     * The label. It represents a generic tag name, similarly to COOL folder.
      */
     @Column(name = "LABEL", nullable = false, length = 100)
     private String label;

@@ -254,11 +254,11 @@ public class IovService {
             throw new CdbNotFoundException("Tag " + tagname + " not found: cannot insert IOV.");
         }
         final Tag t = tg.get();
-        t.modificationTime(new Date());
+        t.modificationTime(Instant.now().toDate());
         // Check if iov exists
         if (existsIov(t.name(), entity.id().since(), entity.payloadHash())) {
-            log.warn("Iov already exists : {}", entity);
-            throw new ConflictException("Iov already exists: " + entity.toString());
+            log.warn("Iov already exists [tag,since,hash]: {}", entity);
+            throw new ConflictException("Iov already exists [tag,since,hash]: " + entity.toString());
         }
         // Update the tag modification time
         final Tag updtag = tagRepository.save(t);

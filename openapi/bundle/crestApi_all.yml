@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  version: '1.0'
+  version: '2.0'
   title: CREST Server
   description: OpenApi3 for CREST Server
   license:
@@ -138,6 +138,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GlobalTagMapDto'
+        default:
+          $ref: '#/components/responses/genericError'
   '/globaltagmaps/{name}':
     get:
       tags:
@@ -164,6 +166,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GlobalTagMapDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
     delete:
       tags:
         - globaltagmaps
@@ -204,6 +210,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GlobalTagMapDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
   /globaltags:
     get:
       tags:
@@ -284,11 +294,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/GlobalTagSetDto'
         '404':
-          description: resource not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPResponse'
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
     post:
       tags:
         - globaltags
@@ -315,6 +323,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GlobalTagDto'
+        default:
+          $ref: '#/components/responses/genericError'
   '/globaltags/{name}':
     get:
       tags:
@@ -336,11 +346,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/GlobalTagSetDto'
         '404':
-          description: resource not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPResponse'
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
   '/globaltags/{name}/tags':
     get:
       tags:
@@ -375,6 +383,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TagSetDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
   /tags:
     get:
       tags:
@@ -441,6 +453,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TagSetDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
     post:
       tags:
         - tags
@@ -459,6 +475,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TagDto'
+        default:
+          $ref: '#/components/responses/genericError'
   '/tags/{name}':
     get:
       tags:
@@ -480,6 +498,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TagSetDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
     put:
       tags:
         - tags
@@ -505,6 +527,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TagDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
   '/tags/{name}/meta':
     get:
       tags:
@@ -526,6 +552,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TagMetaSetDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
     post:
       tags:
         - tags
@@ -551,6 +581,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TagMetaDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
     put:
       tags:
         - tags
@@ -579,6 +613,10 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/TagMetaDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
   /iovs:
     get:
       tags:
@@ -719,6 +757,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IovSetDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
     post:
       tags:
         - iovs
@@ -737,6 +779,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IovDto'
+        default:
+          $ref: '#/components/responses/genericError'
   /iovs/storebatch:
     post:
       tags:
@@ -756,6 +800,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IovSetDto'
+        default:
+          $ref: '#/components/responses/genericError'
   /iovs/infos:
     get:
       tags:
@@ -824,6 +870,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IovPayloadSetDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
   /iovs/size:
     get:
       tags:
@@ -847,6 +897,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TagSummarySetDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
   /payloads:
     post:
       tags:
@@ -866,6 +920,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PayloadDto'
+        default:
+          $ref: '#/components/responses/genericError'
   '/payloads/{hash}':
     get:
       tags:
@@ -899,6 +955,10 @@ paths:
             text/plain:
               schema:
                 type: string
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
   '/payloads/{hash}/meta':
     get:
       tags:
@@ -923,6 +983,10 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/PayloadSetDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
     put:
       tags:
         - payloads
@@ -951,6 +1015,10 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/PayloadSetDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
   /payloads/batch:
     post:
       tags:
@@ -1019,6 +1087,8 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/IovSetDto'
+        default:
+          $ref: '#/components/responses/genericError'
   /payloads/store:
     post:
       tags:
@@ -1083,6 +1153,8 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/HTTPResponse'
+        default:
+          $ref: '#/components/responses/genericError'
   /payloads/upload:
     post:
       tags:
@@ -1111,6 +1183,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PayloadDto'
+        default:
+          $ref: '#/components/responses/genericError'
   /monitoring/payloads:
     get:
       tags:
@@ -1133,6 +1207,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PayloadTagInfoSetDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
   /runinfo:
     post:
       tags:
@@ -1240,6 +1318,31 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/GenericMap'
+  responses:
+    '400':
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPResponse'
+    '404':
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPResponse'
+    '409':
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPResponse'
+    genericError:
+      description: Generic error response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPResponse'
   schemas:
     HTTPResponse:
       description: general response object that can be used for POST and PUT methods

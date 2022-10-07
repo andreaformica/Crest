@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiParam;
 
 import hep.crest.server.swagger.api.impl.JAXRSContext;
 
+import hep.crest.server.swagger.model.HTTPResponse;
 import hep.crest.server.swagger.model.IovDto;
 import hep.crest.server.swagger.model.IovPayloadSetDto;
 import hep.crest.server.swagger.model.IovSetDto;
@@ -57,7 +58,8 @@ public class IovsApi  {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = IovDto.class)
+        @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = IovDto.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response createIov(@ApiParam(value = "") @Valid  IovDto iovDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
@@ -73,7 +75,9 @@ public class IovsApi  {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovSetDto.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovSetDto.class),
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response findAllIovs(@ApiParam(value = "the method used will determine which query is executed IOVS, RANGE and AT is a standard IOV query requiring a precise tag name GROUPS is a group query type ", required = true, allowableValues="IOVS, GROUPS, MONITOR", defaultValue = "IOVS") @DefaultValue("IOVS") @Pattern(regexp="IOVS|GROUPS|MONITOR") @QueryParam("method") @NotNull  String method,@ApiParam(value = "the tag name", defaultValue = "none") @DefaultValue("none") @QueryParam("tagname")  String tagname,@ApiParam(value = "snapshot: the snapshot time {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("snapshot")  Long snapshot,@ApiParam(value = "the since time as a string {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("since")  String since,@ApiParam(value = "the until time as a string {INF}", defaultValue = "INF") @DefaultValue("INF") @QueryParam("until")  String until,@ApiParam(value = "the format for since and until {number | ms | iso | run-lumi | custom (yyyyMMdd'T'HHmmssX)} If timeformat is equal number, we just parse the argument as a long. ", allowableValues="NUMBER, MS, ISO, RUN, RUN_LUMI, CUSTOM", defaultValue = "NUMBER") @DefaultValue("NUMBER") @Pattern(regexp="NUMBER|MS|ISO|RUN|RUN_LUMI|CUSTOM") @QueryParam("timeformat")  String timeformat,@ApiParam(value = "The group size represent the pagination type provided for GROUPS query method. ") @QueryParam("groupsize")  Long groupsize,@ApiParam(value = "the hash for searching specific IOV list for a given hash. ") @QueryParam("hash")  String hash,@ApiParam(value = "the page number {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("page")  Integer page,@ApiParam(value = "the page size {10000}", defaultValue = "10000") @DefaultValue("10000") @QueryParam("size")  Integer size,@ApiParam(value = "the sort pattern {id.since:ASC}", defaultValue = "id.since:ASC") @DefaultValue("id.since:ASC") @QueryParam("sort")  String sort,@ApiParam(value = "The query type. The header parameter X-Crest-Query can be : iovs, ranges, at. The iovs represents an exclusive interval, while ranges and at include previous since. This has an impact on how the since and until ranges are applied. " , allowableValues="IOVS, RANGES, AT", defaultValue="IOVS")@HeaderParam("X-Crest-Query") String xCrestQuery,@ApiParam(value = "The since type required in the query. It can be : ms, cool. Since and until will be transformed in these units. It differs from timeformat which indicates how to interpret the since and until strings in input. " , allowableValues="MS, COOL, NUMBER", defaultValue="NUMBER")@HeaderParam("X-Crest-Since") String xCrestSince,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
@@ -89,7 +93,9 @@ public class IovsApi  {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagSummarySetDto.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagSummarySetDto.class),
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response getSizeByTag(@ApiParam(value = "the tag name, can be a pattern like MDT%", required = true, defaultValue = "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
@@ -105,7 +111,9 @@ public class IovsApi  {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovPayloadSetDto.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = IovPayloadSetDto.class),
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response selectIovPayloads(@ApiParam(value = "the tag name", required = true, defaultValue = "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname,@ApiParam(value = "the since time as a string {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("since")  String since,@ApiParam(value = "the until time as a string {INF}", defaultValue = "INF") @DefaultValue("INF") @QueryParam("until")  String until,@ApiParam(value = "the format for since and until {number | ms | iso | custom (yyyyMMdd'T'HHmmssX)} If timeformat is equal number, we just parse the argument as a long. ", defaultValue = "number") @DefaultValue("number") @QueryParam("timeformat")  String timeformat,@ApiParam(value = "the page number {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("page")  Integer page,@ApiParam(value = "the page size {10000}", defaultValue = "10000") @DefaultValue("10000") @QueryParam("size")  Integer size,@ApiParam(value = "the sort pattern {id.since:ASC}", defaultValue = "id.since:ASC") @DefaultValue("id.since:ASC") @QueryParam("sort")  String sort,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
@@ -121,7 +129,8 @@ public class IovsApi  {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = IovSetDto.class)
+        @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = IovSetDto.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response storeBatchIovMultiForm(@ApiParam(value = "") @Valid  IovSetDto iovSetDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {

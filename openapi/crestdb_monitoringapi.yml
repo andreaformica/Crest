@@ -36,12 +36,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PayloadTagInfoSetDto"
+        '404':
+          $ref: "#/components/responses/404"
+        default:
+          $ref: "#/components/responses/genericError"
 
 components:
   securitySchemes:
     $ref: 'schemas/common.yml#/components/securitySchemes'
   requestBodies:
     $ref: 'schemas/common.yml#/components/requestBodies'
+  responses:
+    $ref: 'schemas/common.yml#/components/responses'
 
   schemas:
     # commons

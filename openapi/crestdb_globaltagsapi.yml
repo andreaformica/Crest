@@ -94,11 +94,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/GlobalTagSetDto"
         '404':
-          description: resource not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HTTPResponse"
+          $ref: "#/components/responses/404"
+        default:
+          $ref: "#/components/responses/genericError"
     post:
       tags:
         - globaltags
@@ -125,6 +123,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GlobalTagDto"
+        default:
+          $ref: "#/components/responses/genericError"
   /globaltags/{name}:
     get:
       tags:
@@ -146,11 +146,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/GlobalTagSetDto"
         '404':
-          description: resource not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HTTPResponse"
+          $ref: "#/components/responses/404"
+        default:
+          $ref: "#/components/responses/genericError"
   /globaltags/{name}/tags:
     get:
       tags:
@@ -185,12 +183,17 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TagSetDto"
-
+        '404':
+          $ref: "#/components/responses/404"
+        default:
+          $ref: "#/components/responses/genericError"
 components:
   securitySchemes:
     $ref: 'schemas/common.yml#/components/securitySchemes'
   requestBodies:
     $ref: 'schemas/common.yml#/components/requestBodies'
+  responses:
+    $ref: 'schemas/common.yml#/components/responses'
 
   schemas:
     # commons

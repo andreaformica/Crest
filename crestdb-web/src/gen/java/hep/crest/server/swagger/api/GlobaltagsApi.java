@@ -57,7 +57,8 @@ public class GlobaltagsApi  {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "globaltags", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = GlobalTagDto.class)
+        @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = GlobalTagDto.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response createGlobalTag(@ApiParam(value = "force: tell the server if it should use or not the insertion time provided {default: false}", defaultValue = "false") @DefaultValue("false") @QueryParam("force")  String force,@ApiParam(value = "") @Valid  GlobalTagDto globalTagDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
@@ -74,7 +75,8 @@ public class GlobaltagsApi  {
     }, tags={ "globaltags", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagSetDto.class),
-        @io.swagger.annotations.ApiResponse(code = 404, message = "resource not found", response = HTTPResponse.class)
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response findGlobalTag(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
@@ -90,7 +92,9 @@ public class GlobaltagsApi  {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "globaltags", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagSetDto.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = TagSetDto.class),
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response findGlobalTagFetchTags(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "record:  the record string {}", defaultValue = "none") @DefaultValue("none") @QueryParam("record")  String record,@ApiParam(value = "label:  the label string {}", defaultValue = "none") @DefaultValue("none") @QueryParam("label")  String label,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
@@ -107,7 +111,8 @@ public class GlobaltagsApi  {
     }, tags={ "globaltags", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagSetDto.class),
-        @io.swagger.annotations.ApiResponse(code = 404, message = "resource not found", response = HTTPResponse.class)
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response listGlobalTags(@ApiParam(value = "the global tag name search pattern {none}", defaultValue = "all") @DefaultValue("all") @QueryParam("name")  String name,@ApiParam(value = "the global tag workflow search pattern {none}") @QueryParam("workflow")  String workflow,@ApiParam(value = "the global tag scenario search pattern {none}") @QueryParam("scenario")  String scenario,@ApiParam(value = "the global tag release search pattern {none}") @QueryParam("release")  String release,@ApiParam(value = "the global tag validity low limit {x>=validity}") @QueryParam("validity")  Long validity,@ApiParam(value = "the global tag description search pattern {none}") @QueryParam("description")  String description,@ApiParam(value = "page: the page number {0}", defaultValue = "0") @DefaultValue("0") @QueryParam("page")  Integer page,@ApiParam(value = "size: the page size {1000}", defaultValue = "1000") @DefaultValue("1000") @QueryParam("size")  Integer size,@ApiParam(value = "sort: the sort pattern {name:ASC}", defaultValue = "name:ASC") @DefaultValue("name:ASC") @QueryParam("sort")  String sort,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
