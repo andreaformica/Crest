@@ -1,9 +1,7 @@
 variables:
     IMAGE: crest-service
     VERSION: '2.0'
-    CONTAINER_IMAGE: $REGISTRY/$IMAGE:$VERSION
     GRADLE_OPTS: "-Dorg.gradle.daemon=false"
-    GIT_SSL_NO_VERIFY: "true"
 
   # When using dind service we need to instruct docker, to talk with the
   # daemon started inside of the service. The daemon is available with
@@ -70,11 +68,6 @@ build_docker_image_job:
 redeploy_job:
   stage: redeploy
   environment: cern
-  only:
-    refs:
-      - master
-    variables:
-      - $REMOTE_NAME == "cern"
   image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
   script: "oc import-image $IMAGE_NAME  --server=$SERVER --namespace $NAMESPACE --all --token=$IMAGE_IMPORT_TOKEN"
   rules:
