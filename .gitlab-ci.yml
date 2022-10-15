@@ -67,7 +67,7 @@ build_docker_image_job:
   rules:
     - if: $DO_DOCKER_IMAGE == "yes" && $CI_PIPELINE_SOURCE != 'merge_request_event'
 
-redeploy:
+redeploy_job:
   stage: redeploy
   environment: cern
   only:
