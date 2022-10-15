@@ -77,3 +77,6 @@ redeploy_job:
       - $REMOTE_NAME == "cern"
   image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
   script: "oc import-image $IMAGE_NAME  --server=$SERVER --namespace $NAMESPACE --all --token=$IMAGE_IMPORT_TOKEN"
+  rules:
+    - if: $DO_DEPLOY == "yes" && $CI_COMMIT_BRANCH == "deploy" && $CI_PIPELINE_SOURCE != 'merge_request_event'
+
