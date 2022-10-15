@@ -3,28 +3,6 @@ variables:
     VERSION: '2.0'
     GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
-  # When using dind service we need to instruct docker, to talk with the
-  # daemon started inside of the service. The daemon is available with
-  # a network connection instead of the default /var/run/docker.sock socket.
-  #
-  # The 'docker' hostname is the alias of the service container as described at
-  # https://docs.gitlab.com/ee/ci/docker/using_docker_images.html#accessing-the-services
-  #
-  # Note that if you're using Kubernetes executor, the variable should be set to
-  # tcp://localhost:2375 because of how Kubernetes executor connects services
-  # to the job container
-#    DOCKER_HOST: tcp://docker:2375/
-  # When using dind, it's wise to use the overlayfs driver for
-  # improved performance.
-#    DOCKER_DRIVER: overlay2
-
-# Select a runner
-# use tag keyword (see below)
-
-#services:
-#  - docker:dind
-
-
 # Make the gradle wrapper executable. This essentially downloads a copy of
 # Gradle to build the project with.
 # https://docs.gradle.org/current/userguide/gradle_wrapper.html
@@ -49,6 +27,7 @@ package_cern_application:
 
 build_docker_image_job:
   stage: build_docker_image
+  environment: cern
   image:
     # We recommend using the CERN version of the Kaniko image: gitlab-registry.cern.ch/ci-tools/docker-image-builder
     name: gitlab-registry.cern.ch/ci-tools/docker-image-builder
