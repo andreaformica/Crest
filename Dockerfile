@@ -49,7 +49,8 @@ RUN addgroup -g $CREST_GID $USR \
 RUN  mkdir -p ${crest_dir} \
   && mkdir -p ${data_dir}/web \
   && mkdir -p ${data_dir}/dump \
-  && mkdir -p ${data_dir}/logs
+  && mkdir -p ${data_dir}/logs \
+  && chown -R ${USR}:${USR} /home/${USR}
 
 # Copy the minimal JVM from previous step
 COPY --from=jlink "${jvm_location}" "${jvm_location}"
