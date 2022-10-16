@@ -13,7 +13,7 @@ version: '3.6'
 services:
   http:
     ###    image: gitlab-registry.cern.ch/formica/swagger_crestdb:latest
-    image: gitlab-registry.cern.ch/formica/crest:latest
+    image: gitlab-registry.cern.ch/crest-db/crest
     deploy:
       placement:
         constraints:
@@ -38,9 +38,9 @@ services:
       - spring.profiles.active=oracle,nosecurity
       - oracle.net.tns_admin=/home/crest
     volumes:
-      - crest_data_logs:/data/logs
-      - crest_data_dump:/data/dump
-      - crest_data_web:/data/web
+      - /mnt/crest/data/logs:/home/crest/data/logs
+      - /mnt/crest/data/dump:/home/crest/data/dump
+      - /mnt/crest/data/web:/home/crest/data/web
 
 networks:
   crestnet:
@@ -59,9 +59,4 @@ configs:
 secrets:
   crest-db-password:
     external: true
-
-volumes:
-  crest_data_logs:
-  crest_data_dump:
-  crest_data_web:
 #______________________________________________________________________________
