@@ -12,9 +12,6 @@ plugins {
 ext {
     swagger_annotations_version = "1.5.13"
     jackson_version = "2.7.5"
-    spring_version = "4.1.4.RELEASE"
-    springboot_version = "2.1.0.RELEASE"
-    junit_version = "4.12"
     oltu_version = "1.0.1"
     orika_version = "1.5.4"
     querydsl_version = "4.4.0"

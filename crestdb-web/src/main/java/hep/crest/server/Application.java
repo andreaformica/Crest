@@ -28,7 +28,7 @@ import java.util.Arrays;
  */
 @SpringBootApplication
 @EnableJpaRepositories("hep.crest")
-@EntityScan("hep.crest.data")
+@EntityScan("hep.crest")
 @ComponentScan("hep.crest")
 public class Application {
 
@@ -53,7 +53,6 @@ public class Application {
             for (final String beanName : beanNames) {
                 log.debug(beanName);
             }
-
         };
     }
 
