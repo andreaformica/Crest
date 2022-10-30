@@ -32,9 +32,9 @@ import javax.validation.Valid;
   IovPayloadDto.JSON_PROPERTY_INSERTION_TIME,
   IovPayloadDto.JSON_PROPERTY_VERSION,
   IovPayloadDto.JSON_PROPERTY_OBJECT_TYPE,
+  IovPayloadDto.JSON_PROPERTY_COMPRESSION_TYPE,
   IovPayloadDto.JSON_PROPERTY_SIZE,
-  IovPayloadDto.JSON_PROPERTY_PAYLOAD_HASH,
-  IovPayloadDto.JSON_PROPERTY_STREAMER_INFO
+  IovPayloadDto.JSON_PROPERTY_PAYLOAD_HASH
 })
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class IovPayloadDto   {
@@ -54,6 +54,10 @@ public class IovPayloadDto   {
   @JsonProperty(JSON_PROPERTY_OBJECT_TYPE)
   private String objectType;
 
+  public static final String JSON_PROPERTY_COMPRESSION_TYPE = "compressionType";
+  @JsonProperty(JSON_PROPERTY_COMPRESSION_TYPE)
+  private String compressionType;
+
   public static final String JSON_PROPERTY_SIZE = "size";
   @JsonProperty(JSON_PROPERTY_SIZE)
   private Integer size;
@@ -61,10 +65,6 @@ public class IovPayloadDto   {
   public static final String JSON_PROPERTY_PAYLOAD_HASH = "payloadHash";
   @JsonProperty(JSON_PROPERTY_PAYLOAD_HASH)
   private String payloadHash;
-
-  public static final String JSON_PROPERTY_STREAMER_INFO = "streamerInfo";
-  @JsonProperty(JSON_PROPERTY_STREAMER_INFO)
-  private String streamerInfo;
 
   public IovPayloadDto since(BigDecimal since) {
     this.since = since;
@@ -146,6 +146,26 @@ public class IovPayloadDto   {
     this.objectType = objectType;
   }
 
+  public IovPayloadDto compressionType(String compressionType) {
+    this.compressionType = compressionType;
+    return this;
+  }
+
+  /**
+   * Get compressionType
+   * @return compressionType
+   **/
+  @JsonProperty("compressionType")
+  @ApiModelProperty(value = "")
+  
+  public String getCompressionType() {
+    return compressionType;
+  }
+
+  public void setCompressionType(String compressionType) {
+    this.compressionType = compressionType;
+  }
+
   public IovPayloadDto size(Integer size) {
     this.size = size;
     return this;
@@ -186,26 +206,6 @@ public class IovPayloadDto   {
     this.payloadHash = payloadHash;
   }
 
-  public IovPayloadDto streamerInfo(String streamerInfo) {
-    this.streamerInfo = streamerInfo;
-    return this;
-  }
-
-  /**
-   * Get streamerInfo
-   * @return streamerInfo
-   **/
-  @JsonProperty("streamerInfo")
-  @ApiModelProperty(value = "")
-  
-  public String getStreamerInfo() {
-    return streamerInfo;
-  }
-
-  public void setStreamerInfo(String streamerInfo) {
-    this.streamerInfo = streamerInfo;
-  }
-
 
   @Override
   public boolean equals(Object o) {
@@ -220,14 +220,14 @@ public class IovPayloadDto   {
         Objects.equals(this.insertionTime, iovPayloadDto.insertionTime) &&
         Objects.equals(this.version, iovPayloadDto.version) &&
         Objects.equals(this.objectType, iovPayloadDto.objectType) &&
+        Objects.equals(this.compressionType, iovPayloadDto.compressionType) &&
         Objects.equals(this.size, iovPayloadDto.size) &&
-        Objects.equals(this.payloadHash, iovPayloadDto.payloadHash) &&
-        Objects.equals(this.streamerInfo, iovPayloadDto.streamerInfo);
+        Objects.equals(this.payloadHash, iovPayloadDto.payloadHash);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(since, insertionTime, version, objectType, size, payloadHash, streamerInfo);
+    return Objects.hash(since, insertionTime, version, objectType, compressionType, size, payloadHash);
   }
 
 
@@ -240,9 +240,9 @@ public class IovPayloadDto   {
     sb.append("    insertionTime: ").append(toIndentedString(insertionTime)).append("\n");
     sb.append("    version: ").append(toIndentedString(version)).append("\n");
     sb.append("    objectType: ").append(toIndentedString(objectType)).append("\n");
+    sb.append("    compressionType: ").append(toIndentedString(compressionType)).append("\n");
     sb.append("    size: ").append(toIndentedString(size)).append("\n");
     sb.append("    payloadHash: ").append(toIndentedString(payloadHash)).append("\n");
-    sb.append("    streamerInfo: ").append(toIndentedString(streamerInfo)).append("\n");
     sb.append("}");
     return sb.toString();
   }

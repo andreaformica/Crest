@@ -8,23 +8,21 @@ import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
+import hep.crest.data.repositories.IovGroupsCustom;
 import hep.crest.data.repositories.IovRepository;
 import hep.crest.data.repositories.TagRepository;
 import hep.crest.data.repositories.args.IovQueryArgs;
 import hep.crest.server.annotations.ProfileAndLog;
 import hep.crest.server.controllers.PageRequestHelper;
-import hep.crest.server.repositories.IovGroupsCustom;
-import hep.crest.server.repositories.PayloadDataBaseCustom;
+import hep.crest.server.repositories.monitoring.IMonitoringRepository;
 import hep.crest.server.swagger.model.CrestBaseResponse;
 import hep.crest.server.swagger.model.IovDto;
 import hep.crest.server.swagger.model.IovPayloadDto;
 import hep.crest.server.swagger.model.IovSetDto;
 import hep.crest.server.swagger.model.TagSummaryDto;
+import lombok.extern.slf4j.Slf4j;
 import org.joda.time.Instant;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +30,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -40,15 +39,10 @@ import java.util.stream.Collectors;
 
 /**
  * @author formica
- *
  */
 @Service
+@Slf4j
 public class IovService {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(IovService.class);
 
     /**
      * Repository.
@@ -64,14 +58,12 @@ public class IovService {
      * Repository.
      */
     @Autowired
-    @Qualifier("payloaddatadbrepo")
-    private PayloadDataBaseCustom payloaddataRepository;
+    private IMonitoringRepository iMonitoringRepository;
 
     /**
      * Repository.
      */
     @Autowired
-    @Qualifier("iovgroupsrepo")
     private IovGroupsCustom iovgroupsrepo;
     /**
      * Helper.
@@ -80,18 +72,15 @@ public class IovService {
     private PageRequestHelper prh;
 
     /**
-     * @param tagname
-     *            the String
-     * @param snapshot
-     *            the Date
-     * @param groupsize
-     *            the Long
-     * @return List<BigDecimal>
+     * @param tagname   the String
+     * @param snapshot  the Date
+     * @param groupsize the Long
+     * @return List<BigInteger>
      */
-    public List<BigDecimal> selectGroupsByTagNameAndSnapshotTime(String tagname, Date snapshot,
+    public List<BigInteger> selectGroupsByTagNameAndSnapshotTime(String tagname, Date snapshot,
                                                                  Long groupsize) {
         log.debug("Search for iovs groups by tag name {} and snapshot time {}", tagname, snapshot);
-        List<BigDecimal> minsincelist = null;
+        List<BigInteger> minsincelist = null;
         if (snapshot == null) {
             minsincelist = iovgroupsrepo.selectGroups(tagname, groupsize);
         }
@@ -105,21 +94,19 @@ public class IovService {
     }
 
     /**
-     * @param tagname
-     *            the String
-     * @param snapshot
-     *            the Date
-     * @param groupsize
-     *            the Long
+     * @param tagname   the String
+     * @param snapshot  the Date
+     * @param groupsize the Long
      * @return CrestBaseResponse
      */
     @ProfileAndLog
     public CrestBaseResponse selectGroupDtoByTagNameAndSnapshotTime(String tagname, Date snapshot,
                                                                     Long groupsize) {
-        final List<BigDecimal> minsincelist = selectGroupsByTagNameAndSnapshotTime(tagname,
+        final List<BigInteger> minsincelist = selectGroupsByTagNameAndSnapshotTime(tagname,
                 snapshot, groupsize);
-        final List<IovDto> iovlist = minsincelist.stream().map(s -> new IovDto().since(s).tagName(tagname))
-                .collect(Collectors.toList());
+        final List<IovDto> iovlist =
+                minsincelist.stream().map(s -> new IovDto().since(new BigDecimal(s)).tagName(tagname))
+                        .collect(Collectors.toList());
         return new IovSetDto().resources(iovlist).size((long) iovlist.size());
     }
 
@@ -142,25 +129,21 @@ public class IovService {
     }
 
     /**
-     * @param tagname
-     *            the String
-     * @param since
-     *            the BigDecimal
-     * @param until
-     *            the BigDecimal
-     * @param snapshot
-     *            the Date
+     * @param tagname  the String
+     * @param since    the BigInteger
+     * @param until    the BigInteger
+     * @param snapshot the Date
      * @return List<IovPayloadDto>
      */
-    public List<IovPayloadDto> selectIovPayloadsByTagRangeSnapshot(String tagname, BigDecimal since,
-                                                                   BigDecimal until, Date snapshot) {
+    public List<IovPayloadDto> selectIovPayloadsByTagRangeSnapshot(String tagname, BigInteger since,
+                                                                   BigInteger until, Date snapshot) {
         log.debug("Search for iovs by tag name {}  and range time {} -> {} using snapshot {}",
                 tagname, since, until, snapshot);
         List<IovPayloadDto> entities = null;
         if (snapshot == null || snapshot.getTime() == 0) {
             snapshot = Instant.now().toDate(); // Use now for the snapshot
         }
-        entities = payloaddataRepository.getRangeIovPayloadInfo(tagname, since, until, snapshot);
+        entities = iMonitoringRepository.getRangeIovPayloadInfo(tagname, since, until, snapshot);
 
         if (entities == null) {
             log.warn("Cannot find iovpayloads for tag {} using ranges {} {} and snapshot {}",
@@ -171,8 +154,7 @@ public class IovService {
     }
 
     /**
-     * @param tagname
-     *            the String
+     * @param tagname the String
      * @return Long
      */
     public Long getSizeByTag(String tagname) {
@@ -181,10 +163,8 @@ public class IovService {
     }
 
     /**
-     * @param tagname
-     *            the String
-     * @param snapshot
-     *            the Date
+     * @param tagname  the String
+     * @param snapshot the Date
      * @return Long
      */
     public Long getSizeByTagAndSnapshot(String tagname, Date snapshot) {
@@ -193,13 +173,12 @@ public class IovService {
     }
 
     /**
-     * @param tagname
-     *            the String
+     * @param tagname the String
      * @return List<TagSummaryDto>
      */
     public List<TagSummaryDto> getTagSummaryInfo(String tagname) {
         log.debug("Tag summary by tag name {}", tagname);
-        List<TagSummaryDto> entitylist = iovgroupsrepo.getTagSummaryInfo(tagname);
+        List<TagSummaryDto> entitylist = iMonitoringRepository.getTagSummaryInfo(tagname);
         if (entitylist == null) {
             entitylist = new ArrayList<>();
         }
@@ -208,6 +187,7 @@ public class IovService {
 
     /**
      * Return the last iov of a tag.
+     *
      * @param tagname
      * @return Iov
      */
@@ -222,26 +202,21 @@ public class IovService {
     }
 
     /**
-     * @param tagname
-     *            the String
-     * @param since
-     *            the BigDecimal
-     * @param hash
-     *            the String
+     * @param tagname the String
+     * @param since   the BigInteger
+     * @param hash    the String
      * @return boolean
      */
-    public boolean existsIov(String tagname, BigDecimal since, String hash) {
+    public boolean existsIov(String tagname, BigInteger since, String hash) {
         log.debug("Verify if the same IOV is already stored with the same hash....");
         final Iov tmpiov = iovRepository.exists(tagname, since, hash);
         return tmpiov != null;
     }
 
     /**
-     * @param entity
-     *            the IovDto
+     * @param entity the IovDto
      * @return Iov
-     * @throws AbstractCdbServiceException
-     *             If an Exception occurred
+     * @throws AbstractCdbServiceException     If an Exception occurred
      * @throws DataIntegrityViolationException If an sql exception occurred.
      */
     @Transactional(rollbackOn = {AbstractCdbServiceException.class})

@@ -17,62 +17,25 @@ paths:
     post:
       tags:
         - payloads
-      summary: Create a Payload in the database.
-      description: 'This method allows to insert a Payload.Arguments: PayloadDto should be provided in the body as a JSON file.'
-      operationId: createPayload
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PayloadDto'
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PayloadDto"
-        default:
-          $ref: "#/components/responses/genericError"
-  /payloads/upload:
-    post:
-      tags:
-        - payloads
-      summary: Create a Payload in the database.
-      description: 'This method allows to insert a Payload.Arguments: PayloadDto should be provided in the body as a JSON file.'
-      operationId: createPayloadMultiForm
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-                payload:
-                  $ref: "#/components/schemas/PayloadDto"
-              required:
-                - file
-                - payload
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PayloadDto"
-        default:
-          $ref: "#/components/responses/genericError"
-  /payloads/store:
-    post:
-      tags:
-        - payloads
-      summary: Create a Payload in the database, associated to a given iov since and tag name.
+      summary: Create Payloads in the database, associated to a given iov since list and tag name.
       description: |
-        This method allows to insert a Payload and an IOV.
-        Arguments: since, tag, streamerInfo, endtime.
-      operationId: storePayloadWithIovMultiForm
+        This method allows to insert list of Payloads and IOVs.
+        Payload can be contained in the HASH of the IOV (in case it is a small JSON)
+        or as a reference to external file (FILE).
+        In the first case, the files list can be null.
+        Arguments: tag,version,endtime,objectType,compressionType
+        The header parameter X-Crest-PayloadFormat can be FILE or JSON
+      operationId: storePayloadBatch
+      parameters:
+        - in: header
+          name: X-Crest-PayloadFormat
+          description: |
+            The format of the input data. StoreSetDto entries will have either the content inline (JSON)
+            or stored via external files (FILE).
+          schema:
+            type: string
+            enum: [ FILE, JSON ]
+            default: FILE
       requestBody:
         description: A json string that is used to construct the form data object.
         content:
@@ -80,119 +43,109 @@ paths:
             schema:
               type: object
               properties:
-                file:
-                  description: The payload file as a stream
-                  type: string
-                  format: binary
                 tag:
                   description: The tag name
                   type: string
-                since:
-                  description: The since time
-                  type: number
-                objectType:
-                  description: The object type
-                  type: string
-                version:
-                  description: The version
-                  type: string
-                endtime:
-                  description: The end time
-                  type: number
-                streamerInfo:
-                  description: The streamerInfo CLOB as a string
-                  type: string
-              required:
-                - file
-                - tag
-                - since
-      parameters:
-        - name: X-Crest-PayloadFormat
-          in: header
-          description: The format of the input data
-          schema:
-            enum: [JSON, TXT, BLOB, BIN]
-            default: JSON
-            type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HTTPResponse"
-            application/xml:
-              schema:
-                $ref: "#/components/schemas/HTTPResponse"
-        default:
-          $ref: "#/components/responses/genericError"
-
-  /payloads/batch:
-    post:
-      tags:
-        - payloads
-      summary: 'Create many Payloads in the database, associated to a given iov since list and tag name.'
-      description: |
-        This method allows to insert list of Payloads and IOVs.
-        Payload can be contained in the HASH of the IOV (JSON)
-        or as a reference to external file (FILE).
-        In the first case, the files list can be null.
-        Arguments: tag,streamerInfo,endtime.
-        The header parameter X-Crest-PayloadFormat can be FILE or JSON
-      operationId: storeBatch
-      requestBody:
-        description: A json string that is used to construct the form data object.
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
+                storeset:
+                  $ref: '#/components/schemas/StoreSetDto'
                 files:
                   description: The payload files as an array of streams
                   type: array
                   items:
                     type: string
                     format: binary
-                tag:
-                  description: The tag name
-                  type: string
-                iovsetupload:
-                  $ref: 'schemas/iovs.yml#/components/schemas/IovSetDto'
                 objectType:
                   description: The object type
+                  type: string
+                compressionType:
+                  description: The compression type
                   type: string
                 version:
                   description: The version
                   type: string
                 endtime:
-                  description: The end time
+                  description: The end time, shall be set at tag level.
                   type: number
-                streamerInfo:
-                  description: The streamerInfo CLOB as a string
-                  type: string
               required:
-                - files
-                - iovsetupload
+                - storeset
                 - tag
-                - since
-      parameters:
-        - in: header
-          name: X-Crest-PayloadFormat
-          description: The format of the input data
-          schema:
-            default: FILE
-            type: string
-            enum: [FILE, JSON]
       responses:
         '201':
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/IovSetDto"
+                $ref: "#/components/schemas/StoreSetDto"
             application/xml:
               schema:
-                $ref: "#/components/schemas/IovSetDto"
+                $ref: "#/components/schemas/StoreSetDto"
+        default:
+          $ref: "#/components/responses/genericError"
+    put:
+      tags:
+        - payloads
+      summary: Create Payload in the database, associated to a given iov since and tag name.
+      description: |
+        This method allows to insert one Payload with its IOV.
+        Payload can be contained in the HASH of the IOV (in case it is a small JSON)
+        or as a reference to external file (FILE).
+        In the first case, the files list can be null.
+        Arguments: tag,version,endtime,objectType,compressionType
+        The header parameter X-Crest-PayloadFormat can be FILE or JSON
+      operationId: storePayloadOne
+      requestBody:
+        description: A json string that is used to construct the form data object.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                tag:
+                  description: The tag name
+                  type: string
+                store:
+                  $ref: '#/components/schemas/StoreDto'
+                files:
+                  description: The payload files as an array of streams
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                objectType:
+                  description: The object type
+                  type: string
+                compressionType:
+                  description: The compression type
+                  type: string
+                version:
+                  description: The version
+                  type: string
+                endtime:
+                  description: The end time, shall be set at tag level.
+                  type: number
+              required:
+                - store
+                - tag
+      parameters:
+        - in: header
+          name: X-Crest-PayloadFormat
+          description: |
+            The format of the input data. StoreSetDto entries will have either the content inline (JSON)
+            or stored via external files (FILE).
+          schema:
+            type: string
+            enum: [ FILE, JSON ]
+            default: FILE
+      responses:
+        '201':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoreDto"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/StoreDto"
         default:
           $ref: "#/components/responses/genericError"
 
@@ -201,22 +154,29 @@ paths:
       tags:
         - payloads
       summary: Finds a payload resource associated to the hash.
-      description: 'This method retrieves a payload resource.Arguments: hash=<hash> the hash of the payload'
+      description: |
+        This method retrieves a payload resource.
+        Arguments: hash=<hash> the hash of the payload
+        Depending on the header, this method will either retrieve the data, the metadata of the payload 
+        or the streamerInfo alone.
       operationId: getPayload
       parameters:
-        - in: header
-          name: X-Crest-PayloadFormat
-          description: 'The format of the output data. The header parameter X-Crest-PayloadFormat can be : BLOB (default) or DTO (in JSON format).'
-          schema:
-            enum: [BLOB, DTO]
-            default: BLOB
-            type: string
         - name: hash
           in: path
           description: 'hash:  the hash of the payload'
           required: true
           schema:
             type: string
+        - name: format
+          in: query
+          description: |
+            The format of the output data. 
+            It can be : BLOB (default), META (meta data) or STREAMER (streamerInfo).
+          required: true
+          schema:
+            type: string
+            enum: [BLOB, META, STREAMER]
+            default: BLOB
       responses:
         '200':
           description: successful operation
@@ -231,39 +191,13 @@ paths:
           $ref: "#/components/responses/404"
         default:
           $ref: "#/components/responses/genericError"
-  /payloads/{hash}/meta:
-    get:
-      tags:
-        - payloads
-      summary: Finds a payload resource associated to the hash.
-      description: 'This method retrieves metadata of the payload resource.Arguments: hash=<hash> the hash of the payload'
-      operationId: getPayloadMetaInfo
-      parameters:
-        - name: hash
-          in: path
-          description: 'hash:  the hash of the payload'
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PayloadSetDto"
-            application/xml:
-              schema:
-                $ref: "#/components/schemas/PayloadSetDto"
-        '404':
-          $ref: "#/components/responses/404"
-        default:
-          $ref: "#/components/responses/genericError"
     put:
       tags:
         - payloads
       summary: Update a streamerInfo in a payload
-      description: 'This method will get a payload from its hash, and update streamer info content for the provided body fields: streamerInfo.'
+      description: |
+        This method will update the streamerInfo.
+        This is provided via a generic map in the request body containing the key 'streamerInfo'
       operationId: updatePayload
       requestBody:
         content:
@@ -283,10 +217,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PayloadSetDto"
+                $ref: "#/components/schemas/PayloadDto"
             application/xml:
               schema:
-                $ref: "#/components/schemas/PayloadSetDto"
+                $ref: "#/components/schemas/PayloadDto"
         '404':
           $ref: "#/components/responses/404"
         default:
@@ -310,10 +244,11 @@ components:
       $ref: 'schemas/common.yml#/components/schemas/RespPage'
     GenericMap:
       $ref: 'schemas/common.yml#/components/schemas/GenericMap'
-
     PayloadSetDto:
       $ref: 'schemas/payloads.yml#/components/schemas/PayloadSetDto'
     PayloadDto:
       $ref: 'schemas/payloads.yml#/components/schemas/PayloadDto'
-    IovSetDto:
-      $ref: 'schemas/iovs.yml#/components/schemas/IovSetDto'
+    StoreDto:
+      $ref: 'schemas/payloads.yml#/components/schemas/StoreDto'
+    StoreSetDto:
+      $ref: 'schemas/payloads.yml#/components/schemas/StoreSetDto'

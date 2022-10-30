@@ -1,13 +1,16 @@
 package hep.crest.server.config;
 
+import hep.crest.data.pojo.Payload;
 import hep.crest.server.converters.DateToOffDateTimeConverter;
 import hep.crest.server.converters.FolderConverter;
 import hep.crest.server.converters.GlobalTagConverter;
 import hep.crest.server.converters.GlobalTagMapConverter;
 import hep.crest.server.converters.IovConverter;
 import hep.crest.server.converters.TagConverter;
+import hep.crest.server.converters.TagMetaConverter;
 import hep.crest.server.converters.TimestampToOffDateTimeConverter;
 import hep.crest.data.runinfo.pojo.RunLumiInfo;
+import hep.crest.server.swagger.model.PayloadDto;
 import hep.crest.server.swagger.model.RunLumiInfoDto;
 import ma.glasnost.orika.MapperFacade;
 import ma.glasnost.orika.MapperFactory;
@@ -56,8 +59,12 @@ public class PojoDtoConverterConfig {
         converterFactory.registerConverter(new IovConverter());
         // Register converter for Folder.
         converterFactory.registerConverter(new FolderConverter());
+        // Register converter for TagMeta
+        converterFactory.registerConverter(new TagMetaConverter());
         // Init mapper for runinfo.
         this.initRunInfoMap(mapperFactory);
+        // init payload mapper.
+        this.initPayloadMap(mapperFactory);
         return mapperFactory;
     }
 
@@ -69,6 +76,16 @@ public class PojoDtoConverterConfig {
         mapperFactory.classMap(RunLumiInfo.class, RunLumiInfoDto.class)
                 .byDefault().register();
     }
+
+    /**
+     * @param mapperFactory the MapperFactory
+     * @return
+     */
+    protected void initPayloadMap(MapperFactory mapperFactory) {
+        mapperFactory.classMap(Payload.class, PayloadDto.class)
+                .byDefault().register();
+    }
+
 
     /**
      * @param mapperFactory the MapperFactory

@@ -4,20 +4,52 @@
 #             ...
 # ===============================
 # Defaults
+# ===============================
+# = PROFILES /
+#             datasources
+#             ...
+# ===============================
 crest:
-  dump_dir: /tmp
+  dumpdir: /tmp
   schemaname: none
   security: none
   synchro: none
   webstaticdir: /tmp
-  dbfile: /tmp/cresth2
+  dbfile: /tmp/crestdbh2web
+  apiname: /crestapi
+  authenticationtype: none
+server:
+  servlet.path: /
+  connection-timeout: 60s
 spring:
-    datasource:
-      url: jdbc:h2:/tmp/cresth2test;DB_CLOSE_ON_EXIT=FALSE
-      driverClassName: org.h2.Driver
-      username: root
-      password: root
-      hikari:
-        connection-test-query: SELECT 1 
-        maximum-pool-size: 1
+  autoconfigure:
+    exclude: org.keycloak.adapters.springboot.KeycloakAutoConfiguration
+  config:
+    use-legacy-processing: true
+  profiles:
+    include: crest
+  security:
+    strategy: MODE_INHERITABLETHREADLOCAL
+  jersey:
+    application-path: /crestapi
+  datasource:
+    url: jdbc:h2:/tmp/crestdbh2data;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
+    username: root
+    password: root
+    hikari:
+      connection-test-query: SELECT 1
+      maximum-pool-size: 2
+  jpa:
+    properties:
+      hibernate.dialect: org.hibernate.dialect.H2Dialect
+      hibernate.jdbc.fetch_size: 100
+      hibernate.hbm2ddl.auto: create
+      hibernate.show_sql: true
+info:
+  app:
+    name: Crest Application
+    description: Rest services for conditions data management
+    profile: test
+
       

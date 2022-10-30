@@ -1,22 +1,20 @@
 package hep.crest.server;
 
 
-import hep.crest.data.exceptions.AbstractCdbServiceException;
-import hep.crest.data.handlers.PayloadHandler;
+import hep.crest.data.pojo.Payload;
+import hep.crest.data.pojo.PayloadData;
+import hep.crest.data.pojo.PayloadInfoData;
 import hep.crest.data.pojo.Tag;
+import hep.crest.data.pojo.TagMeta;
+import hep.crest.data.repositories.PayloadDataRepository;
+import hep.crest.data.repositories.PayloadInfoDataRepository;
+import hep.crest.data.repositories.PayloadRepository;
+import hep.crest.data.repositories.TagMetaRepository;
 import hep.crest.data.repositories.TagRepository;
-import hep.crest.server.repositories.PayloadDataBaseCustom;
-import hep.crest.server.repositories.TagMetaDataBaseCustom;
-import hep.crest.server.swagger.model.PayloadDto;
-import hep.crest.server.swagger.model.TagMetaDto;
-import hep.crest.server.utils.DataGenerator;
 import hep.crest.server.utils.RandomGenerator;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.ClassRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,21 +29,19 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.sql.DataSource;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.util.Date;
+import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(locations="classpath:application-postgres.yml")
@@ -62,15 +58,17 @@ public class RepositoryPostgresTests {
       .withPassword("sa");
 
     @Autowired
-    @Qualifier("payloaddatadbrepo")
-    private PayloadDataBaseCustom repobean;
+    private PayloadRepository payloadRepository;
+    @Autowired
+    private PayloadDataRepository payloadDataRepository;
+    @Autowired
+    private PayloadInfoDataRepository payloadInfoDataRepository;
 
     @Autowired
     private TagRepository tagrepository;
 
     @Autowired
-    @Qualifier("tagmetarepo")
-    private TagMetaDataBaseCustom tagmetarepobean;
+    private TagMetaRepository tagMetaRepository;
 
     @Autowired
     @Qualifier("dataSource")
@@ -119,69 +117,19 @@ public class RepositoryPostgresTests {
     // This is a trick, we do not have a postgresql connection
         //final PayloadDataBaseCustom repobean = new PayloadDataPostgresImpl(mainDataSource);
         final Instant now = Instant.now();
-        PayloadDto dto = (PayloadDto) rndgen.generate(PayloadDto.class);
-        dto.insertionTime(now.atOffset(ZoneOffset.UTC));
-        log.info("Save payload {}", dto);
-        if (dto.getData() == null) {
-            dto.data("testforpayload".getBytes(StandardCharsets.UTF_8));
-        }
-        if (dto.getStreamerInfo() == null) {
-            dto.streamerInfo("{key: val}".getBytes(StandardCharsets.UTF_8));
-        }
-        if (dto.getSize() == null) {
-            dto.setSize(dto.getData().length);
-        }
-        final PayloadDto saved = repobean.save(dto);
-        assertThat(saved).isNotNull();
-        assertThat(saved.getHash()).isEqualTo(dto.getHash());
-
-        // modify streamer info
-        int nu = repobean.updateMetaInfo(saved.getHash(), new String(saved.getStreamerInfo()) + ", {some other json}");
-        assertThat(nu).isPositive();
-
-        // Search for payload
-        final PayloadDto loaded = repobean.find(dto.getHash());
-        assertThat(loaded.toString().length()).isPositive();
-
-        // Store payload from file
-        DataGenerator.generatePayloadData("/tmp/cdms/payloadataspg.blob","blob for postgres");
-        final File f = new File("/tmp/cdms/payloadataspg.blob");
-        InputStream ds = new BufferedInputStream(new FileInputStream(f));
-
-        PayloadDto dtofromfile = (PayloadDto) rndgen.generate(PayloadDto.class);
-        dtofromfile.insertionTime(now.atOffset(ZoneOffset.UTC));
-        if (dtofromfile.getStreamerInfo() == null) {
-            dtofromfile.streamerInfo("{key: val}".getBytes(StandardCharsets.UTF_8));
-        }
-        final PayloadDto savedfromblob = repobean.save(dtofromfile,ds);
-        assertThat(savedfromblob.toString().length()).isPositive();
-        if (ds != null) {
-            ds.close();
-        }
-        // Load data
-        final InputStream loadedblob = repobean.findData(savedfromblob.getHash());
-        assertThat(loadedblob.available()).isPositive();
-        // Load only meta info
-        final PayloadDto loadedmeta = repobean.findMetaInfo(savedfromblob.getHash());
-        assertThat(new String(loadedmeta.getStreamerInfo())).isEqualTo("{key: val}");
-        repobean.delete(savedfromblob.getHash());
-
-        ds = new BufferedInputStream(new FileInputStream(f));
-        PayloadHandler.saveStreamToFile(ds, "/tmp/cdms/payloadatacopypg.blob");
-        final File f1 = new File("/tmp/cdms/payloadatacopypg.blob");
-        final InputStream ds1 = new BufferedInputStream(new FileInputStream(f1));
-        final byte[] barr = PayloadHandler.getBytesFromInputStream(ds1);
-        assertThat(barr).isNotEmpty();
-        if (ds1 != null) {
-            ds1.close();
-        }
-        try {
-            final PayloadDto loadedblob1 = repobean.find(savedfromblob.getHash());
-            assertThat(loadedblob1).isNull();
-        }
-        catch (AbstractCdbServiceException e) {
-            log.error("Cannot find payload for hash {}: {}", savedfromblob.getHash(), e);
-        }
+        Payload entity = (Payload) rndgen.generate(Payload.class);
+        PayloadData content = new PayloadData();
+        content.hash(entity.hash());
+        PayloadInfoData streamer = new PayloadInfoData();
+        streamer.hash(entity.hash());
+        streamer.streamerInfo("{key: val}".getBytes(StandardCharsets.UTF_8));
+        log.info("Save payload {}", entity);
+        byte[] dataBlob = "This is a very long blob".getBytes(StandardCharsets.UTF_8);
+        Payload saved  = payloadRepository.save(entity);
+        assertTrue(saved != null);
+        payloadDataRepository.saveData(content.hash(), new ByteArrayInputStream(dataBlob), dataBlob.length);
+        PayloadInfoData savedStreamer = payloadInfoDataRepository.save(streamer);
+        assertTrue(savedStreamer != null);
     }
 
     @Test
@@ -192,29 +140,17 @@ public class RepositoryPostgresTests {
         mtag.modificationTime(Timestamp.from(now));
         log.info("Save tag {}", mtag);
         final Tag savedtag = tagrepository.save(mtag);
-        assertThat(savedtag.name()).isEqualTo(mtag.name());
+        assertEquals(savedtag.name(), mtag.name());
 
-        TagMetaDto metadto = (TagMetaDto) rndgen.generate(TagMetaDto.class);
-        metadto.tagName(savedtag.name());
-        final TagMetaDto savedmeta = tagmetarepobean.save(metadto);
-        log.info("Save tag meta information {}", metadto);
-        assertThat(savedmeta).isNotNull();
-        assertThat(savedmeta.toString().length()).isPositive();
-        assertThat(savedmeta.getTagName()).isEqualTo(savedtag.name());
+        TagMeta meta = (TagMeta) rndgen.generate(TagMeta.class);
+        meta.tagName(savedtag.name());
+        meta.tagInfo("{\"channels\": [0: \"name0\"]}".getBytes(StandardCharsets.UTF_8));
+        final TagMeta savedmeta = tagMetaRepository.save(meta);
+        log.info("Save tag meta information {}", savedmeta);
+        assertTrue(savedmeta != null);
 
-        final TagMetaDto storedmeta = tagmetarepobean.find(savedmeta.getTagName());
-        assertThat(storedmeta).isNotNull();
-        storedmeta.tagInfo("{ \"key1\" : \"val1\" }");
-        final TagMetaDto updmeta = tagmetarepobean.update(storedmeta);
-        assertThat(updmeta).isNotNull();
-        tagmetarepobean.delete(updmeta.getTagName());
-        assertThat(updmeta).isNotNull();
-        try {
-            final TagMetaDto deletedmeta = tagmetarepobean.find(updmeta.getTagName());
-            assertThat(deletedmeta).isNull();
-        }
-        catch (AbstractCdbServiceException e) {
-            log.error("Cannot find deleted meta info: it was deleted before {}", e.getMessage());
-        }
+        final Optional<TagMeta> storedmetaopt = tagMetaRepository.findByTagName(savedmeta.tagName());
+        assertTrue(storedmetaopt.isPresent());
+
     }
 }

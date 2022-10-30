@@ -1,11 +1,9 @@
 /**
  *
  */
-package hep.crest.server.repositories;
+package hep.crest.data.repositories;
 
-import hep.crest.server.swagger.model.TagSummaryDto;
-
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 
@@ -22,9 +20,9 @@ public interface IovGroupsCustom {
      *            the String
      * @param groupsize
      *            the Long
-     * @return List<BigDecimal>
+     * @return List<BigInteger>
      */
-    List<BigDecimal> selectGroups(String tagname, Long groupsize);
+    List<BigInteger> selectGroups(String tagname, Long groupsize);
 
     /**
      * @param tagname
@@ -32,9 +30,9 @@ public interface IovGroupsCustom {
      * @param snap
      *            the Date
      * @param groupsize the Long
-     * @return List<BigDecimal>
+     * @return List<BigInteger>
      */
-    List<BigDecimal> selectSnapshotGroups(String tagname, Date snap, Long groupsize);
+    List<BigInteger> selectSnapshotGroups(String tagname, Date snap, Long groupsize);
 
     /**
      * @param tagname
@@ -51,12 +49,5 @@ public interface IovGroupsCustom {
      * @return Long
      */
     Long getSizeBySnapshot(String tagname, Date snap);
-
-    /**
-     * @param tagname
-     *            the String
-     * @return List<TagSummaryDto>
-     */
-    List<TagSummaryDto> getTagSummaryInfo(String tagname);
 
 }

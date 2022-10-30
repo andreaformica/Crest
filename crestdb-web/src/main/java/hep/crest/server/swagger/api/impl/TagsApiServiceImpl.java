@@ -1,8 +1,8 @@
 package hep.crest.server.swagger.api.impl;
 
 import hep.crest.data.exceptions.CdbBadRequestException;
-import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.Tag;
+import hep.crest.data.pojo.TagMeta;
 import hep.crest.data.repositories.args.TagQueryArgs;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
@@ -28,7 +28,8 @@ import org.springframework.stereotype.Component;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -122,11 +123,11 @@ public class TagsApiServiceImpl extends TagsApiService {
                 entity.timeType(body.get(key));
             }
             else if (key == "lastValidatedTime") {
-                final BigDecimal val = new BigDecimal(body.get(key));
+                final BigInteger val = new BigInteger(body.get(key));
                 entity.lastValidatedTime(val);
             }
             else if (key == "endOfValidity") {
-                final BigDecimal val = new BigDecimal(body.get(key));
+                final BigInteger val = new BigInteger(body.get(key));
                 entity.endOfValidity(val);
             }
             else if (key == "synchronization") {
@@ -215,7 +216,11 @@ public class TagsApiServiceImpl extends TagsApiService {
         log.info("TagRestController processing request for creating a tag meta data entry for {}", name);
         final Tag tag = tagService.findOne(name);
         log.debug("Add meta information to tag {}", name);
-        final TagMetaDto saved = tagMetaService.insertTagMeta(body);
+        TagMeta entity = mapper.map(body, TagMeta.class);
+
+        final TagMeta savedEntity = tagMetaService.insertTagMeta(entity);
+        TagMetaDto saved = mapper.map(savedEntity, TagMetaDto.class);
+
         return Response.created(info.getRequestUri()).entity(saved).build();
     }
 
@@ -226,7 +231,8 @@ public class TagsApiServiceImpl extends TagsApiService {
     @Override
     public Response findTagMeta(String name, SecurityContext securityContext, UriInfo info) throws NotFoundException {
         this.log.info("TagRestController processing request to find tag metadata for name " + name);
-        final TagMetaDto dto = tagMetaService.findMeta(name);
+        final TagMeta entity = tagMetaService.find(name);
+        final TagMetaDto dto = mapper.map(entity, TagMetaDto.class);
         final TagMetaSetDto respdto = (TagMetaSetDto) new TagMetaSetDto().addResourcesItem(dto).size(1L)
                 .datatype("tagmetas");
         return Response.ok().entity(respdto).build();
@@ -241,27 +247,24 @@ public class TagsApiServiceImpl extends TagsApiService {
     public Response updateTagMeta(String name, Map<String, String> body, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
         log.info("TagRestController processing request for updating a tag meta information");
-        final TagMetaDto dto = tagMetaService.findMeta(name);
-        if (dto == null) {
-            log.debug("Cannot update meta data on null tag meta entity for {}", name);
-            throw new CdbBadRequestException("Cannot update tag meta with null body");
-        }
+        TagMeta entity = tagMetaService.find(name);
         for (final String key : body.keySet()) {
             if (key == "description") {
-                dto.setDescription(body.get(key));
+                entity.description(body.get(key));
             }
             if (key == "chansize") {
-                dto.setChansize(new Integer(body.get(key)));
+                entity.chansize(new Integer(body.get(key)));
             }
             if (key == "colsize") {
-                dto.setColsize(new Integer(body.get(key)));
+                entity.colsize(new Integer(body.get(key)));
             }
             if (key == "tagInfo") {
                 // The field is a string ... this is mandatory for the moment....
-                dto.setTagInfo(body.get(key));
+                entity.tagInfo(body.get(key).getBytes(StandardCharsets.UTF_8));
             }
         }
-        final TagMetaDto saved = tagMetaService.updateTagMeta(dto);
+        final TagMeta saved = tagMetaService.updateTagMeta(entity);
+        final TagMetaDto dto = mapper.map(saved, TagMetaDto.class);
         return Response.ok(info.getRequestUri()).entity(saved).build();
     }
 }

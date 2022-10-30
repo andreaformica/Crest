@@ -133,7 +133,7 @@ public class PostgresBlobHandler {
      * @return byte[]
      * @throws SQLException If an Exception occurred
      */
-    public byte[] getlargeObj(long oid, Connection conn) throws SQLException {
+    public byte[] getlargeObjAsBytes(long oid, Connection conn) throws SQLException {
         final LargeObjectManager lobj = conn.unwrap(org.postgresql.PGConnection.class)
                 .getLargeObjectAPI();
         LargeObject obj = null;
@@ -156,4 +156,25 @@ public class PostgresBlobHandler {
         }
         return buf;
     }
+
+    /**
+     * @param oid  the Long
+     * @param conn the Connection
+     * @return InputStream
+     * @throws SQLException If an Exception occurred
+     */
+    public InputStream getlargeObjAsStream(long oid, Connection conn) throws SQLException {
+        final LargeObjectManager lobj = conn.unwrap(org.postgresql.PGConnection.class)
+                .getLargeObjectAPI();
+        LargeObject obj = null;
+        try {
+            obj = lobj.open(oid, LargeObjectManager.READ);
+            return obj.getInputStream();
+        }
+        catch (final SQLException e) {
+            log.error("cannot read large object in postgres {} : {}", oid, e.getMessage());
+        }
+        return null;
+    }
+
 }

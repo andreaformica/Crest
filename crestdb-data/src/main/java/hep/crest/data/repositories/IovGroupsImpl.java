@@ -14,34 +14,28 @@
  * You should have received a copy of the GNU General Public License
  * along with Crest.  If not, see <http://www.gnu.org/licenses/>.
  **/
-package hep.crest.server.repositories;
+package hep.crest.data.repositories;
 
-import hep.crest.data.repositories.DataGeneral;
-import hep.crest.server.swagger.model.TagSummaryDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * An implementation for groups queries.
  *
  * @author formica
- *
  */
+@Slf4j
 public class IovGroupsImpl extends DataGeneral implements IovGroupsCustom {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(IovGroupsImpl.class);
 
     /**
      * The decoder.
@@ -55,47 +49,39 @@ public class IovGroupsImpl extends DataGeneral implements IovGroupsCustom {
     private String serverUploadLocationFolder;
 
     /**
-     * @param ds
-     *            the DataSource
+     * @param ds the DataSource
      */
     public IovGroupsImpl(DataSource ds) {
         super(ds);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * hep.phycdb.svc.repositories.IovGroupsCustom#selectGroups(java.lang.String,
-     * java.lang.Long)
-     */
     @Override
-    public List<BigDecimal> selectGroups(String tagname, Long groupsize) {
+    public List<BigInteger> selectGroups(String tagname, Long groupsize) {
         log.info("Select Iov Groups for tag {} with group size {} using JDBCTEMPLATE", tagname,
                 groupsize);
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
         final String tablename = getCrestTableNames().getIovTableName();
         // Set the default group frequency at 1000. This can be changed via groupsize argument.
-        Long groupfreq = 1000L;
+        Integer groupfreq = 1000;
         if (groupsize != null && groupsize > 0) {
-            groupfreq = groupsize;
+            groupfreq = groupsize.intValue();
         }
         final String sql = "select MIN(SINCE) from " + tablename + " where TAG_NAME=? "
                            + " group by floor(SINCE/?)*? "
                            + " order by min(SINCE)";
+//        final String sql = "select floor(SINCE/?)*? from " + tablename + " where TAG_NAME=? "
+//                           + " ";
         log.debug("Execute selectGroups query {}", sql);
-        return jdbcTemplate.queryForList(sql, BigDecimal.class, tagname, groupfreq, groupfreq);
+        List<BigDecimal> sinceList = jdbcTemplate.queryForList(sql, BigDecimal.class, tagname, groupfreq, groupfreq);
+//        List<BigDecimal> sinceList = jdbcTemplate.queryForList(sql, BigDecimal.class, groupfreq, groupfreq, tagname);
+        BigDecimal a = sinceList.get(0);
+        log.debug("Return elements like {} ", a);
+        return sinceList.stream().map(s -> s.toBigInteger())
+                .collect(Collectors.toList());
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * hep.phycdb.svc.repositories.IovGroupsCustom#selectSnapshotGroups(java.lang.
-     * String, java.util.Date, java.lang.Integer)
-     */
     @Override
-    public List<BigDecimal> selectSnapshotGroups(String tagname, Date snap, Long groupsize) {
+    public List<BigInteger> selectSnapshotGroups(String tagname, Date snap, Long groupsize) {
         log.info(
                 "Select Iov Snapshot Groups for tag {} with group size {} and snapshot time {} using JDBCTEMPLATE",
                 tagname, groupsize, snap);
@@ -112,15 +98,14 @@ public class IovGroupsImpl extends DataGeneral implements IovGroupsCustom {
                            + " order by min(SINCE)";
         log.debug("Execute selectSnapshotGroups query {}", sql);
 
-        return jdbcTemplate.queryForList(sql, BigDecimal.class, tagname, snap, groupfreq,
+        List<BigDecimal> sinceList = jdbcTemplate.queryForList(sql, BigDecimal.class, tagname, snap, groupfreq,
                 groupfreq);
+        BigDecimal a = sinceList.get(0);
+        log.info("Return elements like {} ", a);
+        return sinceList.stream().map(s -> s.toBigInteger())
+                .collect(Collectors.toList());
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see hep.crest.data.repositories.IovGroupsCustom#getSize(java.lang.String)
-     */
     @Override
     public Long getSize(String tagname) {
         log.info("Select count(TAG_NAME) Iov for tag {} using JDBCTEMPLATE", tagname);
@@ -132,12 +117,6 @@ public class IovGroupsImpl extends DataGeneral implements IovGroupsCustom {
         return jdbcTemplate.queryForObject(sql, Long.class, tagname);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see hep.crest.data.repositories.IovGroupsCustom#getSizeBySnapshot(java.lang.
-     * String, java.util.Date)
-     */
     @Override
     public Long getSizeBySnapshot(String tagname, Date snap) {
         log.info("Select count(TAG_NAME) Iov for tag {} and snapshot time {} using JDBCTEMPLATE",
@@ -148,31 +127,6 @@ public class IovGroupsImpl extends DataGeneral implements IovGroupsCustom {
         final String sql = "select COUNT(TAG_NAME) from " + tablename
                            + " where TAG_NAME=? and INSERTION_TIME<=?";
         return jdbcTemplate.queryForObject(sql, Long.class, tagname, snap);
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see hep.phycdb.svc.repositories.IovGroupsCustom#getTagSummaryInfo(java.lang.
-     * String)
-     */
-    @Override
-    public List<TagSummaryDto> getTagSummaryInfo(String tagname) {
-        log.info("Select count(TAG_NAME) Iov for tag matching pattern {} using JDBCTEMPLATE",
-                tagname);
-        final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-        final String tablename = getCrestTableNames().getIovTableName();
-        // sql : count iovs in a tag
-        // select TAG_NAME, COUNT(TAG_NAME) as NIOVS from IOV
-        // where TAG_NAME like ? GROUP BY TAG_NAME
-        final String sql = "select TAG_NAME, COUNT(TAG_NAME) as NIOVS from " + tablename
-                           + " where TAG_NAME like ? GROUP BY TAG_NAME";
-        return jdbcTemplate.query(sql, (rs, num) -> {
-            final TagSummaryDto entity = new TagSummaryDto();
-            entity.setTagname(rs.getString("TAG_NAME"));
-            entity.setNiovs(rs.getLong("NIOVS"));
-            return entity;
-        }, tagname);
     }
 
 }

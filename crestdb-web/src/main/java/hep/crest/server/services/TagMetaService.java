@@ -3,62 +3,64 @@
  */
 package hep.crest.server.services;
 
-import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.AbstractCdbServiceException;
+import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.ConflictException;
-import hep.crest.server.repositories.TagMetaDataBaseCustom;
-import hep.crest.server.swagger.model.TagMetaDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import hep.crest.data.pojo.TagMeta;
+import hep.crest.data.repositories.TagMetaRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 /**
  * @author rsipos
  *
  */
 @Service
+@Slf4j
 public class TagMetaService {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(TagMetaService.class);
 
     /**
      * Repository.
      */
     @Autowired
-    @Qualifier("tagmetarepo")
-    private TagMetaDataBaseCustom tagmetaRepository;
+    private TagMetaRepository tagmetaRepository;
 
+    /**
+     * Find TagMeta.
+     *
+     * @param name
+     * @return TagMeta
+     * @throws AbstractCdbServiceException
+     */
+    public TagMeta find(String name) {
+        log.debug("Search meta info for tag {}", name);
+        return tagmetaRepository.findByTagName(name).orElseThrow(
+                () -> new CdbNotFoundException("Cannot find meta info for tag " + name)
+        );
+    }
     /**
      * Insert new tag meta data.
      *
-     * @param dto
-     *            the TagMetaDto
-     * @return TagMetaDto
+     * @param entity
+     *            the TagMeta
+     * @return TagMeta
      * @throws AbstractCdbServiceException
      *             If an Exception occurred
      */
-    public TagMetaDto insertTagMeta(TagMetaDto dto) {
-        log.debug("Create tag meta data from dto {}", dto);
-        try {
-            final String name = dto.getTagName();
-            final TagMetaDto tmpt = this.findMeta(name);
-            if (tmpt != null) {
-                log.debug("Cannot store tag meta {} : resource already exists.. ", name);
-                throw new ConflictException(
-                        "Tag meta already exists for name " + name);
-            }
+    public TagMeta insertTagMeta(TagMeta entity) {
+        log.debug("Create tag meta data from entity {}", entity);
+        final String name = entity.tagName();
+        Optional<TagMeta> opt = tagmetaRepository.findByTagName(name);
+        if (opt.isPresent()) {
+            log.debug("Cannot store tag meta {} : resource already exists.. ", name);
+            throw new ConflictException(
+                "Tag meta already exists for name " + name);
         }
-        catch (CdbNotFoundException e) {
-            log.warn("This is a new meta info...");
-        }
-        final TagMetaDto saved = tagmetaRepository.save(dto);
+        final TagMeta saved = tagmetaRepository.save(entity);
         log.debug("Saved entity: {}", saved);
         return saved;
     }
@@ -66,30 +68,25 @@ public class TagMetaService {
     /**
      * Update an existing tag meta data.
      *
-     * @param dto
-     *            the TagMetaDto
-     * @return TagMetaDto
+     * @param entity
+     *            the TagMeta
+     * @return TagMeta
      * @throws AbstractCdbServiceException If an exception occurred.
      */
-    public TagMetaDto updateTagMeta(TagMetaDto dto) {
-        log.debug("Update tag meta from dto {}", dto);
-        TagMetaDto toupd = this.findMeta(dto.getTagName());
-        log.debug("Updating existing tag meta {}", toupd);
-        final TagMetaDto saved = tagmetaRepository.update(dto);
+    @Transactional
+    public TagMeta updateTagMeta(TagMeta entity) {
+        log.debug("Update tag meta from entity {}", entity);
+        Optional<TagMeta> opt = tagmetaRepository.findByTagName(entity.tagName());
+        if (opt.isEmpty()) {
+            throw new CdbNotFoundException("Cannot find meta info for " + entity.tagName());
+        }
+        TagMeta stored = opt.get();
+        log.debug("Updating existing tag meta {}", stored);
+        stored.tagInfo(entity.tagInfo())
+                .chansize(entity.chansize()).colsize(entity.colsize()).description(entity.description());
+        final TagMeta saved = tagmetaRepository.save(stored);
         log.debug("Updated entity: {}", saved);
         return saved;
-    }
-
-    /**
-     * @param id
-     *            the String
-     * @return TagMetaDto
-     * @throws AbstractCdbServiceException
-     *             If an Exception occurred
-     */
-    public TagMetaDto findMeta(String id) {
-        log.debug("Search for tag meta data by Id...{}", id);
-        return tagmetaRepository.find(id);
     }
 
     /**
@@ -101,7 +98,11 @@ public class TagMetaService {
     @Transactional
     public void removeTagMeta(String name) {
         log.debug("Remove tag meta info for {}", name);
-        tagmetaRepository.delete(name);
+        Optional<TagMeta> opt = tagmetaRepository.findByTagName(name);
+        if (opt.isEmpty()) {
+            throw new CdbNotFoundException("Cannot find tag meta for tag name " + name);
+        }
+        tagmetaRepository.delete(opt.get());
         log.debug("Removed tag meta info for: {}", name);
     }
 }

@@ -30,9 +30,9 @@ import javax.validation.Valid;
   PayloadDto.JSON_PROPERTY_HASH,
   PayloadDto.JSON_PROPERTY_VERSION,
   PayloadDto.JSON_PROPERTY_OBJECT_TYPE,
+  PayloadDto.JSON_PROPERTY_COMPRESSION_TYPE,
+  PayloadDto.JSON_PROPERTY_CHECK_SUM,
   PayloadDto.JSON_PROPERTY_SIZE,
-  PayloadDto.JSON_PROPERTY_DATA,
-  PayloadDto.JSON_PROPERTY_STREAMER_INFO,
   PayloadDto.JSON_PROPERTY_INSERTION_TIME
 })
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
@@ -49,17 +49,17 @@ public class PayloadDto   {
   @JsonProperty(JSON_PROPERTY_OBJECT_TYPE)
   private String objectType;
 
+  public static final String JSON_PROPERTY_COMPRESSION_TYPE = "compressionType";
+  @JsonProperty(JSON_PROPERTY_COMPRESSION_TYPE)
+  private String compressionType;
+
+  public static final String JSON_PROPERTY_CHECK_SUM = "checkSum";
+  @JsonProperty(JSON_PROPERTY_CHECK_SUM)
+  private String checkSum;
+
   public static final String JSON_PROPERTY_SIZE = "size";
   @JsonProperty(JSON_PROPERTY_SIZE)
   private Integer size;
-
-  public static final String JSON_PROPERTY_DATA = "data";
-  @JsonProperty(JSON_PROPERTY_DATA)
-  private byte[] data;
-
-  public static final String JSON_PROPERTY_STREAMER_INFO = "streamerInfo";
-  @JsonProperty(JSON_PROPERTY_STREAMER_INFO)
-  private byte[] streamerInfo;
 
   public static final String JSON_PROPERTY_INSERTION_TIME = "insertionTime";
   @JsonProperty(JSON_PROPERTY_INSERTION_TIME)
@@ -125,6 +125,46 @@ public class PayloadDto   {
     this.objectType = objectType;
   }
 
+  public PayloadDto compressionType(String compressionType) {
+    this.compressionType = compressionType;
+    return this;
+  }
+
+  /**
+   * Get compressionType
+   * @return compressionType
+   **/
+  @JsonProperty("compressionType")
+  @ApiModelProperty(value = "")
+  
+  public String getCompressionType() {
+    return compressionType;
+  }
+
+  public void setCompressionType(String compressionType) {
+    this.compressionType = compressionType;
+  }
+
+  public PayloadDto checkSum(String checkSum) {
+    this.checkSum = checkSum;
+    return this;
+  }
+
+  /**
+   * Get checkSum
+   * @return checkSum
+   **/
+  @JsonProperty("checkSum")
+  @ApiModelProperty(value = "")
+  
+  public String getCheckSum() {
+    return checkSum;
+  }
+
+  public void setCheckSum(String checkSum) {
+    this.checkSum = checkSum;
+  }
+
   public PayloadDto size(Integer size) {
     this.size = size;
     return this;
@@ -143,46 +183,6 @@ public class PayloadDto   {
 
   public void setSize(Integer size) {
     this.size = size;
-  }
-
-  public PayloadDto data(byte[] data) {
-    this.data = data;
-    return this;
-  }
-
-  /**
-   * Get data
-   * @return data
-   **/
-  @JsonProperty("data")
-  @ApiModelProperty(value = "")
-  
-  public byte[] getData() {
-    return data;
-  }
-
-  public void setData(byte[] data) {
-    this.data = data;
-  }
-
-  public PayloadDto streamerInfo(byte[] streamerInfo) {
-    this.streamerInfo = streamerInfo;
-    return this;
-  }
-
-  /**
-   * Get streamerInfo
-   * @return streamerInfo
-   **/
-  @JsonProperty("streamerInfo")
-  @ApiModelProperty(value = "")
-  
-  public byte[] getStreamerInfo() {
-    return streamerInfo;
-  }
-
-  public void setStreamerInfo(byte[] streamerInfo) {
-    this.streamerInfo = streamerInfo;
   }
 
   public PayloadDto insertionTime(OffsetDateTime insertionTime) {
@@ -218,15 +218,15 @@ public class PayloadDto   {
     return Objects.equals(this.hash, payloadDto.hash) &&
         Objects.equals(this.version, payloadDto.version) &&
         Objects.equals(this.objectType, payloadDto.objectType) &&
+        Objects.equals(this.compressionType, payloadDto.compressionType) &&
+        Objects.equals(this.checkSum, payloadDto.checkSum) &&
         Objects.equals(this.size, payloadDto.size) &&
-        Objects.equals(this.data, payloadDto.data) &&
-        Objects.equals(this.streamerInfo, payloadDto.streamerInfo) &&
         Objects.equals(this.insertionTime, payloadDto.insertionTime);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(hash, version, objectType, size, data, streamerInfo, insertionTime);
+    return Objects.hash(hash, version, objectType, compressionType, checkSum, size, insertionTime);
   }
 
 
@@ -238,9 +238,9 @@ public class PayloadDto   {
     sb.append("    hash: ").append(toIndentedString(hash)).append("\n");
     sb.append("    version: ").append(toIndentedString(version)).append("\n");
     sb.append("    objectType: ").append(toIndentedString(objectType)).append("\n");
+    sb.append("    compressionType: ").append(toIndentedString(compressionType)).append("\n");
+    sb.append("    checkSum: ").append(toIndentedString(checkSum)).append("\n");
     sb.append("    size: ").append(toIndentedString(size)).append("\n");
-    sb.append("    data: ").append(toIndentedString(data)).append("\n");
-    sb.append("    streamerInfo: ").append(toIndentedString(streamerInfo)).append("\n");
     sb.append("    insertionTime: ").append(toIndentedString(insertionTime)).append("\n");
     sb.append("}");
     return sb.toString();

@@ -62,7 +62,7 @@ public class GlobalTagService {
         Page<GlobalTag> entitylist = null;
         try {
             if (preq == null) {
-                String sort = "id.since:ASC,id.insertionTime:DESC";
+                String sort = "name:ASC";
                 preq = prh.createPageRequest(0, 1000, sort);
             }
             entitylist = globalTagRepository.findGlobalTagList(args, preq);

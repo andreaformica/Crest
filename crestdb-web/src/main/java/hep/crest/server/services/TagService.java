@@ -9,16 +9,16 @@ import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
+import hep.crest.data.pojo.TagMeta;
+import hep.crest.data.repositories.IovGroupsCustom;
 import hep.crest.data.repositories.IovRepository;
+import hep.crest.data.repositories.TagMetaRepository;
 import hep.crest.data.repositories.TagRepository;
 import hep.crest.data.repositories.args.TagQueryArgs;
 import hep.crest.server.controllers.PageRequestHelper;
-import hep.crest.server.repositories.IovGroupsCustom;
-import hep.crest.server.swagger.model.TagMetaDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +31,6 @@ import java.util.Optional;
 
 /**
  * @author rsipos
- *
  */
 @Service
 public class TagService {
@@ -66,12 +65,18 @@ public class TagService {
      */
     @Autowired
     private TagMetaService tagMetaService;
+
     /**
      * Repository.
      */
     @Autowired
-    @Qualifier("iovgroupsrepo")
-    private IovGroupsCustom iovgroupsrepo;
+    private TagMetaRepository tagMetaRepository;
+
+    /**
+     * Repository.
+     */
+    @Autowired
+    private IovGroupsCustom iovGroupsCustom;
 
     /**
      * Helper.
@@ -80,11 +85,9 @@ public class TagService {
     private PageRequestHelper prh;
 
     /**
-     * @param tagname
-     *            the String
+     * @param tagname the String
      * @return boolean
-     * @throws AbstractCdbServiceException
-     *             If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     public boolean exists(String tagname) throws CdbInternalException {
         try {
@@ -97,11 +100,9 @@ public class TagService {
     }
 
     /**
-     * @param id
-     *            the String representing the Tag name
+     * @param id the String representing the Tag name
      * @return Tag
-     * @throws AbstractCdbServiceException
-     *             If object was not found
+     * @throws AbstractCdbServiceException If object was not found
      */
     public Tag findOne(String id) throws AbstractCdbServiceException {
         log.debug("Search for tag by Id...{}", id);
@@ -129,11 +130,9 @@ public class TagService {
 
 
     /**
-     * @param entity
-     *            the Tag
+     * @param entity the Tag
      * @return Tag
-     * @throws ConflictException
-     *             If an Exception occurred because pojo exists
+     * @throws ConflictException If an Exception occurred because pojo exists
      */
     @Transactional
     public Tag insertTag(Tag entity) throws ConflictException {
@@ -152,11 +151,9 @@ public class TagService {
     /**
      * Update an existing tag.
      *
-     * @param entity
-     *            the Tag
+     * @param entity the Tag
      * @return TagDto of the updated entity.
-     * @throws AbstractCdbServiceException
-     *             If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     @Transactional
     public Tag updateTag(Tag entity) throws AbstractCdbServiceException {
@@ -173,8 +170,7 @@ public class TagService {
     }
 
     /**
-     * @param name
-     *            the String
+     * @param name the String
      * @throws AbstractCdbServiceException If an Exception occurred
      */
     @Transactional
@@ -184,18 +180,13 @@ public class TagService {
                 () -> new CdbNotFoundException("Tag does not exists for name " + name));
         // Remove meta information associated with the tag.
         log.debug("Removing meta info on tag {}", remTag);
-        TagMetaDto metadto;
-        try {
-            metadto = tagMetaService.findMeta(name);
-            if (metadto != null) {
-                tagMetaService.removeTagMeta(name);
-            }
+        Optional<TagMeta> opt = tagMetaRepository.findByTagName(name);
+        if (opt.isPresent()) {
+            tagMetaService.removeTagMeta(name);
         }
-        catch (CdbNotFoundException e) {
-            log.warn("The meta information for tag {} is not present...", name);
-        }
+
         log.debug("Removing tag {}", remTag);
-        long niovs = iovgroupsrepo.getSize(name);
+        long niovs = iovGroupsCustom.getSize(name);
         if (niovs > 0) {
             String sort = "id.since:ASC,id.insertionTime:DESC";
             Pageable preq = prh.createPageRequest(0, 1000, sort);

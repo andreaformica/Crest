@@ -1,5 +1,9 @@
 package hep.crest.data.handlers;
 
+import hep.crest.data.exceptions.PayloadEncodingException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.DigestUtils;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,12 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.DigestUtils;
-
-import hep.crest.data.exceptions.PayloadEncodingException;
-
 /**
  * Utility class for hash generation. Should be used when the client does not
  * provide the hash himself.
@@ -21,12 +19,8 @@ import hep.crest.data.exceptions.PayloadEncodingException;
  * @author formica
  *
  */
+@Slf4j
 public final class HashGenerator {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(HashGenerator.class);
 
     /**
      * MD5.

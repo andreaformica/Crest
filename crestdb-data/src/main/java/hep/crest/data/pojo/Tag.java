@@ -19,7 +19,7 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Date;
@@ -71,13 +71,13 @@ public class Tag implements java.io.Serializable {
     /**
      * The last validated time.
      */
-    @Column(name = "LAST_VALIDATED_TIME", nullable = false, precision = 38, scale = 0)
-    private BigDecimal lastValidatedTime;
+    @Column(name = "LAST_VALIDATED_TIME", nullable = false, precision = 22, scale = 0)
+    private BigInteger lastValidatedTime = BigInteger.ZERO;
     /**
      * The end of validity.
      */
-    @Column(name = "END_OF_VALIDITY", nullable = false, precision = 38, scale = 0)
-    private BigDecimal endOfValidity;
+    @Column(name = "END_OF_VALIDITY", nullable = false, precision = 22, scale = 0)
+    private BigInteger endOfValidity = BigInteger.ZERO;
     /**
      * The insertion time.
      */

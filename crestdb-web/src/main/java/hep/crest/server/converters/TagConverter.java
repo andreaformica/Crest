@@ -6,6 +6,7 @@ import ma.glasnost.orika.MappingContext;
 import ma.glasnost.orika.converter.BidirectionalConverter;
 import ma.glasnost.orika.metadata.Type;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -40,8 +41,9 @@ public class TagConverter extends BidirectionalConverter<Tag, TagDto> {
         // Set all fields.
         dto.name(source.name()).description(source.description())
                 .timeType(source.timeType()).payloadSpec(source.objectType())
-                .synchronization(source.synchronization()).endOfValidity(source.endOfValidity())
-                .lastValidatedTime(source.lastValidatedTime());
+                .synchronization(source.synchronization())
+                .endOfValidity(new BigDecimal(source.endOfValidity()))
+                .lastValidatedTime(new BigDecimal(source.lastValidatedTime()));
         return dto;
     }
 
@@ -65,8 +67,8 @@ public class TagConverter extends BidirectionalConverter<Tag, TagDto> {
         // Set all fields.
         entity.name(source.getName()).description(source.getDescription())
                 .objectType(source.getPayloadSpec()).synchronization(source.getSynchronization())
-                .timeType(source.getTimeType()).endOfValidity(source.getEndOfValidity())
-                .lastValidatedTime(source.getLastValidatedTime());
+                .timeType(source.getTimeType()).endOfValidity(source.getEndOfValidity().toBigInteger())
+                .lastValidatedTime(source.getLastValidatedTime().toBigInteger());
         return entity;
     }
 }

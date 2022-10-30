@@ -3,6 +3,8 @@ package hep.crest.data.config;
 import hep.crest.data.pojo.GlobalTag;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Payload;
+import hep.crest.data.pojo.PayloadData;
+import hep.crest.data.pojo.PayloadInfoData;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.pojo.TagMeta;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,14 @@ public class CrestTableNames {
      * The payload table.
      */
     private String payloadTableName = null;
+    /**
+     * The payload data table.
+     */
+    private String payloadDataTableName = null;
+    /**
+     * The payload data table.
+     */
+    private String payloadInfoTableName = null;
     /**
      * The iov table.
      */
@@ -81,6 +91,12 @@ public class CrestTableNames {
             case "Payload":
                 ann = Payload.class.getAnnotation(Table.class);
                 break;
+            case "PayloadData":
+                ann = PayloadData.class.getAnnotation(Table.class);
+                break;
+            case "PayloadInfo":
+                ann = PayloadInfoData.class.getAnnotation(Table.class);
+                break;
             case "Tag":
                 ann = Tag.class.getAnnotation(Table.class);
                 break;
@@ -115,6 +131,26 @@ public class CrestTableNames {
             this.payloadTableName = tablename("Payload");
         }
         return this.payloadTableName;
+    }
+    /**
+     *
+     * @return the table name.
+     */
+    public String getPayloadDataTableName() {
+        if (this.payloadDataTableName == null) {
+            this.payloadDataTableName = tablename("PayloadData");
+        }
+        return this.payloadDataTableName;
+    }
+    /**
+     *
+     * @return the table name.
+     */
+    public String getPayloadInfoDataTableName() {
+        if (this.payloadInfoTableName == null) {
+            this.payloadInfoTableName = tablename("PayloadInfo");
+        }
+        return this.payloadInfoTableName;
     }
     /**
      *

@@ -23,9 +23,9 @@ import javax.ws.rs.core.UriInfo;
 import javax.validation.constraints.*;
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public abstract class IovsApiService {
-    public abstract Response createIov(IovDto iovDto,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response findAllIovs( @NotNull String method,String tagname,Long snapshot,String since,String until,String timeformat,Long groupsize,String hash,Integer page,Integer size,String sort,String xCrestQuery,String xCrestSince,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response getSizeByTag( @NotNull String tagname,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response selectIovPayloads( @NotNull String tagname,String since,String until,String timeformat,Integer page,Integer size,String sort,SecurityContext securityContext, UriInfo info) throws NotFoundException;
-    public abstract Response storeBatchIovMultiForm(IovSetDto iovSetDto,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response storeIovBatch(IovSetDto iovSetDto,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response storeIovOne(IovDto iovDto,SecurityContext securityContext, UriInfo info) throws NotFoundException;
 }

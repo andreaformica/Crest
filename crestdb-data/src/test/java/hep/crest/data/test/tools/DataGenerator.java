@@ -45,8 +45,8 @@ public class DataGenerator {
     public static Tag generateTag(String name, String ttype) {
         final Tag entity = new Tag();
         entity.name(name).description("A test tag " + name)
-                .endOfValidity(new BigDecimal(-1L))
-                .lastValidatedTime(new BigDecimal(-1L))
+                .endOfValidity(BigInteger.valueOf(-1L))
+                .lastValidatedTime(BigInteger.valueOf(-1L))
                 .objectType("type")
                 .synchronization("synchro")
                 .timeType(ttype);
@@ -67,7 +67,7 @@ public class DataGenerator {
         return entity;
     }
 
-    public static Iov generateIov(String hash, String tagname, BigDecimal since) {
+    public static Iov generateIov(String hash, String tagname, BigInteger since) {
         final IovId id = new IovId().tagName(tagname).since(since).insertionTime(new Date());
         final Tag tag = new Tag().name(tagname);
         final Iov entity = new Iov().id(id).tag(tag).payloadHash(hash);

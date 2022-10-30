@@ -138,14 +138,14 @@ public class PageRequestHelper {
      * @param inputformat the time format (sec, msec, iso, run).
      * @param outunit the time unit (sec or msec).
      * @param customdateformat a user defined date format.
-     * @return Long
+     * @return BigInteger
      */
-    public BigDecimal getTimeFromArg(String val, ArgTimeUnit inputformat, ArgTimeUnit outunit,
+    public BigInteger getTimeFromArg(String val, ArgTimeUnit inputformat, ArgTimeUnit outunit,
                                      String customdateformat) {
         try {
             log.debug("Get time from args: {} {} {} {}", val, inputformat, outunit, customdateformat);
             DateTimeFormatter dtformatter = null;
-            BigDecimal tepoch = null;
+            BigInteger tepoch = null;
             if (val == null) {
                 return tepoch;
             }
@@ -155,7 +155,7 @@ public class PageRequestHelper {
             if (val.equalsIgnoreCase("INF")) {
                 // Until time is INF.
                 log.warn("The time will be set to INF : {}", CrestProperties.INFINITY);
-                return CrestProperties.INFINITY;
+                return CrestProperties.INFINITY.toBigInteger();
             }
             boolean iscoolformat = Boolean.FALSE;
             log.trace("Getting time from arg {}, {}, {}, {}", val, inputformat, outunit, customdateformat);
@@ -163,15 +163,15 @@ public class PageRequestHelper {
                 // Tepoch will always be millisec since 1970 at the end of this block.
                 case MS:
                     log.trace("Use MS to parse {}", val);
-                    tepoch = BigDecimal.valueOf(Long.parseLong(val));
+                    tepoch = BigInteger.valueOf(Long.parseLong(val));
                     break;
                 case SEC:
                     log.trace("Use SEC to parse {} (*1000 to get epoch)", val);
-                    tepoch = BigDecimal.valueOf(Long.parseLong(val) * 1000L);
+                    tepoch = BigInteger.valueOf(Long.parseLong(val) * 1000L);
                     break;
                 case RUN:
                     log.trace("Use run...{}", val);
-                    tepoch = BigDecimal.valueOf(Long.parseLong(val));
+                    tepoch = BigInteger.valueOf(Long.parseLong(val));
                     iscoolformat = Boolean.TRUE;
                     break;
                 case RUN_LUMI:
@@ -186,7 +186,7 @@ public class PageRequestHelper {
                     ZonedDateTime zdtInstanceAtOffset = ZonedDateTime.parse(val, dtformatter);
                     ZonedDateTime zdtInstanceAtUTC = zdtInstanceAtOffset
                             .withZoneSameInstant(ZoneOffset.UTC);
-                    tepoch = BigDecimal.valueOf(zdtInstanceAtUTC.toInstant().toEpochMilli());
+                    tepoch = BigInteger.valueOf(zdtInstanceAtUTC.toInstant().toEpochMilli());
                     log.trace("Parsed date using -iso- format {}; time from epoch is {}", zdtInstanceAtUTC, tepoch);
                     break;
                 case CUSTOM:
@@ -198,13 +198,13 @@ public class PageRequestHelper {
                     ZonedDateTime customzdtInstanceAtOffset = ZonedDateTime.parse(val, dtformatter);
                     ZonedDateTime customzdtInstanceAtUTC = customzdtInstanceAtOffset
                             .withZoneSameInstant(ZoneOffset.UTC);
-                    tepoch = BigDecimal.valueOf(customzdtInstanceAtUTC.toInstant().toEpochMilli());
+                    tepoch = BigInteger.valueOf(customzdtInstanceAtUTC.toInstant().toEpochMilli());
                     log.trace("Parsed date using custom format {} - {}; time from epoch is {}", customdateformat,
                             customzdtInstanceAtUTC, tepoch);
                     break;
                 case NUMBER:
                     log.debug("Use number to parse {}", val);
-                    tepoch = new BigDecimal(val);
+                    tepoch = new BigInteger(val);
                     iscoolformat = Boolean.TRUE;
                     break;
                 default:
@@ -216,10 +216,10 @@ public class PageRequestHelper {
             log.trace("Time arg parsing will return {} ", tepoch, outunit);
             if (outunit != null && outunit.equals(ArgTimeUnit.SEC)) {
                 // Here we return seconds since Epoch.
-                return tepoch.divide(BigDecimal.valueOf(1000L));
+                return tepoch.divide(BigInteger.valueOf(1000L));
             }
             else if (outunit != null && outunit.equals(ArgTimeUnit.COOL) && !iscoolformat) {
-                return tepoch.multiply(TO_NANO_SECONDS);
+                return tepoch.multiply(TO_NANO_SECONDS.toBigInteger());
             }
             return tepoch;
         }
@@ -236,7 +236,7 @@ public class PageRequestHelper {
      *            The lumi block as a String.
      * @return The COOL time.
      */
-    public BigDecimal getCoolRunLumi(final String arun, final String lb) {
+    public BigInteger getCoolRunLumi(final String arun, final String lb) {
         Long runlong = null;
         Long lblong = null;
         if (arun == null) {
@@ -265,7 +265,7 @@ public class PageRequestHelper {
      *            The lb in long.
      * @return The COOL time.
      */
-    public BigDecimal getCoolRunLumi(final Long arun, final Long lb) {
+    public BigInteger getCoolRunLumi(final Long arun, final Long lb) {
         BigInteger irun = null;
         BigInteger ilb = null;
         BigInteger runlumi = null;
@@ -274,16 +274,16 @@ public class PageRequestHelper {
             return null;
         }
         else {
-            irun = new BigDecimal(arun).toBigIntegerExact();
+            irun = BigInteger.valueOf(arun);
             if (lb == null) {
-                ilb = new BigDecimal(0L).toBigIntegerExact();
+                ilb = BigInteger.valueOf(0L);
             }
             else {
-                ilb = new BigDecimal(lb).toBigIntegerExact();
+                ilb = BigInteger.valueOf(lb);
             }
             run = irun.shiftLeft(COOLIOV_RUN_MASK);
             runlumi = run.or(ilb);
         }
-        return new BigDecimal(runlumi);
+        return runlumi;
     }
 }

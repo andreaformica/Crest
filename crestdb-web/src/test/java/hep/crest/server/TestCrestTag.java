@@ -30,6 +30,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 
@@ -99,13 +100,13 @@ public class TestCrestTag {
     public void storeIovs(TagDto dto) throws JsonProcessingException {
         // Upload batch iovs
         final IovId id = new IovId().tagName(dto.getName())
-                .since(BigDecimal.valueOf(2000000L*1000000000L)).insertionTime(new Date());
+                .since(BigInteger.valueOf(2000000L * 1000000000L)).insertionTime(new Date());
         final Iov miov = (Iov) rnd.generate(Iov.class);
         miov.id(id);
         miov.id().insertionTime(null);
         log.info("...created iov via random gen: {}", miov);
         final IovId id2 = new IovId().tagName(dto.getName())
-                .since(BigDecimal.valueOf(3000000L*1000000000L)).insertionTime(new Date());
+                .since(BigInteger.valueOf(3000000L*1000000000L)).insertionTime(new Date());
         final Iov miov2 = (Iov) rnd.generate(Iov.class);
         miov2.id(id2);
         miov2.id().insertionTime(null);
@@ -122,7 +123,7 @@ public class TestCrestTag {
         setdto.addResourcesItem(diov).addResourcesItem(diov2);
 
         final ResponseEntity<String> iovresp2 = this.testRestTemplate
-                .postForEntity("/crestapi/iovs/storebatch", setdto, String.class);
+                .postForEntity("/crestapi/iovs", setdto, String.class);
         log.info("Received response: " + iovresp2);
         assertThat(iovresp2.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         {

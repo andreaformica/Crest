@@ -60,13 +60,16 @@ public class RandomGenerator {
                         String val = String.valueOf(rnd.nextInt()); // TODO generate better string
                         aMethod.invoke(obj, val);
                     } else if (argtype.equals(Date.class)) {
-                        Date val = Date.from(Instant.ofEpochMilli(rnd.nextLong()));
+                        Instant now = Instant.now();
+                        Date val = Date.from(Instant.ofEpochMilli(now.toEpochMilli()));
                         aMethod.invoke(obj, val);
                     } else if (argtype.equals(Timestamp.class)) {
-                        Timestamp val = Timestamp.from(Instant.ofEpochMilli(rnd.nextLong()));
+                        Instant now = Instant.now();
+                        Timestamp val = Timestamp.from(Instant.ofEpochMilli(now.toEpochMilli()));
                         aMethod.invoke(obj, val);
                     } else if (argtype.equals(OffsetDateTime.class)) {
-                        OffsetDateTime val = Instant.ofEpochMilli(rnd.nextLong()).atOffset(ZoneOffset.UTC);
+                        Instant now = Instant.now();
+                        OffsetDateTime val = Instant.ofEpochMilli(now.toEpochMilli()).atOffset(ZoneOffset.UTC);
                         aMethod.invoke(obj, val);
                     } else if (argtype.equals(Boolean.class)) {
                         Boolean val = rnd.nextBoolean();

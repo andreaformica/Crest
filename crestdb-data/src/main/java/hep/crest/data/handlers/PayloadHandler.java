@@ -1,9 +1,8 @@
 package hep.crest.data.handlers;
 
 import hep.crest.data.exceptions.PayloadEncodingException;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.engine.jdbc.StreamUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -18,12 +17,8 @@ import java.security.NoSuchAlgorithmException;
  * The handler contains static methods to use inputstreams or byte arrays.
  * @author formica
  */
+@Slf4j
 public final class PayloadHandler {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(PayloadHandler.class);
 
     /**
      * Max length for reading.

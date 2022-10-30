@@ -18,8 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Date;
@@ -66,14 +65,14 @@ public class PojoTests {
     public void testIovId() throws Exception {
         IovId iovid = new IovId();
         Long now = Instant.now().toEpochMilli();
-        iovid.since(new BigDecimal(now));
+        iovid.since(BigInteger.valueOf(now));
         iovid.tagName("TEST-TAG-01");
         iovid.insertionTime(new Date(now));
         IovId iovid1 = new IovId();
-        iovid1.since(new BigDecimal(now));
+        iovid1.since(BigInteger.valueOf(now));
         iovid1.tagName("TEST-TAG-01");
         IovId iovid2 = new IovId();
-        iovid2.since(new BigDecimal(now));
+        iovid2.since(BigInteger.valueOf(now));
         iovid2.tagName(null);
         assertThat(iovid.hashCode()).isNotZero();
         assertThat(iovid2).isNotNull().isNotEqualTo(iovid).isNotEqualTo(iovid1);

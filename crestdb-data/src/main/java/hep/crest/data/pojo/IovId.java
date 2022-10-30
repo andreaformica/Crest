@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Date;
 
 /**
@@ -36,8 +36,8 @@ public class IovId implements java.io.Serializable {
      * The since time.
      * The concept of time is flexible: can be any kind of Long.
      */
-    @Column(name = "SINCE", nullable = false, precision = 38, scale = 0)
-    private BigDecimal since;
+    @Column(name = "SINCE", nullable = false, precision = 22, scale = 0)
+    private BigInteger since;
     /**
      * The insertion time.
      * This time is used to determine Iovs which were inserted before a snapshot time.

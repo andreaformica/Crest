@@ -5,35 +5,40 @@ import hep.crest.data.config.CrestProperties;
 import hep.crest.data.exceptions.AbstractCdbServiceException;
 import hep.crest.data.exceptions.CdbBadRequestException;
 import hep.crest.data.exceptions.CdbInternalException;
-import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.exceptions.PayloadEncodingException;
 import hep.crest.data.handlers.PayloadHandler;
+import hep.crest.data.pojo.Iov;
+import hep.crest.data.pojo.IovId;
+import hep.crest.data.pojo.Payload;
+import hep.crest.data.pojo.PayloadData;
+import hep.crest.data.pojo.PayloadInfoData;
+import hep.crest.data.pojo.Tag;
+import hep.crest.data.repositories.PayloadDataRepository;
+import hep.crest.data.repositories.PayloadInfoDataRepository;
+import hep.crest.data.repositories.PayloadRepository;
 import hep.crest.server.caching.CachingPolicyService;
-import hep.crest.server.repositories.PayloadDataBaseCustom;
+import hep.crest.server.controllers.EntityDtoHelper;
+import hep.crest.server.controllers.SimpleLobStreamerProvider;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.PayloadService;
+import hep.crest.server.services.StorableData;
 import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.api.NotFoundException;
 import hep.crest.server.swagger.api.PayloadsApiService;
 import hep.crest.server.swagger.model.GenericMap;
-import hep.crest.server.swagger.model.HTTPResponse;
-import hep.crest.server.swagger.model.IovDto;
-import hep.crest.server.swagger.model.IovSetDto;
 import hep.crest.server.swagger.model.PayloadDto;
 import hep.crest.server.swagger.model.PayloadSetDto;
+import hep.crest.server.swagger.model.StoreDto;
+import hep.crest.server.swagger.model.StoreSetDto;
 import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.hibernate.JDBCException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -45,8 +50,9 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -87,8 +93,17 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      * Repository.
      */
     @Autowired
-    @Qualifier("payloaddatadbrepo")
-    private PayloadDataBaseCustom payloaddataRepository;
+    private PayloadRepository payloadRepository;
+    /**
+     * Repository.
+     */
+    @Autowired
+    private PayloadDataRepository payloadDataRepository;
+    /**
+     * Repository.
+     */
+    @Autowired
+    private PayloadInfoDataRepository payloadInfoDataRepository;
     /**
      * Service.
      */
@@ -114,6 +129,13 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      */
     @Inject
     private ObjectMapper jacksonMapper;
+
+    /**
+     * Helper.
+     */
+    @Autowired
+    private EntityDtoHelper edh;
+
     /**
      * Mapper.
      */
@@ -121,236 +143,70 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     @Qualifier("mapper")
     private MapperFacade mapper;
 
-    /* (non-Javadoc)
-     * @see hep.crest.server.swagger.api.PayloadsApiService#createPayload(hep.crest.swagger.model.PayloadDto, javax
-     * .ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
-     */
-    @Override
-    public Response createPayload(PayloadDto body, SecurityContext securityContext, UriInfo info) {
-        // Create a new payload using the body in the request.
-        // Verify if hash exists
-        String dbhash = payloaddataRepository.exists(body.getHash());
-        if (dbhash != null && dbhash.length() > 0) {
-            throw new ConflictException("Hash already exists " + body.getHash());
-        }
-        final PayloadDto saved = payloadService.insertPayload(body);
-        log.debug("Saved PayloadDto {}", saved);
-        return Response.created(info.getRequestUri()).entity(saved).build();
-    }
-
-    @Override
-    public Response createPayloadMultiForm(FormDataBodyPart fileBodypart, PayloadDto payload,
-                                           SecurityContext securityContext, UriInfo info) {
-        this.log.info("PayloadRestController processing request to upload payload from stream");
-        try {
-            // Assume the FormDataBodyPart is a JSON string.
-            // Get the DTO.
-            log.debug("Received body json " + payload);
-            // Verify if hash exists
-            String dbhash = payloaddataRepository.exists(payload.getHash());
-            if (dbhash != null && dbhash.length() > 0) {
-                throw new ConflictException("Hash already exists " + payload.getHash());
-            }
-            // Create the payload taking binary content from the input stream.
-            FormDataContentDisposition fileDetail = fileBodypart.getFormDataContentDisposition();
-            InputStream fileInputStream = fileBodypart.getValueAs(InputStream.class);
-            // Create the payload taking binary content from the input stream.
-            final PayloadDto saved = payloadService.insertPayloadAndInputStream(payload,
-                    fileInputStream);
-            return Response.created(info.getRequestUri()).entity(saved).build();
-        }
-        catch (final NullPointerException e) {
-            // Exception, send 500.
-            final String msg = "Error creating payload resource : " + e.getCause();
-            throw new CdbInternalException(msg);
-        }
-    }
-
     //     @CacheControlCdb("public, max-age=604800") : this has to be set on the API class itself.
     //     For the moment we decide to use the cachecontrol filter (if active) via the method
     //     name definition, by looking for the annotation @Path
     @Override
     public Response getPayload(String hash, String format, SecurityContext securityContext,
                                UriInfo info) {
-        this.log.info(
+        log.info(
                 "PayloadRestController processing request to download payload {} using format {}",
                 hash, format);
         // Get only metadata from the payload.
-        final PayloadDto pdto = payloadService.getPayloadMetaInfo(hash);
-        final String ptype = pdto.getObjectType();
-        log.debug("Found metadata {}", pdto);
+        final Payload entity = payloadService.getPayload(hash);
+        final String ptype = entity.objectType();
+        log.debug("Found metadata {}", entity);
         // Get the media type. It utilize the objectType field.
         final MediaType media_type = getMediaType(ptype);
 
         // Set caching policy depending on snapshot argument
         // this is filling a mag-age parameter in the header
         final CacheControl cc = cachesvc.getPayloadCacheControl();
-
-        if (format == null || format.equalsIgnoreCase("BLOB")
-            || format.equalsIgnoreCase("BIN")) {
-            // The client requested to get binary data.
-            // Get the payload data.
-            final InputStream in = payloadService.getPayloadData(hash);
-            // Stream data in output.
-            final StreamingOutput stream = new StreamingOutput() {
-                @Override
-                public void write(OutputStream os) throws IOException, WebApplicationException {
-                    try {
-                        int read = 0;
-                        final byte[] bytes = new byte[2048];
-                        // Read input bytes and write in output stream
-                        while ((read = in.read(bytes)) != -1) {
-                            os.write(bytes, 0, read);
-                            log.trace("Copying {} bytes into the output...", read);
-                        }
-                        // Flush data
-                        os.flush();
-                    }
-                    catch (final Exception e) {
-                        throw new WebApplicationException(e);
-                    }
-                    finally {
-                        // Close all streames to avoid memory leaks.
-                        log.debug("closing streams...");
-                        if (os != null) {
-                            os.close();
-                        }
-                        if (in != null) {
-                            in.close();
-                        }
+        StreamingOutput streamingOutput = edh.makeStreamingOutputFromLob(
+                new SimpleLobStreamerProvider(hash, format) {
+                    @Override
+                    public InputStream getInputStream() {
+                        PayloadService.LobStream lob = payloadService.getLobData(hash, format);
+                        return lob.getInputStream();
                     }
                 }
-            };
-            log.debug("Send back the stream....");
-            // Get media type
-            final String rettype = media_type.toString();
-            // Get extension
-            final String ext = getExtension(ptype);
-            final String fname = hash + "." + ext;
+        );
+        log.debug("Send back the stream....");
+        // Get media type
+        final String rettype = media_type.toString();
+        // Get extension
+        final String ext = getExtension(ptype);
+        final String fname = hash + "." + ext;
             // Set the content type in the response, and the file name as well.
-            return Response.ok(stream) /// MediaType.APPLICATION_JSON_TYPE)
-                    .header("Content-type", rettype)
-                    .header("Content-Disposition", "Inline; filename=\"" + fname + "\"")
-                    // .header("Content-Length", new
-                    // Long(f.length()).toString())
-                    .cacheControl(cc)
-                    .build();
-        }
-        else {
-            // The client requested to get a DTO.
-            log.debug("Retrieve the full pojo with hash {}", hash);
-            final PayloadDto entity = payloadService.getPayload(hash);
-            // Build the DTO Set for the response.
-            final PayloadSetDto psetdto = buildSet(entity, hash);
-            return Response.ok()
-                    .header("Content-type", MediaType.APPLICATION_JSON_TYPE.toString())
-                    .entity(psetdto)
-                    .cacheControl(cc)
-                    .build();
-        }
-    }
-
-
-    @Override
-    public Response storePayloadWithIovMultiForm(FormDataBodyPart fileBodypart, String tag, BigDecimal since,
-                                                 String format,
-                                                 String objectType, String version, BigDecimal endtime,
-                                                 String streamerInfo,
-                                                 SecurityContext securityContext, UriInfo info) {
-        this.log.info(
-                "PayloadRestController processing request to store payload with iov in tag {} and at since {} using "
-                + "format {}",
-                tag, since, format);
-        try {
-            if (fileBodypart == null) {
-                throw new CdbBadRequestException("Cannot upload payload: form is missing the body part");
-            }
-            FormDataContentDisposition fileDetail = fileBodypart.getFormDataContentDisposition();
-            InputStream fileInputStream = fileBodypart.getValueAs(InputStream.class);
-            // Store payload with multi form
-            if (fileDetail == null || tag == null || since == null || fileInputStream == null) {
-                throw new CdbBadRequestException("Cannot upload payload: form is missing a field");
-            }
-            tagService.findOne(tag); // use to send back a NotFound if the tag does not exists.
-
-            String fdetailsname = fileDetail.getFileName();
-            if (fdetailsname == null || fdetailsname.isEmpty()) {
-                // Generate a fake filename.
-                fdetailsname = ".blob";
-            }
-            else {
-                // Get the filename from the input request.
-                final Path p = Paths.get(fdetailsname);
-                fdetailsname = "_" + p.getFileName().toString();
-            }
-            // Create a temporary file name from tag name and time of validity.
-            String filename = cprops.getDumpdir() + SLASH + tag + "_" + since
-                              + fdetailsname;
-            if (format == null) {
-                format = "JSON";
-            }
-            // Add object type
-            if (objectType == null) {
-                objectType = format;
-            }
-            // Add version
-            if (version == null) {
-                version = "default";
-            }
-            log.debug("Fill meta types: {} {} {} use file name {}", objectType, version, format, filename);
-            // Create the streamer info object as a map with metadata like format and filename for the moment. In
-            // future this could have further informations on payload metadata (author, checksum, etc).
-            final Map<String, String> sinfomap = new HashMap<>();
-            // Add the filename, depending on the input information
-            sinfomap.put("filename", (fileDetail.getFileName() != null && !fileDetail.getFileName().isEmpty()) ?
-                    fileDetail.getFileName() : filename);
-            sinfomap.put("format", format);
-            sinfomap.put("insertionDate", new Date().toString());
-            if (streamerInfo != null) {
-                sinfomap.put("streamerInfo", streamerInfo);
-            }
-            // Create the DTO, the version here is ignored. It could be added from the Form data.
-            PayloadDto pdto = new PayloadDto().objectType(objectType)
-                    .streamerInfo(jacksonMapper.writeValueAsBytes(sinfomap)).version(version);
-            final String hash = getHash(fileInputStream, filename);
-            pdto.hash(hash);
-            // Verify if hash exists
-            String dbhash = payloaddataRepository.exists(hash);
-            if (dbhash != null && dbhash.length() > 0) {
-                log.warn("Hash {} already exists, set payload dto to null to skip insertion", hash);
-                pdto = null;
-            }
-            final IovDto iovDto = new IovDto().payloadHash(hash).since(since).tagName(tag);
-            // Save iov and payload and get the response object in return.
-            final HTTPResponse resp = payloadService.saveIovAndPayload(iovDto, pdto, filename);
-            return Response.status(Response.Status.CREATED).entity(resp).build();
-        }
-        catch (IOException e) {
-            log.warn("Bad request: {}", e);
-            throw new CdbBadRequestException("storePayloadWithIovMultiForm IO error: " + e.getMessage());
-        }
+        return Response.ok(streamingOutput) /// MediaType.APPLICATION_JSON_TYPE)
+                .header("Content-type", rettype)
+                .header("Content-Disposition", "Inline; filename=\"" + fname + "\"")
+                // .header("Content-Length", new
+                // Long(f.length()).toString())
+                .cacheControl(cc)
+                .build();
     }
 
     @Override
-    public Response storeBatch(List<FormDataBodyPart> filesBodypart, String tag, IovSetDto iovsetupload,
-                               String xCrestPayloadFormat, String objectType, String version, BigDecimal endtime,
-                               String streamerInfo, SecurityContext securityContext, UriInfo info)
+    public Response storePayloadBatch(String tag, StoreSetDto storeset, String xCrestPayloadFormat,
+                               List<FormDataBodyPart> filesBodypart, String objectType, String compressionType,
+                               String version, BigDecimal endtime, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
         this.log.info(
                 "PayloadRestController processing request to store payload batch in tag {} with multi-iov ",
                 tag);
         try {
             // Read input FormData as an IovSet object.
-            if (tag == null || iovsetupload == null) {
+            if (tag == null || storeset == null) {
                 throw new CdbBadRequestException(
-                        "Cannot upload payload in batch mode : form is missing a field, " + tag + " - " + iovsetupload);
+                        "Cannot upload payload in batch mode : form is missing a field, " + tag + " - " + storeset);
             }
-            log.info("Batch insertion of {} iovs using file formatted", iovsetupload.getSize());
+            log.info("Batch insertion of {} iovs using file formatted", storeset.getSize());
             // use to send back a NotFound if the tag does not exists.
             tagService.findOne(tag);
             // Add object type.
             if (objectType == null) {
-                objectType = iovsetupload.getDatatype();
+                objectType = storeset.getDatatype();
             }
             // Add version.
             if (version == null) {
@@ -360,7 +216,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             if (xCrestPayloadFormat == null && filesBodypart != null) {
                 xCrestPayloadFormat = "FILE";
             }
-            IovSetDto outdto = null;
+            StoreSetDto outdto = null;
             if ("FILE".equalsIgnoreCase(xCrestPayloadFormat)) {
                 // Check that number of files is not too much.
                 if (filesBodypart == null) {
@@ -373,96 +229,149 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 }
                 // Only the payload format FILE is allowed here.
                 // This was created to eventually merge with other methods later on.
-                outdto = storeIovs(iovsetupload, tag, objectType, version, streamerInfo, filesBodypart);
+                outdto = storeData(storeset, tag, objectType, version, filesBodypart);
             }
             else if ("JSON".equalsIgnoreCase(xCrestPayloadFormat)) {
-                outdto = storeIovs(iovsetupload, tag, objectType, version, streamerInfo, null);
+                outdto = storeData(storeset, tag, objectType, version, null);
             }
             else {
                 throw new CdbBadRequestException("Bad header parameter: " + xCrestPayloadFormat);
             }
-            return Response.created(info.getRequestUri()).entity(outdto).build();
+            if (endtime != null) {
+                // Change the end time in the tag.
+                Tag tagEntity = tagService.findOne(tag);
+                tagEntity.endOfValidity(endtime.toBigInteger());
+                tagService.updateTag(tagEntity);
+            }
+            return Response.status(Response.Status.CREATED).entity(outdto).build();
         }
-        catch (IOException e) {
-            log.warn("uploadPayloadBatchWithIovMultiForm bad request: {}", e.getMessage());
-            throw new CdbBadRequestException(e.getMessage());
+        catch (RuntimeException | IOException e) {
+            log.error("Runtime exception while storing iovs and payloads....");
+            throw new CdbInternalException(e);
         }
+    }
+
+
+    @Override
+    public Response storePayloadOne(String tag, StoreDto store, String xCrestPayloadFormat,
+                             List<FormDataBodyPart> filesBodypart, String objectType, String compressionType,
+                             String version, BigDecimal endtime, SecurityContext securityContext, UriInfo info)
+            throws NotFoundException {
+        this.log.info(
+                "PayloadRestController processing request to store one payload in tag {} ",
+                tag);
+        StoreSetDto storeset = new StoreSetDto();
+        storeset.addResourcesItem(store);
+        return storePayloadBatch(tag, storeset, xCrestPayloadFormat, filesBodypart, objectType, compressionType, version,
+                endtime, securityContext, info);
     }
 
     /**
      * Store iovs and payload files.
      *
-     * @param dto            the IovSetDto
+     * @param dtoset         the StoreSetDto
      * @param tag            the String
+     * @param objectType     the object type
+     * @param version        the version
      * @param filesbodyparts the List<FormDataBodyPart>
-     * @return IovSetDto
+     * @return StoreSetDto
      * @throws PayloadEncodingException    If an Exception occurred
      * @throws IOException                 If an Exception occurred
      * @throws AbstractCdbServiceException if an exception occurred in insertion.
      */
-    protected IovSetDto storeIovs(IovSetDto dto, String tag, String objectType, String version,
-                                  String streamerInfo, List<FormDataBodyPart> filesbodyparts)
+    protected StoreSetDto storeData(StoreSetDto dtoset, String tag, String objectType,
+                                    String version, List<FormDataBodyPart> filesbodyparts)
             throws IOException, AbstractCdbServiceException {
-        final List<IovDto> iovlist = dto.getResources();
-        final List<IovDto> savediovlist = new ArrayList<>();
+        final List<StoreDto> iovlist = dtoset.getResources();
         // Loop over iovs found in the Set.
-        for (final IovDto piovDto : iovlist) {
+        List<StorableData> storableDataList = new ArrayList<>();
+        for (final StoreDto piovDto : iovlist) {
             String filename = null;
-            log.debug("Store from iovset the entry {}", piovDto);
+            log.debug("Store data in entry {}", piovDto);
             final Map<String, String> sinfomap = new HashMap<>();
-            sinfomap.put("format", dto.getDatatype());
+            sinfomap.put("format", dtoset.getDatatype());
             sinfomap.put("insertionDate", new Date().toString());
-            if (streamerInfo != null) {
-                sinfomap.put("streamerInfo", streamerInfo);
-            }
+            sinfomap.put("streamerInfo", piovDto.getStreamerInfo());
+
             // Here we generate objectType and version. We should probably allow for input arguments.
-            PayloadDto pdto = new PayloadDto().objectType(objectType).hash("none")
-                    .version(version);
+            Payload entity = new Payload().objectType(objectType).hash("none").version(version);
+            entity.compressionType("none");
+            entity.size(0);
+            Iov iov = new Iov();
+            IovId iovId = new IovId();
+            iovId.since(piovDto.getSince().toBigInteger());
+            iovId.tagName(tag);
+            iov.id(iovId);
+            PayloadData content = new PayloadData();
+            PayloadInfoData sinfodata = new PayloadInfoData();
+            StorableData data = new StorableData();
             if (filesbodyparts == null) {
-                log.debug("Use the hash, it represents the payload : {}", piovDto.getPayloadHash());
-                // If there are no attached files, then the payloadHash contains the payload itself.
-                pdto.data(piovDto.getPayloadHash().getBytes());
-                final String hash = getHash(new ByteArrayInputStream(pdto.getData()), "none");
-                pdto.hash(hash);
-                sinfomap.put("filename", hash);
+                // There are no attached files, so the data field should represent the payload
+                byte[] paylodContent = piovDto.getData().getBytes(StandardCharsets.UTF_8);
+                log.debug("Use the hash, it represents the payload : length is {}",
+                        paylodContent.length);
+                entity.size(paylodContent.length);
+                String outFilename = generateUploadFilename("inline", tag, iov.id().since());
+                final String hash = getHash(
+                        new ByteArrayInputStream(paylodContent), outFilename);
+                iov.payloadHash(hash);
+                entity.hash(hash);
+                content.hash(hash);
+                sinfodata.hash(hash);
+                sinfodata.streamerInfo(jacksonMapper.writeValueAsBytes(sinfomap));
+                final Map<String, Object> retmap = new HashMap<>();
+                retmap.put("uploadedFile", outFilename);
+                data.payload(entity).payloadData(content).payloadInfoData(sinfodata);
+                data.streamsMap(retmap);
             }
             else {
                 // If there are attached files, then the payload will be loaded from filename.
-                log.debug("Use attached files : {}", piovDto.getPayloadHash());
+                log.debug("Use attached file : {}", piovDto.getData());
                 final Map<String, Object> retmap = getDocumentStream(piovDto, filesbodyparts);
                 filename = (String) retmap.get("file");
-                final String hash = getHash((InputStream) retmap.get("stream"), filename);
+                String outFilename = generateUploadFilename(filename, tag, iov.id().since());
+                final String hash = getHash((InputStream) retmap.get("stream"), outFilename);
+                retmap.put("uploadedFile", outFilename);
                 sinfomap.put("filename", filename);
-                pdto.hash(hash);
+                iov.payloadHash(hash);
+                entity.hash(hash);
+                content.hash(hash);
+                sinfodata.hash(hash);
+                sinfodata.streamerInfo(jacksonMapper.writeValueAsBytes(sinfomap));
+                data.payload(entity).payloadData(content).payloadInfoData(sinfodata);
+                data.streamsMap(retmap);
             }
-            pdto.streamerInfo(jacksonMapper.writeValueAsBytes(sinfomap));
-            // Verify if hash exists
-            String pyldhash = pdto.getHash();
-
-            String dbhash = payloaddataRepository.exists(pyldhash);
-            if (dbhash != null && dbhash.length() > 0) {
-                log.warn("Hash {} already exists, set payload dto to null to skip insertion", dbhash);
-                pdto = null;
-            }
-            final IovDto iovDto = new IovDto().payloadHash(pyldhash).since(piovDto.getSince())
-                    .tagName(tag);
-            try {
-                log.debug("Save IOV and Payload : {} - {} using filename {}", iovDto, pdto, filename);
-                HTTPResponse resp = payloadService.saveIovAndPayload(iovDto, pdto, filename);
-                log.info("PayloadService response : {}", resp);
-                savediovlist.add(iovDto);
-            }
-            catch (final JDBCException | DataIntegrityViolationException e) {
-                log.error("SQL exception when inserting {}", iovDto);
-                throw new ConflictException("SQL error, cannot insert iov and payload for " + iovDto.getTagName()
-                                            + ", " + iovDto.getSince()
-                                            + " " + iovDto.getPayloadHash()
-                                            + ": " + e.getMessage());
-            }
+            storableDataList.add(data);
         }
-        dto.size((long) savediovlist.size());
-        dto.resources(savediovlist);
-        return dto;
+        // Store all data
+        log.debug("Save IOV and Payload from list of data of size {}", storableDataList.size());
+        StoreSetDto storedset = payloadService.saveAll(storableDataList);
+        return storedset;
+    }
+
+    /**
+     * Generate the filename for the upload.
+     *
+     * @param fileName
+     * @param tag
+     * @param since
+     * @return String
+     */
+    protected String generateUploadFilename(String fileName, String tag, BigInteger since) {
+        String fdetailsname = fileName;
+        if (fdetailsname == null || fdetailsname.isEmpty()) {
+            // Generate a fake filename.
+            fdetailsname = ".blob";
+        }
+        else {
+            // Get the filename from the input request.
+            final Path p = Paths.get(fdetailsname);
+            fdetailsname = "_" + p.getFileName().toString();
+        }
+        // Create a temporary file name from tag name and time of validity.
+        String genname = cprops.getDumpdir() + SLASH + tag + "_" + since
+                         + fdetailsname;
+        return genname;
     }
 
     /**
@@ -474,6 +383,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      */
     protected String getHash(InputStream fileInputStream, String filename)
             throws PayloadEncodingException, IOException {
+
         try (BufferedInputStream bis = new BufferedInputStream(fileInputStream)) {
             if (filename.equals("none")) {
                 return PayloadHandler.getHashFromStream(bis);
@@ -482,39 +392,19 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * hep.crest.server.swagger.api.PayloadsApiService#getPayloadMetaInfo(java.lang.
-     * String, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
-     */
-    @Override
-    public Response getPayloadMetaInfo(String hash, SecurityContext securityContext, UriInfo info) {
-        this.log.info(
-                "PayloadRestController processing request for payload meta information for {}",
-                hash);
-        final PayloadDto entity = payloadService.getPayloadMetaInfo(hash);
-        final PayloadSetDto psetdto = buildSet(entity, hash);
-        return Response.ok()
-                .header("Content-type", MediaType.APPLICATION_JSON_TYPE.toString())
-                .entity(psetdto).build();
-
-    }
-
     @Override
     public Response updatePayload(String hash, Map<String, String> body, SecurityContext securityContext,
                                   UriInfo info) {
-        this.log.info(
+        log.info(
                 "PayloadRestController processing request for update payload meta information for {}",
                 hash);
-        // Search payload.
-        PayloadDto entity = payloadService.getPayloadMetaInfo(hash);
-        String sinfo = null;
         // Send a bad request if body is null.
         if (body == null) {
             throw new CdbBadRequestException("Cannot update payload with null body");
         }
+        // Search payload.
+        Payload entity = payloadService.getPayload(hash);
+        String sinfo = null;
         // Loop over map body keys.
         for (final String key : body.keySet()) {
             if ("streamerInfo".equals(key)) {
@@ -525,9 +415,9 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 log.warn("Ignored key {} in updatePayload: field does not exists", key);
             }
         }
-        int updated = payloadService.updatePayloadMetaInfo(hash, sinfo);
-        entity = payloadService.getPayloadMetaInfo(hash);
-        final PayloadSetDto psetdto = buildSet(entity, hash);
+        payloadService.updatePayloadMetaInfo(hash, sinfo);
+        PayloadDto dto = mapper.map(entity, PayloadDto.class);
+        final PayloadSetDto psetdto = buildSet(dto, hash);
         return Response.ok()
                 .header("Content-type", MediaType.APPLICATION_JSON_TYPE.toString())
                 .entity(psetdto).build();
@@ -539,18 +429,18 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      * @return Map<String, Object>
      * @throws PayloadEncodingException If an Exception occurred
      */
-    protected Map<String, Object> getDocumentStream(IovDto mddto, List<FormDataBodyPart> bodyParts)
+    protected Map<String, Object> getDocumentStream(StoreDto mddto, List<FormDataBodyPart> bodyParts)
             throws PayloadEncodingException {
-        log.debug("Extracting document BLOB for file {}", mddto.getPayloadHash());
+        log.debug("Extracting document BLOB for file {}", mddto.getData());
         final Map<String, Object> retmap = new HashMap<>();
-        String dtofname = mddto.getPayloadHash();
+        String dtofname = mddto.getData();
         if (dtofname.startsWith("file://")) {
-            dtofname = mddto.getPayloadHash().split("://")[1];
+            dtofname = mddto.getData().split("://")[1];
         }
         for (int i = 0; i < bodyParts.size(); i++) {
             final BodyPartEntity test = (BodyPartEntity) bodyParts.get(i).getEntity();
             final String fileName = bodyParts.get(i).getContentDisposition().getFileName();
-            log.debug("Search for file {} in iovset", fileName);
+            log.debug("Search for file {} in input store set", fileName);
             if (dtofname.contains(fileName)) {
                 retmap.put("file", fileName);
                 retmap.put("stream", test.getInputStream());
@@ -558,7 +448,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         }
         if (retmap.isEmpty()) {
             throw new PayloadEncodingException(
-                    "Cannot find file content in form data. File name = " + mddto.getPayloadHash());
+                    "Cannot find file content in form data. File name = " + mddto.getData());
         }
         return retmap;
     }

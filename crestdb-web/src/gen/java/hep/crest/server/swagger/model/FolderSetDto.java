@@ -18,7 +18,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import hep.crest.server.swagger.model.CrestBaseResponse;
 import hep.crest.server.swagger.model.FolderDto;
-import hep.crest.server.swagger.model.FolderSetDtoAllOf;
 import hep.crest.server.swagger.model.GenericMap;
 import hep.crest.server.swagger.model.RespPage;
 import io.swagger.annotations.ApiModel;

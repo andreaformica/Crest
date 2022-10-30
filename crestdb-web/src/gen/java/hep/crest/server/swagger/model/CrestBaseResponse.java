@@ -46,6 +46,7 @@ import javax.validation.Valid;
   @JsonSubTypes.Type(value = PayloadSetDto.class, name = "PayloadSetDto"),
   @JsonSubTypes.Type(value = PayloadTagInfoSetDto.class, name = "PayloadTagInfoSetDto"),
   @JsonSubTypes.Type(value = RunLumiSetDto.class, name = "RunLumiSetDto"),
+  @JsonSubTypes.Type(value = StoreSetDto.class, name = "StoreSetDto"),
   @JsonSubTypes.Type(value = TagMetaSetDto.class, name = "TagMetaSetDto"),
   @JsonSubTypes.Type(value = TagSetDto.class, name = "TagSetDto"),
   @JsonSubTypes.Type(value = TagSummarySetDto.class, name = "TagSummarySetDto"),

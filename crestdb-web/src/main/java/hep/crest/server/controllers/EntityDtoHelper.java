@@ -1,5 +1,6 @@
 package hep.crest.server.controllers;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -9,6 +10,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import ma.glasnost.orika.MapperFacade;
+import org.springframework.transaction.PlatformTransactionManager;
+
+import javax.persistence.EntityManager;
+import javax.ws.rs.core.StreamingOutput;
 
 /**
  * Helper class to transform list of entities in list of DTOs.
@@ -25,6 +30,17 @@ public class EntityDtoHelper {
     @Autowired
     @Qualifier("mapper")
     private MapperFacade mapper;
+    /**
+     * The entity manager.
+     */
+    @Autowired
+    private EntityManager entityManager;
+
+    /**
+     * The transaction manager.
+     */
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     /**
      * @param <D>
@@ -56,6 +72,20 @@ public class EntityDtoHelper {
     public <D, T> List<D> entityToDtoList(Iterable<T> entitylist, Class<D> clazz) {
         return StreamSupport.stream(entitylist.spliterator(), false).map(s -> mapper.map(s, clazz))
                 .collect(Collectors.toList());
+    }
+
+
+    /**
+     * Create a StreamingOutput using the provider in input.
+     * @param streamProvider
+     * @return StreamingOutput
+     */
+    public StreamingOutput makeStreamingOutputFromLob(LobStreamerProvider streamProvider) {
+        return new LobStreamerOutput(entityManager, transactionManager) {
+            public InputStream getInputStream() {
+                return streamProvider.getInputStream();
+            }
+        };
     }
 
 }

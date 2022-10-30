@@ -42,6 +42,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -114,7 +115,7 @@ public class IovsApiServiceImpl extends IovsApiService {
      * .IovDto, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response createIov(IovDto body, SecurityContext securityContext, UriInfo info) {
+    public Response storeIovOne(IovDto body, SecurityContext securityContext, UriInfo info) {
         log.info("IovRestController processing request for creating an iov");
         // Create a new IOV.
         String tagname = body.getTagName();
@@ -123,7 +124,10 @@ public class IovsApiServiceImpl extends IovsApiService {
         final Iov saved = iovService.insertIov(entity);
         IovDto dto = mapper.map(saved, IovDto.class);
         dto.tagName(tagname);
-        return Response.created(info.getRequestUri()).entity(dto).build();
+        List<IovDto> dtoList = new ArrayList<>();
+        dtoList.add(dto);
+        CrestBaseResponse resp = buildEntityResponse(dtoList, new GenericMap());
+        return Response.created(info.getRequestUri()).entity(resp).build();
     }
 
     /*
@@ -135,7 +139,7 @@ public class IovsApiServiceImpl extends IovsApiService {
      * javax.ws.rs.core.UriInfo)
      */
     @Override
-    public Response storeBatchIovMultiForm(IovSetDto dto, SecurityContext securityContext,
+    public Response storeIovBatch(IovSetDto dto, SecurityContext securityContext,
                                            UriInfo info) {
         log.info("IovRestController processing request to upload iovs batch {}", dto);
         // Get filters map and initializa tag name.
@@ -260,8 +264,8 @@ public class IovsApiServiceImpl extends IovsApiService {
                 throw new CdbBadRequestException("IOVS or AT query need a full tagname");
             }
         }
-        BigDecimal rsince = prh.getTimeFromArg(since, inputformat, outformat, null);
-        BigDecimal runtil = prh.getTimeFromArg(until, inputformat, outformat, null);
+        BigInteger rsince = prh.getTimeFromArg(since, inputformat, outformat, null);
+        BigInteger runtil = prh.getTimeFromArg(until, inputformat, outformat, null);
         // Set arguments for query.
         if (queryMode.equals(IovModeEnum.AT)) {
             runtil = null;
@@ -404,8 +408,8 @@ public class IovsApiServiceImpl extends IovsApiService {
         // Retrieve all iovs
         final Tag tagentity = tagService.findOne(tagname);
         log.debug("Found tag " + tagentity);
-        BigDecimal rsince = prh.getTimeFromArg(since, inputformat, outformat, null);
-        BigDecimal runtil = prh.getTimeFromArg(until, inputformat, outformat, null);
+        BigInteger rsince = prh.getTimeFromArg(since, inputformat, outformat, null);
+        BigInteger runtil = prh.getTimeFromArg(until, inputformat, outformat, null);
         log.debug("Setting iov range to : {}, {}", since, until);
         Date snap = new Date();
         log.debug("Use snapshot {}", snap);
@@ -436,6 +440,7 @@ public class IovsApiServiceImpl extends IovsApiService {
         ((IovSetDto) respdto.datatype("iovs")).resources(dtolist)
                 .size((long) dtolist.size());
         respdto.filter(filters);
+        respdto.format("IovSetDto");
         return respdto;
     }
 

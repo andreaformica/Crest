@@ -50,23 +50,6 @@ public class IovsApi  {
    @Autowired
    protected JAXRSContext context;
 
-    @POST
-    
-    @Consumes({ "application/json" })
-    @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Create a Iov in the database.", notes = "This method allows to insert a Iov.Arguments: IovDto should be provided in the body as a JSON file.", response = IovDto.class, authorizations = {
-        @io.swagger.annotations.Authorization(value = "BearerAuth")
-    }, tags={ "iovs", })
-    @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = IovDto.class),
-        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
-    })
-    public Response createIov(@ApiParam(value = "") @Valid  IovDto iovDto,@Context SecurityContext securityContext,@Context UriInfo info)
-    throws NotFoundException {
-        context.setHttpHeaders(headers);
-        context.setRequest(request);
-        return delegate.createIov(iovDto, securityContext, info);
-    }
     @GET
     
     
@@ -107,7 +90,7 @@ public class IovsApi  {
     @Path("/infos")
     
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Select iovs and payload meta info for a given tagname and in a given range.", notes = "This method allows to select a list of iovs+payload meta in a tag, using a given range in time and (optionally) for a given snapshot time.Arguments: tagname={a tag name}, since={since time as string}, until={until time as string}, snapshot={snapshot time as long}", response = IovPayloadSetDto.class, authorizations = {
+    @io.swagger.annotations.ApiOperation(value = "Select iovs and payload meta info for a given tagname and in a given range.", notes = "Retrieve a list of iovs with payload metadata associated. The arguments are: tagname={a tag name}, since={since time as string}, until={until time as string}, snapshot={snapshot time as long}' and timeformat={format of since/until}. ", response = IovPayloadSetDto.class, authorizations = {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
@@ -122,20 +105,37 @@ public class IovsApi  {
         return delegate.selectIovPayloads(tagname, since, until, timeformat, page, size, sort, securityContext, info);
     }
     @POST
-    @Path("/storebatch")
+    
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Create many IOVs in the database, associated to a tag name.", notes = "This method allows to insert multiple IOVs. Arguments: tagname,end time.", response = IovSetDto.class, authorizations = {
+    @io.swagger.annotations.ApiOperation(value = "Create IOVs in the database, associated to a tag name.", notes = "Insert a list of Iovs using an IovSetDto in the request body. It is mandatory to provide an existing tag in input. The referenced payloads should already exists in the DB. ", response = IovSetDto.class, authorizations = {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = IovSetDto.class),
         @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
-    public Response storeBatchIovMultiForm(@ApiParam(value = "") @Valid  IovSetDto iovSetDto,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response storeIovBatch(@ApiParam(value = "") @Valid  IovSetDto iovSetDto,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
-        return delegate.storeBatchIovMultiForm(iovSetDto, securityContext, info);
+        return delegate.storeIovBatch(iovSetDto, securityContext, info);
+    }
+    @PUT
+    
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Create IOV in the database, associated to a tag name.", notes = "Insert an Iov using an IovDto in the request body. It is mandatory to provide an existing tag in input. The referenced payloads should already exists in the DB. ", response = IovSetDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "iovs", })
+    @io.swagger.annotations.ApiResponses(value = {
+        @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = IovSetDto.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
+    })
+    public Response storeIovOne(@ApiParam(value = "") @Valid  IovDto iovDto,@Context SecurityContext securityContext,@Context UriInfo info)
+    throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
+        return delegate.storeIovOne(iovDto, securityContext, info);
     }
 }

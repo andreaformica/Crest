@@ -25,6 +25,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -32,10 +33,11 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Random;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("default")
+@ActiveProfiles("test")
 @Slf4j
 public class MapperTest {
     @Autowired
@@ -59,6 +61,8 @@ public class MapperTest {
                         aMethod.invoke(obj, val);
                     } else if (argtype.equals(BigDecimal.class)) {
                         aMethod.invoke(obj, BigDecimal.valueOf(rnd.nextDouble()));
+                    } else if (argtype.equals(BigInteger.class)) {
+                        aMethod.invoke(obj, BigInteger.valueOf(rnd.nextLong()));
                     } else if (argtype.equals(Long.class)) {
                         Long val = rnd.nextLong();
                         aMethod.invoke(obj, val);
@@ -69,13 +73,16 @@ public class MapperTest {
                         String val = String.valueOf(rnd.nextInt()); // TODO generate better string
                         aMethod.invoke(obj, val);
                     } else if (argtype.equals(Date.class)) {
-                        Date val = Date.from(Instant.ofEpochMilli(rnd.nextLong()));
+                        Instant now = Instant.now();
+                        Date val = Date.from(Instant.ofEpochMilli(now.toEpochMilli()));
                         aMethod.invoke(obj, val);
                     } else if (argtype.equals(Timestamp.class)) {
-                        Timestamp val = Timestamp.from(Instant.ofEpochMilli(rnd.nextLong()));
+                        Instant now = Instant.now();
+                        Timestamp val = Timestamp.from(Instant.ofEpochMilli(now.toEpochMilli()));
                         aMethod.invoke(obj, val);
                     } else if (argtype.equals(OffsetDateTime.class)) {
-                        OffsetDateTime val = Instant.ofEpochMilli(rnd.nextLong()).atOffset(ZoneOffset.UTC);
+                        Instant now = Instant.now();
+                        OffsetDateTime val = Instant.ofEpochMilli(now.toEpochMilli()).atOffset(ZoneOffset.UTC);
                         aMethod.invoke(obj, val);
                     } else if (argtype.equals(Boolean.class)) {
                         Boolean val = rnd.nextBoolean();
@@ -99,7 +106,7 @@ public class MapperTest {
             log.info("Converted to dto  = {}", dto);
             Object pojo = mapper.map(dto, pojoType);
             log.info("Converted to pojo = {}", pojo);
-            assertThat(pojo).isEqualTo(item);
+            assertEquals(pojo, item);
         } catch (Exception e) {
             throw new InternalError(e);
         }
@@ -112,7 +119,7 @@ public class MapperTest {
             log.info("Converted to dto  = {}", dto);
             Object pojo = mapper.map(dto, item.getClass());
             log.info("Converted to pojo = {}", pojo);
-            assertThat(pojo).isEqualTo(item);
+            assertEquals(pojo, item);
         } catch (Exception e) {
             throw new InternalError(e);
         }

@@ -4,14 +4,21 @@
 package hep.crest.server.repositories.monitoring;
 
 import hep.crest.data.repositories.DataGeneral;
+import hep.crest.data.repositories.externals.SqlRequests;
+import hep.crest.server.swagger.model.IovPayloadDto;
 import hep.crest.server.swagger.model.PayloadTagInfoDto;
+import hep.crest.server.swagger.model.TagSummaryDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
+import java.math.BigInteger;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -56,6 +63,48 @@ public class JdbcMonitoringRepository extends DataGeneral implements IMonitoring
             log.error("Cannot find tag information for pattern {}: {}", tagpattern, e);
         }
         return new ArrayList<>();
+    }
+
+    @Override
+    public List<TagSummaryDto> getTagSummaryInfo(String tagname) {
+        log.info("Select count(TAG_NAME) Iov for tag matching pattern {} using JDBCTEMPLATE",
+                tagname);
+        final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
+        final String tablename = getCrestTableNames().getIovTableName();
+        // sql : count iovs in a tag
+        // select TAG_NAME, COUNT(TAG_NAME) as NIOVS from IOV
+        // where TAG_NAME like ? GROUP BY TAG_NAME
+        final String sql = "select TAG_NAME, COUNT(TAG_NAME) as NIOVS from " + tablename
+                           + " where TAG_NAME like ? GROUP BY TAG_NAME";
+        return jdbcTemplate.query(sql, (rs, num) -> {
+            final TagSummaryDto entity = new TagSummaryDto();
+            entity.setTagname(rs.getString("TAG_NAME"));
+            entity.setNiovs(rs.getLong("NIOVS"));
+            return entity;
+        }, tagname);
+    }
+
+    @Override
+    public List<IovPayloadDto> getRangeIovPayloadInfo(String name, BigInteger since,
+                                                      BigInteger until, Date snapshot) {
+        log.debug("Select Iov and Payload meta info for tag  {} using JDBCTEMPLATE", name);
+        final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
+        // Get sql query.
+        final String sql = SqlRequests.getRangeIovPayloadQuery(getCrestTableNames().getIovTableName(),
+                getCrestTableNames().getPayloadTableName());
+        // Execute request.
+        return jdbcTemplate.query(sql, (rs, num) -> {
+            final IovPayloadDto entity = new IovPayloadDto();
+            Instant inst = Instant.ofEpochMilli(rs.getTimestamp("INSERTION_TIME").getTime());
+            entity.setSince(rs.getBigDecimal("SINCE"));
+            entity.setInsertionTime(inst.atOffset(ZoneOffset.UTC));
+            entity.setPayloadHash(rs.getString("PAYLOAD_HASH"));
+            entity.setVersion(rs.getString("VERSION"));
+            entity.setObjectType(rs.getString("OBJECT_TYPE"));
+            entity.setSize(rs.getInt("DATA_SIZE"));
+            log.debug("create entity {}", entity);
+            return entity;
+        }, name, name, since, snapshot, until, snapshot);
     }
 
     /**

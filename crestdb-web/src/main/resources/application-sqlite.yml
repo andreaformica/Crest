@@ -36,7 +36,7 @@ spring:
         maximum-pool-size: 3
     jpa:
       properties:
-        hibernate.dialect: hep.crest.data.dialect.SQLiteDialect
+        hibernate.dialect: org.sqlite.hibernate.dialect.SQLiteDialect
         hibernate.jdbc.fetch_size: 100
         hibernate.hbm2ddl.auto: update
         hibernate.show_sql: false

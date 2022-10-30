@@ -9,10 +9,10 @@ import java.math.BigDecimal;
 import java.io.File;
 import hep.crest.server.swagger.model.GenericMap;
 import hep.crest.server.swagger.model.HTTPResponse;
-import hep.crest.server.swagger.model.IovSetDto;
 import java.util.Map;
 import hep.crest.server.swagger.model.PayloadDto;
-import hep.crest.server.swagger.model.PayloadSetDto;
+import hep.crest.server.swagger.model.StoreDto;
+import hep.crest.server.swagger.model.StoreSetDto;
 
 import java.util.List;
 import hep.crest.server.swagger.api.NotFoundException;
@@ -26,11 +26,8 @@ import javax.ws.rs.core.UriInfo;
 import javax.validation.constraints.*;
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public abstract class PayloadsApiService {
-    public abstract Response createPayload(PayloadDto payloadDto,SecurityContext securityContext, UriInfo info) throws NotFoundException;
-    public abstract Response createPayloadMultiForm(FormDataBodyPart _fileBodypart,PayloadDto payload,SecurityContext securityContext, UriInfo info) throws NotFoundException;
-    public abstract Response getPayload(String hash,String xCrestPayloadFormat,SecurityContext securityContext, UriInfo info) throws NotFoundException;
-    public abstract Response getPayloadMetaInfo(String hash,SecurityContext securityContext, UriInfo info) throws NotFoundException;
-    public abstract Response storeBatch(List<FormDataBodyPart> filesBodypart,String tag,IovSetDto iovsetupload,String xCrestPayloadFormat,String objectType,String version,BigDecimal endtime,String streamerInfo,SecurityContext securityContext, UriInfo info) throws NotFoundException;
-    public abstract Response storePayloadWithIovMultiForm(FormDataBodyPart _fileBodypart,String tag,BigDecimal since,String xCrestPayloadFormat,String objectType,String version,BigDecimal endtime,String streamerInfo,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response getPayload(String hash, @NotNull String format,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response storePayloadBatch(String tag,StoreSetDto storeset,String xCrestPayloadFormat,List<FormDataBodyPart> filesBodypart,String objectType,String compressionType,String version,BigDecimal endtime,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response storePayloadOne(String tag,StoreDto store,String xCrestPayloadFormat,List<FormDataBodyPart> filesBodypart,String objectType,String compressionType,String version,BigDecimal endtime,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response updatePayload(String hash,Map<String, String> requestBody,SecurityContext securityContext, UriInfo info) throws NotFoundException;
 }

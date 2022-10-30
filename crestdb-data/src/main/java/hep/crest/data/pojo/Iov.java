@@ -4,6 +4,7 @@ package hep.crest.data.pojo;
 import hep.crest.data.config.DatabasePropertyConfigurator;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import javax.persistence.AttributeOverride;
@@ -56,6 +57,7 @@ public class Iov implements java.io.Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "TAG_NAME", nullable = false, insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Tag tag;
     /**
      * The payload hash.

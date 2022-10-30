@@ -14,7 +14,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 
@@ -56,7 +56,7 @@ public interface IovRepository
      */
     @Query("SELECT distinct p FROM Iov p "
            + "WHERE p.id.tagName = (:name) AND p.id.since = (:since) AND p.payloadHash = (:hash)")
-    Iov exists(@Param("name") String name, @Param("since") BigDecimal since, @Param("hash") String hash)
+    Iov exists(@Param("name") String name, @Param("since") BigInteger since, @Param("hash") String hash)
             throws CdbNotFoundException;
 
     /**
@@ -72,7 +72,7 @@ public interface IovRepository
            + "SELECT max(pi.id.since) FROM Iov pi JOIN pi.tag pt "
            + "WHERE pt.name = (:name) AND pi.id.since <= :since AND pi.id.insertionTime <= :snap) "
            + "ORDER BY p.id.since ASC, p.id.insertionTime DESC")
-    List<Iov> selectAtTime(@Param("name") String name, @Param("since") BigDecimal since,
+    List<Iov> selectAtTime(@Param("name") String name, @Param("since") BigInteger since,
                            @Param("snap") Date snapshot) throws CdbNotFoundException;
 
     /**
@@ -88,8 +88,8 @@ public interface IovRepository
            + "WHERE pt.name = (:name) AND pi.id.since <= :since AND pi.id.insertionTime <= :snap) "
            + "AND p.id.since <= :until AND p.id.insertionTime <= :snap "
            + "ORDER BY p.id.since ASC, p.id.insertionTime DESC")
-    List<Iov> getRange(@Param("name") String name, @Param("since") BigDecimal since,
-                       @Param("until") BigDecimal until,
+    List<Iov> getRange(@Param("name") String name, @Param("since") BigInteger since,
+                       @Param("until") BigInteger until,
                        @Param("snap") Date snapshot);
 
 }

@@ -31,10 +31,10 @@ components:
           format: int64
     GlobalTagSetDto:
       description: An GlobalTagSet containing GlobalTagDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/GlobalTagDto'
       allOf:
         - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/GlobalTagDto'

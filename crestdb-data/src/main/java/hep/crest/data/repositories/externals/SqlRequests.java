@@ -32,36 +32,8 @@ public final class SqlRequests {
      * @param tablename the String
      * @return String
      */
-    public static final String getFindQuery(String tablename) {
-        return "select HASH,OBJECT_TYPE,VERSION,INSERTION_TIME,DATA,STREAMER_INFO, "
-               + " DATA_SIZE from " + tablename + WHERE_HASH;
-    }
-
-    /**
-     * @param tablename the String
-     * @return String
-     */
-    public static final String getInsertQuery(String tablename) {
-        return INSERT_INTO + tablename
-               + "(HASH, OBJECT_TYPE, VERSION, DATA, STREAMER_INFO, INSERTION_TIME, DATA_SIZE) "
-               + " VALUES (?,?,?,?,?,?,?)";
-    }
-
-    /**
-     * @param tablename the String
-     * @return String
-     */
     public static final String getExistsHashQuery(String tablename) {
         return "select HASH from " + tablename + WHERE_HASH;
-    }
-
-    /**
-     * @param tablename the String
-     * @return String
-     */
-    public static final String getFindMetaQuery(String tablename) {
-        return "select HASH,OBJECT_TYPE,VERSION,INSERTION_TIME,STREAMER_INFO, "
-               + " DATA_SIZE from " + tablename + WHERE_HASH;
     }
 
     /**
@@ -77,43 +49,46 @@ public final class SqlRequests {
      * @param tablename the String
      * @return String
      */
-    public static final String getFindDataHashQuery(String tablename) {
-        return "select HASH,DATA from " + tablename + WHERE_HASH;
+    public static final String getDataQuery(String tablename) {
+        return "select DATA "
+               + " from " + tablename + WHERE_HASH;
     }
 
     /**
      * @param tablename the String
      * @return String
      */
-    public static final String getFindDataQuery(String tablename) {
-        return "select DATA from " + tablename + WHERE_HASH;
-    }
-
-    /**
-     * @param tablename the String
-     * @return String
-     */
-    public static final String getInsertAllQuery(String tablename) {
+    public static final String getInsertDataQuery(String tablename) {
         return INSERT_INTO + tablename
-               + "(HASH, OBJECT_TYPE, VERSION, DATA, STREAMER_INFO, INSERTION_TIME,DATA_SIZE) "
-               + " VALUES (?,?,?,?,?,?,?)";
+               + "(HASH, DATA) "
+               + " VALUES (?,?)";
+    }
+
+
+    /**
+     * @param tablename the String
+     * @return String
+     */
+    public static final String getInfoDataQuery(String tablename) {
+        return "select STREAMER_INFO "
+               + " from " + tablename + WHERE_HASH;
     }
 
     /**
      * @param tablename the String
      * @return String
      */
-    public static final String getInsertMetaQuery(String tablename) {
+    public static final String getInsertInfoQuery(String tablename) {
         return INSERT_INTO + tablename
-               + "(HASH, OBJECT_TYPE, VERSION, STREAMER_INFO, INSERTION_TIME,DATA_SIZE) "
-               + " VALUES (?,?,?,?,?,?)";
+               + "(HASH, STREAMER_INFO) "
+               + " VALUES (?,?)";
     }
 
     /**
      * @param tablename the String
      * @return String
      */
-    public static final String getUpdateMetaQuery(String tablename) {
+    public static final String getUpdateInfoQuery(String tablename) {
         return UPDATE + tablename
                + " set STREAMER_INFO=? "
                + WHERE_HASH;

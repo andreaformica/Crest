@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import hep.crest.server.swagger.model.CrestBaseResponse;
 import hep.crest.server.swagger.model.GenericMap;
 import hep.crest.server.swagger.model.GlobalTagDto;
-import hep.crest.server.swagger.model.GlobalTagSetDtoAllOf;
 import hep.crest.server.swagger.model.RespPage;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;

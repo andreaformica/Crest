@@ -16,7 +16,10 @@ package hep.crest.server.swagger.model;
 import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import hep.crest.server.swagger.model.TagSummaryDto;
+import hep.crest.server.swagger.model.CrestBaseResponse;
+import hep.crest.server.swagger.model.GenericMap;
+import hep.crest.server.swagger.model.RespPage;
+import hep.crest.server.swagger.model.StoreDto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.ArrayList;
@@ -26,23 +29,24 @@ import javax.validation.constraints.*;
 import javax.validation.Valid;
 
 /**
- * TagSummarySetDtoAllOf
+ * An Set containing StoreDto objects.
  */
+@ApiModel(description = "An Set containing StoreDto objects.")
 @JsonPropertyOrder({
-  TagSummarySetDtoAllOf.JSON_PROPERTY_RESOURCES
+  StoreSetDto.JSON_PROPERTY_RESOURCES
 })
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
-public class TagSummarySetDtoAllOf   {
+public class StoreSetDto extends CrestBaseResponse  {
   public static final String JSON_PROPERTY_RESOURCES = "resources";
   @JsonProperty(JSON_PROPERTY_RESOURCES)
-  private List<TagSummaryDto> resources = null;
+  private List<StoreDto> resources = null;
 
-  public TagSummarySetDtoAllOf resources(List<TagSummaryDto> resources) {
+  public StoreSetDto resources(List<StoreDto> resources) {
     this.resources = resources;
     return this;
   }
 
-  public TagSummarySetDtoAllOf addResourcesItem(TagSummaryDto resourcesItem) {
+  public StoreSetDto addResourcesItem(StoreDto resourcesItem) {
     if (this.resources == null) {
       this.resources = new ArrayList<>();
     }
@@ -57,11 +61,11 @@ public class TagSummarySetDtoAllOf   {
   @JsonProperty("resources")
   @ApiModelProperty(value = "")
   @Valid 
-  public List<TagSummaryDto> getResources() {
+  public List<StoreDto> getResources() {
     return resources;
   }
 
-  public void setResources(List<TagSummaryDto> resources) {
+  public void setResources(List<StoreDto> resources) {
     this.resources = resources;
   }
 
@@ -74,21 +78,22 @@ public class TagSummarySetDtoAllOf   {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    TagSummarySetDtoAllOf tagSummarySetDtoAllOf = (TagSummarySetDtoAllOf) o;
-    return Objects.equals(this.resources, tagSummarySetDtoAllOf.resources);
+    StoreSetDto storeSetDto = (StoreSetDto) o;
+    return Objects.equals(this.resources, storeSetDto.resources) &&
+        super.equals(o);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(resources);
+    return Objects.hash(resources, super.hashCode());
   }
 
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class TagSummarySetDtoAllOf {\n");
-    
+    sb.append("class StoreSetDto {\n");
+    sb.append("    ").append(toIndentedString(super.toString())).append("\n");
     sb.append("    resources: ").append(toIndentedString(resources)).append("\n");
     sb.append("}");
     return sb.toString();

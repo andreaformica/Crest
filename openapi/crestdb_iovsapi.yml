@@ -146,39 +146,38 @@ paths:
     post:
       tags:
         - iovs
-      summary: Create a Iov in the database.
-      description:  |
-        Insert a single Iov using an IovDto in the request body. The related
-        payload hash should already exists in the DB.
-      operationId: createIov
+      summary: 'Create IOVs in the database, associated to a tag name.'
+      description: |
+        Insert a list of Iovs using an IovSetDto in the request body. It is mandatory
+        to provide an existing tag in input. The referenced payloads should already exists in the DB.
+      operationId: storeIovBatch
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IovDto'
+              $ref: '#/components/schemas/IovSetDto'
       responses:
         '201':
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/IovDto"
+                $ref: "#/components/schemas/IovSetDto"
         default:
           $ref: "#/components/responses/genericError"
-  /iovs/storebatch:
-    post:
+    put:
       tags:
         - iovs
-      summary: 'Create IOVs in the database, associated to a tag name.'
+      summary: 'Create IOV in the database, associated to a tag name.'
       description: |
-        Insert a list of Iovs using an IovSetDto in the request body. It is mandatory
-        to provide an existing tag in input.
-      operationId: storeBatchIovMultiForm
+        Insert an Iov using an IovDto in the request body. It is mandatory
+        to provide an existing tag in input. The referenced payloads should already exists in the DB.
+      operationId: storeIovOne
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IovSetDto'
+              $ref: '#/components/schemas/IovDto'
       responses:
         '201':
           description: successful operation
@@ -310,10 +309,10 @@ components:
     GenericMap:
       $ref: 'schemas/common.yml#/components/schemas/GenericMap'
 
-    IovSetDto:
-      $ref: 'schemas/iovs.yml#/components/schemas/IovSetDto'
     IovDto:
       $ref: 'schemas/iovs.yml#/components/schemas/IovDto'
+    IovSetDto:
+      $ref: 'schemas/iovs.yml#/components/schemas/IovSetDto'
     IovPayloadSetDto:
       $ref: 'schemas/iovs.yml#/components/schemas/IovPayloadSetDto'
     IovPayloadDto:

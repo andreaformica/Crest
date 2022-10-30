@@ -22,7 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.NotAuthorizedException;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.security.Principal;
 import java.util.Map;
 
@@ -135,7 +135,7 @@ public class IovSynchroAspect {
                 break;
             case "APPEND":
                 log.warn("Can append data in case the since is after the end time of the tag");
-                BigDecimal endofval = tagentity.endOfValidity();
+                BigInteger endofval = tagentity.endOfValidity();
                 if (endofval  == null || endofval.compareTo(entity.id().since()) <= 0) {
                     log.info("The since is after end of validity of the Tag");
                     acceptTime = true;

@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 
 @Data
@@ -17,11 +17,11 @@ public class IovQueryArgs implements Serializable {
     /**
      * The since time.
      */
-    private BigDecimal since;
+    private BigInteger since;
     /**
      * The until time.
      */
-    private BigDecimal until;
+    private BigInteger until;
     /**
      * The snapshot date.
      */
