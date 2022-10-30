@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.IovId;
 import hep.crest.server.swagger.model.GenericMap;
+import hep.crest.server.swagger.model.IovDto;
+import hep.crest.server.swagger.model.IovSetDto;
 import hep.crest.server.swagger.model.StoreDto;
 import hep.crest.server.swagger.model.StoreSetDto;
 import hep.crest.server.swagger.model.TagDto;
@@ -20,6 +22,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +34,9 @@ import org.springframework.util.MultiValueMap;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -161,7 +166,18 @@ public class TestCrestPayload {
                 .postForEntity("/crestapi/payloads", request1, String.class);
         assertEquals(resp1.getStatusCode().value(), HttpStatus.CREATED.value());
         log.info("Received response: " + resp1);
-
+        {
+            log.info("Get Payload back using response: {} ", resp1.getBody());
+            StoreSetDto respb = mapper.readValue(resp1.getBody(), StoreSetDto.class);
+            StoreDto dto = respb.getResources().get(0);
+            log.info("Found stored payload in response : {}", dto);
+            String hash = dto.getHash();
+            log.info("Retrieve payload for hash : {}", hash);
+            final ResponseEntity<String> resp3 = this.testRestTemplate.exchange("/crestapi/payloads/"+hash,
+                    HttpMethod.GET, null, String.class);
+            log.info("Received payload : {}", resp3);
+            assertThat(resp3.getBody().contains("theresource1"));
+        }
     }
 
     @Test
