@@ -1,11 +1,8 @@
 package hep.crest.server.swagger.api;
 
-import hep.crest.server.swagger.model.*;
-import hep.crest.server.swagger.api.IovsApiService;
-
 import io.swagger.annotations.ApiParam;
 
-import hep.crest.server.swagger.api.impl.JAXRSContext;
+import hep.crest.server.swagger.impl.JAXRSContext;
 
 import hep.crest.server.swagger.model.HTTPResponse;
 import hep.crest.server.swagger.model.IovDto;
@@ -13,17 +10,8 @@ import hep.crest.server.swagger.model.IovPayloadSetDto;
 import hep.crest.server.swagger.model.IovSetDto;
 import hep.crest.server.swagger.model.TagSummarySetDto;
 
-import java.util.Map;
-import java.util.List;
-import hep.crest.server.swagger.api.NotFoundException;
-
-import java.io.InputStream;
-
-import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.HttpHeaders;

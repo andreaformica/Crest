@@ -1,4 +1,4 @@
-package hep.crest.server.swagger.api.impl;
+package hep.crest.server.swagger.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.data.config.CrestProperties;
@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -177,7 +178,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         // Get extension
         final String ext = getExtension(ptype);
         final String fname = hash + "." + ext;
-            // Set the content type in the response, and the file name as well.
+        // Set the content type in the response, and the file name as well.
         return Response.ok(streamingOutput) /// MediaType.APPLICATION_JSON_TYPE)
                 .header("Content-type", rettype)
                 .header("Content-Disposition", "Inline; filename=\"" + fname + "\"")
@@ -188,20 +189,21 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     }
 
     @Override
-    public Response storePayloadBatch(String tag, StoreSetDto storeset, String xCrestPayloadFormat,
-                               List<FormDataBodyPart> filesBodypart, String objectType, String compressionType,
-                               String version, BigDecimal endtime, SecurityContext securityContext, UriInfo info)
+    public Response storePayloadBatch(String tag, String jsonstoreset, String xCrestPayloadFormat,
+                                      List<FormDataBodyPart> filesBodypart, String objectType, String compressionType,
+                                      String version, BigDecimal endtime, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
         this.log.info(
                 "PayloadRestController processing request to store payload batch in tag {} with multi-iov ",
                 tag);
         try {
             // Read input FormData as an IovSet object.
-            if (tag == null || storeset == null) {
+            if (tag == null || jsonstoreset == null) {
                 throw new CdbBadRequestException(
-                        "Cannot upload payload in batch mode : form is missing a field, " + tag + " - " + storeset);
+                        "Cannot upload payload in batch mode : form is missing a field, " + tag + " - " + jsonstoreset);
             }
-            log.info("Batch insertion of {} iovs using file formatted", storeset.getSize());
+            StoreSetDto storeset = jacksonMapper.readValue(jsonstoreset, StoreSetDto.class);
+            log.info("Batch insertion of {} iovs", storeset.getSize());
             // use to send back a NotFound if the tag does not exists.
             tagService.findOne(tag);
             // Add object type.
@@ -237,12 +239,12 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             else {
                 throw new CdbBadRequestException("Bad header parameter: " + xCrestPayloadFormat);
             }
-            if (endtime != null) {
-                // Change the end time in the tag.
-                Tag tagEntity = tagService.findOne(tag);
-                tagEntity.endOfValidity(endtime.toBigInteger());
-                tagService.updateTag(tagEntity);
-            }
+            // Change the end time in the tag.
+            Tag tagEntity = tagService.findOne(tag);
+            tagEntity.endOfValidity((endtime != null) ? endtime.toBigInteger() : BigInteger.ZERO);
+            tagEntity.modificationTime(Instant.now().toDate());
+            tagService.updateTag(tagEntity);
+
             return Response.status(Response.Status.CREATED).entity(outdto).build();
         }
         catch (RuntimeException | IOException e) {
@@ -253,17 +255,26 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
 
 
     @Override
-    public Response storePayloadOne(String tag, StoreDto store, String xCrestPayloadFormat,
-                             List<FormDataBodyPart> filesBodypart, String objectType, String compressionType,
-                             String version, BigDecimal endtime, SecurityContext securityContext, UriInfo info)
+    public Response storePayloadOne(String tag, String jsonstore, String xCrestPayloadFormat,
+                                    List<FormDataBodyPart> filesBodypart, String objectType, String compressionType,
+                                    String version, BigDecimal endtime, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
-        this.log.info(
+        log.info(
                 "PayloadRestController processing request to store one payload in tag {} ",
                 tag);
-        StoreSetDto storeset = new StoreSetDto();
-        storeset.addResourcesItem(store);
-        return storePayloadBatch(tag, storeset, xCrestPayloadFormat, filesBodypart, objectType, compressionType, version,
-                endtime, securityContext, info);
+        try {
+            StoreDto store = jacksonMapper.readValue(jsonstore, StoreDto.class);
+            StoreSetDto storeset = new StoreSetDto();
+            storeset.addResourcesItem(store);
+            String jsonstoreset = jacksonMapper.writeValueAsString(storeset);
+            log.info("Using batch method with set: {}", jsonstoreset);
+            return storePayloadBatch(tag, jsonstoreset, xCrestPayloadFormat, filesBodypart, objectType, compressionType,
+                    version,
+                    endtime, securityContext, info);
+        }
+        catch (RuntimeException | IOException e) {
+            throw new CdbInternalException("Exception occurred in one payload insertion");
+        }
     }
 
     /**
@@ -287,7 +298,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         List<StorableData> storableDataList = new ArrayList<>();
         for (final StoreDto piovDto : iovlist) {
             String filename = null;
-            log.debug("Store data in entry {}", piovDto);
+            log.info("Store data for entry: {}", piovDto);
             final Map<String, String> sinfomap = new HashMap<>();
             sinfomap.put("format", dtoset.getDatatype());
             sinfomap.put("insertionDate", new Date().toString());
@@ -301,6 +312,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             IovId iovId = new IovId();
             iovId.since(piovDto.getSince().toBigInteger());
             iovId.tagName(tag);
+            iov.tag(new Tag().name(tag));
             iov.id(iovId);
             PayloadData content = new PayloadData();
             PayloadInfoData sinfodata = new PayloadInfoData();
@@ -308,10 +320,11 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             if (filesbodyparts == null) {
                 // There are no attached files, so the data field should represent the payload
                 byte[] paylodContent = piovDto.getData().getBytes(StandardCharsets.UTF_8);
-                log.debug("Use the hash, it represents the payload : length is {}",
+                log.debug("Use the data string, it represents the payload : length is {}",
                         paylodContent.length);
                 entity.size(paylodContent.length);
                 String outFilename = generateUploadFilename("inline", tag, iov.id().since());
+                log.info("Dump data in file {} to compute the hash", outFilename);
                 final String hash = getHash(
                         new ByteArrayInputStream(paylodContent), outFilename);
                 iov.payloadHash(hash);
@@ -323,6 +336,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 retmap.put("uploadedFile", outFilename);
                 data.payload(entity).payloadData(content).payloadInfoData(sinfodata);
                 data.streamsMap(retmap);
+                data.iov(iov);
             }
             else {
                 // If there are attached files, then the payload will be loaded from filename.
@@ -340,6 +354,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 sinfodata.streamerInfo(jacksonMapper.writeValueAsBytes(sinfomap));
                 data.payload(entity).payloadData(content).payloadInfoData(sinfodata);
                 data.streamsMap(retmap);
+                data.iov(iov);
             }
             storableDataList.add(data);
         }

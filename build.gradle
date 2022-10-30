@@ -1,7 +1,4 @@
 buildscript {
-	repositories {
-		jcenter()
-	}
 }
 plugins {
     id "org.sonarqube" version "3.0"
@@ -14,7 +11,7 @@ ext {
     jackson_version = "2.7.5"
     oltu_version = "1.0.1"
     orika_version = "1.5.4"
-    querydsl_version = "4.4.0"
+    querydsl_version = "5.0.0"
     swaggerDirectory = "$rootDir/openapi".toString()
     swaggerSpecDirectory =  "$swaggerDirectory".toString()
     swaggerBundleDirectory = "$swaggerDirectory/bundle".toString()
@@ -31,7 +28,7 @@ allprojects {
     apply plugin: "io.freefair.lombok"
 
     group = 'hep.crest'
-    version = '2.0-SNAPSHOT'
+    version = '3.0-SNAPSHOT'
     repositories {
         mavenCentral()
     }
@@ -47,7 +44,8 @@ allprojects {
             classDirectories.setFrom(files(classDirectories.files.collect {
                 fileTree(dir: it, exclude: [
                         "hep/crest/data/**/Q*.*",
-                        "hep/crest/server/swagger/**/*"
+                        "hep/crest/server/swagger/api/*",
+                        "hep/crest/server/swagger/model/*",
                 ])
             }))
         }

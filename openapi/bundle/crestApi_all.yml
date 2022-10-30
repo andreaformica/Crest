@@ -943,7 +943,8 @@ paths:
                   description: The tag name
                   type: string
                 storeset:
-                  $ref: '#/components/schemas/StoreSetDto'
+                  description: the string representing a StoreSetDto in json
+                  type: string
                 files:
                   description: The payload files as an array of streams
                   type: array
@@ -1000,7 +1001,8 @@ paths:
                   description: The tag name
                   type: string
                 store:
-                  $ref: '#/components/schemas/StoreDto'
+                  description: the string representing a StoreDto in json
+                  type: string
                 files:
                   description: The payload files as an array of streams
                   type: array

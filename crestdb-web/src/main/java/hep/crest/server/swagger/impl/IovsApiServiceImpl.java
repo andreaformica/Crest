@@ -1,15 +1,15 @@
-package hep.crest.server.swagger.api.impl;
+package hep.crest.server.swagger.impl;
 
 import hep.crest.data.exceptions.CdbBadRequestException;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.args.IovModeEnum;
 import hep.crest.data.repositories.args.IovQueryArgs;
-import hep.crest.server.serializers.ArgTimeUnit;
 import hep.crest.server.caching.CachingPolicyService;
 import hep.crest.server.caching.CachingProperties;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.serializers.ArgTimeUnit;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.api.ApiResponseMessage;
@@ -41,14 +41,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Rest endpoint for iov management. It allows to create and find iovs.
@@ -122,6 +120,11 @@ public class IovsApiServiceImpl extends IovsApiService {
         Iov entity = mapper.map(body, Iov.class);
         entity.tag(new Tag().name(tagname));
         final Iov saved = iovService.insertIov(entity);
+        // Change the modification time in the tag.
+        Tag tagEntity = tagService.findOne(tagname);
+        tagEntity.modificationTime(new Date(Instant.now().toEpochMilli()));
+        tagService.updateTag(tagEntity);
+
         IovDto dto = mapper.map(saved, IovDto.class);
         dto.tagName(tagname);
         List<IovDto> dtoList = new ArrayList<>();
@@ -178,6 +181,7 @@ public class IovsApiServiceImpl extends IovsApiService {
                 return Response.status(Response.Status.NOT_ACCEPTABLE).entity(resp).build();
             }
             log.debug("Iov tag is {}", iovDto.getTagName());
+            tagName = iovDto.getTagName();
             // Create new iov.
             Iov entity = mapper.map(iovDto, Iov.class);
             entity.tag(new Tag().name(iovDto.getTagName()));
@@ -187,6 +191,11 @@ public class IovsApiServiceImpl extends IovsApiService {
             // Add to saved list.
             savedList.add(saveddto);
         }
+        // Change the modification time in the tag.
+        Tag tagEntity = tagService.findOne(tagName);
+        tagEntity.modificationTime(new Date(Instant.now().toEpochMilli()));
+        tagService.updateTag(tagEntity);
+
         // Prepare the Set for the response.
         final CrestBaseResponse saveddto = buildEntityResponse(savedList, filters);
         // Send 201.

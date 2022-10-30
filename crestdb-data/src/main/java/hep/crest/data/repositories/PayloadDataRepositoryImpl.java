@@ -32,7 +32,7 @@ public class PayloadDataRepositoryImpl implements PayloadDataRepositoryCustom {
     private EntityManager entityManager;
 
     @Override
-    @Transactional
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void saveData(String id, InputStream is, int length) throws CdbSQLException {
         PayloadData entity = new PayloadData();
         entity.hash(id);

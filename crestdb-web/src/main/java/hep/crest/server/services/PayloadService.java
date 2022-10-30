@@ -11,10 +11,12 @@ import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.Payload;
 import hep.crest.data.pojo.PayloadInfoData;
+import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.IovRepository;
 import hep.crest.data.repositories.PayloadDataRepository;
 import hep.crest.data.repositories.PayloadInfoDataRepository;
 import hep.crest.data.repositories.PayloadRepository;
+import hep.crest.data.repositories.TagRepository;
 import hep.crest.server.swagger.model.StoreDto;
 import hep.crest.server.swagger.model.StoreSetDto;
 import lombok.Data;
@@ -45,6 +47,11 @@ import java.util.Optional;
 @Slf4j
 public class PayloadService {
 
+    /**
+     * Repository.
+     */
+    @Autowired
+    private TagRepository tagRepository;
     /**
      * Repository.
      */
@@ -200,7 +207,6 @@ public class PayloadService {
      * @return Payload
      * @throws AbstractCdbServiceException If an Exception occurred
      */
-    @Transactional
     public Payload insertPayload(Payload entity, InputStream is, PayloadInfoData streamer)
             throws AbstractCdbServiceException {
         log.debug("Save payload {}", entity);
@@ -217,7 +223,7 @@ public class PayloadService {
         final Payload saved = payloadRepository.save(entity);
         payloadDataRepository.saveData(entity.hash(), is, entity.size());
         payloadInfoDataRepository.save(streamer);
-        log.debug("Saved entity: {}", saved);
+        log.debug("Saved payload and related entity: {}", saved);
         return saved;
     }
 
@@ -237,17 +243,22 @@ public class PayloadService {
             StoreDto dto = new StoreDto();
             // Store payload, data content and streamer info
             Iov iov = data.iov();
+            log.debug("Entry for iov {}", iov);
             Payload entity = data.payload();
             PayloadInfoData streamer = data.payloadInfoData();
             Map<String, Object> info = data.streamsMap();
             String uploadedFile = (String) info.get("uploadedFile");
+            log.debug("Read stream from uploaded file : {}", uploadedFile);
             // Access file, set the length and open an input stream
             try (InputStream is = new FileInputStream(uploadedFile);
                  FileChannel tempchan = FileChannel.open(Paths.get(uploadedFile));) {
                 entity.size((int) tempchan.size());
                 Payload saved = insertPayload(entity, is, streamer);
+                log.debug("Payload saved is : {}", saved);
                 // Now insert IOV. The method will perform many verifications.
-                Iov savedIov = iovService.insertIov(iov);
+                iov.payloadHash(saved.hash());
+                log.debug("Saving iov {}", iov);
+                Iov savedIov = storeIov(iov);
                 dto.since(new BigDecimal(savedIov.id().since())).hash(savedIov.payloadHash());
                 dto.data(saved.objectType());
                 setdto.addResourcesItem(dto);
@@ -275,4 +286,31 @@ public class PayloadService {
         return setdto;
     }
 
+    /**
+     * Non transactional iov storage.
+     * Used to avoid updating tag as done in IovService.
+     *
+     * @param entity
+     * @return Iov
+     */
+    public Iov storeIov(Iov entity) {
+        log.debug("Create iov from {}", entity);
+        final String tagname = entity.tag().name();
+        // The IOV is not yet stored. Verify that the tag exists before inserting it.
+        final Optional<Tag> tg = tagRepository.findById(tagname);
+        if (!tg.isPresent()) {
+            throw new CdbNotFoundException("Tag " + tagname + " not found: cannot insert IOV.");
+        }
+        Tag t = tg.get();
+        if (iovService.existsIov(t.name(), entity.id().since(), entity.payloadHash())) {
+            log.warn("Iov already exists [tag,since,hash]: {}", entity);
+            throw new ConflictException("Iov already exists [tag,since,hash]: " + entity.toString());
+        }
+        entity.tag(t);
+        entity.id().tagName(t.name());
+        log.debug("Storing iov entity {} in tag {}", entity, t);
+        final Iov saved = iovRepository.save(entity);
+        log.debug("Saved iov entity: {}", saved);
+        return saved;
+    }
 }

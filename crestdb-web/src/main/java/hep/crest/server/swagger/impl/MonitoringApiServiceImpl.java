@@ -1,4 +1,4 @@
-package hep.crest.server.swagger.api.impl;
+package hep.crest.server.swagger.impl;
 
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.repositories.monitoring.IMonitoringRepository;

@@ -1,32 +1,23 @@
 package hep.crest.server.swagger.api;
 
-import hep.crest.server.swagger.model.*;
-import hep.crest.server.swagger.api.PayloadsApiService;
-
 import io.swagger.annotations.ApiParam;
 
-import hep.crest.server.swagger.api.impl.JAXRSContext;
+import hep.crest.server.swagger.impl.JAXRSContext;
 
 import java.math.BigDecimal;
-import java.io.File;
-import hep.crest.server.swagger.model.GenericMap;
+
 import hep.crest.server.swagger.model.HTTPResponse;
 import java.util.Map;
 import hep.crest.server.swagger.model.PayloadDto;
 import hep.crest.server.swagger.model.StoreDto;
 import hep.crest.server.swagger.model.StoreSetDto;
 
-import java.util.Map;
 import java.util.List;
-import hep.crest.server.swagger.api.NotFoundException;
-
-import java.io.InputStream;
 
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.HttpHeaders;
@@ -82,7 +73,7 @@ public class PayloadsApi  {
         @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = StoreSetDto.class),
         @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
-    public Response storePayloadBatch(@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,@ApiParam(value = "", required=true)@FormDataParam("storeset")  StoreSetDto storeset,@ApiParam(value = "The format of the input data. StoreSetDto entries will have either the content inline (JSON) or stored via external files (FILE). " , allowableValues="FILE, JSON", defaultValue="FILE")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,
+    public Response storePayloadBatch(@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,@ApiParam(value = "the string representing a StoreSetDto in json", required=true)@FormDataParam("storeset")  String storeset,@ApiParam(value = "The format of the input data. StoreSetDto entries will have either the content inline (JSON) or stored via external files (FILE). " , allowableValues="FILE, JSON", defaultValue="FILE")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,
  @FormDataParam("files") List<FormDataBodyPart> filesBodypart ,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The compression type")@FormDataParam("compressionType")  String compressionType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time, shall be set at tag level.")@FormDataParam("endtime")  BigDecimal endtime,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
         context.setHttpHeaders(headers);
@@ -100,7 +91,7 @@ public class PayloadsApi  {
         @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = StoreDto.class),
         @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
-    public Response storePayloadOne(@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,@ApiParam(value = "", required=true)@FormDataParam("store")  StoreDto store,@ApiParam(value = "The format of the input data. StoreSetDto entries will have either the content inline (JSON) or stored via external files (FILE). " , allowableValues="FILE, JSON", defaultValue="FILE")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,
+    public Response storePayloadOne(@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,@ApiParam(value = "the string representing a StoreDto in json", required=true)@FormDataParam("store")  String store,@ApiParam(value = "The format of the input data. StoreSetDto entries will have either the content inline (JSON) or stored via external files (FILE). " , allowableValues="FILE, JSON", defaultValue="FILE")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,
  @FormDataParam("files") List<FormDataBodyPart> filesBodypart ,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The compression type")@FormDataParam("compressionType")  String compressionType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time, shall be set at tag level.")@FormDataParam("endtime")  BigDecimal endtime,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
         context.setHttpHeaders(headers);

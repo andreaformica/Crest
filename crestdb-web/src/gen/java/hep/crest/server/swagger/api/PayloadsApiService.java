@@ -27,7 +27,7 @@ import javax.validation.constraints.*;
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public abstract class PayloadsApiService {
     public abstract Response getPayload(String hash, @NotNull String format,SecurityContext securityContext, UriInfo info) throws NotFoundException;
-    public abstract Response storePayloadBatch(String tag,StoreSetDto storeset,String xCrestPayloadFormat,List<FormDataBodyPart> filesBodypart,String objectType,String compressionType,String version,BigDecimal endtime,SecurityContext securityContext, UriInfo info) throws NotFoundException;
-    public abstract Response storePayloadOne(String tag,StoreDto store,String xCrestPayloadFormat,List<FormDataBodyPart> filesBodypart,String objectType,String compressionType,String version,BigDecimal endtime,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response storePayloadBatch(String tag,String storeset,String xCrestPayloadFormat,List<FormDataBodyPart> filesBodypart,String objectType,String compressionType,String version,BigDecimal endtime,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response storePayloadOne(String tag,String store,String xCrestPayloadFormat,List<FormDataBodyPart> filesBodypart,String objectType,String compressionType,String version,BigDecimal endtime,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response updatePayload(String hash,Map<String, String> requestBody,SecurityContext securityContext, UriInfo info) throws NotFoundException;
 }

@@ -1,4 +1,4 @@
-package hep.crest.server.swagger.api.impl;
+package hep.crest.server.swagger.impl;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
