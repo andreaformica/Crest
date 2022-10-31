@@ -408,10 +408,10 @@ public class IovsApiServiceImpl extends IovsApiService {
                 tagname, since, until);
         List<IovPayloadDto> dtolist = null;
         if (timeformat == null) {
-            timeformat = "ms";
+            timeformat = "MS";
         }
-        log.debug("Use input time format: {}", timeformat);
-        ArgTimeUnit inputformat = ArgTimeUnit.valueOf(timeformat);
+        log.debug("Use input time format: {}", timeformat.toUpperCase());
+        ArgTimeUnit inputformat = ArgTimeUnit.valueOf(timeformat.toUpperCase());
         ArgTimeUnit outformat = ArgTimeUnit.valueOf("COOL");
 
         // Retrieve all iovs

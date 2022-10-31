@@ -4,7 +4,6 @@
 package hep.crest.server.services;
 
 import hep.crest.data.exceptions.AbstractCdbServiceException;
-import hep.crest.data.exceptions.CdbInternalException;
 import hep.crest.data.exceptions.CdbNotFoundException;
 import hep.crest.data.exceptions.ConflictException;
 import hep.crest.data.pojo.Iov;
@@ -19,7 +18,6 @@ import hep.crest.server.controllers.PageRequestHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -83,21 +81,6 @@ public class TagService {
      */
     @Autowired
     private PageRequestHelper prh;
-
-    /**
-     * @param tagname the String
-     * @return boolean
-     * @throws AbstractCdbServiceException If an Exception occurred
-     */
-    public boolean exists(String tagname) throws CdbInternalException {
-        try {
-            log.debug("Verify existence of Tag {}", tagname);
-            return tagRepository.existsById(tagname);
-        }
-        catch (final IllegalArgumentException | InvalidDataAccessApiUsageException e) {
-            throw new CdbInternalException("Wrong tagname " + tagname, e);
-        }
-    }
 
     /**
      * @param id the String representing the Tag name

@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
@@ -156,6 +157,11 @@ public class RepositoryPostgresTests {
 
         byte[] sinfo = foundStreamer.get().streamerInfo();
         assertTrue(sinfo.length > 0);
+
+        // Remove the Data.
+        payloadDataRepository.deleteById(saved.hash());
+        Optional<PayloadData> foundDeletedData = payloadDataRepository.findById(saved.hash());
+        assertFalse(foundDeletedData.isPresent());
     }
 
     @Test

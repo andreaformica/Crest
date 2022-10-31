@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.data.pojo.Iov;
 import hep.crest.data.pojo.IovId;
 import hep.crest.server.swagger.model.GenericMap;
-import hep.crest.server.swagger.model.IovDto;
-import hep.crest.server.swagger.model.IovSetDto;
+import hep.crest.server.swagger.model.IovPayloadSetDto;
+import hep.crest.server.swagger.model.PayloadSetDto;
 import hep.crest.server.swagger.model.StoreDto;
 import hep.crest.server.swagger.model.StoreSetDto;
 import hep.crest.server.swagger.model.TagDto;
@@ -34,7 +34,8 @@ import org.springframework.util.MultiValueMap;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -78,7 +79,7 @@ public class TestCrestPayload {
         miov.id().insertionTime(null);
         log.info("...created iov via random gen: {}", miov);
         final IovId id2 = new IovId().tagName(tagname)
-                .since(BigInteger.valueOf(3000000L*1000000000L)).insertionTime(new Date());
+                .since(BigInteger.valueOf(3000000L * 1000000000L)).insertionTime(new Date());
         final Iov miov2 = (Iov) rnd.generate(Iov.class);
         miov2.id(id2);
         miov2.id().insertionTime(null);
@@ -122,17 +123,22 @@ public class TestCrestPayload {
                 .postForEntity("/crestapi/payloads", request, String.class);
         assertEquals(resp.getStatusCode().value(), HttpStatus.CREATED.value());
         log.info("Received response: " + resp);
+    }
 
+    public String postPayloadFromFile(String tagname) throws JsonProcessingException {
         // Upload batch payload using file resource
+        final GenericMap filters = new GenericMap();
+        filters.put("tagName", tagname);
+
         final StoreSetDto setdto1 = new StoreSetDto();
-        setdto1.size(2L);
+        setdto1.size(1L);
         setdto1.format("StoreSetDto");
         filters.put("tagName", tagname);
-        setdto.datatype("payloads").filter(filters);
+        setdto1.datatype("json").filter(filters);
 
         StoreDto sdto3 = new StoreDto();
         sdto3.streamerInfo("{\"filename\": \"test-file-1\"}");
-        sdto3.since(new BigDecimal(BigInteger.valueOf(4000000L*1000000000L)));
+        sdto3.since(new BigDecimal(BigInteger.valueOf(4000000L * 1000000000L)));
         sdto3.hash("hashresource1");
         sdto3.setData("theresource1");
 
@@ -149,17 +155,12 @@ public class TestCrestPayload {
         };
         final HttpHeaders headers1 = new HttpHeaders();
         headers1.setContentType(MediaType.MULTIPART_FORM_DATA);
-        headers1.add("X-Crest-PayloadFormat", "FILE");
 
         final HttpEntity<ByteArrayResource> partsEntity = new HttpEntity<>(byteArrayResource, parts);
         final MultiValueMap<String, Object> map1 = new LinkedMultiValueMap<String, Object>();
         map1.add("files", partsEntity);
         map1.add("tag", tagname);
         map1.add("storeset", mapper.writeValueAsString(setdto1));
-        map1.add("endtime", "0");
-        map1.add("objectType", "FILE");
-        map1.add("compressionType", "none");
-        map1.add("version", "2.0");
         final HttpEntity<MultiValueMap<String, Object>> request1 = new HttpEntity<MultiValueMap<String, Object>>(
                 map1, headers1);
         final ResponseEntity<String> resp1 = this.testRestTemplate
@@ -167,16 +168,10 @@ public class TestCrestPayload {
         assertEquals(resp1.getStatusCode().value(), HttpStatus.CREATED.value());
         log.info("Received response: " + resp1);
         {
-            log.info("Get Payload back using response: {} ", resp1.getBody());
             StoreSetDto respb = mapper.readValue(resp1.getBody(), StoreSetDto.class);
             StoreDto dto = respb.getResources().get(0);
             log.info("Found stored payload in response : {}", dto);
-            String hash = dto.getHash();
-            log.info("Retrieve payload for hash : {}", hash);
-            final ResponseEntity<String> resp3 = this.testRestTemplate.exchange("/crestapi/payloads/"+hash,
-                    HttpMethod.GET, null, String.class);
-            log.info("Received payload : {}", resp3);
-            assertThat(resp3.getBody().contains("theresource1"));
+            return dto.getHash();
         }
     }
 
@@ -184,8 +179,99 @@ public class TestCrestPayload {
     public void testPayloadRest() {
         log.info("=======> testPayloadRest ");
         try {
-            initializeTag("A-TEST-WITH-PYLD");
-            storeIovsAndPayload("A-TEST-WITH-PYLD");
+            String tagname = "A-TEST-WITH-PYLD";
+            initializeTag(tagname);
+            storeIovsAndPayload(tagname);
+            String hash = postPayloadFromFile(tagname);
+
+            log.info("Retrieve all payloads:");
+            final ResponseEntity<String> resp = this.testRestTemplate.exchange("/crestapi/payloads",
+                    HttpMethod.GET, null, String.class);
+
+            {
+                log.info("Retrieved all payloads {} ", resp.getBody());
+                final String responseBody = resp.getBody();
+                assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+                PayloadSetDto ok;
+                log.info("Response from server is: " + responseBody);
+                ok = mapper.readValue(responseBody, PayloadSetDto.class);
+                assertTrue(ok.getSize() > 0);
+            }
+
+            // Retrieve a payload metadata and streamer info from hash.
+            log.info("Retrieve payload for hash : {}", hash);
+            final ResponseEntity<String> resp3 = this.testRestTemplate.exchange("/crestapi/payloads/" + hash,
+                    HttpMethod.GET, null, String.class);
+            log.info("Received payload : {}", resp3);
+            assertTrue(resp3.getBody().contains("theresource1"));
+
+            log.info("Retrieve payload streamer for hash : {}", hash);
+            String format = "?format=STREAMER";
+            final ResponseEntity<String> resp2 = this.testRestTemplate.exchange("/crestapi/payloads/" + hash + format,
+                    HttpMethod.GET, null, String.class);
+            log.info("Received payload : {}", resp2);
+            assertTrue(resp2.getBody().contains("test-file-1"));
+
+            format = "?hash=" + hash;
+            final ResponseEntity<String> resp1 = this.testRestTemplate.exchange("/crestapi/payloads" + format,
+                    HttpMethod.GET, null, String.class);
+
+            {
+                log.info("Retrieved all payloads {} ", resp1.getBody());
+                final String responseBody = resp1.getBody();
+                assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+                PayloadSetDto ok;
+                log.info("Response from server is: " + responseBody);
+                ok = mapper.readValue(responseBody, PayloadSetDto.class);
+                assertTrue(ok.getSize() > 0);
+            }
+
+            log.info("update streamer info");
+            Map<String, String> map = new HashMap<>();
+            map.put("streamerInfo", "new streamer info");
+            final HttpHeaders headers = new HttpHeaders();
+            final HttpEntity<Map<String, String>> req0 = new HttpEntity<>(
+                    map, headers);
+            format = "/" + hash;
+            final ResponseEntity<String> resp0 = this.testRestTemplate.exchange("/crestapi/payloads" + format,
+                    HttpMethod.PUT, req0, String.class);
+
+            {
+                log.info("Update streamer info {} ", resp0.getBody());
+                final String responseBody = resp0.getBody();
+                assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+                PayloadSetDto ok;
+                log.info("Response from server is: " + responseBody);
+                ok = mapper.readValue(responseBody, PayloadSetDto.class);
+                assertTrue(ok.getSize() > 0);
+            }
+
+            // Retrieve iovs and payloads
+            format = "?tagname=" + tagname;
+            final ResponseEntity<String> resp5 = this.testRestTemplate.exchange("/crestapi/iovs/infos" + format,
+                    HttpMethod.GET, null, String.class);
+
+            {
+                log.info("Retrieved all iovs and payloads {} ", resp5.getBody());
+                final String responseBody = resp5.getBody();
+                assertEquals(resp5.getStatusCode(), HttpStatus.OK);
+                IovPayloadSetDto ok;
+                log.info("Response from server is: " + responseBody);
+                ok = mapper.readValue(responseBody, IovPayloadSetDto.class);
+                assertTrue(ok.getSize() > 0);
+            }
+
+            // Retrieve iovs and payloads
+            final ResponseEntity<String> resp6 = this.testRestTemplate.exchange("/crestapi/admin/tags/" + tagname,
+                    HttpMethod.DELETE, null, String.class);
+
+            {
+                log.info("Removed all iovs and payloads {} ", resp6.getBody());
+                final String responseBody = resp6.getBody();
+                assertEquals(resp6.getStatusCode(), HttpStatus.OK);
+                log.info("Removed tag received {}", responseBody);
+            }
+
         }
         catch (JsonProcessingException e) {
             log.error("Exception: {}", e.getMessage());

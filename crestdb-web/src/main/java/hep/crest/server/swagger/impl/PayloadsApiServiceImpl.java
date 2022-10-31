@@ -16,8 +16,10 @@ import hep.crest.data.pojo.Tag;
 import hep.crest.data.repositories.PayloadDataRepository;
 import hep.crest.data.repositories.PayloadInfoDataRepository;
 import hep.crest.data.repositories.PayloadRepository;
+import hep.crest.data.repositories.args.PayloadQueryArgs;
 import hep.crest.server.caching.CachingPolicyService;
 import hep.crest.server.controllers.EntityDtoHelper;
+import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.controllers.SimpleLobStreamerProvider;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.PayloadService;
@@ -25,9 +27,11 @@ import hep.crest.server.services.StorableData;
 import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.api.NotFoundException;
 import hep.crest.server.swagger.api.PayloadsApiService;
+import hep.crest.server.swagger.model.CrestBaseResponse;
 import hep.crest.server.swagger.model.GenericMap;
 import hep.crest.server.swagger.model.PayloadDto;
 import hep.crest.server.swagger.model.PayloadSetDto;
+import hep.crest.server.swagger.model.RespPage;
 import hep.crest.server.swagger.model.StoreDto;
 import hep.crest.server.swagger.model.StoreSetDto;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +41,8 @@ import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -136,6 +142,11 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      */
     @Autowired
     private EntityDtoHelper edh;
+    /**
+     * Helper.
+     */
+    @Autowired
+    private PageRequestHelper prh;
 
     /**
      * Mapper.
@@ -143,6 +154,35 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     @Autowired
     @Qualifier("mapper")
     private MapperFacade mapper;
+
+    @Override
+    public Response listPayloads(String hash, String objectType, Integer minsize, Integer page, Integer size,
+                                 String sort, SecurityContext securityContext, UriInfo info)
+            throws NotFoundException {
+        log.info("PayloadController processing requests for payload metadata: {} {} {}", hash, objectType, minsize);
+        PayloadQueryArgs args = new PayloadQueryArgs();
+        args.size(minsize).hash(hash).objectType(objectType);
+        // Create filters
+        GenericMap filters = new GenericMap();
+        filters.put("hash", hash);
+        filters.put("minsize", String.valueOf(minsize));
+        filters.put("objectType", objectType);
+        // Create pagination request
+        final PageRequest preq = prh.createPageRequest(page, size, sort);
+        // Search for global tags using where conditions.
+        Page<Payload> entitypage = payloadService.selectPayloadList(args, preq);
+        RespPage respPage = new RespPage().size(entitypage.getSize())
+                .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
+                .number(entitypage.getNumber());
+
+        final List<PayloadDto> dtolist = edh.entityToDtoList(entitypage.toList(), PayloadDto.class);
+        Response.Status rstatus = Response.Status.OK;
+        // Prepare the Set.
+        final CrestBaseResponse pdto = buildSet(dtolist, filters);
+        pdto.page(respPage);
+        // Send a response and status 200.
+        return Response.status(rstatus).entity(pdto).build();
+    }
 
     //     @CacheControlCdb("public, max-age=604800") : this has to be set on the API class itself.
     //     For the moment we decide to use the cachecontrol filter (if active) via the method
@@ -250,30 +290,6 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         catch (RuntimeException | IOException e) {
             log.error("Runtime exception while storing iovs and payloads....");
             throw new CdbInternalException(e);
-        }
-    }
-
-
-    @Override
-    public Response storePayloadOne(String tag, String jsonstore, String xCrestPayloadFormat,
-                                    List<FormDataBodyPart> filesBodypart, String objectType, String compressionType,
-                                    String version, BigDecimal endtime, SecurityContext securityContext, UriInfo info)
-            throws NotFoundException {
-        log.info(
-                "PayloadRestController processing request to store one payload in tag {} ",
-                tag);
-        try {
-            StoreDto store = jacksonMapper.readValue(jsonstore, StoreDto.class);
-            StoreSetDto storeset = new StoreSetDto();
-            storeset.addResourcesItem(store);
-            String jsonstoreset = jacksonMapper.writeValueAsString(storeset);
-            log.info("Using batch method with set: {}", jsonstoreset);
-            return storePayloadBatch(tag, jsonstoreset, xCrestPayloadFormat, filesBodypart, objectType, compressionType,
-                    version,
-                    endtime, securityContext, info);
-        }
-        catch (RuntimeException | IOException e) {
-            throw new CdbInternalException("Exception occurred in one payload insertion");
         }
     }
 
@@ -432,7 +448,11 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         }
         payloadService.updatePayloadMetaInfo(hash, sinfo);
         PayloadDto dto = mapper.map(entity, PayloadDto.class);
-        final PayloadSetDto psetdto = buildSet(dto, hash);
+        GenericMap filters = new GenericMap();
+        filters.put("hash", hash);
+        List<PayloadDto> dtoList = new ArrayList<>();
+        dtoList.add(dto);
+        final PayloadSetDto psetdto = buildSet(dtoList, filters);
         return Response.ok()
                 .header("Content-type", MediaType.APPLICATION_JSON_TYPE.toString())
                 .entity(psetdto).build();
@@ -528,15 +548,13 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     }
 
     /**
-     * @param entity the PayloadDto
-     * @param hash   the String
+     * @param entityList the PayloadDto list
+     * @param map the filters
      * @return PayloadSetDto
      */
-    protected PayloadSetDto buildSet(PayloadDto entity, String hash) {
-        final GenericMap map = new GenericMap();
-        map.put("hash", hash);
-        final PayloadSetDto psetdto = new PayloadSetDto().addResourcesItem(entity);
-        psetdto.datatype(entity.getObjectType()).filter(map).size(1L);
+    protected PayloadSetDto buildSet(List<PayloadDto> entityList, GenericMap map) {
+        final PayloadSetDto psetdto = new PayloadSetDto().resources(entityList);
+        psetdto.datatype("payloads").filter(map).size((long)entityList.size());
         return psetdto;
     }
 

@@ -17,6 +17,8 @@ import hep.crest.data.repositories.PayloadDataRepository;
 import hep.crest.data.repositories.PayloadInfoDataRepository;
 import hep.crest.data.repositories.PayloadRepository;
 import hep.crest.data.repositories.TagRepository;
+import hep.crest.data.repositories.args.PayloadQueryArgs;
+import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.swagger.model.StoreDto;
 import hep.crest.server.swagger.model.StoreSetDto;
 import lombok.Data;
@@ -24,6 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -68,6 +72,11 @@ public class PayloadService {
     @Autowired
     @Qualifier("mapper")
     private MapperFacade mapper;
+    /**
+     * Helper.
+     */
+    @Autowired
+    private PageRequestHelper prh;
 
     /**
      * Repository.
@@ -84,6 +93,24 @@ public class PayloadService {
      */
     @Autowired
     private PayloadInfoDataRepository payloadInfoDataRepository;
+
+    /**
+     * Select Payloads.
+     *
+     * @param args
+     * @param preq
+     * @return Page of Payload
+     */
+    public Page<Payload> selectPayloadList(PayloadQueryArgs args, Pageable preq) {
+        Page<Payload> entitylist = null;
+        if (preq == null) {
+            String sort = "insertionTime:DESC";
+            preq = prh.createPageRequest(0, 1000, sort);
+        }
+        entitylist = payloadRepository.findPayloadsList(args, preq);
+        log.trace("Retrieved list of payloads {}", entitylist);
+        return entitylist;
+    }
 
     /**
      * @param tag  the String tag name
@@ -113,6 +140,7 @@ public class PayloadService {
         if (canremove) {
             log.info("Remove payload for hash {} in tag {}", hash, tag);
             payloadRepository.deleteById(hash);
+            payloadDataRepository.deleteData(hash);
             payloadDataRepository.deleteById(hash);
             payloadInfoDataRepository.deleteById(hash);
             return hash;

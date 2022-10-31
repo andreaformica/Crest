@@ -13,6 +13,7 @@ import hep.crest.data.handlers.DateFormatterHandler;
 import hep.crest.data.handlers.HashGenerator;
 import hep.crest.data.handlers.PayloadHandler;
 import hep.crest.data.repositories.DataGeneral;
+import hep.crest.data.repositories.externals.SqlRequests;
 import hep.crest.data.test.tools.DataGenerator;
 import hep.crest.data.utils.RunIovConverter;
 import org.junit.jupiter.api.BeforeAll;
@@ -41,6 +42,7 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author formica
@@ -271,5 +273,20 @@ public class ToolsTests {
         final DataGeneral dg = new DataGeneral(null);
         dg.setCrestTableNames(tn);
         assertThat(dg).isNotNull();
+    }
+
+    @Test
+    public void staticTest() {
+        String sql = SqlRequests.getDataQuery("PAYLOAD");
+        assertTrue(sql.contains("DATA"));
+        sql = SqlRequests.getUpdateInfoQuery("PAYLOAD_STREAMER_DATA");
+        assertTrue(sql.contains("UPDATE"));
+        sql = SqlRequests.getRangeIovPayloadQuery("IOV", "PAYLOAD");
+        assertTrue(sql.contains("SELECT"));
+        sql = SqlRequests.getDeleteQuery("PAYLOAD");
+        assertTrue(sql.contains("DELETE"));
+        sql = SqlRequests.getInfoDataQuery("PAYLOAD_STREAMER_DATA");
+        assertTrue(sql.contains("STREAMER_INFO"));
+
     }
 }

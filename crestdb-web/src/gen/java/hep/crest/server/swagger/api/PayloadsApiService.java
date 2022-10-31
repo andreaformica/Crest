@@ -11,7 +11,7 @@ import hep.crest.server.swagger.model.GenericMap;
 import hep.crest.server.swagger.model.HTTPResponse;
 import java.util.Map;
 import hep.crest.server.swagger.model.PayloadDto;
-import hep.crest.server.swagger.model.StoreDto;
+import hep.crest.server.swagger.model.PayloadSetDto;
 import hep.crest.server.swagger.model.StoreSetDto;
 
 import java.util.List;
@@ -27,7 +27,7 @@ import javax.validation.constraints.*;
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public abstract class PayloadsApiService {
     public abstract Response getPayload(String hash, @NotNull String format,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response listPayloads(String hash,String objectType,Integer minsize,Integer page,Integer size,String sort,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response storePayloadBatch(String tag,String storeset,String xCrestPayloadFormat,List<FormDataBodyPart> filesBodypart,String objectType,String compressionType,String version,BigDecimal endtime,SecurityContext securityContext, UriInfo info) throws NotFoundException;
-    public abstract Response storePayloadOne(String tag,String store,String xCrestPayloadFormat,List<FormDataBodyPart> filesBodypart,String objectType,String compressionType,String version,BigDecimal endtime,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response updatePayload(String hash,Map<String, String> requestBody,SecurityContext securityContext, UriInfo info) throws NotFoundException;
 }

@@ -22,6 +22,7 @@ import hep.crest.data.repositories.TagRepository;
 import hep.crest.data.repositories.args.GtagQueryArgs;
 import hep.crest.data.repositories.args.IovModeEnum;
 import hep.crest.data.repositories.args.IovQueryArgs;
+import hep.crest.data.repositories.args.PayloadQueryArgs;
 import hep.crest.data.repositories.args.TagQueryArgs;
 import hep.crest.data.runinfo.pojo.RunLumiInfo;
 import hep.crest.data.runinfo.repositories.RunLumiInfoRepository;
@@ -35,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -342,6 +344,14 @@ public class RepositoryDBTests {
         List<BigInteger> groupList = iovGroupsRepository.selectGroups(mtag.name(), 100L);
         assertTrue(groupList != null);
         assertTrue(groupList.size() > 0);
+
+        List<BigInteger> groupSnapList = iovGroupsRepository.selectSnapshotGroups(mtag.name(),
+                new Date(now.toEpochMilli()+3600L), 100L);
+        assertTrue(groupSnapList != null);
+        assertTrue(groupSnapList.size() > 0);
+
+        Long count = iovGroupsRepository.getSize(mtag.name());
+        assertTrue(count > 0);
     }
 
     @Test
@@ -377,6 +387,17 @@ public class RepositoryDBTests {
 
         byte[] sinfo = foundStreamer.get().streamerInfo();
         assertTrue(sinfo.length > 0);
+
+        PayloadQueryArgs args = new PayloadQueryArgs();
+        args.hash(saved.hash());
+        PageRequest preq = PageRequest.of(0, 10, Sort.unsorted());
+        Page<Payload> pagepayload = payloadRepository.findPayloadsList(args, preq);
+        assertTrue(pagepayload.getTotalElements() > 0);
+        // Remove the Data.
+        payloadDataRepository.deleteById(saved.hash());
+        Optional<PayloadData> foundDeletedData = payloadDataRepository.findById(saved.hash());
+        assertFalse(foundDeletedData.isPresent());
+
     }
 
     @Transactional

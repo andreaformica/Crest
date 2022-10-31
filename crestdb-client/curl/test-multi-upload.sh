@@ -7,12 +7,12 @@ generate_post_data()
 {
   "size": 2,
   "datatype": "PYL",
-  "format": "IovSetDto",
+  "format": "StoreSetDto",
   "page": null,
   "filter": null,
   "resources":[
-  { "since" : $since1, "payloadHash": "file:///tmp/newfile-01.txt"},
-  { "since" : $since2, "payloadHash": "file:///tmp/newfile-02.txt"}
+  { "since" : $since1, "data": "file:///tmp/newfile-01.txt", "streamerInfo": "{\"key\": \"value\", \"author\": \"formica\"}"},
+  { "since" : $since2, "data": "file:///tmp/newfile-02.txt", "streamerInfo": "{\"key\": \"value\", \"author\": \"formica\"}"}
   ]
 };type=application/json
 EOF
@@ -39,7 +39,7 @@ for a in {1001..1010}; do echo $a;
   since1=$a
   since2=$b
   echo $(generate_post_data)
-  resp=`curl --form tag=$tag --form endtime=0 --form iovsetupload="$(generate_post_data)"  --form "files=@/tmp/newfile-01.txt" --form "files=@/tmp/newfile-02.txt" --form objectType="JSON" --form version="1.0" "${host}/${apiname}/payloads/batch"`
+  resp=`curl --form tag=$tag --form endtime=0 --form storeset="$(generate_post_data)"  --form "files=@/tmp/newfile-01.txt" --form "files=@/tmp/newfile-02.txt" --form objectType="JSON" --form version="1.0" "${host}/${apiname}/payloads"`
   echo "Received response $resp"
   sleep 1
 done

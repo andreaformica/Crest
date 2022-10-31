@@ -82,72 +82,67 @@ paths:
                 $ref: "#/components/schemas/StoreSetDto"
         default:
           $ref: "#/components/responses/genericError"
-    put:
+    get:
       tags:
         - payloads
-      summary: Create Payload in the database, associated to a given iov since and tag name.
+      summary: Finds Payloads metadata.
       description: |
-        This method allows to insert one Payload with its IOV.
-        Payload can be contained in the HASH of the IOV (in case it is a small JSON)
-        or as a reference to external file (FILE).
-        In the first case, the files list can be null.
-        Arguments: tag,version,endtime,objectType,compressionType
-        The header parameter X-Crest-PayloadFormat can be FILE or JSON
-      operationId: storePayloadOne
-      requestBody:
-        description: A json string that is used to construct the form data object.
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                tag:
-                  description: The tag name
-                  type: string
-                store:
-                  description: the string representing a StoreDto in json
-                  type: string
-                files:
-                  description: The payload files as an array of streams
-                  type: array
-                  items:
-                    type: string
-                    format: binary
-                objectType:
-                  description: The object type
-                  type: string
-                compressionType:
-                  description: The compression type
-                  type: string
-                version:
-                  description: The version
-                  type: string
-                endtime:
-                  description: The end time, shall be set at tag level.
-                  type: number
-              required:
-                - store
-                - tag
+        This method allows to perform search and sorting.
+        Arguments: hash=<the payload hash>, minsize=<min size>, objectType=<the type>
+        page={ipage}, size={isize}, sort=<sortpattern>.
+      operationId: listPayloads
       parameters:
-        - in: header
-          name: X-Crest-PayloadFormat
-          description: |
-            The format of the input data. StoreSetDto entries will have either the content inline (JSON)
-            or stored via external files (FILE).
+        - name: hash
+          in: query
+          description: 'the hash to search {none}'
+          required: false
           schema:
             type: string
-            enum: [ FILE, JSON ]
-            default: FILE
+        - name: objectType
+          in: query
+          description: 'the objectType to search'
+          required: false
+          schema:
+            type: string
+        - name: minsize
+          in: query
+          description: 'the minimum size to search'
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: page
+          in: query
+          description: 'page: the page number {0}'
+          required: false
+          schema:
+            type: integer
+            default: 0
+            format: int32
+        - name: size
+          in: query
+          description: 'size: the page size {1000}'
+          required: false
+          schema:
+            type: integer
+            default: 1000
+            format: int32
+        - name: sort
+          in: query
+          description: 'sort: the sort pattern {insertionTime:DESC}'
+          required: false
+          schema:
+            type: string
+            default: 'insertionTime:DESC'
       responses:
-        '201':
+        '200':
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/StoreDto"
-            application/xml:
-              schema:
-                $ref: "#/components/schemas/StoreDto"
+                $ref: "#/components/schemas/PayloadSetDto"
+        '404':
+          $ref: "#/components/responses/404"
         default:
           $ref: "#/components/responses/genericError"
 

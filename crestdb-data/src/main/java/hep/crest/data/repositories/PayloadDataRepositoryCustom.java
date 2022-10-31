@@ -31,4 +31,12 @@ public interface PayloadDataRepositoryCustom {
      * @throws CdbSQLException
      */
     InputStream findData(String id) throws CdbSQLException;
+
+    /**
+     * Remove the data LOB.
+     * @param id
+     * @throws CdbSQLException
+     */
+    void deleteData(String id) throws CdbSQLException;
+
 }
