@@ -16,7 +16,7 @@ fi
 
 echo "$USER is starting server with JAVA_OPTS : $JAVA_OPTS from user directory $PWD"
 if [ x"$1" = x"" ]; then
-    sh -c "java $JAVA_OPTS -jar ${crest_dir}/crest.war"
+    sh -c "java $JAVA_OPTS -jar ${crest_dir}/crest.jar"
 else
     sh -c "$@"
 fi

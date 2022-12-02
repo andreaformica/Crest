@@ -2,16 +2,10 @@ buildscript {
 }
 plugins {
     id "org.sonarqube" version "3.0"
-    id "io.freefair.lombok" version "5.0.1" apply false
     id 'jacoco'
 }
 
 ext {
-    swagger_annotations_version = "1.5.13"
-    jackson_version = "2.7.5"
-    oltu_version = "1.0.1"
-    orika_version = "1.5.4"
-    querydsl_version = "5.0.0"
     swaggerDirectory = "$rootDir/openapi".toString()
     swaggerSpecDirectory =  "$swaggerDirectory".toString()
     swaggerBundleDirectory = "$swaggerDirectory/bundle".toString()
@@ -22,13 +16,20 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    oltu_version = "1.0.1"
+    orika_version = "1.5.4"
+    jersey2_version = "2.22.2"
+    querydsl_version = "4.4.0"
+    server = "undertow"
+}
+
 allprojects {
     apply plugin: 'jacoco'
     apply plugin: 'java'
-    apply plugin: "io.freefair.lombok"
 
     group = 'hep.crest'
-    version = '3.0-SNAPSHOT'
+    version = '4.0-SNAPSHOT'
     repositories {
         mavenCentral()
     }
@@ -86,16 +87,6 @@ sonarqube {
 subprojects {
     sourceCompatibility = 11
     targetCompatibility = 11
-    ext {
-        swagger_annotations_version = "1.5.13"
-        jackson_version = "2.10.5"
-        junit_version = "4.12"
-        oltu_version = "1.0.1"
-        orika_version = "1.5.4"
-        jersey2_version = "2.22.2"
-        querydsl_version = "4.4.0"
-        server = "undertow"
-    }
 
     tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"
@@ -112,30 +103,16 @@ subprojects {
 
     dependencies {
 
-        // JAX-B dependencies for JDK 9+
-        implementation "jakarta.xml.bind:jakarta.xml.bind-api:2.3.2"
-        implementation "org.glassfish.jaxb:jaxb-runtime:2.3.2"
-        // javassist for JDK 9+
-        implementation "org.javassist:javassist:3.23.1-GA"
-
-        implementation group: 'ma.glasnost.orika', name: 'orika-core', version: orika_version
-
-        implementation (group: 'io.swagger.core.v3', name: 'swagger-core', version: '2.1.1') {
-            exclude group: 'javax.xml.bind', module: 'jaxb-api'
-        }
-        implementation group: 'io.swagger.core.v3', name: 'swagger-annotations', version: '2.1.1'
-        implementation group: 'io.swagger.core.v3', name: 'swagger-models', version: '2.1.1'
-        implementation "io.swagger:swagger-annotations:1.5.13"
         // DATABASES
-        //implementation group: 'com.oracle', name: 'ojdbc7', version:'12.1.0.2'
-        //implementation files("${project.rootDir}/jarlib/ojdbc8-12.2.0.1.jar")
         implementation "com.oracle.ojdbc:ojdbc8:19.3.0.0"
+        // SQLLite does not work with Java 11
         // https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
-        implementation 'com.github.gwenn:sqlite-dialect:0.1.2'
-        implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.39.3.0'
+        runtimeOnly 'com.github.gwenn:sqlite-dialect:0.1.2'
+        runtimeOnly group: 'org.xerial', name: 'sqlite-jdbc', version: '3.39.3.0'
+
         implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.8'
-        implementation group: 'mysql', name: 'mysql-connector-java', version: '5.1.13'
-        implementation("com.h2database:h2:1.4.200")
+        runtimeOnly group: 'mysql', name: 'mysql-connector-java', version: '5.1.13'
+        runtimeOnly("com.h2database:h2:1.4.200")
         implementation("commons-io:commons-io:2.6")
         implementation group: 'commons-codec', name: 'commons-codec', version: '1.11'
 

@@ -56,9 +56,8 @@ RUN  mkdir -p ${crest_dir} \
 COPY --from=jlink "${jvm_location}" "${jvm_location}"
 
 ## This works if using an externally generated war, in the local directory
-ADD crestdb-web/build/libs/crest.war ${crest_dir}/crest.war
+ADD crestdb-web/build/libs/crest.jar ${crest_dir}/crest.jar
 ADD web ${data_dir}/web
-ADD logback.xml.crest ${data_dir}/logback.xml
 
 ### we export only 1 directories....
 VOLUME "${data_dir}"
@@ -66,6 +65,8 @@ EXPOSE 8080
 
 # copy the entrypoint
 COPY ./entrypoint.sh /home/${USR}
+COPY ./logback.xml.crest /home/${USR}/logback.xml
+COPY ./javaopts.properties /home/${USR}
 COPY ./create-properties.sh /home/${USR}
 
 RUN chown -R $USR:$CREST_GID /home/${USR}

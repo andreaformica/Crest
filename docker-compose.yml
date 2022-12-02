@@ -1,0 +1,45 @@
+#_______________________________________________________________________________
+#
+# Henri Louvin - October 2018
+#
+# Composition of all containers for alert system
+#
+# docker stack deploy --with-registry-auth -c docker-compose.yml alerts
+#
+#_______________________________________________________________________________
+
+version: '3.3'
+
+services:
+  pgdb:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=crest
+      - POSTGRES_PASSWORD=gelsomino
+      - POSTGRES_DB=crestdb
+    volumes:
+      - "/tmp/data/crest/pg_data:/var/lib/postgresql/data"
+  crest:
+    image: crest:4.0
+    ports:
+      - "8080:8080"
+    depends_on:
+      - pgdb
+    environment:
+      - spring.profiles.active=postgres,nosecurity
+      - crest.server.port=8080
+      - crest.dump.dir=/home/crest/data/dump
+      - jpa.mode=update
+      - crest.web.static=/home/crest/data/web
+      - crest.api.name=/api
+      - crest.db.url=jdbc:postgresql://pgdb:5432/crestdb
+      - crest.db.user=crest
+      - crest.db.password=gelsomino
+      - crest.server.security=none
+      - crest.log.dir=/home/crest/data/log
+    volumes:
+      - "/tmp/crest/data:/home/crest/data"
+
+#______________________________________________________________________________
