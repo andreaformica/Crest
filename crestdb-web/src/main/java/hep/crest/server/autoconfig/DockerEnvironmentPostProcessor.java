@@ -81,7 +81,7 @@ public class DockerEnvironmentPostProcessor implements EnvironmentPostProcessor 
             for (final Map.Entry<String, String> entry : SECRETS_MAP.entrySet()) {
                 final String springkey = entry.getValue();
                 final String respath = entry.getKey();
-                loadSecret(respath, springkey, environment, map);
+                //loadSecret(respath, springkey, environment, map);
             }
         }
         catch (final AbstractCdbServiceException e) {
