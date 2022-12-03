@@ -66,7 +66,8 @@ EXPOSE 8080
 # copy the entrypoint
 COPY ./entrypoint.sh /home/${USR}
 COPY ./logback.xml.crest /home/${USR}/logback.xml
-COPY ./javaopts.properties /home/${USR}
+## This is not needed in swarm deployment, only for local testing.
+#COPY ./javaopts.properties /home/${USR}
 COPY ./create-properties.sh /home/${USR}
 
 RUN chown -R $USR:$CREST_GID /home/${USR}
