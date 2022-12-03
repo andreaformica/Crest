@@ -37,6 +37,15 @@ print_application_properties () {
   if [ -e /run/secrets/crest-phys-cond ] ; then
     echo "crest.db.password=$(cat /run/secrets/crest-phys-cond)"
   fi
+  if [ -e /run/secrets/cool_secret ] ; then
+    echo "align.cool.writer=$(cat /run/secrets/cool_secret)"
+  fi
+  if [ -e /run/secrets/crest-keycloak-secret/client_id ]; then
+    echo "crest.keycloak.resource=$(cat /run/secrets/crest-keycloak-secret/client_id)"
+  fi
+  if [ -e /run/secrets/crest-keycloak-secret/client_secret ]; then
+    echo "crest.keycloak.secret=$(cat /run/secrets/crest-keycloak-secret/client_secret)"
+  fi
   if [ -e ${P12KEYSTORE} ]; then
     echo "server.ssl.key-store-type=PKCS12"
     echo "server.ssl.key-store=file:${P12KEYSTORE}"
@@ -59,20 +68,21 @@ fi
 prj_dir=$crest_dir
 if [ -z "$crest_dir" ]; then
    prj_dir=$PWD/crestdb-web/build/libs
-fi
+fi 
 
 convert_certificate
 
 app_properties=${SPRING_TMPDIR}/application.properties
-mkfifo -m 600 "${app_properties}"
+#mkfifo -m 600 "${app_properties}"
 print_application_properties >> ${app_properties} &
 
 echo "$USER is starting server with JAVA_OPTS : $JAVA_OPTS from user directory $PWD"
 if [ x"$1" = x"" ]; then
     echo "execute command ${prj_dir}/crest.jar"
-    exec java $JAVA_OPTS -jar ${prj_dir}/crest.jar --spring.config.location=optional:classpath:/,optional:classpath:./config/,file:${app_properties} 2>>/tmp/err.log
+    exec java $JAVA_OPTS -jar ${prj_dir}/crest.jar --spring.config.location=optional:classpath:/,optional:classpath:/config/,file:${app_properties} 2>>/tmp/err.log
 else
     sh -c "$@"
 fi
 
 cleanup
+
