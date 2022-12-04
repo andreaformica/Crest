@@ -22,7 +22,7 @@ services:
     volumes:
       - "/tmp/data/crest/pg_data:/var/lib/postgresql/data"
   crest:
-    image: crest:4.0
+    image: crest:v4.0
     ports:
       - "8080:8080"
     depends_on:

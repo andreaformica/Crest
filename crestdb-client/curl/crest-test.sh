@@ -96,14 +96,13 @@ generate_multi_upload_data()
 {
   cat <<EOF
 {
-  "filter" : { "tagName" : "$1"},
-  "size": 2,
-  "datatype" : "iovs",
-  "format": "IovSetDto",
-  "resources":[
-  { "since" : $since1, "payloadHash": "file:///tmp/test-01.txt"},
-  { "since" : $since2, "payloadHash": "file:///tmp/test-02.txt"}
-  ]
+    "size": 2,
+    "datatype" : "payloads",
+    "format": "StoreSetDto",
+    "resources":[
+    { "hash": "", "since" : $since1, "data": "file:///tmp/test-01.txt"},
+    { "hash": "", "since" : $since2, "data": "file:///tmp/test-02.txt"}
+    ]
 }
 EOF
 }
@@ -151,10 +150,10 @@ function multi_upload() {
     echo $(generate_multi_upload_data $tag)
 
   echo "Using token ${token}"
-  iovset=$(generate_multi_upload_data)
-  echo "Using tag ${tag}, iovset ${iovset}"
+  sset=$(generate_multi_upload_data)
+  echo "Using tag ${tag}, storeset ${sset}"
   if [ "${token}" == "" ]; then
-    resp=`curl -X POST --form "tag=${tag}" --form endtime=0 --form "iovsetupload=${iovset}"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads/batch"`
+    resp=`curl -X POST --form "tag=${tag}" --form compressionType="none" --form version="v1" --form endtime=0 --form "storeset=${sset}"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads"`
   else
     resp=`curl -X POST -H "Authorization: Bearer ${token}" --form "tag=${tag}" --form endtime=0 --form "iovsetupload=${iovset}"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads/batch"`
   fi
