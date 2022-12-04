@@ -23,7 +23,7 @@ package_cern_application:
   allow_failure: false
   artifacts:
    paths:
-   - ./crestdb-web/build/libs/crest.jar
+   - ./build/libs/crest.jar
 
 build_docker_image_job:
   stage: build_docker_image

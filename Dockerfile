@@ -56,7 +56,7 @@ RUN  mkdir -p ${crest_dir} \
 COPY --from=jlink "${jvm_location}" "${jvm_location}"
 
 ## This works if using an externally generated war, in the local directory
-ADD crestdb-web/build/libs/crest.jar ${crest_dir}/crest.jar
+ADD build/libs/crest.jar ${crest_dir}/crest.jar
 ADD web ${data_dir}/web
 
 ### we export only 1 directories....

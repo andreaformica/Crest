@@ -67,7 +67,7 @@ fi
 
 prj_dir=$crest_dir
 if [ -z "$crest_dir" ]; then
-   prj_dir=$PWD/crestdb-web/build/libs
+   prj_dir=$PWD/build/libs
 fi 
 
 convert_certificate

@@ -1,7 +1,0 @@
-# Do not generate files in the src/main directory: these files are editted by hand
-/src/main/**
-
-# Do not generate pom.xml and README.md
-/pom.xml
-/README.md
-

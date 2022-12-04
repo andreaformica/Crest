@@ -1,3 +1,0 @@
-spring:
-  autoconfigure:
-    exclude: org.keycloak.adapters.springboot.KeycloakAutoConfiguration
