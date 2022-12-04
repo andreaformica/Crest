@@ -21,7 +21,7 @@ services:
       - POSTGRES_DB=crestdb
     volumes:
       - "/tmp/data/crest/pg_data:/var/lib/postgresql/data"
-  crest:
+  manager:
     image: crest:v4.0
     ports:
       - "8080:8080"

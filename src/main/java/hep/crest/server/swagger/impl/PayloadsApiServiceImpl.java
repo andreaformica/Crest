@@ -197,6 +197,11 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         final Payload entity = payloadService.getPayload(hash);
         final String ptype = entity.objectType();
         log.debug("Found metadata {}", entity);
+        if ("META".equalsIgnoreCase(format)) {
+            // Return the metadata.
+            final PayloadDto dto = mapper.map(entity, PayloadDto.class);
+            return Response.status(Response.Status.OK).entity(dto).build();
+        }
         // Get the media type. It utilize the objectType field.
         final MediaType media_type = getMediaType(ptype);
 
