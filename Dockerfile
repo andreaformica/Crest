@@ -35,6 +35,7 @@ ENV CREST_GID 208
 ENV crest_version 1.0-SNAPSHOT
 ENV crest_dir /home/${USR}/crest
 ENV data_dir /home/${USR}/data
+ENV config_dir /home/${USR}/config
 #ENV data_dir /data
 ENV gradle_version 6.7
 ENV TZ GMT
@@ -47,6 +48,7 @@ RUN addgroup -g $CREST_GID $USR \
     && adduser -S -u $CREST_GID -G $USR -h /home/$USR $USR
 
 RUN  mkdir -p ${crest_dir} \
+  && mkdir -p ${config_dir} \
   && mkdir -p ${data_dir}/web \
   && mkdir -p ${data_dir}/dump \
   && mkdir -p ${data_dir}/logs \
