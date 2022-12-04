@@ -73,7 +73,7 @@ fi
 convert_certificate
 
 app_properties=${SPRING_TMPDIR}/application.properties
-#mkfifo -m 600 "${app_properties}"
+mkfifo -m 600 "${app_properties}"
 print_application_properties >> ${app_properties} &
 
 echo "$USER is starting server with JAVA_OPTS : $JAVA_OPTS from user directory $PWD"
