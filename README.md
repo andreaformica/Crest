@@ -57,7 +57,7 @@ using the following command from the root project directory (`crest`):
 ```
 gradle clean build
 ```
-This command will generate a jar (java archive) file in  : `crestdb-web/build/libs/crest.jar`.
+This command will generate a jar (java archive) file in  : `./build/libs/crest.jar`.
 In case gradle is not installed on your machine, you can run the wrapper delivered with the project:
 ```
 ./gradlew clean build
@@ -76,7 +76,7 @@ Be careful to checkout the correct branch.
 The server will use by default an embedded `undertow` web server.
 
 The server need by definition to have a database connection in order to store the conditions data. 
-The database connections are defined in the files `./crestdb-web/src/main/resources/application-<profile>.yml`. 
+The database connections are defined in the files `./src/main/resources/application-<profile>.yml`. 
 This file present different set of properties which are chosen by selecting a specific spring profile when running the server. 
 
 If you do not have any remote database available you should use the default spring profile.
@@ -175,6 +175,15 @@ docker login -u formica gitlab-registry.cern.ch
 ```
 You can choose another registry. 
 The push command work only if the login is successful.
+
+#### Local testing
+To run the system locally on your machine (for testing purpose) you can use the `Dockerfile` and `docker-compose.yml`
+which are delivered within the project:
+```
+docker build -t some:tag .
+docker-compose ./docker-compose.yml up -d
+```
+
 ### Swarm
 As an example for a deployment in a swarm look at `./swarm/docker-compose.yml`.
 In the same repository there is a script to help in generating the config maps needed and the secret.
