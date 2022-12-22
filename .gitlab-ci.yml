@@ -19,11 +19,21 @@ package_cern_application:
   stage: package_application
   image: adoptopenjdk:11-jdk-openj9
   script:
-   - ./gradlew -g /cache/.gradle clean assemble
+   - ./gradlew -g /cache/.gradle clean build
   allow_failure: false
   artifacts:
    paths:
    - ./build/libs/crest.jar
+
+sonar_application_job:
+  stage: sonar_application
+  image: adoptopenjdk:11-jdk-openj9
+  script:
+    - ./gradlew build jacocoTestReport
+    - ./gradlew sonarqube -Dsonar.projectKey=crest -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN
+  allow_failure: false
+  rules:
+    - if: $CI_COMMIT_BRANCH == "quality" && $SITE == "svom"
 
 build_docker_image_job:
   stage: build_docker_image
@@ -50,7 +60,7 @@ redeploy_job:
   image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
   script: "oc import-image $IMAGE_NAME  --server=$SERVER --namespace $NAMESPACE --all --token=$IMAGE_IMPORT_TOKEN"
   rules:
-    - if: $DO_DEPLOY == "yes" && $CI_COMMIT_BRANCH == "deploy" && $CI_PIPELINE_SOURCE != 'merge_request_event' && $SITE == "svom"
+    - if: $DO_DEPLOY == "yes" && $CI_COMMIT_BRANCH == "deploy" && $CI_PIPELINE_SOURCE != 'merge_request_event' && $SITE == "cern"
 
 build_docker_image_svom:
   stage: build_docker_image
