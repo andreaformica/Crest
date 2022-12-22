@@ -32,8 +32,6 @@ sonar_application_job:
   script:
     - ./gradlew sonarqube -Dsonar.projectKey=crest -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN
   allow_failure: false
-  rules:
-    - if: $SITE == "svom"
   only:
     refs:
       - quality
