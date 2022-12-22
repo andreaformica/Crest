@@ -33,7 +33,10 @@ sonar_application_job:
     - ./gradlew sonarqube -Dsonar.projectKey=crest -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN
   allow_failure: false
   rules:
-    - if: $CI_COMMIT_BRANCH == "quality" && $SITE == "svom"
+    - if: $SITE == "svom"
+  only:
+    refs:
+      - quality
 
 build_docker_image_job:
   stage: build_docker_image
