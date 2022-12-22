@@ -53,7 +53,7 @@ redeploy_job:
     - if: $DO_DEPLOY == "yes" && $CI_COMMIT_BRANCH == "deploy" && $CI_PIPELINE_SOURCE != 'merge_request_event'
 
 build_docker_image_svom:
-  stage: release
+  stage: build_docker_image
   environment: svom
   image: docker:dind
   before_script:
