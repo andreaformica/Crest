@@ -59,7 +59,7 @@ build_docker_image_svom:
   before_script:
     - docker login -u svom -p $REGISTRY_PASSWORD $REGISTRY
   script:
-    - docker build --rm --tag=$CONTAINER_IMAGE --file Dockerfile .
-    - docker push $CONTAINER_IMAGE
+    - docker build --rm --tag=$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME --file Dockerfile .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $DO_DOCKER_IMAGE == "yes" && $CI_PIPELINE_SOURCE != 'merge_request_event'
