@@ -13,6 +13,7 @@ before_script:
 stages:
  - package_application
  - build_docker_image
+ - sonar_application
  - redeploy
 
 package_cern_application:
