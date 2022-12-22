@@ -13,10 +13,10 @@ components:
           type: string
     GlobalTagMapSetDto:
       description: An GlobalTagMapSet containing GlobalTagMapDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/GlobalTagMapDto'
       allOf:
         - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/GlobalTagMapDto'

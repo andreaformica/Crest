@@ -15,10 +15,10 @@ components:
           format: float
     PayloadTagInfoSetDto:
       description: An PayloadTagInfoSet containing PayloadTagInfoDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayloadTagInfoDto'
       allOf:
         - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/PayloadTagInfoDto'

@@ -129,4 +129,4 @@ components:
     TagMetaSetDto:
       $ref: 'schemas/tagsmeta.yml#/components/schemas/TagMetaSetDto'
     TagMetaDto:
-      $ref: 'schemas/tagsmeta.yml#/components/schemas/TagDto'
+      $ref: 'schemas/tagsmeta.yml#/components/schemas/TagMetaDto'

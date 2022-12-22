@@ -27,12 +27,12 @@ components:
           type: string
         objectType:
           type: string
+        compressionType:
+          type: string
         size:
           type: integer
           format: int32
         payloadHash:
-          type: string
-        streamerInfo:
           type: string
     GroupDto:
       type: object
@@ -43,19 +43,19 @@ components:
             type: number
     IovSetDto:
       description: An Set containing IovDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/IovDto'
       allOf:
         - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/IovDto'
     IovPayloadSetDto:
       description: An Set containing IovPayloadDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/IovPayloadDto'
       allOf:
         - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/IovPayloadDto'

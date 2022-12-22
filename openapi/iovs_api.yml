@@ -16,8 +16,6 @@ paths:
   # iovs
   /iovs:
     $ref: 'crestdb_iovsapi.yml#/paths/~1iovs'
-  /iovs/storebatch:
-    $ref: 'crestdb_iovsapi.yml#/paths/~1iovs~1storebatch'
   /iovs/infos:
     $ref: 'crestdb_iovsapi.yml#/paths/~1iovs~1infos'
   /iovs/size:
@@ -42,10 +40,10 @@ components:
     GenericMap:
       $ref: 'schemas/common.yml#/components/schemas/GenericMap'
 
-    IovSetDto:
-      $ref: 'schemas/iovs.yml#/components/schemas/IovSetDto'
     IovDto:
       $ref: 'schemas/iovs.yml#/components/schemas/IovDto'
+    IovSetDto:
+      $ref: 'schemas/iovs.yml#/components/schemas/IovSetDto'
     IovPayloadSetDto:
       $ref: 'schemas/iovs.yml#/components/schemas/IovPayloadSetDto'
     IovPayloadDto:

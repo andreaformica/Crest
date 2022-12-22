@@ -64,9 +64,9 @@ EOF
 function get_data() {
   echo "Execute $1 : get data of type $2 from server using search $3"
   if [ ${token} == "" ]; then
-     resp=`curl -X GET -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$2?$3"`
+     resp=`curl -X GET ${http_proxy} -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$2?$3"`
   else
-     resp=`curl -X GET -H "Authorization: Bearer ${token}" -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$2?$3"`
+     resp=`curl -X GET ${http_proxy} -H "Authorization: Bearer ${token}" -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$2?$3"`
   fi  
   echo "Received response "
   echo $resp | json_pp
@@ -77,10 +77,10 @@ function post_data() {
   pdata=$2
   if [ "${token}" == "" ]; then
      echo "Request: curl -X POST -H \"Accept: application/json\" -H \"Content-Type: application/json\" \"${host}/${apiname}/$1\" --data \"${pdata}\""
-     resp=`curl -X POST -H "X-Crest-PayloadFormat: FILE" -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$1" --data "${pdata}"`
+     resp=`curl -X POST ${http_proxy} -H "X-Crest-PayloadFormat: FILE" -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$1" --data "${pdata}"`
   else
      echo "Request: curl -X POST -H \"Authorization: Bearer ${token}\" -H \"Accept: application/json\" -H \"Content-Type: application/json\" \"${host}/${apiname}/$1\" --data \"${pdata}\""
-     resp=`curl -X POST -H "Authorization: Bearer ${token}" -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$1" --data "${pdata}"`
+     resp=`curl -X POST ${http_proxy} -H "Authorization: Bearer ${token}" -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$1" --data "${pdata}"`
   fi
   echo "Received response $resp"
   echo $resp | json_pp
@@ -89,21 +89,21 @@ function post_data() {
 function get_rndm_pyld() {
   rndfile=$1
   echo "generate 1MB of random payload data in file $rndfile"
-  dd if=/dev/urandom of=$rndfile bs=1m count=10
+  dd if=/dev/urandom of=$rndfile bs=1m count=1
 }
 
 generate_multi_upload_data()
 {
   cat <<EOF
 {
-  "filter" : { "tagName" : "$1"},
-  "size": 2,
-  "datatype" : "iovs",
-  "format": "IovSetDto",
-  "resources":[
-  { "since" : $since1, "payloadHash": "file:///tmp/test-01.txt"},
-  { "since" : $since2, "payloadHash": "file:///tmp/test-02.txt"}
-  ]
+    "size": 2,
+    "datatype" : "payloads",
+    "format": "StoreSetDto",
+    "resources":[
+    { "hash": "", "since" : $since1, "data": "file:///tmp/test-01.txt", "streamerInfo": "rnd gen" },
+    { "hash": "", "since" : $since2, "data": "file:///tmp/test-02.txt", "streamerInfo": "rnd gen" }
+    ]
+
 }
 EOF
 }
@@ -149,17 +149,16 @@ function multi_upload() {
     since1=$a
     since2=$b
     echo $(generate_multi_upload_data $tag)
-
-  echo "Using token ${token}"
-  iovset=$(generate_multi_upload_data)
-  echo "Using tag ${tag}, iovset ${iovset}"
-  if [ "${token}" == "" ]; then
-    resp=`curl -X POST --form "tag=${tag}" --form endtime=0 --form "iovsetupload=${iovset}"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads/batch"`
-  else
-    resp=`curl -X POST -H "Authorization: Bearer ${token}" --form "tag=${tag}" --form endtime=0 --form "iovsetupload=${iovset}"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads/batch"`
-  fi
-    echo "Post returned : $resp"
-    #sleep 1
+    echo "Using token ${token}"
+    sset=$(generate_multi_upload_data)
+    echo "Using tag ${tag}, storeset ${sset}"
+    if [ "${token}" == "" ]; then
+      resp=`curl -X POST ${http_proxy} --form "tag=${tag}" --form compressionType="none" --form version="v1" --form endtime=0 --form "storeset=${sset}"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads"`
+    else
+      resp=`curl -X POST ${http_proxy} -H "Authorization: Bearer ${token}" --form "tag=${tag}" --form endtime=0 --form "iovsetupload=${iovset}"  --form "files=@/tmp/test-01.txt" --form "files=@/tmp/test-02.txt"  "${host}/${apiname}/payloads/batch"`
+    fi
+      echo "Post returned : $resp"
+      #sleep 1
   done
 }
 
@@ -172,8 +171,11 @@ echo "Execute $3"
 
 #### this section should be uncommented for AUTH with keycloak
 ##token="${ACCESS_TOKEN}"
-
 token=
+
+## you can set http_proxy if you need a socks proxy
+export http_proxy="--socks5 localhost:3129"
+#http_proxy=
 
 if [ "$host" == "help" ]; then
   echo "$0 <host> <apiname> <command>"

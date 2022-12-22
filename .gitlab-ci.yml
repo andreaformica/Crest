@@ -1,6 +1,6 @@
 variables:
     IMAGE: crest-service
-    VERSION: '2.0'
+    VERSION: '4.0'
     GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
 # Make the gradle wrapper executable. This essentially downloads a copy of
@@ -19,11 +19,11 @@ package_cern_application:
   stage: package_application
   image: adoptopenjdk:11-jdk-openj9
   script:
-   - ./gradlew -g /cache/.gradle clean assemble -PwarName=crest.war
+   - ./gradlew -g /cache/.gradle clean assemble
   allow_failure: false
   artifacts:
    paths:
-   - ./crestdb-web/build/libs/crest.war
+   - ./build/libs/crest.jar
 
 build_docker_image_job:
   stage: build_docker_image

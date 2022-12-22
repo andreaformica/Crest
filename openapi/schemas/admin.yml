@@ -17,10 +17,10 @@ components:
           type: string
     FolderSetDto:
       description: An FolderSet containing FolderDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/FolderDto'
       allOf:
         - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/FolderDto'

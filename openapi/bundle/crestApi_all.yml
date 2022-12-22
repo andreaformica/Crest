@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  version: '2.0'
+  version: '4.0'
   title: CREST Server
   description: OpenApi3 for CREST Server
   license:
@@ -764,30 +764,11 @@ paths:
     post:
       tags:
         - iovs
-      summary: Create a Iov in the database.
-      description: 'This method allows to insert a Iov.Arguments: IovDto should be provided in the body as a JSON file.'
-      operationId: createIov
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/IovDto'
-      responses:
-        '201':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IovDto'
-        default:
-          $ref: '#/components/responses/genericError'
-  /iovs/storebatch:
-    post:
-      tags:
-        - iovs
-      summary: 'Create many IOVs in the database, associated to a tag name.'
-      description: 'This method allows to insert multiple IOVs. Arguments: tagname,end time.'
-      operationId: storeBatchIovMultiForm
+      summary: 'Create IOVs in the database, associated to a tag name.'
+      description: |
+        Insert a list of Iovs using an IovSetDto in the request body. It is mandatory
+        to provide an existing tag in input. The referenced payloads should already exists in the DB.
+      operationId: storeIovBatch
       requestBody:
         content:
           application/json:
@@ -802,12 +783,37 @@ paths:
                 $ref: '#/components/schemas/IovSetDto'
         default:
           $ref: '#/components/responses/genericError'
+    put:
+      tags:
+        - iovs
+      summary: 'Create IOV in the database, associated to a tag name.'
+      description: |
+        Insert an Iov using an IovDto in the request body. It is mandatory
+        to provide an existing tag in input. The referenced payloads should already exists in the DB.
+      operationId: storeIovOne
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IovDto'
+      responses:
+        '201':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IovSetDto'
+        default:
+          $ref: '#/components/responses/genericError'
   /iovs/infos:
     get:
       tags:
         - iovs
       summary: Select iovs and payload meta info for a given tagname and in a given range.
-      description: 'This method allows to select a list of iovs+payload meta in a tag, using a given range in time and (optionally) for a given snapshot time.Arguments: tagname={a tag name}, since={since time as string}, until={until time as string}, snapshot={snapshot time as long}'
+      description: |
+        Retrieve a list of iovs with payload metadata associated. The arguments are:
+        tagname={a tag name}, since={since time as string}, until={until time as string}, snapshot={snapshot time as long}'
+        and timeformat={format of since/until}.
       operationId: selectIovPayloads
       parameters:
         - name: tagname
@@ -905,21 +911,134 @@ paths:
     post:
       tags:
         - payloads
-      summary: Create a Payload in the database.
-      description: 'This method allows to insert a Payload.Arguments: PayloadDto should be provided in the body as a JSON file.'
-      operationId: createPayload
+      summary: 'Create Payloads in the database, associated to a given iov since list and tag name.'
+      description: |
+        This method allows to insert list of Payloads and IOVs.
+        Payload can be contained in the HASH of the IOV (in case it is a small JSON)
+        or as a reference to external file (FILE).
+        In the first case, the files list can be null.
+        Arguments: tag,version,endtime,objectType,compressionType
+        The header parameter X-Crest-PayloadFormat can be FILE or JSON
+      operationId: storePayloadBatch
+      parameters:
+        - in: header
+          name: X-Crest-PayloadFormat
+          description: |
+            The format of the input data. StoreSetDto entries will have either the content inline (JSON)
+            or stored via external files (FILE).
+          schema:
+            type: string
+            enum:
+              - FILE
+              - JSON
+            default: FILE
       requestBody:
+        description: A json string that is used to construct the form data object.
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PayloadDto'
+              type: object
+              properties:
+                tag:
+                  description: The tag name
+                  type: string
+                storeset:
+                  description: the string representing a StoreSetDto in json
+                  type: string
+                files:
+                  description: The payload files as an array of streams
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                objectType:
+                  description: The object type
+                  type: string
+                compressionType:
+                  description: The compression type
+                  type: string
+                version:
+                  description: The version
+                  type: string
+                endtime:
+                  description: 'The end time, shall be set at tag level.'
+                  type: number
+              required:
+                - storeset
+                - tag
+      responses:
+        '201':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoreSetDto'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/StoreSetDto'
+        default:
+          $ref: '#/components/responses/genericError'
+    get:
+      tags:
+        - payloads
+      summary: Finds Payloads metadata.
+      description: |
+        This method allows to perform search and sorting.
+        Arguments: hash=<the payload hash>, minsize=<min size>, objectType=<the type>
+        page={ipage}, size={isize}, sort=<sortpattern>.
+      operationId: listPayloads
+      parameters:
+        - name: hash
+          in: query
+          description: 'the hash to search {none}'
+          required: false
+          schema:
+            type: string
+        - name: objectType
+          in: query
+          description: the objectType to search
+          required: false
+          schema:
+            type: string
+        - name: minsize
+          in: query
+          description: the minimum size to search
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: page
+          in: query
+          description: 'page: the page number {0}'
+          required: false
+          schema:
+            type: integer
+            default: 0
+            format: int32
+        - name: size
+          in: query
+          description: 'size: the page size {1000}'
+          required: false
+          schema:
+            type: integer
+            default: 1000
+            format: int32
+        - name: sort
+          in: query
+          description: 'sort: the sort pattern {insertionTime:DESC}'
+          required: false
+          schema:
+            type: string
+            default: 'insertionTime:DESC'
       responses:
         '200':
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PayloadDto'
+                $ref: '#/components/schemas/PayloadSetDto'
+        '404':
+          $ref: '#/components/responses/404'
         default:
           $ref: '#/components/responses/genericError'
   '/payloads/{hash}':
@@ -927,24 +1046,32 @@ paths:
       tags:
         - payloads
       summary: Finds a payload resource associated to the hash.
-      description: 'This method retrieves a payload resource.Arguments: hash=<hash> the hash of the payload'
+      description: |
+        This method retrieves a payload resource.
+        Arguments: hash=<hash> the hash of the payload
+        Depending on the header, this method will either retrieve the data, the metadata of the payload 
+        or the streamerInfo alone.
       operationId: getPayload
       parameters:
-        - in: header
-          name: X-Crest-PayloadFormat
-          description: 'The format of the output data. The header parameter X-Crest-PayloadFormat can be : BLOB (default) or DTO (in JSON format).'
-          schema:
-            enum:
-              - BLOB
-              - DTO
-            default: BLOB
-            type: string
         - name: hash
           in: path
           description: 'hash:  the hash of the payload'
           required: true
           schema:
             type: string
+        - name: format
+          in: query
+          description: |
+            The format of the output data. 
+            It can be : BLOB (default), META (meta data) or STREAMER (streamerInfo).
+          required: true
+          schema:
+            type: string
+            enum:
+              - BLOB
+              - META
+              - STREAMER
+            default: BLOB
       responses:
         '200':
           description: successful operation
@@ -959,39 +1086,13 @@ paths:
           $ref: '#/components/responses/404'
         default:
           $ref: '#/components/responses/genericError'
-  '/payloads/{hash}/meta':
-    get:
-      tags:
-        - payloads
-      summary: Finds a payload resource associated to the hash.
-      description: 'This method retrieves metadata of the payload resource.Arguments: hash=<hash> the hash of the payload'
-      operationId: getPayloadMetaInfo
-      parameters:
-        - name: hash
-          in: path
-          description: 'hash:  the hash of the payload'
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PayloadSetDto'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/PayloadSetDto'
-        '404':
-          $ref: '#/components/responses/404'
-        default:
-          $ref: '#/components/responses/genericError'
     put:
       tags:
         - payloads
       summary: Update a streamerInfo in a payload
-      description: 'This method will get a payload from its hash, and update streamer info content for the provided body fields: streamerInfo.'
+      description: |
+        This method will update the streamerInfo.
+        This is provided via a generic map in the request body containing the key 'streamerInfo'
       operationId: updatePayload
       requestBody:
         content:
@@ -1011,178 +1112,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PayloadSetDto'
+                $ref: '#/components/schemas/PayloadDto'
             application/xml:
-              schema:
-                $ref: '#/components/schemas/PayloadSetDto'
-        '404':
-          $ref: '#/components/responses/404'
-        default:
-          $ref: '#/components/responses/genericError'
-  /payloads/batch:
-    post:
-      tags:
-        - payloads
-      summary: 'Create many Payloads in the database, associated to a given iov since list and tag name.'
-      description: |
-        This method allows to insert list of Payloads and IOVs.
-        Payload can be contained in the HASH of the IOV (JSON)
-        or as a reference to external file (FILE).
-        In the first case, the files list can be null.
-        Arguments: tag,streamerInfo,endtime.
-        The header parameter X-Crest-PayloadFormat can be FILE or JSON
-      operationId: storeBatch
-      requestBody:
-        description: A json string that is used to construct the form data object.
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                files:
-                  description: The payload files as an array of streams
-                  type: array
-                  items:
-                    type: string
-                    format: binary
-                tag:
-                  description: The tag name
-                  type: string
-                iovsetupload:
-                  $ref: '#/components/schemas/IovSetDto'
-                objectType:
-                  description: The object type
-                  type: string
-                version:
-                  description: The version
-                  type: string
-                endtime:
-                  description: The end time
-                  type: number
-                streamerInfo:
-                  description: The streamerInfo CLOB as a string
-                  type: string
-              required:
-                - files
-                - iovsetupload
-                - tag
-                - since
-      parameters:
-        - in: header
-          name: X-Crest-PayloadFormat
-          description: The format of the input data
-          schema:
-            default: FILE
-            type: string
-            enum:
-              - FILE
-              - JSON
-      responses:
-        '201':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IovSetDto'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/IovSetDto'
-        default:
-          $ref: '#/components/responses/genericError'
-  /payloads/store:
-    post:
-      tags:
-        - payloads
-      summary: 'Create a Payload in the database, associated to a given iov since and tag name.'
-      description: |
-        This method allows to insert a Payload and an IOV.
-        Arguments: since, tag, streamerInfo, endtime.
-      operationId: storePayloadWithIovMultiForm
-      requestBody:
-        description: A json string that is used to construct the form data object.
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  description: The payload file as a stream
-                  type: string
-                  format: binary
-                tag:
-                  description: The tag name
-                  type: string
-                since:
-                  description: The since time
-                  type: number
-                objectType:
-                  description: The object type
-                  type: string
-                version:
-                  description: The version
-                  type: string
-                endtime:
-                  description: The end time
-                  type: number
-                streamerInfo:
-                  description: The streamerInfo CLOB as a string
-                  type: string
-              required:
-                - file
-                - tag
-                - since
-      parameters:
-        - name: X-Crest-PayloadFormat
-          in: header
-          description: The format of the input data
-          schema:
-            enum:
-              - JSON
-              - TXT
-              - BLOB
-              - BIN
-            default: JSON
-            type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPResponse'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/HTTPResponse'
-        default:
-          $ref: '#/components/responses/genericError'
-  /payloads/upload:
-    post:
-      tags:
-        - payloads
-      summary: Create a Payload in the database.
-      description: 'This method allows to insert a Payload.Arguments: PayloadDto should be provided in the body as a JSON file.'
-      operationId: createPayloadMultiForm
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-                payload:
-                  $ref: '#/components/schemas/PayloadDto'
-              required:
-                - file
-                - payload
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
               schema:
                 $ref: '#/components/schemas/PayloadDto'
+        '404':
+          $ref: '#/components/responses/404'
         default:
           $ref: '#/components/responses/genericError'
   /monitoring/payloads:
@@ -1435,22 +1370,22 @@ components:
           format: date-time
     TagSetDto:
       description: An Set containing TagDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/TagDto'
     TagMetaSetDto:
       description: An Set containing TagMetaDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagMetaDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/TagMetaDto'
     TagMetaDto:
       type: object
       properties:
@@ -1515,22 +1450,22 @@ components:
           type: string
     FolderSetDto:
       description: An FolderSet containing FolderDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/FolderDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/FolderDto'
     GlobalTagMapSetDto:
       description: An GlobalTagMapSet containing GlobalTagMapDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/GlobalTagMapDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/GlobalTagMapDto'
     GlobalTagMapDto:
       type: object
       properties:
@@ -1544,22 +1479,13 @@ components:
           type: string
     GlobalTagSetDto:
       description: An GlobalTagSet containing GlobalTagDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/GlobalTagDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/GlobalTagDto'
-    IovSetDto:
-      description: An Set containing IovDto objects.
-      allOf:
-        - $ref: '#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/IovDto'
     IovDto:
       type: object
       required:
@@ -1575,15 +1501,24 @@ components:
           format: date-time
         payloadHash:
           type: string
-    IovPayloadSetDto:
-      description: An Set containing IovPayloadDto objects.
+    IovSetDto:
+      description: An Set containing IovDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/IovDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/IovPayloadDto'
+    IovPayloadSetDto:
+      description: An Set containing IovPayloadDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/IovPayloadDto'
+      allOf:
+        - $ref: '#/components/schemas/CrestBaseResponse'
     IovPayloadDto:
       type: object
       properties:
@@ -1596,22 +1531,22 @@ components:
           type: string
         objectType:
           type: string
+        compressionType:
+          type: string
         size:
           type: integer
           format: int32
         payloadHash:
           type: string
-        streamerInfo:
-          type: string
     PayloadSetDto:
       description: An Set containing PayloadDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayloadDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/PayloadDto'
     PayloadDto:
       type: object
       properties:
@@ -1621,27 +1556,45 @@ components:
           type: string
         objectType:
           type: string
+        compressionType:
+          type: string
+        checkSum:
+          type: string
         size:
           type: integer
           format: int32
-        data:
-          type: string
-          format: byte
-        streamerInfo:
-          type: string
-          format: byte
         insertionTime:
           type: string
           format: date-time
-    PayloadTagInfoSetDto:
-      description: An PayloadTagInfoSet containing PayloadTagInfoDto objects.
+    StoreDto:
+      type: object
+      properties:
+        hash:
+          type: string
+        since:
+          type: number
+        data:
+          type: string
+        streamerInfo:
+          type: string
+    StoreSetDto:
+      description: An Set containing StoreDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/StoreDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/PayloadTagInfoDto'
+    PayloadTagInfoSetDto:
+      description: An PayloadTagInfoSet containing PayloadTagInfoDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayloadTagInfoDto'
+      allOf:
+        - $ref: '#/components/schemas/CrestBaseResponse'
     PayloadTagInfoDto:
       type: object
       properties:
@@ -1657,13 +1610,13 @@ components:
           format: float
     TagSummarySetDto:
       description: An Set containing TagSummaryDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagSummaryDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
-        - properties:
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/TagSummaryDto'
     TagSummaryDto:
       type: object
       properties:
@@ -1674,16 +1627,13 @@ components:
           format: int64
     RunLumiSetDto:
       description: An RunLumiSet containing RunLumiInfoDto objects.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/RunLumiInfoDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
-        - properties:
-            format:
-              type: string
-              default: RunLumiSetDto
-            resources:
-              type: array
-              items:
-                $ref: '#/components/schemas/RunLumiInfoDto'
     RunLumiInfoDto:
       type: object
       properties:
