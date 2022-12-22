@@ -20,7 +20,7 @@ package_cern_application:
   stage: package_application
   image: adoptopenjdk:11-jdk-openj9
   script:
-   - ./gradlew -g /cache/.gradle clean build
+   - ./gradlew -g /cache/.gradle clean assemble
   allow_failure: false
   artifacts:
    paths:
@@ -30,7 +30,6 @@ sonar_application_job:
   stage: sonar_application
   image: adoptopenjdk:11-jdk-openj9
   script:
-    - ./gradlew build jacocoTestReport
     - ./gradlew sonarqube -Dsonar.projectKey=crest -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN
   allow_failure: false
   rules:
