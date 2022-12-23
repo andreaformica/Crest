@@ -3,11 +3,7 @@
  */
 package hep.crest.server.services;
 
-import hep.crest.server.exceptions.AbstractCdbServiceException;
-import hep.crest.server.exceptions.CdbBadRequestException;
-import hep.crest.server.exceptions.CdbInternalException;
-import hep.crest.server.exceptions.CdbNotFoundException;
-import hep.crest.server.exceptions.ConflictException;
+import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Payload;
 import hep.crest.server.data.pojo.PayloadInfoData;
@@ -18,7 +14,11 @@ import hep.crest.server.data.repositories.PayloadInfoDataRepository;
 import hep.crest.server.data.repositories.PayloadRepository;
 import hep.crest.server.data.repositories.TagRepository;
 import hep.crest.server.data.repositories.args.PayloadQueryArgs;
-import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.exceptions.AbstractCdbServiceException;
+import hep.crest.server.exceptions.CdbBadRequestException;
+import hep.crest.server.exceptions.CdbInternalException;
+import hep.crest.server.exceptions.CdbNotFoundException;
+import hep.crest.server.exceptions.ConflictException;
 import hep.crest.server.swagger.model.StoreDto;
 import hep.crest.server.swagger.model.StoreSetDto;
 import lombok.Data;
@@ -129,7 +129,8 @@ public class PayloadService {
         Integer niovs = (iovwithhash != null) ? iovwithhash.size() : 0;
         log.debug("Found list of {} IOVs for hash {}", niovs, hash);
         if (niovs > 1) {
-            log.debug("The hash {} is associated to more than one iov...remove only if tag name is the same", hash);
+            log.debug("The hash {} is associated to more than one iov...remove only if tag name "
+                      + "is the same", hash);
             for (Iov iov : iovwithhash) {
                 if (!iov.id().tagName().equals(tag)) {
                     log.info("Cannot remove payload hash {}: found iov in tag {}", hash, iov.id());
@@ -137,7 +138,7 @@ public class PayloadService {
                 }
             }
         }
-        if (canremove) {
+        if (Boolean.TRUE.equals(canremove)) {
             log.info("Remove payload for hash {} in tag {}", hash, tag);
             payloadRepository.deleteById(hash);
             payloadDataRepository.deleteData(hash);
@@ -155,7 +156,8 @@ public class PayloadService {
      * @throws AbstractCdbServiceException If an Exception occurred
      */
     @Transactional
-    public void updatePayloadMetaInfo(String hash, String sinfo) throws AbstractCdbServiceException {
+    public void updatePayloadMetaInfo(String hash, String sinfo)
+            throws AbstractCdbServiceException {
         PayloadInfoData entity = payloadInfoDataRepository.findById(hash).orElseThrow(
                 () -> new CdbNotFoundException("Cannot find streamer info for hash " + hash)
         );
@@ -176,6 +178,7 @@ public class PayloadService {
          * The inputstream to read it.
          */
         private final InputStream inputStream;
+
         @Override
         public void close() throws IOException {
             if (inputStream != null) {
@@ -185,7 +188,7 @@ public class PayloadService {
     }
 
     /**
-     * @param hash the String
+     * @param hash   the String
      * @param source the LOB type
      * @return LobStream
      * @throws AbstractCdbServiceException If an Exception occurred
@@ -209,10 +212,9 @@ public class PayloadService {
      */
     @Transactional
     public Payload getPayload(String hash) throws CdbNotFoundException {
-        Payload entity = payloadRepository.findById(hash).orElseThrow(
+        return payloadRepository.findById(hash).orElseThrow(
                 () -> new CdbNotFoundException("Cannot find payload for hash " + hash)
         );
-        return entity;
     }
 
     /**
@@ -220,7 +222,7 @@ public class PayloadService {
      * @return InputStream
      * @throws AbstractCdbServiceException If an Exception occurred
      */
-    @Transactional
+    //@//Transactional
     public byte[] getPayloadStreamerInfo(String hash) throws CdbNotFoundException {
         PayloadInfoData entity = payloadInfoDataRepository.findById(hash).orElseThrow(
                 () -> new CdbNotFoundException("Cannot find payload streamer info for hash " + hash)
@@ -244,7 +246,9 @@ public class PayloadService {
         // Check if exists
         Optional<Payload> exists = payloadRepository.findById(entity.hash());
         if (exists.isPresent()) {
-            log.warn("Payload already exists for hash {}: send back the saved instance", entity.hash());
+            log.warn("Payload already exists for hash {}: send back the saved instance",
+                    entity.hash());
+            // Having the existing instance will allow to store IOVs.
             return exists.get();
         }
         // Store the payload dto
@@ -275,11 +279,14 @@ public class PayloadService {
             Payload entity = data.payload();
             PayloadInfoData streamer = data.payloadInfoData();
             Map<String, Object> info = data.streamsMap();
+            // Get the name of the file where the data were temporarily stored.
             String uploadedFile = (String) info.get("uploadedFile");
             log.debug("Read stream from uploaded file : {}", uploadedFile);
             // Access file, set the length and open an input stream
             try (InputStream is = new FileInputStream(uploadedFile);
-                 FileChannel tempchan = FileChannel.open(Paths.get(uploadedFile));) {
+                 FileChannel tempchan = FileChannel.open(Paths.get(uploadedFile))) {
+                // We set the size of the payload here.
+                // In case this is null, the payload will not be stored.
                 entity.size((int) tempchan.size());
                 Payload saved = insertPayload(entity, is, streamer);
                 log.debug("Payload saved is : {}", saved);
@@ -332,7 +339,8 @@ public class PayloadService {
         Tag t = tg.get();
         if (iovService.existsIov(t.name(), entity.id().since(), entity.payloadHash())) {
             log.warn("Iov already exists [tag,since,hash]: {}", entity);
-            throw new ConflictException("Iov already exists [tag,since,hash]: " + entity.toString());
+            throw new ConflictException(
+                    "Iov already exists [tag,since,hash]: " + entity);
         }
         entity.tag(t);
         entity.id().tagName(t.name());

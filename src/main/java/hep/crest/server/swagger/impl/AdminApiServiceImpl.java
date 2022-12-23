@@ -74,13 +74,17 @@ public class AdminApiServiceImpl extends AdminApiService {
     public Response removeTag(String name, SecurityContext securityContext, UriInfo info) {
         log.info("AdminRestController processing request for removing tag {}", name);
         // Remove the tag with name.
-        Tag removableTag = tagService.findOne(name);
+        // Verify that the tag is present. In case not, this method will throw an exception.
+        tagService.findOne(name);
+        // Get the list of global tags that are associated to this tag.
         Iterable<GlobalTagMap> assgt = globalTagMapService.getTagMapByTagName(name);
         if (assgt.iterator().hasNext()) {
+            // Some global tags are associated to this tag. We cannot proceed to remove it.
+            // Send an error message.
             log.error("Cannot remove tag {}", name);
             throw new CdbSQLException("Cannot remove tag " + name + ": clean up associations with global tags");
         }
-        // TODO: you can also test for locking of the tag or similar.
+        // We remove the tag. Here we could also test for locking status of the tag or similar.
         try {
             tagService.removeTag(name);
             return Response.ok().build();
@@ -99,26 +103,26 @@ public class AdminApiServiceImpl extends AdminApiService {
     @Override
     public Response updateGlobalTag(String name, GlobalTagDto body, SecurityContext securityContext, UriInfo info) {
         log.info("AdminRestController processing request for updating global tag {} using {}", name, body);
+        // Update the global tag identified by name. Set the type to N (normal).
         final char type = body.getType() != null ? body.getType().charAt(0) : 'N';
 
         // Find the global tag corresponding to input name.
         final GlobalTag entity = globalTagService.findOne(name);
-//	        final char type = entity.getType() != null ? entity.getType() : 'N';
 
         // Compare fields to set them from the input body object provided by the client.
-        if (entity.description() != body.getDescription()) {
+        if (!entity.description().equals(body.getDescription())) {
             // change description.
             entity.description(body.getDescription());
         }
-        if (entity.release() != body.getRelease()) {
+        if (!entity.release().equals(body.getRelease())) {
             // change release.
             entity.release(body.getRelease());
         }
-        if (entity.workflow() != body.getWorkflow()) {
+        if (!entity.workflow().equals(body.getWorkflow())) {
             // change workflow.
             entity.workflow(body.getWorkflow());
         }
-        if (entity.scenario() != body.getScenario()) {
+        if (!entity.scenario().equals(body.getScenario())) {
             // change scenario.
             entity.scenario(body.getScenario());
         }

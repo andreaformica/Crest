@@ -32,7 +32,8 @@ public abstract class LobStreamerOutput implements StreamingOutput {
      * @param transactionManager
      * The ctor.
      */
-    public LobStreamerOutput(EntityManager entityManager, PlatformTransactionManager transactionManager) {
+    protected LobStreamerOutput(EntityManager entityManager,
+                        PlatformTransactionManager transactionManager) {
         this.entityManager = entityManager;
         this.transactionManager = transactionManager;
     }

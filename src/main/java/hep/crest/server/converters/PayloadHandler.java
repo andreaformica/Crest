@@ -21,11 +21,6 @@ import java.security.NoSuchAlgorithmException;
 public final class PayloadHandler {
 
     /**
-     * Max length for reading.
-     */
-    private static final Integer MAX_LENGTH = 1024;
-
-    /**
      * Hidden ctor.
      */
     private PayloadHandler() {

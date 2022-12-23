@@ -6,8 +6,7 @@ package hep.crest.server.controllers;
 import hep.crest.server.config.CrestProperties;
 import hep.crest.server.exceptions.CdbBadRequestException;
 import hep.crest.server.serializers.ArgTimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
@@ -34,12 +33,9 @@ import java.util.regex.Pattern;
  *
  */
 @Component
+@Slf4j
 public class PageRequestHelper {
 
-    /**
-     * The query pattern.
-     */
-    private static final String QRY_PATTERN = "([a-zA-Z0-9_\\-\\.]+?)(:|<|>)([a-zA-Z0-9_\\-\\/\\.]+?),";
     /**
      * The sort pattern.
      */
@@ -49,10 +45,6 @@ public class PageRequestHelper {
      * Maximum page size.
      */
     private static final Integer MAX_PAGE_SIZE = 10000;
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(PageRequestHelper.class);
     /**
      * ISO pattern in input.
      */
@@ -213,7 +205,10 @@ public class PageRequestHelper {
                     break;
             }
             // Assume we return milli seconds.
-            log.trace("Time arg parsing will return {} ", tepoch, outunit);
+            log.trace("Time arg parsing will return {} ", tepoch);
+            if (tepoch == null) {
+                return tepoch;
+            }
             if (outunit != null && outunit.equals(ArgTimeUnit.SEC)) {
                 // Here we return seconds since Epoch.
                 return tepoch.divide(BigInteger.valueOf(1000L));
@@ -224,7 +219,6 @@ public class PageRequestHelper {
             return tepoch;
         }
         catch (RuntimeException e) {
-            log.error("Got exception while parsing time arguments: {}", e.getMessage());
             throw new CdbBadRequestException("Error while parsing time", e);
         }
     }

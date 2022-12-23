@@ -420,8 +420,11 @@ public class IovsApiServiceImpl extends IovsApiService {
         BigInteger rsince = prh.getTimeFromArg(since, inputformat, outformat, null);
         BigInteger runtil = prh.getTimeFromArg(until, inputformat, outformat, null);
         log.debug("Setting iov range to : {}, {}", since, until);
+        if (rsince == null || runtil == null) {
+            throw new CdbBadRequestException("Invalid time range");
+        }
         Date snap = new Date();
-        log.debug("Use snapshot {}", snap);
+        log.debug("Use snapshot time NOW: {}", snap);
         // Get the IOV list.
         dtolist = iovService.selectIovPayloadsByTagRangeSnapshot(tagname, rsince, runtil, snap);
         final IovPayloadSetDto respdto = new IovPayloadSetDto();

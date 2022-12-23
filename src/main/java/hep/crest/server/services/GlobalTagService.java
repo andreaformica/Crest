@@ -3,18 +3,17 @@
  */
 package hep.crest.server.services;
 
-import hep.crest.server.exceptions.AbstractCdbServiceException;
-import hep.crest.server.exceptions.CdbBadRequestException;
-import hep.crest.server.exceptions.CdbNotFoundException;
-import hep.crest.server.exceptions.ConflictException;
+import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.data.pojo.GlobalTag;
 import hep.crest.server.data.pojo.GlobalTagMap;
 import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.repositories.GlobalTagRepository;
 import hep.crest.server.data.repositories.args.GtagQueryArgs;
-import hep.crest.server.controllers.PageRequestHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import hep.crest.server.exceptions.AbstractCdbServiceException;
+import hep.crest.server.exceptions.CdbBadRequestException;
+import hep.crest.server.exceptions.CdbNotFoundException;
+import hep.crest.server.exceptions.ConflictException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,16 +27,10 @@ import java.util.stream.Collectors;
 /**
  * @author formica
  * @author rsipos
- *
  */
 @Service
+@Slf4j
 public class GlobalTagService {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(GlobalTagService.class);
-
     /**
      * Repository.
      */
@@ -54,11 +47,11 @@ public class GlobalTagService {
      *
      * @param args
      * @param preq
-     * @throws AbstractCdbServiceException
-     *             Bad request
      * @return Page of GlobalTags
+     * @throws AbstractCdbServiceException Bad request
      */
-    public Page<GlobalTag> selectGlobalTagList(GtagQueryArgs args, Pageable preq) throws AbstractCdbServiceException {
+    public Page<GlobalTag> selectGlobalTagList(GtagQueryArgs args, Pageable preq)
+            throws AbstractCdbServiceException {
         Page<GlobalTag> entitylist = null;
         try {
             if (preq == null) {
@@ -75,11 +68,9 @@ public class GlobalTagService {
     }
 
     /**
-     * @param globaltagname
-     *            the String
-     * @throws AbstractCdbServiceException
-     *             If object was not found
+     * @param globaltagname the String
      * @return GlobalTag
+     * @throws AbstractCdbServiceException If object was not found
      */
     public GlobalTag findOne(String globaltagname) throws AbstractCdbServiceException {
         log.debug("Search for global tag by name {}", globaltagname);
@@ -88,39 +79,35 @@ public class GlobalTagService {
     }
 
     /**
-     * @param globaltagname
-     *            the String
-     * @param record
-     *            the String
-     * @param label
-     *            the String
+     * @param globaltagname the String
+     * @param record        the String
+     * @param label         the String
      * @return List<Tag>
-     * @throws AbstractCdbServiceException
-     *             If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
-    public List<Tag> getGlobalTagByNameFetchTags(String globaltagname, String record, String label)
+    public List<Tag> getGlobalTagByNameFetchTags(String globaltagname, String mrecord, String label)
             throws AbstractCdbServiceException {
         String rec = null;
         String lab = null;
-        log.debug("Search for specified tag list for GlobalTag={} using {} {}", globaltagname, record, label);
-        if (record != null && !"none".equalsIgnoreCase(record)) {
-            rec = record;
+        log.debug("Search for specified tag list for GlobalTag={} using {} {}", globaltagname,
+                mrecord, label);
+        if (mrecord != null && !"none".equalsIgnoreCase(mrecord)) {
+            rec = mrecord;
         }
         if (label != null && !"none".equalsIgnoreCase(label)) {
             lab = label;
         }
-        GlobalTag entity = globalTagRepository.findGlobalTagFetchTags(globaltagname, rec, lab).orElseThrow(
+        GlobalTag entity =
+                globalTagRepository.findGlobalTagFetchTags(globaltagname, rec, lab).orElseThrow(
                 () -> new CdbNotFoundException("Cannot find global tag for " + globaltagname));
 
         return entity.globalTagMaps().stream().map(GlobalTagMap::tag).collect(Collectors.toList());
     }
 
     /**
-     * @param entity
-     *            the GlobalTag
+     * @param entity the GlobalTag
      * @return GlobalTag
-     * @throws AbstractCdbServiceException
-     *             If an Exception occurred because pojo exists
+     * @throws AbstractCdbServiceException If an Exception occurred because pojo exists
      */
     @Transactional
     public GlobalTag insertGlobalTag(GlobalTag entity) throws ConflictException {
@@ -137,18 +124,17 @@ public class GlobalTagService {
     }
 
     /**
-     * @param entity
-     *            the GlobaTag
+     * @param entity the GlobaTag
      * @return GlobalTag
-     * @throws AbstractCdbServiceException
-     *             If object was not found
+     * @throws AbstractCdbServiceException If object was not found
      */
     @Transactional
     public GlobalTag updateGlobalTag(GlobalTag entity) throws CdbNotFoundException {
         log.debug("Update GlobalTag from {}", entity);
         final GlobalTag toupd =
                 globalTagRepository.findById(entity.name()).orElseThrow(
-                        () -> new CdbNotFoundException("GlobalTag does not exists for name " + entity.name()));
+                        () -> new CdbNotFoundException(
+                                "GlobalTag does not exists for name " + entity.name()));
         toupd.description(entity.description()).release(entity.release())
                 .scenario(entity.scenario()).snapshotTime(entity.snapshotTime())
                 .workflow(entity.workflow()).type(entity.type()).validity(entity.validity());
@@ -158,8 +144,7 @@ public class GlobalTagService {
     }
 
     /**
-     * @param name
-     *            the String
+     * @param name the String
      */
     @Transactional
     public void removeGlobalTag(String name) {

@@ -3,7 +3,6 @@ package hep.crest.server.config;
 import hep.crest.server.repositories.monitoring.IMonitoringRepository;
 import hep.crest.server.repositories.monitoring.JdbcMonitoringRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -20,14 +19,6 @@ import javax.sql.DataSource;
 @ComponentScan("hep.crest.server")
 @Slf4j
 public class WebRepositoryConfig {
-
-
-    /**
-     * The properties.
-     */
-    @Autowired
-    private CrestProperties cprops;
-
 
     /**
      * Create a monitoring bean.

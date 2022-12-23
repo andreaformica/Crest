@@ -1,6 +1,5 @@
 package hep.crest.server.config;
 
-import hep.crest.server.data.pojo.Payload;
 import hep.crest.server.converters.DateToOffDateTimeConverter;
 import hep.crest.server.converters.FolderConverter;
 import hep.crest.server.converters.GlobalTagConverter;
@@ -9,15 +8,15 @@ import hep.crest.server.converters.IovConverter;
 import hep.crest.server.converters.TagConverter;
 import hep.crest.server.converters.TagMetaConverter;
 import hep.crest.server.converters.TimestampToOffDateTimeConverter;
+import hep.crest.server.data.pojo.Payload;
 import hep.crest.server.data.runinfo.pojo.RunLumiInfo;
 import hep.crest.server.swagger.model.PayloadDto;
 import hep.crest.server.swagger.model.RunLumiInfoDto;
+import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.converter.ConverterFactory;
 import ma.glasnost.orika.impl.DefaultMapperFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -27,12 +26,9 @@ import org.springframework.context.annotation.Configuration;
  * @author formica
  */
 @Configuration
+@Slf4j
 public class PojoDtoConverterConfig {
 
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(PojoDtoConverterConfig.class);
 
     /**
      * @return MapperFactory

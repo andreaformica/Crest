@@ -1,5 +1,6 @@
 package hep.crest.server.swagger.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.server.config.CrestProperties;
 import hep.crest.server.exceptions.AbstractCdbServiceException;
@@ -203,7 +204,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             return Response.status(Response.Status.OK).entity(dto).build();
         }
         // Get the media type. It utilize the objectType field.
-        final MediaType media_type = getMediaType(ptype);
+        final MediaType mediaType = getMediaType(ptype);
 
         // Set caching policy depending on snapshot argument
         // this is filling a mag-age parameter in the header
@@ -219,7 +220,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         );
         log.debug("Send back the stream....");
         // Get media type
-        final String rettype = media_type.toString();
+        final String rettype = mediaType.toString();
         // Get extension
         final String ext = getExtension(ptype);
         final String fname = hash + "." + ext;
@@ -270,8 +271,6 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                     throw new CdbBadRequestException("Cannot use header FILE with empty list of files");
                 }
                 if (filesBodypart.size() > MAX_FILE_UPLOAD) {
-                    final String msg = "Too many files attached to the request...> MAX_FILE_UPLOAD = "
-                                       + MAX_FILE_UPLOAD;
                     throw new CdbBadRequestException("Too many files uploaded : more than " + MAX_FILE_UPLOAD);
                 }
                 // Only the payload format FILE is allowed here.
@@ -329,15 +328,13 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             Payload entity = new Payload().objectType(objectType).hash("none").version(version);
             entity.compressionType("none");
             entity.size(0);
+            // Initialize the iov entity from the DTO.
             Iov iov = new Iov();
             IovId iovId = new IovId();
-            iovId.since(piovDto.getSince().toBigInteger());
-            iovId.tagName(tag);
-            iov.tag(new Tag().name(tag));
-            iov.id(iovId);
-            PayloadData content = new PayloadData();
-            PayloadInfoData sinfodata = new PayloadInfoData();
-            StorableData data = new StorableData();
+            iovId.since(piovDto.getSince().toBigInteger()).tagName(tag);
+            iov.id(iovId).tag(new Tag().name(tag));
+            // Initialize the payload entity from the DTO.
+            StorableData data;
             if (filesbodyparts == null) {
                 // There are no attached files, so the data field should represent the payload
                 byte[] paylodContent = piovDto.getData().getBytes(StandardCharsets.UTF_8);
@@ -348,16 +345,10 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 log.info("Dump data in file {} to compute the hash", outFilename);
                 final String hash = getHash(
                         new ByteArrayInputStream(paylodContent), outFilename);
-                iov.payloadHash(hash);
-                entity.hash(hash);
-                content.hash(hash);
-                sinfodata.hash(hash);
-                sinfodata.streamerInfo(jacksonMapper.writeValueAsBytes(sinfomap));
                 final Map<String, Object> retmap = new HashMap<>();
                 retmap.put("uploadedFile", outFilename);
-                data.payload(entity).payloadData(content).payloadInfoData(sinfodata);
+                data = buildStorable(iov, entity, sinfomap, hash);
                 data.streamsMap(retmap);
-                data.iov(iov);
             }
             else {
                 // If there are attached files, then the payload will be loaded from filename.
@@ -368,21 +359,40 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 final String hash = getHash((InputStream) retmap.get("stream"), outFilename);
                 retmap.put("uploadedFile", outFilename);
                 sinfomap.put("filename", filename);
-                iov.payloadHash(hash);
-                entity.hash(hash);
-                content.hash(hash);
-                sinfodata.hash(hash);
-                sinfodata.streamerInfo(jacksonMapper.writeValueAsBytes(sinfomap));
-                data.payload(entity).payloadData(content).payloadInfoData(sinfodata);
+                data = buildStorable(iov, entity, sinfomap, hash);
                 data.streamsMap(retmap);
-                data.iov(iov);
             }
             storableDataList.add(data);
         }
         // Store all data
         log.debug("Save IOV and Payload from list of data of size {}", storableDataList.size());
-        StoreSetDto storedset = payloadService.saveAll(storableDataList);
-        return storedset;
+        return payloadService.saveAll(storableDataList);
+    }
+
+    /**
+     * Build a StorableData object.
+     *
+     * @param iov
+     * @param entity
+     * @param sinfomap
+     * @param hash
+     * @return StorableData
+     * @throws JsonProcessingException
+     */
+    protected StorableData buildStorable(Iov iov, Payload entity, Map<String, String> sinfomap,
+                                         String hash) throws JsonProcessingException {
+        PayloadData content = new PayloadData();
+        PayloadInfoData sinfodata = new PayloadInfoData();
+        StorableData data = new StorableData();
+        // Set the hash into the iov and entity.
+        iov.payloadHash(hash);
+        entity.hash(hash);
+        content.hash(hash);
+        // Fill the streamer info map.
+        sinfodata.hash(hash).streamerInfo(jacksonMapper.writeValueAsBytes(sinfomap));
+        // Fill the StorableData object.
+        data.iov(iov).payload(entity).payloadData(content).payloadInfoData(sinfodata);
+        return data;
     }
 
     /**
@@ -438,17 +448,18 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         if (body == null) {
             throw new CdbBadRequestException("Cannot update payload with null body");
         }
-        // Search payload.
+        // Search payload. If this is not found the method will throw an exception.
         Payload entity = payloadService.getPayload(hash);
+        // Start to update the payload streamer info.
         String sinfo = null;
         // Loop over map body keys.
-        for (final String key : body.keySet()) {
-            if ("streamerInfo".equals(key)) {
+        for (final Map.Entry<String, String> entry : body.entrySet()) {
+            if ("streamerInfo".equals(entry.getKey())) {
                 // Update description.
-                sinfo = body.get(key);
+                sinfo = entry.getValue();
             }
             else {
-                log.warn("Ignored key {} in updatePayload: field does not exists", key);
+                log.warn("Ignored key {} in updatePayload: field does not exists", entry.getKey());
             }
         }
         payloadService.updatePayloadMetaInfo(hash, sinfo);
@@ -500,40 +511,40 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      * @return MediaType
      */
     protected MediaType getMediaType(String ptype) {
-        MediaType media_type = MediaType.APPLICATION_OCTET_STREAM_TYPE;
+        MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM_TYPE;
         final String comp = ptype.toLowerCase();
         switch (comp) {
             case "png":
-                media_type = new MediaType("image", "png");
+                mediaType = new MediaType("image", "png");
                 break;
             case "svg":
-                media_type = MediaType.APPLICATION_SVG_XML_TYPE;
+                mediaType = MediaType.APPLICATION_SVG_XML_TYPE;
                 break;
             case "json":
-                media_type = MediaType.APPLICATION_JSON_TYPE;
+                mediaType = MediaType.APPLICATION_JSON_TYPE;
                 break;
             case "xml":
-                media_type = MediaType.APPLICATION_XML_TYPE;
+                mediaType = MediaType.APPLICATION_XML_TYPE;
                 break;
             case "csv":
-                media_type = new MediaType("text", "csv");
+                mediaType = new MediaType("text", "csv");
                 break;
             case "txt":
-                media_type = MediaType.TEXT_PLAIN_TYPE;
+                mediaType = MediaType.TEXT_PLAIN_TYPE;
                 break;
             case "tgz":
-                media_type = new MediaType("application", "x-gtar-compressed");
+                mediaType = new MediaType("application", "x-gtar-compressed");
                 break;
             case "gz":
-                media_type = new MediaType("application", "gzip");
+                mediaType = new MediaType("application", "gzip");
                 break;
             case "pdf":
-                media_type = new MediaType("application", "pdf");
+                mediaType = new MediaType("application", "pdf");
                 break;
             default:
                 break;
         }
-        return media_type;
+        return mediaType;
     }
 
     /**

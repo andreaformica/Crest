@@ -8,14 +8,10 @@ import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.TagService;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.keycloak.KeycloakPrincipal;
-import org.keycloak.KeycloakSecurityContext;
-import org.keycloak.representations.AccessToken;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,26 +19,28 @@ import org.springframework.stereotype.Component;
 
 import javax.ws.rs.NotAuthorizedException;
 import java.math.BigInteger;
-import java.security.Principal;
-import java.util.Map;
 
 /**
+ * This class is an aspect: to see where it is called you should look to the annotation.
+ *
  * @author formica
  *
  */
 @Aspect
 @Component
+@Slf4j
 public class IovSynchroAspect {
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(IovSynchroAspect.class);
-
     /**
      * Properties.
      */
     @Autowired
     private CrestProperties cprops;
+
+    /**
+     * The user info.
+     */
+    @Autowired
+    private UserInfo userinfo;
 
     /**
      * Service.
@@ -66,8 +64,7 @@ public class IovSynchroAspect {
      */
     @Around("execution(* hep.crest.server.services.IovService.insertIov(*)) && args(entity)")
     public Object checkSynchro(ProceedingJoinPoint pjp, Iov entity) throws Throwable {
-        log.debug("Iov insertion should verify the tag synchronization type : {}",
-                entity.tag().name());
+        log.debug("Iov insertion should verify the tag synchronization type : {}", entity);
         Object retVal = null;
         Boolean allowedOperation = false;
         // If there is no or weak security activated then set allowed to true.
@@ -78,7 +75,7 @@ public class IovSynchroAspect {
         else {
             // Check the authentication.
             final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String clientid = getUserId(auth);
+            String clientid = userinfo.getUserId(auth);
             if (entity.tag().name().startsWith(clientid) || entity.tag().name().startsWith("TEST")) {
                 allowedOperation = true;
             }
@@ -148,58 +145,5 @@ public class IovSynchroAspect {
                 break;
         }
         return acceptTime;
-    }
-
-    /**
-     * Get the user ID.
-     * @param auth
-     * @return String
-     */
-    protected String getUserId(Authentication auth) {
-        String clientid = "TEST";
-        // Check the authentication.
-        if (auth == null) {
-            // No authentication is present. It will be used to reject the request.
-            log.warn(
-                    "Stop execution....for the moment we only print this message...no action is taken");
-        }
-        else {
-            // Retrieve user details.
-            final Principal user = (Principal) auth.getPrincipal();
-            if (user instanceof KeycloakPrincipal) {
-                KeycloakPrincipal<KeycloakSecurityContext> kp = (KeycloakPrincipal<KeycloakSecurityContext>) user;
-                // Use IDToken in Svom
-                // This work only for SVOM: kp.getKeycloakSecurityContext().getIdToken()
-                // Use AccessToken with CERN crest implementation
-                // example: kp.getKeycloakSecurityContext().getToken()
-                log.info("Keycloak principal: {}", kp);
-                AccessToken token = kp.getKeycloakSecurityContext().getToken();
-                log.debug("Found token : token {}!", token);
-                if (token != null) {
-                    log.debug("Got token for {}", token.getAudience()[0]);
-                    clientid = getClientId(token.getOtherClaims());
-                }
-            }
-        }
-        return clientid;
-    }
-
-    /**
-     * Get the client ID from other claims.
-     *
-     * @param otherClaims
-     * @return String
-     */
-    protected String getClientId(Map<String, Object> otherClaims) {
-        String clientid = "TEST";
-        if (otherClaims != null) {
-            for (Map.Entry entry : otherClaims.entrySet()) {
-                log.info("Found claim : {} ", entry);
-                if ("clientId".equals(entry.getKey())) {
-                    clientid = (String) entry.getValue();
-                }
-            }
-        }
-        return clientid;
     }
 }
