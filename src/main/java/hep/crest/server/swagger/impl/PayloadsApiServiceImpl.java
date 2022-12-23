@@ -92,6 +92,11 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      */
     private static final List<String> payloadlist = Arrays.asList("png", "svg", "json", "xml", "csv", "txt", "tgz",
             "gz", "pdf");
+
+    /**
+     * The media type for several types.
+     */
+    private static final String APPLICATION_MEDIA = "application";
     /**
      * Service.
      */
@@ -415,9 +420,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             fdetailsname = "_" + p.getFileName().toString();
         }
         // Create a temporary file name from tag name and time of validity.
-        String genname = cprops.getDumpdir() + SLASH + tag + "_" + since
+        return cprops.getDumpdir() + SLASH + tag + "_" + since
                          + fdetailsname;
-        return genname;
     }
 
     /**
@@ -533,13 +537,13 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 mediaType = MediaType.TEXT_PLAIN_TYPE;
                 break;
             case "tgz":
-                mediaType = new MediaType("application", "x-gtar-compressed");
+                mediaType = new MediaType(APPLICATION_MEDIA, "x-gtar-compressed");
                 break;
             case "gz":
-                mediaType = new MediaType("application", "gzip");
+                mediaType = new MediaType(APPLICATION_MEDIA, "gzip");
                 break;
             case "pdf":
-                mediaType = new MediaType("application", "pdf");
+                mediaType = new MediaType(APPLICATION_MEDIA, "pdf");
                 break;
             default:
                 break;

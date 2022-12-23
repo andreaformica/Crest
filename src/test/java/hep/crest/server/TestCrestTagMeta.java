@@ -62,6 +62,7 @@ public class TestCrestTagMeta {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
         TagMetaDto metadto = (TagMetaDto) rnd.generate(TagMetaDto.class);
+        metadto.insertionTime(null);
         metadto.tagInfo("{\"channels\": [{0: \"ch1\"}]}");
         metadto.tagName(gtname);
         log.info("Store tag meta info : {} ", metadto);

@@ -68,7 +68,7 @@ jacocoTestReport {
 //./gradlew sonarqube -Dsonar.projectKey=crest -Dsonar.host.url=http://localhost:9000 -Dsonar.login=d7bef5b1a70c8f5812a14c196d9920c65ecbc28c
 sonarqube {
     properties {
-        property "sonar.host.url", "http://svom1.lal.in2p3.fr:20090"
+        property "sonar.host.url", "https://sonarqube.svom.fr/"
         property "sonar.login", "9352b27d4350f876612bbb8cf071add440fb68c7"
         property "sonar.projectKey", "crest"
         property "sonar.projectName", "crest"
@@ -79,8 +79,8 @@ sonarqube {
         property "sonar.issue.ignore.multicriteria.e2.resourceKey", "src/gen/java/**/*"
         property "sonar.issue.ignore.multicriteria.e2.ruleKey", "*"
         property 'sonar.coverage.jacoco.xmlReportPaths', "$projectDir/build/reports/jacoco/test/jacocoTestReport.xml"
-        property "sonar.exclusions", "**/hep/crest/server/security/*.java"
-        property "sonar.coverage.exclusions", "**/hep/crest/server/security/*.java"
+        property "sonar.exclusions", "**/hep/crest/server/security/*.java,**/hep/crest/server/**/Run*java"
+        property "sonar.coverage.exclusions", "**/hep/crest/server/security/*.java,**/hep/crest/server/**/Run*java"
     }
 }
 

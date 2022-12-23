@@ -80,7 +80,7 @@ public class GlobalTagService {
 
     /**
      * @param globaltagname the String
-     * @param record        the String
+     * @param mrecord       the String
      * @param label         the String
      * @return List<Tag>
      * @throws AbstractCdbServiceException If an Exception occurred

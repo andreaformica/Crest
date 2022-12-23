@@ -124,7 +124,7 @@ public class IovsApiServiceImpl extends IovsApiService {
         Tag tagEntity = tagService.findOne(tagname);
         tagEntity.modificationTime(new Date(Instant.now().toEpochMilli()));
         tagService.updateTag(tagEntity);
-
+        // Generate response.
         IovDto dto = mapper.map(saved, IovDto.class);
         dto.tagName(tagname);
         List<IovDto> dtoList = new ArrayList<>();
@@ -359,22 +359,7 @@ public class IovsApiServiceImpl extends IovsApiService {
         // The groupsize can be provided in input.
         final String timetype = tagentity.timeType();
         if (groupsize == null) {
-            if (timetype.equalsIgnoreCase("run")) {
-                // The iov is of type RUN. Use the group size from properties.
-                groupsize = new Long(cprops.getRuntypeGroupsize());
-            }
-            else if (timetype.equalsIgnoreCase("run-lumi")) {
-                // The iov is of type RUN-LUMI. Use the group size from properties.
-                groupsize = new Long(cprops.getRuntypeGroupsize());
-                // transform to COOL run-lumi
-                groupsize = groupsize * 4294967296L;
-            }
-            else {
-                // Assume COOL time format...
-                groupsize = new Long(cprops.getTimetypeGroupsize());
-                // transform to COOL nanosec
-                groupsize = groupsize * 1000000000L;
-            }
+            groupsize = iovService.getOptimalGroupSize(timetype);
         }
         // Set caching policy depending on snapshot argument
         // this is filling a max-age parameter in the header

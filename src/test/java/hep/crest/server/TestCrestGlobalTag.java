@@ -44,6 +44,7 @@ public class TestCrestGlobalTag {
     public void initialize(String gtname) {
         GlobalTagDto dto = (GlobalTagDto) rnd.generate(GlobalTagDto.class);
         dto.name(gtname);
+        dto.snapshotTime(null);
         log.info("Store global tag : {} ", dto);
         final ResponseEntity<GlobalTagDto> response = testRestTemplate
                 .postForEntity("/crestapi/globaltags", dto, GlobalTagDto.class);

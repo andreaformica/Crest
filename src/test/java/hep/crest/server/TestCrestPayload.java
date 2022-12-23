@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.IovId;
 import hep.crest.server.swagger.model.GenericMap;
+import hep.crest.server.swagger.model.IovDto;
 import hep.crest.server.swagger.model.IovPayloadSetDto;
 import hep.crest.server.swagger.model.PayloadSetDto;
 import hep.crest.server.swagger.model.StoreDto;
@@ -33,6 +34,8 @@ import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -205,6 +208,19 @@ public class TestCrestPayload {
             log.info("Received payload : {}", resp3);
             assertTrue(resp3.getBody().contains("theresource1"));
 
+            log.info("Insert a new iov with the same hash : {}", hash);
+            IovDto dto = new IovDto();
+            dto.setSince(new BigDecimal(BigInteger.valueOf(5000000L)));
+            Instant now = Instant.now();
+            dto.insertionTime(now.atOffset(ZoneOffset.UTC));
+            dto.tagName(tagname).payloadHash(hash);
+            final HttpEntity<IovDto> request = new HttpEntity<>(dto);
+            final ResponseEntity<String> respiov1 =
+                    this.testRestTemplate.exchange("/crestapi/iovs/",
+                    HttpMethod.PUT, request, String.class);
+            log.info("Insert new iov with the same payload : {}", respiov1);
+            assertTrue(respiov1.getBody().contains(tagname));
+
             log.info("Retrieve payload streamer for hash : {}", hash);
             String format = "?format=STREAMER";
             final ResponseEntity<String> resp2 = this.testRestTemplate.exchange("/crestapi/payloads/" + hash + format,
@@ -259,6 +275,27 @@ public class TestCrestPayload {
                 log.info("Response from server is: " + responseBody);
                 ok = mapper.readValue(responseBody, IovPayloadSetDto.class);
                 assertTrue(ok.getSize() > 0);
+            }
+
+            // Retrieve size by tag
+            format = "?tagname=" + tagname;
+            final ResponseEntity<String> respiovsize =
+                    this.testRestTemplate.exchange("/crestapi/iovs/size" + format,
+                    HttpMethod.GET, null, String.class);
+            {
+                log.info("Retrieved size by tag {} ", respiovsize.getBody());
+                final String responseBody = respiovsize.getBody();
+                assertEquals(respiovsize.getStatusCode(), HttpStatus.OK);
+            }
+            // Retrieve monitoring by tag
+            format = "?tagname=" + tagname;
+            final ResponseEntity<String> respmon =
+                    this.testRestTemplate.exchange("/crestapi/monitoring/payloads" + format,
+                            HttpMethod.GET, null, String.class);
+            {
+                log.info("Retrieved monitoring by tag {} ", respmon.getBody());
+                final String responseBody = respmon.getBody();
+                assertEquals(respmon.getStatusCode(), HttpStatus.OK);
             }
 
             // Retrieve iovs and payloads

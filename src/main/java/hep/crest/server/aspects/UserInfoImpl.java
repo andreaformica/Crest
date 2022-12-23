@@ -67,7 +67,8 @@ public class UserInfoImpl implements UserInfo {
             log.debug("Found list of roles of length {} for user {}", tagroles.length, username);
             // For the moment just print the roles.
             // In the future, we should check if the role is present by doing a filter.
-            // Example: roles stream() filter(r -> r.getAuthority().equals(role)) findFirst();
+            // Example: roles .dot. stream() .dot. filter(r -> r.getAuthority() .dot. equals(role))
+            // findFirst();
             roles.stream()
                     .forEach(s -> log.debug("Selected role is {}", s.getAuthority()));
         }

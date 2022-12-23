@@ -125,11 +125,13 @@ public class IovsApi  {
     
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Create IOV in the database, associated to a tag name.", notes = "Insert an Iov using an IovDto in the request body. It is mandatory to provide an existing tag in input. The referenced payloads should already exists in the DB. ", response = IovSetDto.class, authorizations = {
+    @io.swagger.annotations.ApiOperation(value = "Create a single IOV in the database, associated to a tag name.", notes = "Insert an Iov using an IovDto in the request body. It is mandatory to provide an existing tag in input. The referenced payloads should already exists in the DB. ", response = IovSetDto.class, authorizations = {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "iovs", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = IovSetDto.class),
+        @io.swagger.annotations.ApiResponse(code = 400, message = "Bad request", response = HTTPResponse.class),
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
         @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response storeIovOne(@ApiParam(value = "") @Valid  IovDto iovDto,@Context SecurityContext securityContext,@Context UriInfo info)

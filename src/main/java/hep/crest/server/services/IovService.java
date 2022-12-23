@@ -3,17 +3,18 @@
  */
 package hep.crest.server.services;
 
-import hep.crest.server.exceptions.AbstractCdbServiceException;
-import hep.crest.server.exceptions.CdbNotFoundException;
-import hep.crest.server.exceptions.ConflictException;
+import hep.crest.server.annotations.ProfileAndLog;
+import hep.crest.server.caching.CachingProperties;
+import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.repositories.IovGroupsCustom;
 import hep.crest.server.data.repositories.IovRepository;
 import hep.crest.server.data.repositories.TagRepository;
 import hep.crest.server.data.repositories.args.IovQueryArgs;
-import hep.crest.server.annotations.ProfileAndLog;
-import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.exceptions.AbstractCdbServiceException;
+import hep.crest.server.exceptions.CdbNotFoundException;
+import hep.crest.server.exceptions.ConflictException;
 import hep.crest.server.repositories.monitoring.IMonitoringRepository;
 import hep.crest.server.swagger.model.CrestBaseResponse;
 import hep.crest.server.swagger.model.IovDto;
@@ -70,6 +71,12 @@ public class IovService {
      */
     @Autowired
     private PageRequestHelper prh;
+
+    /**
+     * Properties.
+     */
+    @Autowired
+    private CachingProperties cprops;
 
     /**
      * @param tagname   the String
@@ -136,7 +143,8 @@ public class IovService {
      * @return List<IovPayloadDto>
      */
     public List<IovPayloadDto> selectIovPayloadsByTagRangeSnapshot(String tagname, BigInteger since,
-                                                                   BigInteger until, Date snapshot) {
+                                                                   BigInteger until,
+                                                                   Date snapshot) {
         log.debug("Search for iovs by tag name {}  and range time {} -> {} using snapshot {}",
                 tagname, since, until, snapshot);
         List<IovPayloadDto> entities = null;
@@ -232,12 +240,40 @@ public class IovService {
         // Check if iov exists
         if (existsIov(t.name(), entity.id().since(), entity.payloadHash())) {
             log.warn("Iov already exists [tag,since,hash]: {}", entity);
-            throw new ConflictException("Iov already exists [tag,since,hash]: " + entity.toString());
+            throw new ConflictException(
+                    "Iov already exists [tag,since,hash]: " + entity.toString());
         }
         log.debug("Storing iov entity {} in tag {}", entity, t);
         entity.tag(t);
         final Iov saved = iovRepository.save(entity);
         log.debug("Saved iov entity: {}", saved);
         return saved;
+    }
+
+    /**
+     * Set the group size for a tag.
+     *
+     * @param timetype
+     * @return Long the group size
+     */
+    public Long getOptimalGroupSize(String timetype) {
+        Long groupsize;
+        if (timetype.equalsIgnoreCase("run")) {
+            // The iov is of type RUN. Use the group size from properties.
+            groupsize = Long.valueOf(cprops.getRuntypeGroupsize());
+        }
+        else if (timetype.equalsIgnoreCase("run-lumi")) {
+            // The iov is of type RUN-LUMI. Use the group size from properties.
+            groupsize = Long.valueOf(cprops.getRuntypeGroupsize());
+            // transform to COOL run-lumi
+            groupsize = groupsize * 4294967296L;
+        }
+        else {
+            // Assume COOL time format...
+            groupsize = Long.valueOf(cprops.getTimetypeGroupsize());
+            // transform to COOL nanosec
+            groupsize = groupsize * 1000000000L;
+        }
+        return groupsize;
     }
 }

@@ -219,6 +219,14 @@ public class PayloadService {
 
     /**
      * @param hash the String
+     * @return Boolean
+     */
+    public Boolean exists(String hash) {
+        return payloadRepository.findById(hash).isPresent();
+    }
+
+    /**
+     * @param hash the String
      * @return InputStream
      * @throws AbstractCdbServiceException If an Exception occurred
      */
