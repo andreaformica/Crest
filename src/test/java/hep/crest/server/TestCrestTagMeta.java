@@ -9,6 +9,7 @@ import hep.crest.server.swagger.model.IovDto;
 import hep.crest.server.swagger.model.IovSetDto;
 import hep.crest.server.swagger.model.TagDto;
 import hep.crest.server.swagger.model.TagMetaDto;
+import hep.crest.server.swagger.model.TagMetaSetDto;
 import hep.crest.server.swagger.model.TagSetDto;
 import hep.crest.server.utils.RandomGenerator;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -28,7 +31,9 @@ import org.springframework.test.context.TestPropertySource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -65,6 +70,7 @@ public class TestCrestTagMeta {
         metadto.insertionTime(null);
         metadto.tagInfo("{\"channels\": [{0: \"ch1\"}]}");
         metadto.tagName(gtname);
+        metadto.colsize(2);
         log.info("Store tag meta info : {} ", metadto);
         final ResponseEntity<TagMetaDto> responsem = testRestTemplate
                 .postForEntity("/crestapi/tags/"+gtname+"/meta", metadto, TagMetaDto.class);
@@ -72,7 +78,7 @@ public class TestCrestTagMeta {
         assertThat(responsem.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     }
 
-    public void storeIovs(TagDto dto) throws JsonProcessingException {
+    public void storeIovs(TagDto dto, Boolean settag) throws JsonProcessingException {
         // Upload batch iovs
         final IovId id = new IovId().tagName(dto.getName())
                 .since(BigInteger.valueOf(2000000L)).insertionTime(new Date());
@@ -91,7 +97,9 @@ public class TestCrestTagMeta {
         setdto.size(2L);
         setdto.format("IovSetDto");
         final GenericMap filters = new GenericMap();
-        filters.put("tagName", dto.getName());
+        if (settag) {
+            filters.put("tagName", dto.getName());
+        }
         setdto.datatype("iovs").filter(filters);
         IovDto diov = mapperFacade.map(miov, IovDto.class);
         IovDto diov2 = mapperFacade.map(miov2, IovDto.class);
@@ -110,11 +118,31 @@ public class TestCrestTagMeta {
         }
     }
 
+    public void updateTagMeta(String tagname, Map<String, String> request) throws JsonProcessingException {
+        // Update a tag
+        final HttpEntity<Map<String, String>> updrequest = new HttpEntity<>(request);
+        log.info("Update tag meta : {} ", tagname);
+        final ResponseEntity<String> respupd = this.testRestTemplate
+                .exchange("/crestapi/tags/" + tagname + "/meta", HttpMethod.PUT, updrequest,
+                        String.class);
+        {
+            log.info("Update tag meta {} ", tagname);
+            final String responseBody = respupd.getBody();
+            assertThat(respupd.getStatusCode()).isEqualTo(HttpStatus.OK);
+            TagMetaDto ok;
+            log.info("Response from server is: " + responseBody);
+            ok = mapper.readValue(responseBody, TagMetaDto.class);
+            assertThat(ok).isNotNull();
+            //assertThat(ok.getColsize()).isEqualTo(2);
+        }
+    }
+
     @Test
-    public void testTagMetaRest() {
-        log.info("=======> testTagMetaRest ");
+    public void testTagStoreDeleteRest() {
+        log.info("=======> testTagStoreDeleteRest ");
         initializeTag("A-TEST-31");
         TagDto dto = null;
+        // Get a tag
         final ResponseEntity<TagSetDto> resptagset = testRestTemplate
                 .getForEntity("/crestapi/tags", TagSetDto.class);
         {
@@ -132,7 +160,7 @@ public class TestCrestTagMeta {
         }
         // Store IOV
         try {
-            storeIovs(dto);
+            storeIovs(dto, true);
             final String url = "/crestapi/admin/tags/" + dto.getName();
             log.info("Removing tag and meta {}", url);
             this.testRestTemplate.delete(url);
@@ -140,5 +168,49 @@ public class TestCrestTagMeta {
         catch (JsonProcessingException e) {
             log.error("Cannot store iovs : {}", e.getMessage());
         }
+    }
+
+    @Test
+    public void testRetrieveUpdateTag() throws JsonProcessingException {
+        log.info("=======> testRetrieveTag ");
+        initializeTag("A-TEST-32");
+        // Get tag
+        // Find tag name
+        final ResponseEntity<String> resp1 = testRestTemplate
+                .exchange("/crestapi/tags/A-TEST-32" , HttpMethod.GET,
+                        null, String.class);
+        {
+            log.info("Find tag {} ", resp1.getBody());
+            assertThat(resp1.getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
+        // Find tag meta name
+        TagMetaSetDto ok;
+        final ResponseEntity<String> resp2 = testRestTemplate
+                .exchange("/crestapi/tags/A-TEST-32/meta" , HttpMethod.GET,
+                        null, String.class);
+        {
+            log.info("Find tag meta {} ", resp2.getBody());
+            assertThat(resp2.getStatusCode()).isEqualTo(HttpStatus.OK);
+            ok = mapper.readValue(resp2.getBody(), TagMetaSetDto.class);
+            assertThat(ok).isNotNull();
+        }
+        TagMetaDto meta = ok.getResources().get(0);
+        Map<String, String> metaMap = new HashMap<>();
+        metaMap.put("tagInfo", "{\"channels\": [{0: \"ch1\"}, {1: \"ch2\"}]}");
+        updateTagMeta(meta.getTagName(), metaMap);
+
+        // Store IOV
+        try {
+            TagDto dto = new TagDto();
+            dto.setName("A-TEST-32");
+            storeIovs(dto, false);
+            final String url = "/crestapi/admin/tags/" + dto.getName();
+            log.info("Removing tag and meta {}", url);
+            this.testRestTemplate.delete(url);
+        }
+        catch (JsonProcessingException e) {
+            log.error("Cannot store iovs : {}", e.getMessage());
+        }
+
     }
 }
