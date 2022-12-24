@@ -144,60 +144,38 @@ public class IovsApiServiceImpl extends IovsApiService {
     @Override
     public Response storeIovBatch(IovSetDto dto, SecurityContext securityContext,
                                            UriInfo info) {
-        log.info("IovRestController processing request to upload iovs batch {}", dto);
-        // Get filters map and initializa tag name.
-        final GenericMap filters = dto.getFilter();
-        String tagName = "unknown";
-
-        // Check the filter map. If it exists it should contain the tag name.
-        if (filters != null && filters.containsKey("tagName")) {
-            // the tag name is in the filter map.
-            tagName = filters.get("tagName");
-        }
-        // If no tag name was found in the filter we search for it in the resources list.
-        // This check is performed below.
-        // Now start going through uploaded iovs.
-        log.info("Batch insertion of {} iovs using file for tag {}",
-                dto.getSize(), tagName);
+        log.info("IovRestController processing request to upload iovs batch of size {}",
+                dto.getSize());
         // Prepare the iov list to insert and a list representing iovs really inserted.
         final List<IovDto> iovlist = dto.getResources();
         final List<IovDto> savedList = new ArrayList<>();
         if (iovlist == null) {
             throw new BadRequestException("Cannot store null list of iovs");
         }
+        // Check if tag exists.
+        String tagName = iovlist.get(0).getTagName();
+        Tag tagEntity = tagService.findOne(tagName);
+        if (tagEntity == null) {
+            throw new BadRequestException("Cannot store iovs for non existing tag");
+        }
+        log.info("Store iovs in tag {}", tagName);
         // Loop over resources uploaded.
         for (final IovDto iovDto : iovlist) {
             log.debug("Create iov from dto {}", iovDto);
-            // Verify if tagname should be taken inside the iovdto.
-            if (!"unknown".equals(tagName)
-                && (iovDto.getTagName() == null || !iovDto.getTagName().equals(tagName))) {
-                iovDto.setTagName(tagName);
-            }
-            else if (iovDto.getTagName() == null) {
-                // Tag name is not available, send a response 406.
-                final String msg = "Error creating multi iov resource because tagName is not defined ";
-                final ApiResponseMessage resp = new ApiResponseMessage(ApiResponseMessage.ERROR,
-                        msg);
-                return Response.status(Response.Status.NOT_ACCEPTABLE).entity(resp).build();
-            }
-            log.debug("Iov tag is {}", iovDto.getTagName());
-            tagName = iovDto.getTagName();
             // Create new iov.
             Iov entity = mapper.map(iovDto, Iov.class);
-            entity.tag(new Tag().name(iovDto.getTagName()));
+            entity.tag(new Tag().name(tagName));
             final Iov saved = iovService.insertIov(entity);
             IovDto saveddto = mapper.map(saved, IovDto.class);
-            saveddto.tagName(iovDto.getTagName());
+            saveddto.tagName(tagName);
             // Add to saved list.
             savedList.add(saveddto);
         }
         // Change the modification time in the tag.
-        Tag tagEntity = tagService.findOne(tagName);
         tagEntity.modificationTime(new Date(Instant.now().toEpochMilli()));
         tagService.updateTag(tagEntity);
-
         // Prepare the Set for the response.
-        final CrestBaseResponse saveddto = buildEntityResponse(savedList, filters);
+        final CrestBaseResponse saveddto = buildEntityResponse(savedList, new GenericMap());
         // Send 201.
         return Response.created(info.getRequestUri()).entity(saveddto).build();
     }
@@ -225,34 +203,15 @@ public class IovsApiServiceImpl extends IovsApiService {
         if (xCrestQuery == null) {
             xCrestQuery = "IOVS";
         }
+        if (tagname == null || tagname.contains("%")) {
+            throw new CdbBadRequestException("Cannot search iovs with tag " + tagname);
+        }
         log.debug("Use input time format: {}", timeformat);
         log.debug("Use iov query mode: {}", xCrestQuery);
         ArgTimeUnit inputformat = ArgTimeUnit.valueOf(timeformat);
         ArgTimeUnit outformat = ArgTimeUnit.valueOf(xCrestSince);
         IovModeEnum queryMode = IovModeEnum.valueOf(xCrestQuery);
 
-        // The following is valid for method: iovs or groups.
-        // Search if tag exists: if it is not modified send back the NOT-MODIFIED.
-        // Else it will continue to perform the query.
-        if (IovModeEnum.IOVS.mode().equalsIgnoreCase(method) || IovModeEnum.GROUPS.mode().equalsIgnoreCase(method)) {
-            if (tagname == null || tagname.contains("%")) {
-                throw new CdbBadRequestException("Cannot search iovs with tag " + tagname);
-            }
-            final Tag tagentity = tagService.findOne(tagname);
-            log.debug("Found tag " + tagentity);
-            HttpHeaders headers = context.getHttpHeaders();
-            Request request = context.getRequest();
-            // Apply caching on iov selections.
-            // Use cache service to detect if a tag was modified.
-            final ResponseBuilder builder = cachesvc.verifyLastModified(request, tagentity);
-            if (builder != null) {
-                // Get request headers: this is just to dump the If-Modified-Since
-                final String ifmodsince = headers.getHeaderString("If-Modified-Since");
-                log.debug("The output data are not modified since " + ifmodsince);
-                // Send back the response via the builder.
-                return builder.build();
-            }
-        }
         // If it is a group method query, immediately call the method
         if (IovModeEnum.GROUPS.mode().equalsIgnoreCase(method)) {
             return this.selectGroups(tagname, snapshot, groupsize);
@@ -266,13 +225,7 @@ public class IovsApiServiceImpl extends IovsApiService {
             snap = Timestamp.from(inst);
             log.debug("Use snapshot {}", snap);
         }
-        // It is an IOV query, then tagname should be provided without regexp.
-        if (IovModeEnum.IOVS.mode().equalsIgnoreCase(method) ||
-            IovModeEnum.AT.mode().equalsIgnoreCase(method)) {
-            if (tagname == null || tagname.contains("%")) {
-                throw new CdbBadRequestException("IOVS or AT query need a full tagname");
-            }
-        }
+        // Set the since and until times in query.
         BigInteger rsince = prh.getTimeFromArg(since, inputformat, outformat, null);
         BigInteger runtil = prh.getTimeFromArg(until, inputformat, outformat, null);
         // Set arguments for query.
