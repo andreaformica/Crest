@@ -35,6 +35,7 @@ ENV CREST_GID 208
 ENV crest_version 1.0-SNAPSHOT
 ENV crest_dir /home/${USR}/crest
 ENV data_dir /home/${USR}/data
+ENV config_dir /home/${USR}/config
 #ENV data_dir /data
 ENV gradle_version 6.7
 ENV TZ GMT
@@ -47,6 +48,7 @@ RUN addgroup -g $CREST_GID $USR \
     && adduser -S -u $CREST_GID -G $USR -h /home/$USR $USR
 
 RUN  mkdir -p ${crest_dir} \
+  && mkdir -p ${config_dir} \
   && mkdir -p ${data_dir}/web \
   && mkdir -p ${data_dir}/dump \
   && mkdir -p ${data_dir}/logs \
@@ -56,9 +58,8 @@ RUN  mkdir -p ${crest_dir} \
 COPY --from=jlink "${jvm_location}" "${jvm_location}"
 
 ## This works if using an externally generated war, in the local directory
-ADD crestdb-web/build/libs/crest.war ${crest_dir}/crest.war
+ADD build/libs/crest.jar ${crest_dir}/crest.jar
 ADD web ${data_dir}/web
-ADD logback.xml.crest ${data_dir}/logback.xml
 
 ### we export only 1 directories....
 VOLUME "${data_dir}"
@@ -66,6 +67,9 @@ EXPOSE 8080
 
 # copy the entrypoint
 COPY ./entrypoint.sh /home/${USR}
+COPY ./logback.xml.crest /home/${USR}/logback.xml
+## This is not needed in swarm deployment, only for local testing.
+#COPY ./javaopts.properties /home/${USR}
 COPY ./create-properties.sh /home/${USR}
 
 RUN chown -R $USR:$CREST_GID /home/${USR}

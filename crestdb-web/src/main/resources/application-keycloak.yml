@@ -1,9 +1,0 @@
-keycloak:
-  realm: svom-fsc
-  auth-server-url: ${crest.keycloak.url}
-  ssl-required: external
-  resource: ${crest.keycloak.resource}
-  credentials.secret: ${crest.keycloak.secret}
-  use-resource-role-mappings: true
-  principal-attribute: ${crest.keycloak.principal}
-  bearer-only: true

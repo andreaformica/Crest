@@ -37,6 +37,6 @@ components:
       $ref: 'schemas/common.yml#/components/schemas/GenericMap'
 
     TagMetaSetDto:
-      $ref: 'tagsmeta.yml#/components/schemas/TagMetaSetDto'
+      $ref: 'schemas/tagsmeta.yml#/components/schemas/TagMetaSetDto'
     TagMetaDto:
-      $ref: 'tagsmeta.yml#/components/schemas/TagMetaDto'
+      $ref: 'schemas/tagsmeta.yml#/components/schemas/TagMetaDto'

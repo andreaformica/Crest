@@ -1,6 +1,6 @@
 variables:
     IMAGE: crest-service
-    VERSION: '2.0'
+    VERSION: '4.0'
     GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
 # Make the gradle wrapper executable. This essentially downloads a copy of
@@ -13,17 +13,28 @@ before_script:
 stages:
  - package_application
  - build_docker_image
+ - sonar_application
  - redeploy
 
 package_cern_application:
   stage: package_application
   image: adoptopenjdk:11-jdk-openj9
   script:
-   - ./gradlew -g /cache/.gradle clean assemble -PwarName=crest.war
+   - ./gradlew -g /cache/.gradle clean assemble
   allow_failure: false
   artifacts:
    paths:
-   - ./crestdb-web/build/libs/crest.war
+   - ./build/libs/crest.jar
+
+sonar_application_job:
+  stage: sonar_application
+  image: adoptopenjdk:11-jdk-openj9
+  script:
+    - ./gradlew sonarqube -Dsonar.projectKey=crest -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN
+  allow_failure: false
+  only:
+    refs:
+      - quality
 
 build_docker_image_job:
   stage: build_docker_image
@@ -42,7 +53,7 @@ build_docker_image_job:
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
   allow_failure: false
   rules:
-    - if: $DO_DOCKER_IMAGE == "yes" && $CI_PIPELINE_SOURCE != 'merge_request_event'
+    - if: $DO_DOCKER_IMAGE == "yes" && $CI_PIPELINE_SOURCE != 'merge_request_event' && $SITE == "cern"
 
 redeploy_job:
   stage: redeploy
@@ -50,5 +61,16 @@ redeploy_job:
   image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
   script: "oc import-image $IMAGE_NAME  --server=$SERVER --namespace $NAMESPACE --all --token=$IMAGE_IMPORT_TOKEN"
   rules:
-    - if: $DO_DEPLOY == "yes" && $CI_COMMIT_BRANCH == "deploy" && $CI_PIPELINE_SOURCE != 'merge_request_event'
+    - if: $DO_DEPLOY == "yes" && $CI_COMMIT_BRANCH == "deploy" && $CI_PIPELINE_SOURCE != 'merge_request_event' && $SITE == "cern"
 
+build_docker_image_svom:
+  stage: build_docker_image
+  environment: svom
+  image: docker:dind
+  before_script:
+    - docker login -u svom -p $REGISTRY_PASSWORD $REGISTRY
+  script:
+    - docker build --rm --tag=$REGISTRY/$IMAGE:$CI_COMMIT_REF_NAME --file Dockerfile .
+    - docker push $REGISTRY/$IMAGE:$CI_COMMIT_REF_NAME
+  rules:
+    - if: $DO_DOCKER_IMAGE == "yes" && $CI_PIPELINE_SOURCE != 'merge_request_event' && $SITE == "svom"
