@@ -27,12 +27,12 @@ public interface GlobalTagRepositoryCustom {
      * General purpose GlobalTag Fetching tags retrieval.
      *
      * @param name
-     * @param record
+     * @param mrecord
      * @param label
      * @return Optional of GlobalTag.
      * @throws CdbNotFoundException
      */
-    Optional<GlobalTag> findGlobalTagFetchTags(String name, String record, String label)
+    Optional<GlobalTag> findGlobalTagFetchTags(String name, String mrecord, String label)
             throws CdbNotFoundException;
 
 }

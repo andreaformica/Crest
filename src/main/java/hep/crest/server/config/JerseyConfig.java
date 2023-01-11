@@ -11,10 +11,13 @@ import hep.crest.server.swagger.api.MonitoringApi;
 import hep.crest.server.swagger.api.PayloadsApi;
 import hep.crest.server.swagger.api.RuninfoApi;
 import hep.crest.server.swagger.api.TagsApi;
+import lombok.extern.slf4j.Slf4j;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletProperties;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 
 /**
  * Jersey configuration.
@@ -24,6 +27,7 @@ import org.springframework.stereotype.Component;
  *
  */
 @Component
+@Slf4j
 public class JerseyConfig extends ResourceConfig {
 
     /**
@@ -52,13 +56,12 @@ public class JerseyConfig extends ResourceConfig {
         super.property(ServletProperties.FILTER_FORWARD_ON_404, true);
     }
 
-    // @PostConstruct
     /**
      * @return
      */
+    @PostConstruct
     public void init() {
-        // Register components where DI is needed
-        // this.configureSwagger();
+        log.info("JerseyConfig init");
     }
 
     /**
@@ -70,12 +73,4 @@ public class JerseyConfig extends ResourceConfig {
         super.register(clazz);
     }
 
-    /**
-     * Swagger configuration.
-     * @return
-     */
-    private void configureSwagger() {
-        // Register swagger listing classes for jaxrs.
-
-    }
 }

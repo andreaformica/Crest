@@ -22,7 +22,8 @@ public class GlobalTagMapConverter extends BidirectionalConverter<GlobalTagMap, 
         // Get the Id. It is used to extract fields and set them in the DTO.
         GlobalTagMapId id = source.id();
         // set all fields from source.
-        dto.globalTagName(id.globalTagName()).record(id.record()).label(id.label()).tagName(source.tag().name());
+        dto.globalTagName(id.globalTagName()).record(id.tagRecord())
+                .label(id.label()).tagName(source.tag().name());
         return dto;
     }
 
@@ -32,7 +33,7 @@ public class GlobalTagMapConverter extends BidirectionalConverter<GlobalTagMap, 
         GlobalTagMap entity = new GlobalTagMap();
         // Create a map ID from the fields in DTO.
         GlobalTagMapId id =
-                new GlobalTagMapId().globalTagName(source.getGlobalTagName()).record(source.getRecord())
+                new GlobalTagMapId().globalTagName(source.getGlobalTagName()).tagRecord(source.getRecord())
                         .label(source.getLabel());
         Tag atag = new Tag();
         // Create a tag using the provided tag name.

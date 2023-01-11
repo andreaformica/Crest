@@ -3,17 +3,16 @@
  */
 package hep.crest.server.services;
 
-import hep.crest.server.exceptions.AbstractCdbServiceException;
-import hep.crest.server.exceptions.CdbNotFoundException;
-import hep.crest.server.exceptions.ConflictException;
 import hep.crest.server.data.pojo.GlobalTag;
 import hep.crest.server.data.pojo.GlobalTagMap;
 import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.repositories.GlobalTagMapRepository;
 import hep.crest.server.data.repositories.GlobalTagRepository;
 import hep.crest.server.data.repositories.TagRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import hep.crest.server.exceptions.AbstractCdbServiceException;
+import hep.crest.server.exceptions.CdbNotFoundException;
+import hep.crest.server.exceptions.ConflictException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,13 +28,8 @@ import java.util.stream.StreamSupport;
  * @author rsipos
  */
 @Service
+@Slf4j
 public class GlobalTagMapService {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(GlobalTagMapService.class);
-
     /**
      * Repository.
      */
@@ -73,8 +67,7 @@ public class GlobalTagMapService {
     /**
      * @param entity the GlobalTagMap
      * @return GlobalTagMap
-     * @throws AbstractCdbServiceException
-     *              If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     @Transactional
     public GlobalTagMap insertGlobalTagMap(GlobalTagMap entity) throws AbstractCdbServiceException {
@@ -109,21 +102,25 @@ public class GlobalTagMapService {
      * @param globaltag the globaltag
      * @param label     the label
      * @param tag       the tag
-     * @param record    the record
+     * @param mrecord   the record
      * @return the iterable
      */
-    public Iterable<GlobalTagMap> findMapsByGlobalTagLabelTag(String globaltag, String label, String tag,
-                                                              String record) {
-        log.debug("Search for GlobalTagMap entries by Global, Label, Tag and eventually filter by record : {} {} {} {}",
-                globaltag, label, tag, record);
+    public Iterable<GlobalTagMap> findMapsByGlobalTagLabelTag(String globaltag, String label,
+                                                              String tag,
+                                                              String mrecord) {
+        log.debug("Search for GlobalTagMap entries by Global, Label, Tag and eventually filter by"
+                  + " record : {} {} {} {}",
+                globaltag, label, tag, mrecord);
         if (tag == null || tag.isEmpty()) {
             tag = "%";
         }
         tag = tag.replace("*", "%");
-        List<GlobalTagMap> maplist = globalTagMapRepository.findByGlobalTagNameAndLabelAndTagNameLike(globaltag, label,
+        List<GlobalTagMap> maplist =
+                globalTagMapRepository.findByGlobalTagNameAndLabelAndTagNameLike(globaltag, label,
                 tag);
-        if (record != null && !record.isEmpty()) {
-            return StreamSupport.stream(maplist.spliterator(), false).filter(c -> c.id().record().equals(record))
+        if (mrecord != null && !mrecord.isEmpty()) {
+            return StreamSupport.stream(maplist.spliterator(), false)
+                    .filter(c -> c.id().tagRecord().equals(mrecord))
                     .collect(Collectors.toList());
         }
         return maplist;

@@ -36,6 +36,8 @@ ext {
     swaggerJaxrsTemplateDirectory = "$swaggerDirectory/templates/java/JavaJaxRs/openApi-5.1.0".toString()
 }
 
+checkstyleTest.enabled = false
+
 jacoco {
     //toolVersion = '0.8.4'
     reportsDir = file("$buildDir/reports/jacoco")
@@ -66,23 +68,19 @@ jacocoTestReport {
 //./gradlew sonarqube -Dsonar.projectKey=crest -Dsonar.host.url=http://localhost:9000 -Dsonar.login=d7bef5b1a70c8f5812a14c196d9920c65ecbc28c
 sonarqube {
     properties {
-        property "sonar.host.url", "http://localhost:9000"
-        property "sonar.login", "d7bef5b1a70c8f5812a14c196d9920c65ecbc28c"
+        property "sonar.host.url", "https://sonarqube.svom.fr/"
+        property "sonar.login", "9352b27d4350f876612bbb8cf071add440fb68c7"
         property "sonar.projectKey", "crest"
         property "sonar.projectName", "crest"
-        property "sonar.junit.reportPaths", "build/test-results/test"
-        property 'sonar.coverage.exclusions', "**/hep/crest/swagger/model/*" +
-                "**/hep/crest/server/swagger/api/*,**/hep/crest/data/dialect/*," +
-                "**/hep/crest/data/pojo/*,**/hep/crest/server/security/*," +
-                "**/hep/crest/server/autoconfig/*," +
-                "**/hep/crest/server/config/BuilderPropertyResolver.java," +
-                "**/hep/crest/data/ApplicationData*"
-        property "sonar.exclusions", "**/hep/crest/swagger/model/*," +
-                "**/hep/crest/server/swagger/api/*,**/hep/crest/data/dialect/*," +
-                "**/hep/crest/data/pojo/*,**/hep/crest/server/security/*," +
-                "**/hep/crest/server/autoconfig/*," +
-                "**/hep/crest/server/config/BuilderPropertyResolver.java," +
-                "**/hep/crest/data/ApplicationData*"
+        property "sonar.sources", "src/main/java"
+        property "sonar.issue.ignore.multicriteria", "e1,e2"
+        property "sonar.issue.ignore.multicriteria.e1.resourceKey", "src/test/java/**/*"
+        property "sonar.issue.ignore.multicriteria.e1.ruleKey", "*"
+        property "sonar.issue.ignore.multicriteria.e2.resourceKey", "src/gen/java/**/*"
+        property "sonar.issue.ignore.multicriteria.e2.ruleKey", "*"
+        property 'sonar.coverage.jacoco.xmlReportPaths', "$projectDir/build/reports/jacoco/test/jacocoTestReport.xml"
+        property "sonar.exclusions", "**/hep/crest/server/security/*.java,**/hep/crest/server/**/Run*java"
+        property "sonar.coverage.exclusions", "**/hep/crest/server/security/*.java,**/hep/crest/server/**/Run*java"
     }
 }
 
@@ -113,9 +111,6 @@ tasks.withType(Checkstyle) {
   }
 }
 
-//sourceCompatibility = 1.8
-//targetCompatibility = 1.8
-
 springBoot {
     // This statement tells the Gradle Spring Boot plugin
     // to generate a file 
@@ -128,7 +123,6 @@ springBoot {
 configurations {
     sourceCompatibility = 11
     targetCompatibility = 11
-
     compile.exclude module: "spring-boot-starter-tomcat"
 }
 

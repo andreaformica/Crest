@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.persistence.EntityManager;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.StreamingOutput;
 import java.io.IOException;
@@ -19,21 +18,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public abstract class LobStreamerOutput implements StreamingOutput {
     /**
-     * The entity manager.
-     */
-    private final EntityManager entityManager;
-    /**
      * The transaction manager.
      */
     private final PlatformTransactionManager transactionManager;
 
     /**
-     * @param entityManager
      * @param transactionManager
      * The ctor.
      */
-    public LobStreamerOutput(EntityManager entityManager, PlatformTransactionManager transactionManager) {
-        this.entityManager = entityManager;
+    protected LobStreamerOutput(
+                        PlatformTransactionManager transactionManager) {
         this.transactionManager = transactionManager;
     }
 

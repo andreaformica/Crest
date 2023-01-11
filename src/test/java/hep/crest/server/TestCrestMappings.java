@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -93,6 +96,27 @@ public class TestCrestMappings {
             log.info("Created not existing global tag to tag mapping {} ", responsenotfound2.getBody());
             assertThat(responsenotfound2.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
+        // Find mappings via gt tag  name
+        final ResponseEntity<String> resptrace = testRestTemplate
+                .exchange("/crestapi/globaltagmaps/A-TEST-GT-40" , HttpMethod.GET,
+                        null, String.class);
+        {
+            log.info("Find global tag -> tag mappings {} ", resptrace.getBody());
+            assertThat(resptrace.getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
+        // Find mappings via tag  name
+        final HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Crest-MapMode", "BackTrace");
+        final HttpEntity<?> entity = new HttpEntity<>(headers);
+
+        final ResponseEntity<String> respbktrace = testRestTemplate
+                .exchange("/crestapi/globaltagmaps/A-TEST-41" , HttpMethod.GET,
+                        entity, String.class);
+        {
+            log.info("Find tag -> global tag mappings {} ", respbktrace.getBody());
+            assertThat(respbktrace.getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
+
         log.info("Delete mapping...{}", mapDto);
         final String url = "/crestapi/globaltagmaps/" + mapDto.getGlobalTagName()+"?record=some-rec";
         log.info("Removing mapping {}", url);

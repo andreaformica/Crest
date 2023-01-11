@@ -37,7 +37,8 @@ public class DataGeneral {
     public void setCrestTableNames(CrestTableNames ctn) {
         log.debug("Setting Crest table name helper to {}", ctn);
         crestTableNames = ctn;
-        log.debug("Setting table names for payload and iov: {} {}", ctn.getPayloadTableName(), ctn.getIovTableName());
+        log.debug("Setting table names for payload and iov: {} {}", ctn.getPayloadTableName(),
+                ctn.getIovTableName());
     }
 
     /**
@@ -56,6 +57,7 @@ public class DataGeneral {
 
     /**
      * Get the crestTableNames helper.
+     *
      * @return CrestTableNames the helper.
      */
     protected CrestTableNames getCrestTableNames() {
@@ -64,6 +66,7 @@ public class DataGeneral {
         }
         return this.crestTableNames;
     }
+
     /**
      * @param serverUploadLocationFolder the serverUploadLocationFolder to set
      */

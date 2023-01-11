@@ -1,5 +1,10 @@
 package hep.crest.server.controllers;
 
+/**
+ * Abstract class for interface LobStreamProvider.
+ *
+ * @author formica
+ */
 public abstract class SimpleLobStreamerProvider implements LobStreamerProvider {
 
     /**
@@ -17,7 +22,7 @@ public abstract class SimpleLobStreamerProvider implements LobStreamerProvider {
      * @param key
      * @param source
      */
-    public SimpleLobStreamerProvider(String key, String source) {
+    protected SimpleLobStreamerProvider(String key, String source) {
         this.source = source;
         this.key = key;
     }

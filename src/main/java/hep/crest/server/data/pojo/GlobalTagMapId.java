@@ -28,7 +28,7 @@ public class GlobalTagMapId implements java.io.Serializable {
      * The record. Used to identify a specific tag usage.
      */
     @Column(name = "RECORD", nullable = false, length = 100)
-    private String record;
+    private String tagRecord;
     /**
      * The label. It represents a generic tag name, similarly to COOL folder.
      */

@@ -23,8 +23,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,12 +34,6 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class IovGroupsImpl extends DataGeneral implements IovGroupsCustom {
-
-    /**
-     * The decoder.
-     */
-    private CharsetDecoder decoder = StandardCharsets.US_ASCII.newDecoder();
-
     /**
      * The upload directory for files.
      */
@@ -69,14 +61,13 @@ public class IovGroupsImpl extends DataGeneral implements IovGroupsCustom {
         final String sql = "select MIN(SINCE) from " + tablename + " where TAG_NAME=? "
                            + " group by floor(SINCE/?)*? "
                            + " order by min(SINCE)";
-//        final String sql = "select floor(SINCE/?)*? from " + tablename + " where TAG_NAME=? "
-//                           + " ";
+//      usage of select floor(SINCE/?)*? did not work in some DBs.
+
         log.debug("Execute selectGroups query {}", sql);
         List<BigDecimal> sinceList = jdbcTemplate.queryForList(sql, BigDecimal.class, tagname, groupfreq, groupfreq);
-//        List<BigDecimal> sinceList = jdbcTemplate.queryForList(sql, BigDecimal.class, groupfreq, groupfreq, tagname);
         BigDecimal a = sinceList.get(0);
         log.debug("Return elements like {} ", a);
-        return sinceList.stream().map(s -> s.toBigInteger())
+        return sinceList.stream().map(BigDecimal::toBigInteger)
                 .collect(Collectors.toList());
     }
 
@@ -102,7 +93,7 @@ public class IovGroupsImpl extends DataGeneral implements IovGroupsCustom {
                 groupfreq);
         BigDecimal a = sinceList.get(0);
         log.info("Return elements like {} ", a);
-        return sinceList.stream().map(s -> s.toBigInteger())
+        return sinceList.stream().map(BigDecimal::toBigInteger)
                 .collect(Collectors.toList());
     }
 

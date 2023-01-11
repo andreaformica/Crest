@@ -3,9 +3,7 @@
  */
 package hep.crest.server.services;
 
-import hep.crest.server.exceptions.AbstractCdbServiceException;
-import hep.crest.server.exceptions.CdbNotFoundException;
-import hep.crest.server.exceptions.ConflictException;
+import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.pojo.TagMeta;
@@ -14,9 +12,10 @@ import hep.crest.server.data.repositories.IovRepository;
 import hep.crest.server.data.repositories.TagMetaRepository;
 import hep.crest.server.data.repositories.TagRepository;
 import hep.crest.server.data.repositories.args.TagQueryArgs;
-import hep.crest.server.controllers.PageRequestHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import hep.crest.server.exceptions.AbstractCdbServiceException;
+import hep.crest.server.exceptions.CdbNotFoundException;
+import hep.crest.server.exceptions.ConflictException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,13 +30,8 @@ import java.util.Optional;
  * @author rsipos
  */
 @Service
+@Slf4j
 public class TagService {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(TagService.class);
-
     /**
      * Repository.
      */
@@ -183,9 +177,11 @@ public class TagService {
                     // Delete iov payloads one by one because we need to check the payload
                     // It could belong as well to another tag, in that case we cannot remove it
                     // but we can remove the iov.
-                    String rem = payloadService.removePayload(name, hash);
-                    if (!rem.equals(hash)) {
-                        log.warn("Skip removal of payload for hash {}", hash);
+                    if (payloadService.exists(hash)) {
+                        String rem = payloadService.removePayload(name, hash);
+                        if (!rem.equals(hash)) {
+                            log.warn("Skip removal of payload for hash {}", hash);
+                        }
                     }
                 }
             }

@@ -106,7 +106,7 @@ public class GlobalTagRepositoryImpl implements GlobalTagRepositoryCustom {
     }
 
     @Override
-    public Optional<GlobalTag> findGlobalTagFetchTags(String name, String record, String label)
+    public Optional<GlobalTag> findGlobalTagFetchTags(String name, String mrecord, String label)
             throws CdbNotFoundException {
         JPQLQuery<GlobalTag> query = new JPAQuery<>(entityManager);
 
@@ -117,16 +117,14 @@ public class GlobalTagRepositoryImpl implements GlobalTagRepositoryCustom {
             where.and(QGlobalTag.globalTag.name.eq(name));
             log.debug("Add where condition on globaltag name: {}", name);
         }
-        if (record != null) {
-            where.and(QGlobalTagMap.globalTagMap.id.record.eq(record));
-            log.debug("Add where condition on globaltag map record: {}", record);
+        if (mrecord != null) {
+            where.and(QGlobalTagMap.globalTagMap.id.tagRecord.eq(mrecord));
+            log.debug("Add where condition on globaltag map record: {}", mrecord);
         }
         if (label != null) {
             where.and(QGlobalTagMap.globalTagMap.id.label.eq(label));
             log.debug("Add where condition on globaltag map label: {}", label);
         }
-
-        // JPAQueryFactory factory = new JPAQueryFactory(entityManager);
 
         QGlobalTag globalTag = QGlobalTag.globalTag;
         QGlobalTagMap globalTagMap = new QGlobalTagMap("globalTagMap");

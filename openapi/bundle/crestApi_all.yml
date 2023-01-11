@@ -786,7 +786,7 @@ paths:
     put:
       tags:
         - iovs
-      summary: 'Create IOV in the database, associated to a tag name.'
+      summary: 'Create a single IOV in the database, associated to a tag name.'
       description: |
         Insert an Iov using an IovDto in the request body. It is mandatory
         to provide an existing tag in input. The referenced payloads should already exists in the DB.
@@ -803,6 +803,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IovSetDto'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
         default:
           $ref: '#/components/responses/genericError'
   /iovs/infos:

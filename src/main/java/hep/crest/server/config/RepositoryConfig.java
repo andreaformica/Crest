@@ -21,20 +21,13 @@ import javax.sql.DataSource;
 @Slf4j
 public class RepositoryConfig {
 
-
-    /**
-     * The properties.
-     */
-    @Autowired
-    private CrestProperties cprops;
-
     /**
      * Create a helper bean.
-     *
+     * @param cprops the properties.
      * @return CrestTableNames
      */
     @Bean
-    public CrestTableNames crestTableNames() {
+    public CrestTableNames crestTableNames(@Autowired CrestProperties cprops) {
         final CrestTableNames bean = new CrestTableNames();
         // Set default schema and table name taken from properties.
         if (!"none".equals(cprops.getSchemaname())) {

@@ -36,23 +36,12 @@ import java.util.Locale;
 public class ServicesConfig {
 
     /**
-     * Properties.
+     * Create a helper bean.
+     * @param cprops the properties.
+     * @return CrestTableNames
      */
-    @Autowired
-    private CrestProperties cprops;
-
-
     @Bean(name = "jacksonMapper")
-    public ObjectMapper getJacksonMapper() {
-//        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
-//                // date/time
-//                .appendPattern("yyyy-MM-dd HH:mm:ss")
-//                // optional fraction of seconds (from 0 to 9 digits)
-//                .optionalStart().appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true).optionalEnd()
-//                // offset
-//                .appendPattern("xxx")
-//                // create formatter
-//                .toFormatter();
+    public ObjectMapper getJacksonMapper(@Autowired CrestProperties cprops) {
         DateTimeFormatter formatter = new DateTimeFormatterBuilder()
                 .parseCaseInsensitive()
                 .appendPattern("yyyy-MM-dd'T'HH:mm:ss")

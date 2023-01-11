@@ -48,17 +48,6 @@ public class CrestTableNames {
      * The iov table.
      */
     private String tagTableName = null;
-    /**
-     * The iov table.
-     */
-    private String globaltagTableName = null;
-
-    /**
-     * Default ctor.
-     */
-    public CrestTableNames() {
-
-    }
 
     /**
      *
