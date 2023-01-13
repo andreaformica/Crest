@@ -29,6 +29,7 @@
 6. [Docker](#docker)
 7. [Openshift](#openshift)
 8. [Clients](#clients)
+9. [Usage](USAGE.md)
 
 
 ## Description
