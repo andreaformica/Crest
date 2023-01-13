@@ -10,6 +10,7 @@ import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.repositories.IovGroupsCustom;
 import hep.crest.server.data.repositories.IovRepository;
+import hep.crest.server.data.repositories.PayloadRepository;
 import hep.crest.server.data.repositories.TagRepository;
 import hep.crest.server.data.repositories.args.IovQueryArgs;
 import hep.crest.server.exceptions.AbstractCdbServiceException;
@@ -66,6 +67,13 @@ public class IovService {
      */
     @Autowired
     private IovGroupsCustom iovgroupsrepo;
+
+    /**
+     * Repository.
+     */
+    @Autowired
+    private PayloadRepository payloadRepository;
+
     /**
      * Helper.
      */
@@ -243,11 +251,19 @@ public class IovService {
             throw new ConflictException(
                     "Iov already exists [tag,since,hash]: " + entity.toString());
         }
-        log.debug("Storing iov entity {} in tag {}", entity, t);
-        entity.tag(t);
-        final Iov saved = iovRepository.save(entity);
-        log.debug("Saved iov entity: {}", saved);
-        return saved;
+        // Check if payload exists. Cannot store IOV without payload.
+        if (payloadRepository.findById(entity.payloadHash()).isPresent()) {
+            log.warn("Payload found for hash: {}", entity.payloadHash());
+            log.debug("Storing iov entity {} in tag {}", entity, t);
+            entity.tag(t);
+            final Iov saved = iovRepository.save(entity);
+            log.debug("Saved iov entity: {}", saved);
+            return saved;
+        }
+        else {
+            log.warn("Payload not found for hash: {}", entity.payloadHash());
+            throw new CdbNotFoundException("Payload not found: " + entity.payloadHash());
+        }
     }
 
     /**

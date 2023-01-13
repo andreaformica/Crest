@@ -4,9 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.IovId;
+import hep.crest.server.data.pojo.Payload;
+import hep.crest.server.exceptions.CdbNotFoundException;
+import hep.crest.server.services.PayloadService;
 import hep.crest.server.swagger.model.GenericMap;
 import hep.crest.server.swagger.model.IovDto;
 import hep.crest.server.swagger.model.IovSetDto;
+import hep.crest.server.swagger.model.StoreDto;
+import hep.crest.server.swagger.model.StoreSetDto;
 import hep.crest.server.swagger.model.TagDto;
 import hep.crest.server.swagger.model.TagMetaDto;
 import hep.crest.server.swagger.model.TagMetaSetDto;
@@ -20,13 +25,18 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -36,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -46,6 +57,10 @@ public class TestCrestTagMeta {
 
     @Autowired
     private TestRestTemplate testRestTemplate;
+
+    @Autowired
+    private PayloadService payloadService;
+    private String hash = "hashresource2";
 
     @Autowired
     @Qualifier("jacksonMapper")
@@ -78,18 +93,81 @@ public class TestCrestTagMeta {
         assertThat(responsem.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     }
 
+    public String postPayloadFromFile(String tagname) throws JsonProcessingException {
+        // Upload batch payload using file resource
+        final GenericMap filters = new GenericMap();
+        filters.put("tagName", tagname);
+
+        final StoreSetDto setdto1 = new StoreSetDto();
+        setdto1.size(1L);
+        setdto1.format("StoreSetDto");
+        filters.put("tagName", tagname);
+        setdto1.datatype("json").filter(filters);
+
+        StoreDto sdto = new StoreDto();
+        sdto.streamerInfo("{\"filename\": \"test-file-2\"}");
+        sdto.since(new BigDecimal(BigInteger.valueOf(0L)));
+        sdto.hash("hashresource2");
+        sdto.setData("theresource2");
+
+        setdto1.addResourcesItem(sdto);
+        String fileName = "theresource2";
+        byte[] fileContent = "this is file content for theresource2 and should be new".getBytes();
+        HttpHeaders parts = new HttpHeaders();
+        parts.setContentType(MediaType.TEXT_PLAIN);
+        final ByteArrayResource byteArrayResource = new ByteArrayResource(fileContent) {
+            @Override
+            public String getFilename() {
+                return fileName;
+            }
+        };
+        final HttpHeaders headers1 = new HttpHeaders();
+        headers1.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        final HttpEntity<ByteArrayResource> partsEntity = new HttpEntity<>(byteArrayResource, parts);
+        final MultiValueMap<String, Object> map1 = new LinkedMultiValueMap<String, Object>();
+        map1.add("files", partsEntity);
+        map1.add("tag", tagname);
+        map1.add("storeset", mapper.writeValueAsString(setdto1));
+        final HttpEntity<MultiValueMap<String, Object>> request1 = new HttpEntity<MultiValueMap<String, Object>>(
+                map1, headers1);
+        final ResponseEntity<String> resp = this.testRestTemplate
+                .postForEntity("/crestapi/payloads", request1, String.class);
+        assertEquals(resp.getStatusCode().value(), HttpStatus.CREATED.value());
+        log.info("Received response: " + resp);
+        {
+            StoreSetDto respb = mapper.readValue(resp.getBody(), StoreSetDto.class);
+            StoreDto dto = respb.getResources().get(0);
+            log.info("Found stored payload in response : {}", dto);
+            return dto.getHash();
+        }
+    }
+
     public void storeIovs(TagDto dto, Boolean settag) throws JsonProcessingException {
+        // Init payload data if not already done
+        try {
+            Payload pyld = payloadService.getPayload(hash);
+        } catch (CdbNotFoundException e) {
+            log.info("Payload not stored");
+            String hashstored = postPayloadFromFile(dto.getName());
+            if (!hash.equals(hashstored)) {
+                log.warn("Hash mismatch...set hash to {}", hashstored);
+                hash = hashstored;
+            }
+        }
         // Upload batch iovs
         final IovId id = new IovId().tagName(dto.getName())
                 .since(BigInteger.valueOf(2000000L)).insertionTime(new Date());
         final Iov miov = (Iov) rnd.generate(Iov.class);
         miov.id(id);
         miov.id().insertionTime(null);
+        miov.payloadHash(hash);
         log.info("...created iov via random gen: {}", miov);
         final IovId id2 = new IovId().tagName(dto.getName())
                 .since(BigInteger.valueOf(3000000L)).insertionTime(new Date());
         final Iov miov2 = (Iov) rnd.generate(Iov.class);
         miov2.id(id2);
+        miov2.payloadHash(hash);
         miov2.id().insertionTime(null);
         log.info("...created iov2 via random gen: {}", miov2);
 
