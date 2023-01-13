@@ -18,6 +18,7 @@ stages:
 
 package_cern_application:
   stage: package_application
+  environment: svom
   image: adoptopenjdk:11-jdk-openj9
   script:
    - ./gradlew -g /cache/.gradle clean assemble
@@ -25,6 +26,21 @@ package_cern_application:
   artifacts:
    paths:
    - ./build/libs/crest.jar
+  rules:
+    - if: $SITE == "cern"
+
+package_svom_application:
+  stage: package_application
+  environment: svom
+  image: adoptopenjdk:11-jdk-openj9
+  script:
+    - ./gradlew -g /cache/.gradle clean addPlugin assemble
+  allow_failure: false
+  artifacts:
+    paths:
+      - ./build/libs/crest.jar
+  rules:
+    - if: $SITE == "svom"
 
 sonar_application_job:
   stage: sonar_application
