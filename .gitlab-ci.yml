@@ -44,13 +44,13 @@ package_svom_application:
 
 sonar_application_job:
   stage: sonar_application
+  environment: svom
   image: adoptopenjdk:11-jdk-openj9
   script:
     - ./gradlew sonarqube -Dsonar.projectKey=crest -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN
   allow_failure: false
-  only:
-    refs:
-      - quality
+  rules:
+    - if: $SITE == "svom" && $CI_COMMIT_BRANCH == "quality"
 
 build_docker_image_job:
   stage: build_docker_image
