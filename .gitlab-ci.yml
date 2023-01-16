@@ -18,7 +18,7 @@ stages:
 
 package_cern_application:
   stage: package_application
-  environment: svom
+  environment: cern
   image: adoptopenjdk:11-jdk-openj9
   script:
    - ./gradlew -g /cache/.gradle clean assemble
