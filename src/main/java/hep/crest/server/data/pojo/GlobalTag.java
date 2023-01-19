@@ -32,7 +32,7 @@ import java.util.Set;
  * @author formica
  */
 @Entity
-@Table(name = "GLOBAL_TAG", schema = DatabasePropertyConfigurator.SCHEMA_NAME)
+@Table(name = "V4_GLOBAL_TAG", schema = DatabasePropertyConfigurator.SCHEMA_NAME)
 @Accessors(fluent = true)
 @Getter
 @Setter
