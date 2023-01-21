@@ -40,6 +40,9 @@ print_application_properties () {
   if [ -e /run/secrets/svom-pg-crest ] ; then
     echo "crest.db.password=$(cat /run/secrets/svom-pg-crest)"
   fi
+  if [ -e /run/secrets/nats_password ] ; then
+    echo "svom.nats.password=$(cat /run/secrets/nats_password)"
+  fi
   if [ -e /run/secrets/cool_secret ] ; then
     echo "align.cool.writer=$(cat /run/secrets/cool_secret)"
   fi
