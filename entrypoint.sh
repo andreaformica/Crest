@@ -37,6 +37,9 @@ print_application_properties () {
   if [ -e /run/secrets/crest-phys-cond ] ; then
     echo "crest.db.password=$(cat /run/secrets/crest-phys-cond)"
   fi
+  if [ -e /run/secrets/svom-pg-crest ] ; then
+    echo "crest.db.password=$(cat /run/secrets/svom-pg-crest)"
+  fi
   if [ -e /run/secrets/cool_secret ] ; then
     echo "align.cool.writer=$(cat /run/secrets/cool_secret)"
   fi
