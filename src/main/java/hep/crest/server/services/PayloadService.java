@@ -274,7 +274,7 @@ public class PayloadService {
      * @return StoreSetDto
      * @throws AbstractCdbServiceException
      */
-    @Transactional(rollbackOn = {AbstractCdbServiceException.class})
+    @Transactional(rollbackOn = {Exception.class})
     public StoreSetDto saveAll(List<StorableData> dataList)
             throws AbstractCdbServiceException {
         log.debug("Create iov and payload from list of {} elements", dataList.size());

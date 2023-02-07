@@ -208,7 +208,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             final PayloadDto dto = mapper.map(entity, PayloadDto.class);
             return Response.status(Response.Status.OK).entity(dto).build();
         }
-        // Get the media type. It utilize the objectType field.
+        // Get the media type. It utilizes the objectType field.
         final MediaType mediaType = getMediaType(ptype);
 
         // Set caching policy depending on snapshot argument
@@ -259,7 +259,12 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             tagService.findOne(tag);
             // Add object type.
             if (objectType == null) {
-                objectType = storeset.getDatatype();
+                if (storeset.getDatatype() != null) {
+                    objectType = storeset.getDatatype();
+                }
+                else {
+                    objectType = "lob";
+                }
             }
             // Add version.
             if (version == null) {

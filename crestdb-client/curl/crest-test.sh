@@ -175,7 +175,7 @@ token=
 
 ## you can set http_proxy if you need a socks proxy
 export http_proxy="--socks5 localhost:3129"
-#http_proxy=
+http_proxy=
 
 if [ "$host" == "help" ]; then
   echo "$0 <host> <apiname> <command>"
