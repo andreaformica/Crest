@@ -82,7 +82,7 @@ redeploy_job:
 build_docker_image_svom:
   stage: build_docker_image
   environment: svom
-  image: docker:dind
+  image: $REGISTRY/python-ci:1.1
   before_script:
     - docker login -u svom -p $REGISTRY_PASSWORD $REGISTRY
   script:
