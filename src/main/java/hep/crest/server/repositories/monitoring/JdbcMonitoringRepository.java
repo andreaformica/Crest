@@ -8,8 +8,7 @@ import hep.crest.server.data.repositories.externals.SqlRequests;
 import hep.crest.server.swagger.model.IovPayloadDto;
 import hep.crest.server.swagger.model.PayloadTagInfoDto;
 import hep.crest.server.swagger.model.TagSummaryDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -24,12 +23,8 @@ import java.util.List;
 /**
  * @author formica
  */
+@Slf4j
 public class JdbcMonitoringRepository extends DataGeneral implements IMonitoringRepository {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(JdbcMonitoringRepository.class);
 
     /**
      * @param ds the DataSource
