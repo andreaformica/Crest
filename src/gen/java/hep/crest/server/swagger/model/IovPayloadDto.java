@@ -32,6 +32,7 @@ import javax.validation.Valid;
   IovPayloadDto.JSON_PROPERTY_INSERTION_TIME,
   IovPayloadDto.JSON_PROPERTY_VERSION,
   IovPayloadDto.JSON_PROPERTY_OBJECT_TYPE,
+  IovPayloadDto.JSON_PROPERTY_OBJECT_NAME,
   IovPayloadDto.JSON_PROPERTY_COMPRESSION_TYPE,
   IovPayloadDto.JSON_PROPERTY_SIZE,
   IovPayloadDto.JSON_PROPERTY_PAYLOAD_HASH
@@ -53,6 +54,10 @@ public class IovPayloadDto   {
   public static final String JSON_PROPERTY_OBJECT_TYPE = "objectType";
   @JsonProperty(JSON_PROPERTY_OBJECT_TYPE)
   private String objectType;
+
+  public static final String JSON_PROPERTY_OBJECT_NAME = "objectName";
+  @JsonProperty(JSON_PROPERTY_OBJECT_NAME)
+  private String objectName;
 
   public static final String JSON_PROPERTY_COMPRESSION_TYPE = "compressionType";
   @JsonProperty(JSON_PROPERTY_COMPRESSION_TYPE)
@@ -146,6 +151,26 @@ public class IovPayloadDto   {
     this.objectType = objectType;
   }
 
+  public IovPayloadDto objectName(String objectName) {
+    this.objectName = objectName;
+    return this;
+  }
+
+  /**
+   * Get objectName
+   * @return objectName
+   **/
+  @JsonProperty("objectName")
+  @ApiModelProperty(value = "")
+  
+  public String getObjectName() {
+    return objectName;
+  }
+
+  public void setObjectName(String objectName) {
+    this.objectName = objectName;
+  }
+
   public IovPayloadDto compressionType(String compressionType) {
     this.compressionType = compressionType;
     return this;
@@ -220,6 +245,7 @@ public class IovPayloadDto   {
         Objects.equals(this.insertionTime, iovPayloadDto.insertionTime) &&
         Objects.equals(this.version, iovPayloadDto.version) &&
         Objects.equals(this.objectType, iovPayloadDto.objectType) &&
+        Objects.equals(this.objectName, iovPayloadDto.objectName) &&
         Objects.equals(this.compressionType, iovPayloadDto.compressionType) &&
         Objects.equals(this.size, iovPayloadDto.size) &&
         Objects.equals(this.payloadHash, iovPayloadDto.payloadHash);
@@ -227,7 +253,7 @@ public class IovPayloadDto   {
 
   @Override
   public int hashCode() {
-    return Objects.hash(since, insertionTime, version, objectType, compressionType, size, payloadHash);
+    return Objects.hash(since, insertionTime, version, objectType, objectName, compressionType, size, payloadHash);
   }
 
 
@@ -240,6 +266,7 @@ public class IovPayloadDto   {
     sb.append("    insertionTime: ").append(toIndentedString(insertionTime)).append("\n");
     sb.append("    version: ").append(toIndentedString(version)).append("\n");
     sb.append("    objectType: ").append(toIndentedString(objectType)).append("\n");
+    sb.append("    objectName: ").append(toIndentedString(objectName)).append("\n");
     sb.append("    compressionType: ").append(toIndentedString(compressionType)).append("\n");
     sb.append("    size: ").append(toIndentedString(size)).append("\n");
     sb.append("    payloadHash: ").append(toIndentedString(payloadHash)).append("\n");

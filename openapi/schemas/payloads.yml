@@ -9,6 +9,8 @@ components:
           type: string
         objectType:
           type: string
+        objectName:
+          type: string
         compressionType:
           type: string
         checkSum:

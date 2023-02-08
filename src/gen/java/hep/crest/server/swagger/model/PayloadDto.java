@@ -30,6 +30,7 @@ import javax.validation.Valid;
   PayloadDto.JSON_PROPERTY_HASH,
   PayloadDto.JSON_PROPERTY_VERSION,
   PayloadDto.JSON_PROPERTY_OBJECT_TYPE,
+  PayloadDto.JSON_PROPERTY_OBJECT_NAME,
   PayloadDto.JSON_PROPERTY_COMPRESSION_TYPE,
   PayloadDto.JSON_PROPERTY_CHECK_SUM,
   PayloadDto.JSON_PROPERTY_SIZE,
@@ -48,6 +49,10 @@ public class PayloadDto   {
   public static final String JSON_PROPERTY_OBJECT_TYPE = "objectType";
   @JsonProperty(JSON_PROPERTY_OBJECT_TYPE)
   private String objectType;
+
+  public static final String JSON_PROPERTY_OBJECT_NAME = "objectName";
+  @JsonProperty(JSON_PROPERTY_OBJECT_NAME)
+  private String objectName;
 
   public static final String JSON_PROPERTY_COMPRESSION_TYPE = "compressionType";
   @JsonProperty(JSON_PROPERTY_COMPRESSION_TYPE)
@@ -123,6 +128,26 @@ public class PayloadDto   {
 
   public void setObjectType(String objectType) {
     this.objectType = objectType;
+  }
+
+  public PayloadDto objectName(String objectName) {
+    this.objectName = objectName;
+    return this;
+  }
+
+  /**
+   * Get objectName
+   * @return objectName
+   **/
+  @JsonProperty("objectName")
+  @ApiModelProperty(value = "")
+  
+  public String getObjectName() {
+    return objectName;
+  }
+
+  public void setObjectName(String objectName) {
+    this.objectName = objectName;
   }
 
   public PayloadDto compressionType(String compressionType) {
@@ -218,6 +243,7 @@ public class PayloadDto   {
     return Objects.equals(this.hash, payloadDto.hash) &&
         Objects.equals(this.version, payloadDto.version) &&
         Objects.equals(this.objectType, payloadDto.objectType) &&
+        Objects.equals(this.objectName, payloadDto.objectName) &&
         Objects.equals(this.compressionType, payloadDto.compressionType) &&
         Objects.equals(this.checkSum, payloadDto.checkSum) &&
         Objects.equals(this.size, payloadDto.size) &&
@@ -226,7 +252,7 @@ public class PayloadDto   {
 
   @Override
   public int hashCode() {
-    return Objects.hash(hash, version, objectType, compressionType, checkSum, size, insertionTime);
+    return Objects.hash(hash, version, objectType, objectName, compressionType, checkSum, size, insertionTime);
   }
 
 
@@ -238,6 +264,7 @@ public class PayloadDto   {
     sb.append("    hash: ").append(toIndentedString(hash)).append("\n");
     sb.append("    version: ").append(toIndentedString(version)).append("\n");
     sb.append("    objectType: ").append(toIndentedString(objectType)).append("\n");
+    sb.append("    objectName: ").append(toIndentedString(objectName)).append("\n");
     sb.append("    compressionType: ").append(toIndentedString(compressionType)).append("\n");
     sb.append("    checkSum: ").append(toIndentedString(checkSum)).append("\n");
     sb.append("    size: ").append(toIndentedString(size)).append("\n");

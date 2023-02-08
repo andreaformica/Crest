@@ -50,6 +50,12 @@ public class Payload {
     private String objectType;
 
     /**
+     * The object name.
+     */
+    @Column(name = "OBJECT_NAME", nullable = false, length = 400)
+    private String objectName = "none";
+
+    /**
      * The size.
      */
     @Column(name = "DATA_SIZE", nullable = true)

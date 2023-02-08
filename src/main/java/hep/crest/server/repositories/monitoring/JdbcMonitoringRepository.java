@@ -96,6 +96,7 @@ public class JdbcMonitoringRepository extends DataGeneral implements IMonitoring
             entity.setPayloadHash(rs.getString("PAYLOAD_HASH"));
             entity.setVersion(rs.getString("VERSION"));
             entity.setObjectType(rs.getString("OBJECT_TYPE"));
+            entity.setObjectName(rs.getString("OBJECT_NAME"));
             entity.setSize(rs.getInt("DATA_SIZE"));
             log.debug("create entity {}", entity);
             return entity;

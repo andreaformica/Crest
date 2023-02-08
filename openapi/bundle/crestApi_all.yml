@@ -1535,6 +1535,8 @@ components:
           type: string
         objectType:
           type: string
+        objectName:
+          type: string
         compressionType:
           type: string
         size:
@@ -1559,6 +1561,8 @@ components:
         version:
           type: string
         objectType:
+          type: string
+        objectName:
           type: string
         compressionType:
           type: string
