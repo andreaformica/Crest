@@ -228,7 +228,10 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         final String rettype = mediaType.toString();
         // Get extension
         final String ext = getExtension(ptype);
-        final String fname = hash + "." + ext;
+        String fname = hash + "." + ext;
+        if (!entity.objectName().equalsIgnoreCase("none")) {
+            fname = entity.objectName();
+        }
         // Set the content type in the response, and the file name as well.
         return Response.ok(streamingOutput) /// MediaType.APPLICATION_JSON_TYPE)
                 .header("Content-type", rettype)
