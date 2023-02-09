@@ -372,6 +372,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 final String hash = getHash((InputStream) retmap.get("stream"), outFilename);
                 retmap.put("uploadedFile", outFilename);
                 sinfomap.put("filename", filename);
+                entity.objectName(filename);
                 data = buildStorable(iov, entity, sinfomap, hash);
                 data.streamsMap(retmap);
             }
