@@ -50,7 +50,7 @@ GRANT EXECUTE ON FUNCTION public.empty_trash_new() TO crest_w;
 -- Name: delete_packetsbytarname(); Type: FUNCTION; Schema: public; Owner: svom_cea
 --
 
-CREATE OR REPLACE FUNCTION public.delete_tag(name character varying) RETURNS INTEGER
+CREATE OR REPLACE FUNCTION public.delete_tag(name character varying, force boolean) RETURNS INTEGER
     LANGUAGE plpgsql
     AS $$   DECLARE
      statusflag INTEGER;
@@ -60,11 +60,11 @@ CREATE OR REPLACE FUNCTION public.delete_tag(name character varying) RETURNS INT
      v_error_stack text;
    BEGIN
       statusflag := 0;
-      query := 'select * from tag where name = $1';
+      query := 'select * from tag where name like $1';
 	  for rec in execute query using name
         loop
             raise notice 'Delete iovs for tag : %', rec.name;
-            perform trash_iov(rec.name);
+            perform trash_iov(rec.name, force);
             statusflag := statusflag + 1;
       end loop;
       RETURN statusflag;
@@ -79,13 +79,17 @@ CREATE OR REPLACE FUNCTION public.delete_tag(name character varying) RETURNS INT
    END;
    $$;
 
-CREATE OR REPLACE FUNCTION public.trash_iov(name character varying) RETURNS INTEGER
+ALTER FUNCTION public.delete_tag OWNER TO svom_cea;
+GRANT EXECUTE ON FUNCTION public.delete_tag(character varying, boolean) TO crest_w;
+
+CREATE OR REPLACE FUNCTION public.trash_iov(name character varying, force boolean) RETURNS INTEGER
     LANGUAGE plpgsql
     AS $$   DECLARE
      statusflag INTEGER;
      rec record;
      query text;
      npylds integer;
+     nhash integer;
      v_error_stack text;
    BEGIN
       statusflag := 0;
@@ -95,13 +99,24 @@ CREATE OR REPLACE FUNCTION public.trash_iov(name character varying) RETURNS INTE
             raise notice 'Trash iovs % for tag : %', rec.payload_hash, rec.tag_name;
             select count(*) into npylds from iov where payload_hash = rec.payload_hash
                 and tag_name != 'TRASH' and tag_name != rec.tag_name;
-            if npylds > 1 then
+            if npylds > 1 and not force then
                 raise notice 'More than one iovs for payload %', rec.payload_hash;
                 continue;
+            else
+                begin
+                    raise notice 'Delete iovs for hash : %', rec.payload_hash;
+                    update iov set tag_name='TRASH' where
+                        payload_hash = rec.payload_hash and tag_name != 'TRASH';
+                exception
+                    when others then
+                    begin
+                        raise notice 'Exception in trashing hash %', rec.payload_hash;
+                    end;
+                end;
             end if;
-            update iov set tag_name='TRASH' where payload_hash = rec.payload_hash;
             statusflag := statusflag + 1;
       end loop;
+
       RETURN statusflag;
    EXCEPTION
     when others then
@@ -113,11 +128,8 @@ CREATE OR REPLACE FUNCTION public.trash_iov(name character varying) RETURNS INTE
     RETURN 0;
    END;
    $$;
-
-ALTER FUNCTION public.delete_tag OWNER TO svom_cea;
-GRANT EXECUTE ON FUNCTION public.delete_tag(character varying) TO crest_w;
 ALTER FUNCTION public.trash_iov OWNER TO svom_cea;
-GRANT EXECUTE ON FUNCTION public.trash_iov(character varying) TO crest_w;
+GRANT EXECUTE ON FUNCTION public.trash_iov(character varying, boolean) TO crest_w;
 
 CREATE OR REPLACE FUNCTION public.empty_trash() RETURNS INTEGER
     LANGUAGE plpgsql
