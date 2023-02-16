@@ -120,6 +120,28 @@ CREATE TABLE public.tag (
 
 ALTER TABLE public.tag OWNER TO svom_cea;
 
+
+-- FK to the TAG.NAME column? Or better TAG_ID to be used?
+-- No, better to keep the string for the moment.
+-- BLOBs in row?
+-- This may be a small BLOB, we try to keep it in row....To be asked to Andrei and Luca
+CREATE TABLE TAG_META
+   (
+	TAG_NAME character varying(500) NOT NULL,
+	INSERTION_TIME timestamp without time zone NOT NULL,
+	CHANNEL_SIZE integer,
+	COLUMN_SIZE integer,
+	DESCRIPTION character varying(4000) default '' NOT NULL,
+ 	TAG_INFO oid NOT NULL
+   );
+ALTER TABLE public.TAG_META OWNER TO svom_cea;
+
+GRANT SELECT,INSERT,UPDATE,DELETE ON TABLE public.TAG TO crest_w;
+GRANT SELECT,INSERT,UPDATE,DELETE ON TABLE public.IOV TO crest_w;
+GRANT SELECT,INSERT,UPDATE,DELETE ON TABLE public.GLOBAL_TAG TO crest_w;
+GRANT SELECT,INSERT,UPDATE,DELETE ON TABLE public.TAG_META TO crest_w;
+GRANT SELECT,INSERT,UPDATE,DELETE ON TABLE public.GLOBAL_TAG_MAP TO crest_w;
+
 ALTER TABLE ONLY public.global_tag_map
     ADD CONSTRAINT global_tag_map_pkey PRIMARY KEY (global_tag_name, label, record);
 ALTER TABLE ONLY public.global_tag
@@ -135,7 +157,11 @@ ALTER TABLE ONLY public.global_tag_map
 ALTER TABLE ONLY public.global_tag_map
     ADD CONSTRAINT fk_tag_tagname FOREIGN KEY (tag_name) REFERENCES public.tag(name);
 ALTER TABLE ONLY public.iov
-    ADD CONSTRAINT fk_tag_tagname FOREIGN KEY (tag_name) REFERENCES public.tag(name);
+    ADD CONSTRAINT fk_iov_tag_tagname FOREIGN KEY (tag_name) REFERENCES public.tag(name);
+ALTER TABLE ONLY public.TAG_META
+    ADD CONSTRAINT tag_meta_pkey PRIMARY KEY (tag_name);
+ALTER TABLE ONLY public.TAG_META
+    ADD CONSTRAINT fk_meta_tag_tagname FOREIGN KEY (tag_name) REFERENCES public.tag(name);
 
 
 

@@ -50,47 +50,6 @@ public class Application {
     }
 
     /**
-     * Customizer for Web server (undertow).
-     *
-     * @return WebServerFactoryCustomizer<WebServerFactory>
-     */
-    @Bean
-    public WebServerFactoryCustomizer<WebServerFactory> containerCustomizer() {
-        return factory -> {
-            if (factory.getClass().isAssignableFrom(UndertowServletWebServerFactory.class)) {
-                final UndertowServletWebServerFactory undertowContainer =
-                        (UndertowServletWebServerFactory) factory;
-                undertowContainer.addDeploymentInfoCustomizers(new ContextSecurityCustomizer());
-            }
-        };
-    }
-
-    /**
-     * A Security customizer.
-     *
-     * @author formica
-     */
-    private static class ContextSecurityCustomizer implements UndertowDeploymentInfoCustomizer {
-
-        /*
-         * (non-Javadoc)
-         *
-         * @see org.springframework.boot.web.embedded.undertow.
-         * UndertowDeploymentInfoCustomizer#customize(io.undertow.servlet.api.
-         * DeploymentInfo)
-         */
-        @Override
-        public void customize(io.undertow.servlet.api.DeploymentInfo deploymentInfo) {
-            final SecurityConstraint constraint = new SecurityConstraint();
-            final WebResourceCollection traceWebresource = new WebResourceCollection();
-            traceWebresource.addUrlPattern("/*");
-            traceWebresource.addHttpMethod(HttpMethod.TRACE.toString());
-            constraint.addWebResourceCollection(traceWebresource);
-            deploymentInfo.addSecurityConstraint(constraint);
-        }
-    }
-
-    /**
      * Resolve configuration.
      *
      * @return KeycloakSpringBootConfigResolver
