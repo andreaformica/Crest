@@ -131,7 +131,7 @@ CREATE OR REPLACE FUNCTION public.trash_iov(name character varying, force boolea
 ALTER FUNCTION public.trash_iov OWNER TO svom_cea;
 GRANT EXECUTE ON FUNCTION public.trash_iov(character varying, boolean) TO crest_w;
 
-CREATE OR REPLACE FUNCTION public.empty_trash() RETURNS INTEGER
+CREATE OR REPLACE PROCEDURE public.empty_trash(nmax integer)
     LANGUAGE plpgsql
     AS $$   DECLARE
      statusflag INTEGER;
@@ -149,15 +149,29 @@ CREATE OR REPLACE FUNCTION public.empty_trash() RETURNS INTEGER
             SELECT p.streamer_info into soid FROM PAYLOAD p WHERE p.hash = rec.payload_hash;
             SELECT p.data into doid FROM PAYLOAD p WHERE p.hash = rec.payload_hash;
             raise notice 'Remove entry in trash : % ', rec.payload_hash;
-            delete from iov where tag_name = 'TRASH' and payload_hash = rec.payload_hash;
-            raise notice 'Remove entry in payload table : % ', rec.payload_hash;
-            delete from PAYLOAD p where p.hash = rec.payload_hash;
-            raise notice 'Unlink oids : % - %', doid, soid;
-            perform lo_unlink(doid) ;
-            perform lo_unlink(soid) ;
+            begin
+                delete from iov where tag_name = 'TRASH' and payload_hash = rec.payload_hash;
+                raise notice 'Remove entry in payload table : % ', rec.payload_hash;
+                delete from PAYLOAD p where p.hash = rec.payload_hash;
+                raise notice 'Unlink oids : % - %', doid, soid;
+                perform lo_unlink(doid) ;
+                perform lo_unlink(soid) ;
+                IF statusflag % 100 = 0 THEN
+                    raise notice 'Commiting every 100 payloads';
+                    COMMIT;
+                END IF;
+            exception
+                when others then
+                begin
+                    raise notice 'Exception in removing payload %', rec.payload_hash;
+                end;
+            end;
             statusflag := statusflag + 1;
+            if statusflag > nmax then
+                raise notice 'exit';
+                EXIT;
+            end if;
       end loop;
-      RETURN statusflag;
    EXCEPTION
     when others then
     begin
@@ -165,15 +179,30 @@ CREATE OR REPLACE FUNCTION public.empty_trash() RETURNS INTEGER
         GET STACKED DIAGNOSTICS v_error_stack = PG_EXCEPTION_CONTEXT;
         RAISE WARNING 'The stack trace of the error is: "%"', v_error_stack;
     end;
-    RETURN 0;
    END;
    $$;
 
-ALTER FUNCTION public.empty_trash OWNER TO svom_cea;
-GRANT EXECUTE ON FUNCTION public.empty_trash() TO crest_w;
+ALTER PROCEDURE public.empty_trash OWNER TO svom_cea;
+GRANT EXECUTE ON PROCEDURE public.empty_trash(integer) TO crest_w;
 
 --- Insert trash tag ---
 insert into tag (name, description, object_type,
     time_type, end_of_validity, insertion_time,
     last_validated_time, modification_time, synchronization)
     values ('TRASH', 'trash tag', 'removable', 'any', 0, now(), 0, now(), 'none');
+
+--- Get DB size ---
+SELECT d.datname as Name,  pg_catalog.pg_get_userbyid(d.datdba) as Owner,
+    CASE WHEN pg_catalog.has_database_privilege(d.datname, 'CONNECT')
+        THEN pg_catalog.pg_size_pretty(pg_catalog.pg_database_size(d.datname))
+        ELSE 'No Access'
+    END as Size
+FROM pg_catalog.pg_database d
+    order by
+    CASE WHEN pg_catalog.has_database_privilege(d.datname, 'CONNECT')
+        THEN pg_catalog.pg_database_size(d.datname)
+        ELSE NULL
+    END desc
+    LIMIT 20;
+
+SELECT pg_size_pretty( pg_total_relation_size('tablename') );
