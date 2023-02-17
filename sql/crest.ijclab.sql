@@ -163,6 +163,10 @@ ALTER TABLE ONLY public.TAG_META
 ALTER TABLE ONLY public.TAG_META
     ADD CONSTRAINT fk_meta_tag_tagname FOREIGN KEY (tag_name) REFERENCES public.tag(name);
 
+ALTER TABLE ONLY public.payload_data
+    ADD CONSTRAINT fk_pydata_hash FOREIGN KEY (hash) REFERENCES public.payload(hash);
+ALTER TABLE ONLY public.payload_streamer_data
+    ADD CONSTRAINT fk_pystreamdata_hash FOREIGN KEY (hash) REFERENCES public.payload(hash);
 
 
 

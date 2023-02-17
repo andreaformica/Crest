@@ -3,7 +3,7 @@
 -- Name: delete_packetsbytarname(); Type: FUNCTION; Schema: public; Owner: svom_cea
 --
 
-CREATE OR REPLACE FUNCTION public.empty_trash_new() RETURNS INTEGER
+CREATE OR REPLACE FUNCTION public.empty_trash_new(nmax integer) RETURNS INTEGER
     LANGUAGE plpgsql
     AS $$   DECLARE
      statusflag INTEGER;
@@ -14,24 +14,39 @@ CREATE OR REPLACE FUNCTION public.empty_trash_new() RETURNS INTEGER
      v_error_stack text;
    BEGIN
       statusflag := 0;
-      query := 'select * from v4_iov where tag_name = ''TRASH''';
+      query := 'select * from iov where tag_name = ''TRASH''';
 	  for rec in execute query
         loop
             raise notice 'Delete payloads for iov : %', rec.payload_hash;
             SELECT p.streamer_info into soid FROM PAYLOAD_STREAMER_DATA p WHERE p.hash = rec.payload_hash;
             SELECT p.data into doid FROM PAYLOAD_DATA p WHERE p.hash = rec.payload_hash;
             raise notice 'Remove entry in trash : % ', rec.payload_hash;
-            delete from v4_iov where tag_name = 'TRASH' and payload_hash = rec.payload_hash;
-            raise notice 'Remove entry in payload table : % ', rec.payload_hash;
-            delete from V4_PAYLOAD p where p.hash = rec.payload_hash;
-            delete from PAYLOAD_DATA p where p.hash = rec.payload_hash;
-            delete from PAYLOAD_STREAMER_DATA p where p.hash = rec.payload_hash;
-            raise notice 'Unlink oids : % - %', doid, soid;
-            perform lo_unlink(doid) ;
-            perform lo_unlink(soid) ;
+
+            begin
+                delete from iov where tag_name = 'TRASH' and payload_hash = rec.payload_hash;
+                raise notice 'Remove entry in payload table : % ', rec.payload_hash;
+                delete from PAYLOAD p where p.hash = rec.payload_hash;
+                delete from PAYLOAD_DATA p where p.hash = rec.payload_hash;
+                delete from PAYLOAD_STREAMER_DATA p where p.hash = rec.payload_hash;
+                raise notice 'Unlink oids : % - %', doid, soid;
+                perform lo_unlink(doid) ;
+                perform lo_unlink(soid) ;
+                IF statusflag % 100 = 0 THEN
+                    raise notice 'Commiting every 100 payloads';
+                    COMMIT;
+                END IF;
+            exception
+                when others then
+                begin
+                    raise notice 'Exception in removing payload %', rec.payload_hash;
+                end;
+            end;
             statusflag := statusflag + 1;
+            if statusflag > nmax then
+                raise notice 'exit';
+                EXIT;
+            end if;
       end loop;
-      RETURN statusflag;
    EXCEPTION
     when others then
     begin
@@ -39,12 +54,11 @@ CREATE OR REPLACE FUNCTION public.empty_trash_new() RETURNS INTEGER
         GET STACKED DIAGNOSTICS v_error_stack = PG_EXCEPTION_CONTEXT;
         RAISE WARNING 'The stack trace of the error is: "%"', v_error_stack;
     end;
-    RETURN 0;
    END;
    $$;
 
 ALTER FUNCTION public.empty_trash_new OWNER TO svom_cea;
-GRANT EXECUTE ON FUNCTION public.empty_trash_new() TO crest_w;
+GRANT EXECUTE ON FUNCTION public.empty_trash_new(integer) TO crest_w;
 
 --
 -- Name: delete_packetsbytarname(); Type: FUNCTION; Schema: public; Owner: svom_cea
