@@ -29,7 +29,7 @@ FROM alpine:3.13
 
 ARG jvm_location
 
-ENV USR crest
+ENV USR crestsvc
 ENV CREST_GID 208
 
 ENV crest_version 1.0-SNAPSHOT
@@ -59,7 +59,7 @@ COPY --from=jlink "${jvm_location}" "${jvm_location}"
 
 ## This works if using an externally generated war, in the local directory
 ADD build/libs/crest.jar ${crest_dir}/crest.jar
-ADD web ${data_dir}/web
+## ADD web ${data_dir}/web
 
 ### we export only 1 directories....
 VOLUME "${data_dir}"
