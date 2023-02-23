@@ -52,7 +52,7 @@ RUN  mkdir -p ${crest_dir} \
   && mkdir -p ${data_dir}/web \
   && mkdir -p ${data_dir}/dump \
   && mkdir -p ${data_dir}/logs \
-  && chown -R ${USR}:${USR} /home/${USR}
+  && chown -R ${CREST_GID}:${CREST_GID} /home/${USR}
 
 # Copy the minimal JVM from previous step
 COPY --from=jlink "${jvm_location}" "${jvm_location}"
