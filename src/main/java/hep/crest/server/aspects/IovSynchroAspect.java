@@ -63,8 +63,7 @@ public class IovSynchroAspect {
      * @throws Throwable If an Exception occurred
      */
     @Around("execution(* hep.crest.server.services.IovService.insertIov(*)) && args(entity)"
-            + " || execution(* hep.crest.server.services.PayloadService.storeIov(*)) && args"
-            + "(entity)")
+            + " || execution(* hep.crest.server.services.IovService.storeIov(*)) && args(entity)")
     public Object checkSynchro(ProceedingJoinPoint pjp, Iov entity) throws Throwable {
         log.debug("Iov insertion should verify the tag synchronization type : {}", entity);
         Object retVal = null;

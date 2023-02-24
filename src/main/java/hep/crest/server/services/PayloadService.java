@@ -7,7 +7,6 @@ import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Payload;
 import hep.crest.server.data.pojo.PayloadInfoData;
-import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.repositories.IovRepository;
 import hep.crest.server.data.repositories.PayloadDataRepository;
 import hep.crest.server.data.repositories.PayloadInfoDataRepository;
@@ -305,7 +304,7 @@ public class PayloadService {
                     tagname = iov.tag().name();
                 }
                 log.debug("Saving iov {} in tag {}", iov, tagname);
-                Iov savedIov = storeIov(iov);
+                Iov savedIov = iovService.storeIov(iov);
                 dto.since(new BigDecimal(savedIov.id().since())).hash(savedIov.payloadHash());
                 dto.data(saved.objectType() + "; " + saved.objectName());
                 setdto.addResourcesItem(dto);
@@ -331,34 +330,5 @@ public class PayloadService {
             }
         }
         return setdto;
-    }
-
-    /**
-     * Non transactional iov storage.
-     * Used to avoid updating tag as done in IovService.
-     *
-     * @param entity
-     * @return Iov
-     */
-    public Iov storeIov(Iov entity) {
-        log.debug("Create iov from {}", entity);
-        final String tagname = entity.tag().name();
-        // The IOV is not yet stored. Verify that the tag exists before inserting it.
-        final Optional<Tag> tg = tagRepository.findById(tagname);
-        if (!tg.isPresent()) {
-            throw new CdbNotFoundException("Tag " + tagname + " not found: cannot insert IOV.");
-        }
-        Tag t = tg.get();
-        if (iovService.existsIov(t.name(), entity.id().since(), entity.payloadHash())) {
-            log.warn("Iov already exists [tag,since,hash]: {}", entity);
-            throw new ConflictException(
-                    "Iov already exists [tag,since,hash]: " + entity);
-        }
-        entity.tag(t);
-        entity.id().tagName(t.name());
-        log.debug("Storing iov entity {} in tag {}", entity, t);
-        final Iov saved = iovRepository.save(entity);
-        log.debug("Saved iov entity: {}", saved);
-        return saved;
     }
 }
