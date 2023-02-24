@@ -284,6 +284,11 @@ public class IovService {
             // transform to COOL run-lumi
             groupsize = groupsize * 4294967296L;
         }
+        else if (timetype.equalsIgnoreCase("sec")) {
+            // The iov is of type sec. Use the group size from properties.
+            // It should correspond to the number of seconds in a day by default.
+            groupsize = Long.valueOf(cprops.getTimetypeGroupsize());
+        }
         else {
             // Assume COOL time format...
             groupsize = Long.valueOf(cprops.getTimetypeGroupsize());

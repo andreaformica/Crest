@@ -279,6 +279,7 @@ public class PayloadService {
             throws AbstractCdbServiceException {
         log.debug("Create iov and payload from list of {} elements", dataList.size());
         StoreSetDto setdto = new StoreSetDto();
+        String tagname = null;
         for (StorableData data : dataList) {
             StoreDto dto = new StoreDto();
             // Store payload, data content and streamer info
@@ -300,7 +301,10 @@ public class PayloadService {
                 log.debug("Payload saved is : {}", saved);
                 // Now insert IOV. The method will perform many verifications.
                 iov.payloadHash(saved.hash());
-                log.debug("Saving iov {}", iov);
+                if (tagname == null) {
+                    tagname = iov.tag().name();
+                }
+                log.debug("Saving iov {} in tag {}", iov, tagname);
                 Iov savedIov = storeIov(iov);
                 dto.since(new BigDecimal(savedIov.id().since())).hash(savedIov.payloadHash());
                 dto.data(saved.objectType() + "; " + saved.objectName());

@@ -56,7 +56,7 @@ public class NatsAspect {
      * @param retVal the Iov
      * @return Object
      */
-    @AfterReturning(pointcut = "execution(* hep.crest.server.services.IovService.insertIov(*))",
+    @AfterReturning(pointcut = "execution(* hep.crest.server.services.PayloadService.storeIov(*))",
             returning = "retVal")
     public Object natsAlert(Object retVal) throws Throwable {
         Iov entity = (Iov) retVal;
