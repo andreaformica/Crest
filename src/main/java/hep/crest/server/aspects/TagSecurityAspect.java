@@ -50,7 +50,7 @@ public class TagSecurityAspect {
     @Around("execution(* hep.crest.server.services.TagService.insertTag(*)) && args(entity) "
             + " || execution(* hep.crest.server.services.TagService.updateTag(*)) && args(entity)")
     public Object checkRole(ProceedingJoinPoint pjp, Tag entity) throws Throwable {
-        log.debug("Tag insertion should verify the tag name : {}", entity);
+        log.debug("Tag insertions security control for : {}", entity);
         Object retVal = null;
         // If there is no or weak security activated then return.
         if ("none".equals(cprops.getSecurity()) || "weak".equals(cprops.getSecurity())) {
@@ -65,7 +65,7 @@ public class TagSecurityAspect {
                 retVal = pjp.proceed();
             }
             else {
-                log.warn("Cannot insert tag {} for clientid {}", entity, clientid);
+                log.warn("Cannot use tag {} for clientid {}", entity, clientid);
                 throw new NotAuthorizedException("You cannot write tag " + entity.name());
             }
         }

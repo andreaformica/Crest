@@ -259,7 +259,10 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             StoreSetDto storeset = jacksonMapper.readValue(jsonstoreset, StoreSetDto.class);
             log.info("Batch insertion of {} iovs", storeset.getSize());
             // use to send back a NotFound if the tag does not exists.
-            tagService.findOne(tag);
+            Tag tagentity = tagService.findOne(tag);
+            // Check security on tag using a fake update. This will trigger the TagSecurityAspect.
+            // It controls that the user has the right to update the tag.
+            tagService.updateTag(tagentity);
             // Add object type.
             if (objectType == null) {
                 if (storeset.getDatatype() != null) {
@@ -299,9 +302,11 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             // Change the end time in the tag.
             Tag tagEntity = tagService.findOne(tag);
             tagEntity.endOfValidity((endtime != null) ? endtime.toBigInteger() : BigInteger.ZERO);
+            // Update the modification time.
             tagEntity.modificationTime(Instant.now().toDate());
+            // Update the tag.
             tagService.updateTag(tagEntity);
-
+            // Return the result.
             return Response.status(Response.Status.CREATED).entity(outdto).build();
         }
         catch (RuntimeException | IOException e) {
