@@ -60,7 +60,7 @@ public class NatsAspect {
             returning = "retVal")
     public Object natsAlert(Object retVal) throws Throwable {
         Iov entity = (Iov) retVal;
-        log.debug("Iov insertion for tag {} will trigger NATS notification",
+        log.info("Iov insertion for tag {} will trigger NATS notification",
                 entity.id().tagName());
         Tag tag = tagService.findOne(entity.id().tagName());
         try {
