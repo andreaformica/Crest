@@ -297,4 +297,35 @@ public class IovService {
         }
         return groupsize;
     }
+
+    /**
+     * Non-transactional iov storage.
+     * Used to avoid updating tag as done in IovService.
+     * This method is called internally by the transactional method saveAll.
+     * You cannot intercept this with Aspect.
+     *
+     * @param entity
+     * @return Iov
+     */
+    public Iov storeIov(Iov entity) {
+        log.debug("Create iov from {}", entity);
+        final String tagname = entity.tag().name();
+        // The IOV is not yet stored. Verify that the tag exists before inserting it.
+        final Optional<Tag> tg = tagRepository.findById(tagname);
+        if (!tg.isPresent()) {
+            throw new CdbNotFoundException("Tag " + tagname + " not found: cannot insert IOV.");
+        }
+        Tag t = tg.get();
+        if (this.existsIov(t.name(), entity.id().since(), entity.payloadHash())) {
+            log.warn("Iov already exists [tag,since,hash]: {}", entity);
+            throw new ConflictException(
+                    "Iov already exists [tag,since,hash]: " + entity);
+        }
+        entity.tag(t);
+        entity.id().tagName(t.name());
+        log.debug("Storing iov entity {} in tag {}", entity, t);
+        final Iov saved = iovRepository.save(entity);
+        log.debug("Saved iov entity: {}", saved);
+        return saved;
+    }
 }
