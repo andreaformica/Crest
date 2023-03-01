@@ -311,7 +311,8 @@ public class PayloadService {
             }
             catch (final ConflictException e) {
                 log.warn("Payload insertion problem for hash {}: {}", entity.hash(), e);
-                throw new ConflictException("Cannot store payload " + entity.hash());
+                throw new ConflictException("Payload hash already exists " + entity.hash() + " "
+                                            + "since " + iov.id().since() + " in tag " + tagname);
             }
             catch (final IOException e) {
                 log.warn("Payload insertion problem for hash {}: {}", entity.hash(), e);
