@@ -315,7 +315,7 @@ public class PayloadService {
                                             + "since " + iov.id().since() + " in tag " + tagname);
             }
             catch (final IOException e) {
-                log.warn("Payload insertion problem for hash {}: {}", entity.hash(), e);
+                log.error("Payload insertion problem for hash {}: {}", entity.hash(), e);
                 throw new CdbInternalException("Cannot read payload file " + uploadedFile);
             }
             finally {

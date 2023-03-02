@@ -309,7 +309,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             // Return the result.
             return Response.status(Response.Status.CREATED).entity(outdto).build();
         }
-        catch (RuntimeException | IOException e) {
+        catch (IOException e) {
             log.error("Runtime exception while storing iovs and payloads....");
             throw new CdbInternalException(e);
         }

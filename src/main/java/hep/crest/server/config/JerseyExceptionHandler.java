@@ -1,11 +1,11 @@
 package hep.crest.server.config;
 
+import hep.crest.server.caching.CachingPolicyService;
 import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbBadRequestException;
-import hep.crest.server.caching.CachingPolicyService;
+import hep.crest.server.exceptions.ConflictException;
 import hep.crest.server.swagger.model.HTTPResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
@@ -23,11 +23,8 @@ import java.time.OffsetDateTime;
  * in case they are thrown by server code.
  */
 @Provider
+@Slf4j
 public class JerseyExceptionHandler implements ExceptionMapper<Exception> {
-    /**
-     * The logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(JerseyExceptionHandler.class);
 
     /**
      * Service.
