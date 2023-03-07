@@ -17,7 +17,7 @@ include:
 
 stages:
  - package_application
- - build_container
+ - build_docker_image
  - sonar_application
  - redeploy
 
@@ -61,32 +61,13 @@ build_container_job:
   rules:
     - if: $DO_DOCKER_IMAGE == "yes" && $CI_PIPELINE_SOURCE != 'merge_request_event' && $SITE == "cern"
   environment: cern
-  stage: build_container
+  stage: build_docker_image
   extends: .build_kaniko
   variables:
     REGISTRY_IMAGE_PATH : "registry.cern.ch/crest/$IMAGE:$VERSION"
     CONTEXT_DIR: ""
     PUSH_IMAGE: "true"
     DOCKER_FILE_NAME: "$CI_PROJECT_DIR/Dockerfile"
-
-build_docker_image_job:
-  stage: build_docker_image
-  environment: cern
-  image:
-    # We recommend using the CERN version of the Kaniko image: gitlab-registry.cern.ch/ci-tools/docker-image-builder
-    name: gitlab-registry.cern.ch/ci-tools/docker-image-builder
-    entrypoint: [""]
-  script:
-    - mkdir -p /kaniko/.docker
-    # Prepare Kaniko configuration file
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-      # Build and push the image from the Dockerfile at the root of the project.
-      # To push to a specific docker tag, amend the --destination parameter, e.g. --destination $CI_REGISTRY_IMAGE:$CI_BUILD_REF_NAME
-    # See https://docs.gitlab.com/ee/ci/variables/predefined_variables.html#variables-reference for available variables
-    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
-  allow_failure: false
-  rules:
-    - if: $DO_DOCKER_IMAGE == "yes" && $CI_PIPELINE_SOURCE != 'merge_request_event' && $SITE == "cern"
 
 redeploy_job:
   stage: redeploy
