@@ -13,7 +13,7 @@ before_script:
 include:
   - project : 'ci-tools/container-image-ci-templates'
     file : 'kaniko-image.gitlab-ci.yml'
-    ref: prod
+    ref: master
 
 stages:
  - package_application
