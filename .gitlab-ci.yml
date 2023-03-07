@@ -9,10 +9,15 @@ variables:
 # It is expected that any modern gradle project has a wrapper
 before_script:
   - chmod +x gradlew
+  -
+include:
+  - project : 'ci-tools/container-image-ci-templates'
+    file : 'kaniko-image.gitlab-ci.yml'
+    ref: prod
 
 stages:
  - package_application
- - build_docker_image
+ - build_container
  - sonar_application
  - redeploy
 
@@ -51,6 +56,18 @@ sonar_application_job:
   allow_failure: false
   rules:
     - if: $SITE == "svom" && $CI_COMMIT_BRANCH == "quality"
+
+build_container_job:
+  rules:
+    - if: $DO_DOCKER_IMAGE == "yes" && $CI_PIPELINE_SOURCE != 'merge_request_event' && $SITE == "cern"
+  environment: cern
+  stage: build_container
+  extends: .build_kaniko
+  variables:
+    REGISTRY_IMAGE_PATH : "registry.cern.ch/crest/$IMAGE:$VERSION"
+    CONTEXT_DIR: ""
+    PUSH_IMAGE: "true"
+    DOCKER_FILE_NAME: "$CI_PROJECT_DIR/Dockerfile"
 
 build_docker_image_job:
   stage: build_docker_image
