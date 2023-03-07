@@ -9,7 +9,7 @@ variables:
 # It is expected that any modern gradle project has a wrapper
 before_script:
   - chmod +x gradlew
-  -
+
 include:
   - project : 'ci-tools/container-image-ci-templates'
     file : 'kaniko-image.gitlab-ci.yml'
