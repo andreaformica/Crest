@@ -1,11 +1,11 @@
 package hep.crest.server.swagger.impl;
 
-import hep.crest.server.exceptions.CdbBadRequestException;
+import hep.crest.server.controllers.EntityDtoHelper;
+import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.pojo.TagMeta;
 import hep.crest.server.data.repositories.args.TagQueryArgs;
-import hep.crest.server.controllers.EntityDtoHelper;
-import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.exceptions.CdbBadRequestException;
 import hep.crest.server.services.TagMetaService;
 import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.api.NotFoundException;
@@ -75,7 +75,6 @@ public class TagsApiServiceImpl extends TagsApiService {
     @Autowired
     @Qualifier("mapper")
     private MapperFacade mapper;
-
     /*
      * (non-Javadoc)
      *
@@ -93,6 +92,7 @@ public class TagsApiServiceImpl extends TagsApiService {
         TagDto dto = mapper.map(saved, TagDto.class);
         // Response is 201.
         log.debug("Created tag DTO {}", dto);
+        log.info("Created tag {}", dto);
         return Response.created(info.getRequestUri()).entity(dto).build();
     }
 
@@ -142,6 +142,7 @@ public class TagsApiServiceImpl extends TagsApiService {
         }
         final Tag saved = tagService.updateTag(entity);
         TagDto dto = mapper.map(saved, TagDto.class);
+        log.info("Updated tag {}", dto);
         return Response.ok(info.getRequestUri()).entity(dto).build();
     }
 
@@ -153,7 +154,7 @@ public class TagsApiServiceImpl extends TagsApiService {
      */
     @Override
     public Response findTag(String name, SecurityContext securityContext, UriInfo info) {
-        log.info("TagRestController processing request for tag name " + name);
+        log.debug("TagRestController processing request for tag name " + name);
         final GenericMap filters = new GenericMap();
         filters.put("name", name);
         final Tag entity = tagService.findOne(name);
@@ -161,6 +162,7 @@ public class TagsApiServiceImpl extends TagsApiService {
         // Create the set.
         final TagSetDto respdto = (TagSetDto) new TagSetDto().addResourcesItem(dto).size(1L)
                 .filter(filters).datatype("tags");
+        log.info("Retrieved tag {}: {}", name, dto);
         return Response.ok().entity(respdto).build();
     }
 
@@ -204,6 +206,8 @@ public class TagsApiServiceImpl extends TagsApiService {
         filters.put("timeType", timeType);
         setdto.filter(filters);
         // Response is 200.
+        log.info("Retrieved tag list from filters {} size={} total={}",
+                filters, setdto.getSize(), respPage.getTotalElements());
         return Response.ok().entity(setdto).build();
     }
 
@@ -213,14 +217,15 @@ public class TagsApiServiceImpl extends TagsApiService {
      */
     @Override
     public Response createTagMeta(String name, TagMetaDto body, SecurityContext securityContext, UriInfo info) {
-        log.info("TagRestController processing request for creating a tag meta data entry for {}", name);
+        log.debug("TagRestController processing request for creating a tag meta data entry for {}",
+                name);
         final Tag tag = tagService.findOne(name);
         log.debug("Add meta information to tag {}", name);
         TagMeta entity = mapper.map(body, TagMeta.class);
 
         final TagMeta savedEntity = tagMetaService.insertTagMeta(entity);
         TagMetaDto saved = mapper.map(savedEntity, TagMetaDto.class);
-
+        log.info("Created tag meta data {}", saved);
         return Response.created(info.getRequestUri()).entity(saved).build();
     }
 
@@ -230,11 +235,12 @@ public class TagsApiServiceImpl extends TagsApiService {
      */
     @Override
     public Response findTagMeta(String name, SecurityContext securityContext, UriInfo info) throws NotFoundException {
-        this.log.info("TagRestController processing request to find tag metadata for name " + name);
+        log.debug("TagRestController processing request to find tag metadata for name " + name);
         final TagMeta entity = tagMetaService.find(name);
         final TagMetaDto dto = mapper.map(entity, TagMetaDto.class);
         final TagMetaSetDto respdto = (TagMetaSetDto) new TagMetaSetDto().addResourcesItem(dto).size(1L)
                 .datatype("tagmetas");
+        log.info("Retrieved tag meta data {}: {}", name, dto);
         return Response.ok().entity(respdto).build();
     }
 
@@ -246,7 +252,7 @@ public class TagsApiServiceImpl extends TagsApiService {
     @Override
     public Response updateTagMeta(String name, Map<String, String> body, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
-        log.info("TagRestController processing request for updating a tag meta information");
+        log.debug("TagRestController processing request for updating a tag meta information");
         TagMeta entity = tagMetaService.find(name);
         for (final String key : body.keySet()) {
             if (key == "description") {
@@ -265,6 +271,7 @@ public class TagsApiServiceImpl extends TagsApiService {
         }
         final TagMeta saved = tagMetaService.updateTagMeta(entity);
         final TagMetaDto dto = mapper.map(saved, TagMetaDto.class);
+        log.info("Updated tag meta data {}", dto);
         return Response.ok(info.getRequestUri()).entity(saved).build();
     }
 }

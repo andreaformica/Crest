@@ -3,6 +3,7 @@
  */
 package hep.crest.server.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Payload;
@@ -94,6 +95,13 @@ public class PayloadService {
     private PayloadInfoDataRepository payloadInfoDataRepository;
 
     /**
+     * Mapper.
+     */
+    @Autowired
+    @Qualifier("jacksonMapper")
+    private ObjectMapper jsonMapper;
+
+    /**
      * Select Payloads.
      *
      * @param args
@@ -160,8 +168,21 @@ public class PayloadService {
         PayloadInfoData entity = payloadInfoDataRepository.findById(hash).orElseThrow(
                 () -> new CdbNotFoundException("Cannot find streamer info for hash " + hash)
         );
-        entity.streamerInfo(sinfo.getBytes(StandardCharsets.UTF_8));
-        payloadInfoDataRepository.save(entity);
+        try {
+            Map<String, String> jsonmap =
+                    jsonMapper.readValue(entity.streamerInfo(), Map.class);
+            log.info("Retrieved streamer info for hash {}: {}", hash, jsonmap);
+            jsonmap.put("streamerInfo", sinfo);
+            String replacement = jsonMapper.writeValueAsString(jsonmap);
+            log.info("Update streamer info for hash {}: {}", hash, replacement);
+            entity.streamerInfo(replacement.getBytes(StandardCharsets.UTF_8));
+            payloadInfoDataRepository.save(entity);
+        }
+        catch (IOException e) {
+            log.error("Cannot update streamer info for hash {}: sinfo={} message={}",
+                    hash, sinfo, e.getMessage());
+            throw new CdbInternalException("Cannot update streamer info for hash " + hash, e);
+        }
     }
 
     /**
