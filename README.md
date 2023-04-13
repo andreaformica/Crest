@@ -30,7 +30,7 @@
 7. [Openshift](#openshift)
 8. [Clients](#clients)
 9. [Usage](USAGE.md)
-10. [Data Model](#CREST_DOC.md)
+10. [Data Model](CREST_DOC.md)
 
 ## Description
 Test project for the implementation of a generic purpose conditions database for physics experiment.

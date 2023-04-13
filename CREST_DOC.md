@@ -57,3 +57,16 @@ classDiagram
         +String objectType
     } 
 ```
+
+The entity relationship in the DB is illustrated in the following diagram:
+
+```mermaid
+erDiagram
+    GlobalTag ||..|{ GlobalTagMaps : maps
+    GlobalTagMaps }|..|| Tag: maps
+    Tag ||..|| Meta: description
+    Tag ||..o{ Iov : links
+    Iov }|--|| Payload : has
+    Payload ||..|| Data : contains
+    Payload ||..|| Streamer : contains 
+```
