@@ -20,10 +20,11 @@
 ```
 # Table of Contents
 1. [Description](#description)
+1. [Workflows](#workflows)
 
 ## Description
 CREST service is a RESTful API for the storage and retrieval of IOVs (Interval of Validity) and payloads.
-The data model behind this service is illustrated in the following diagram:
+The data model is illustrated in the following diagram:
 
 ```mermaid
 classDiagram
@@ -58,7 +59,7 @@ classDiagram
     } 
 ```
 
-The entity relationship in the DB is illustrated in the following diagram:
+The entity relationship in the relational DB is represented in the following diagram:
 
 ```mermaid
 erDiagram
@@ -70,3 +71,7 @@ erDiagram
     Payload ||..|| Data : contains
     Payload ||..|| Streamer : contains 
 ```
+
+## Workflows
+The typical operational workflows can 
+
