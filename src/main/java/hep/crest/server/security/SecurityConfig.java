@@ -15,18 +15,17 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
-import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 
 /**
  * Web security configuration. This is used only with profile keycloak.
  *
- * @version %I%, %G%
  * @author formica
- *
+ * @version %I%, %G%
  */
 @Profile({"keycloak"})
 @Configuration
@@ -50,7 +49,8 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
      */
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) {
-        KeycloakAuthenticationProvider keycloakAuthenticationProvider = keycloakAuthenticationProvider();
+        KeycloakAuthenticationProvider keycloakAuthenticationProvider =
+                keycloakAuthenticationProvider();
         keycloakAuthenticationProvider.setGrantedAuthoritiesMapper(new SimpleAuthorityMapper());
         auth.authenticationProvider(keycloakAuthenticationProvider);
     }
@@ -71,13 +71,24 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
         // Deal with specific configuration.
         if ("active".equals(cprops.getSecurity())) {
             // If active then authorize requests. Role is guest.
-            http.authorizeRequests()
-                    .antMatchers(HttpMethod.GET, "/**").permitAll()
-                    .antMatchers(HttpMethod.POST, "/**").hasAnyRole("guest")
-                    .antMatchers(HttpMethod.DELETE, "/**").hasAnyRole("guest")
-                    .anyRequest()
-                    .permitAll();
-            http.csrf().disable();
+            http
+                // stateless, sessionless: no need for csrf
+                .csrf(AbstractHttpConfigurer::disable)
+                // enforce stateless-ness on the spring side
+                .sessionManagement((sessionManagement) ->
+                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                // the rules
+                .authorizeRequests((authorizeRequests) -> authorizeRequests
+                        .antMatchers(HttpMethod.GET, "/actuator/health/**").permitAll()
+                        .antMatchers(HttpMethod.GET, "/**").hasRole("crest-viewer")
+                        // POST and PUT are more restricted
+                        .antMatchers(HttpMethod.POST, "/**").hasAnyRole("crest-expert", "crest-admin")
+                        .antMatchers(HttpMethod.PUT, "/**").hasAnyRole("crest-expert", "crest-admin")
+                        // DELETE is only for admin
+                        .antMatchers(HttpMethod.DELETE, "/**").hasRole("crest-admin")
+                        .anyRequest().denyAll()
+                );
         }
         else if ("none".equals(cprops.getSecurity())) {
             log.info("No security enabled for this server....");
