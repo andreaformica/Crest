@@ -191,9 +191,12 @@ public class IovsApiServiceImpl extends IovsApiService {
                                 Integer page, Integer size, String sort,
                                 String xCrestQuery, String xCrestSince, SecurityContext securityContext,
                                 UriInfo info) {
-        log.info("Search iovs list using method={}, tag={}, timeformat={}, page={}, size={}, "
+        log.info("Search iovs list using method={}, tag={}, since={}, until={}, timeformat={}, "
+                 + "page={}, size={}, "
                  + "sort={}", method,
                 tagname,
+                since,
+                until,
                 timeformat,
                 page,
                 size, sort);
