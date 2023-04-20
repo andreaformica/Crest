@@ -3,11 +3,14 @@
  */
 package hep.crest.server.aspects;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.CodeSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -36,12 +39,20 @@ public class ProfileAndLogAspect {
     public Object profileAndLog(ProceedingJoinPoint joinPoint) throws Throwable {
         final long start = System.currentTimeMillis();
         final Object[] args = joinPoint.getArgs();
-
-        Arrays.stream(args).forEach(s -> log.debug("Profile method {} with argument: {}",
-                joinPoint.toShortString(), s));
+        CodeSignature codeSignature = (CodeSignature) joinPoint.getSignature();
+        String[] parameters = codeSignature.getParameterNames();
+        List<String> logargs = new ArrayList<>();
+        for (int i = 0; i < parameters.length; i++) {
+            String keyval = String.format("%s=%s", parameters[i], args[i]);
+            logargs.add(keyval);
+        }
         final Object proceed = joinPoint.proceed();
         final long executionTime = System.currentTimeMillis() - start;
-        log.info("{} executed in {} ms", joinPoint.getSignature(), executionTime);
+        String outjson =
+                "method=" + joinPoint.toShortString()
+                + ", execTime=" + executionTime
+                + ", args:[" + String.join(",", logargs) + "]";
+        log.info(outjson);
         return proceed;
     }
 
