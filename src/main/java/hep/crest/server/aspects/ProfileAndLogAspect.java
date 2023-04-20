@@ -47,7 +47,7 @@ public class ProfileAndLogAspect {
             if (parameters[i].equals("securityContext") || parameters[i].equals("info")) {
                 continue;
             }
-            if (paramTypes[i].isInstance(String.class)) {
+            if (paramTypes[i].equals(String.class)) {
                 logargs.add(String.format("%s:'%s'", parameters[i], args[i]));
             }
             else {
