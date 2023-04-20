@@ -13,6 +13,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.CodeSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
 /**
@@ -47,20 +48,13 @@ public class ProfileAndLogAspect {
             if (parameters[i].equals("securityContext") || parameters[i].equals("info")) {
                 continue;
             }
-            if (paramTypes[i].equals(String.class)) {
-                logargs.add(String.format("%s:'%s'", parameters[i], args[i]));
-            }
-            else {
-                logargs.add(String.format("%s:%s", parameters[i], args[i]));
-            }
+            MDC.put(parameters[i], args[i].toString());
         }
         final Object proceed = joinPoint.proceed();
         final long executionTime = System.currentTimeMillis() - start;
-        String outjson =
-                "method:'" + joinPoint.toShortString()
-                + "', execTime:" + executionTime
-                + ", args:[" + String.join(",", logargs) + "]";
-        log.info(outjson);
+        MDC.put("execTime", String.valueOf(executionTime));
+        log.info("Profile {} ", joinPoint.toShortString());
+        MDC.clear();
         return proceed;
     }
 
