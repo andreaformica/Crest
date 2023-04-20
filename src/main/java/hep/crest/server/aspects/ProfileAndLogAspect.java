@@ -43,12 +43,11 @@ public class ProfileAndLogAspect {
         CodeSignature codeSignature = (CodeSignature) joinPoint.getSignature();
         String[] parameters = codeSignature.getParameterNames();
         Class[] paramTypes = codeSignature.getParameterTypes();
-        List<String> logargs = new ArrayList<>();
         for (int i = 0; i < parameters.length; i++) {
             if (parameters[i].equals("securityContext") || parameters[i].equals("info")) {
                 continue;
             }
-            MDC.put(parameters[i], args[i].toString());
+            MDC.put(parameters[i], (args[i] != null) ? args[i].toString() : "null");
         }
         final Object proceed = joinPoint.proceed();
         final long executionTime = System.currentTimeMillis() - start;
