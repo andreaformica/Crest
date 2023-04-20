@@ -46,6 +46,7 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
     /**
      * Registers the KeycloakAuthenticationProvider with the authentication manager.
+     * @param auth
      */
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) {
@@ -65,6 +66,9 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
         return new NullAuthenticatedSessionStrategy();
     }
 
+    /**
+     * Configure the security rules.
+     */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
