@@ -2,6 +2,7 @@ package hep.crest.server.swagger.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hep.crest.server.annotations.ProfileAndLog;
 import hep.crest.server.config.CrestProperties;
 import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbBadRequestException;
@@ -194,6 +195,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     //     For the moment we decide to use the cachecontrol filter (if active) via the method
     //     name definition, by looking for the annotation @Path
     @Override
+    @ProfileAndLog
     public Response getPayload(String hash, String format, SecurityContext securityContext,
                                UriInfo info) {
         log.info(
@@ -243,6 +245,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     }
 
     @Override
+    @ProfileAndLog
     public Response storePayloadBatch(String tag, String jsonstoreset, String xCrestPayloadFormat,
                                       List<FormDataBodyPart> filesBodypart, String objectType, String compressionType,
                                       String version, BigDecimal endtime, SecurityContext securityContext, UriInfo info)

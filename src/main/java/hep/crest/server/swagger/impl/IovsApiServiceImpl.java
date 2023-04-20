@@ -1,5 +1,6 @@
 package hep.crest.server.swagger.impl;
 
+import hep.crest.server.annotations.ProfileAndLog;
 import hep.crest.server.exceptions.CdbBadRequestException;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Tag;
@@ -142,6 +143,7 @@ public class IovsApiServiceImpl extends IovsApiService {
      * javax.ws.rs.core.UriInfo)
      */
     @Override
+    @ProfileAndLog
     public Response storeIovBatch(IovSetDto dto, SecurityContext securityContext,
                                            UriInfo info) {
         log.info("IovRestController processing request to upload iovs batch of size {}",
@@ -181,6 +183,7 @@ public class IovsApiServiceImpl extends IovsApiService {
     }
 
     @Override
+    @ProfileAndLog
     public Response findAllIovs(String method, String tagname, Long snapshot, String since, String until,
                                 String timeformat,
                                 Long groupsize,

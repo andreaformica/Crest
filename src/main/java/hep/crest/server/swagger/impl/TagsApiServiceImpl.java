@@ -1,5 +1,6 @@
 package hep.crest.server.swagger.impl;
 
+import hep.crest.server.annotations.ProfileAndLog;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.data.pojo.Tag;
@@ -174,6 +175,7 @@ public class TagsApiServiceImpl extends TagsApiService {
      * javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
      */
     @Override
+    @ProfileAndLog
     public Response listTags(String name, String timeType, String objectType, String description, Integer page,
                              Integer size, String sort,
                              SecurityContext securityContext, UriInfo info) {
@@ -234,6 +236,7 @@ public class TagsApiServiceImpl extends TagsApiService {
      * .SecurityContext, javax.ws.rs.core.UriInfo)
      */
     @Override
+    @ProfileAndLog
     public Response findTagMeta(String name, SecurityContext securityContext, UriInfo info) throws NotFoundException {
         log.debug("TagRestController processing request to find tag metadata for name " + name);
         final TagMeta entity = tagMetaService.find(name);
