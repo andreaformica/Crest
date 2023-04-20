@@ -57,7 +57,7 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
      */
     @Override
     public Response createGlobalTagMap(GlobalTagMapDto body, SecurityContext securityContext, UriInfo info) {
-        log.info("GlobalTagMapRestController processing request for creating a global tag map entry " + body);
+        log.info("Associate tag {} to globaltag {}", body.getTagName(), body.getGlobalTagName());
         // Insert new mapping resource.
         GlobalTagMap entity = mapper.map(body, GlobalTagMap.class);
         final GlobalTagMap saved = globaltagmapService.insertGlobalTagMap(entity);
@@ -74,7 +74,7 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
      */
     @Override
     public Response findGlobalTagMap(String name, String xCrestMapMode, SecurityContext securityContext, UriInfo info) {
-        log.info("GlobalTagMapRestController processing request to get map for GlobalTag name " + name);
+        log.info("Get tags for globaltag {} ", name);
         // Prepare filters
         final GenericMap filters = new GenericMap();
         filters.put("name", name);
@@ -106,7 +106,7 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
     public Response deleteGlobalTagMap(String name, @NotNull String label,
                                        @NotNull String tagname, String mrecord,
                                        SecurityContext securityContext, UriInfo info) {
-        log.info("GlobalTagMapRestController processing request to delete map for GlobalTag name " + name);
+        log.info("Remove association of tag {} for globaltag {} ", tagname, name);
         // Prepare filters
         final GenericMap filters = new GenericMap();
         filters.put("globaltagname", name);

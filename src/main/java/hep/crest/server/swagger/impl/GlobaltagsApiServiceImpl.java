@@ -83,7 +83,7 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
     @Override
     public Response createGlobalTag(String force, GlobalTagDto body,
                                     SecurityContext securityContext, UriInfo info) {
-        log.info("GlobalTagRestController processing request for creating a global tag");
+        log.info("Create a global tag {}", body.getName());
         // If the force mode is active, the insertion time is imposed by the client.
         if (force.equals("false")) {
             // Set to null so that is automatically generated.
@@ -131,18 +131,18 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
     @Override
     public Response findGlobalTagFetchTags(String name, String record, String label,
                                            SecurityContext securityContext, UriInfo info) {
+        log.info("Get tags for globaltag {} ", name);
         // Prepare filters.
         final GenericMap filters = new GenericMap();
         filters.put("name", name);
         // Search for a global tag and associated tags. Use record and label.
         // Presets for record and label is "none".
-        log.info("GlobalTagRestController processing request for global tag name " + name);
         // Fetch tags via record and label.
         final List<Tag> entitylist = globaltagService.getGlobalTagByNameFetchTags(name, record,
                 label);
         final List<TagDto> dtolist = edh.entityToDtoList(entitylist, TagDto.class);
         final long listsize = dtolist == null ? 0L : dtolist.size();
-        log.debug("Found list of tags of length {}", listsize);
+        log.debug("Found list of {} tags for globaltag {}", listsize, name);
 
         final CrestBaseResponse setdto = new TagSetDto().resources(dtolist)
                 .format("TagSetDto")
@@ -155,7 +155,8 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
             , String description, Integer page, Integer size, String sort, SecurityContext securityContext,
                                    UriInfo info)
             throws NotFoundException {
-        log.debug("Search resource list using name={}, page={}, size={}, sort={}", name, page, size,
+        log.info("Search global tag list using name={}, page={}, size={}, sort={}", name, page,
+                size,
                 sort);
         if (name.equalsIgnoreCase("all")) {
             name = "%";

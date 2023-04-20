@@ -146,7 +146,7 @@ public class IovsApiServiceImpl extends IovsApiService {
     @ProfileAndLog
     public Response storeIovBatch(IovSetDto dto, SecurityContext securityContext,
                                            UriInfo info) {
-        log.info("IovRestController processing request to upload iovs batch of size {}",
+        log.info("Upload iovs batch of size {}",
                 dto.getSize());
         // Prepare the iov list to insert and a list representing iovs really inserted.
         final List<IovDto> iovlist = dto.getResources();
@@ -191,7 +191,8 @@ public class IovsApiServiceImpl extends IovsApiService {
                                 Integer page, Integer size, String sort,
                                 String xCrestQuery, String xCrestSince, SecurityContext securityContext,
                                 UriInfo info) {
-        log.debug("Search resource list using method={}, tag={}, timeformat={}, page={}, size={}, sort={}", method,
+        log.info("Search iovs list using method={}, tag={}, timeformat={}, page={}, size={}, "
+                 + "sort={}", method,
                 tagname,
                 timeformat,
                 page,

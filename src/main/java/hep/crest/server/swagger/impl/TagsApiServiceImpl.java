@@ -85,14 +85,12 @@ public class TagsApiServiceImpl extends TagsApiService {
      */
     @Override
     public Response createTag(TagDto body, SecurityContext securityContext, UriInfo info) {
-        log.info("TagRestController processing request for creating a tag");
+        log.info("Creating a new tag {}", body.getName());
         // Create a tag.
         Tag entity = mapper.map(body, Tag.class);
         final Tag saved = tagService.insertTag(entity);
-        log.debug("Created tag {}", saved);
         TagDto dto = mapper.map(saved, TagDto.class);
         // Response is 201.
-        log.debug("Created tag DTO {}", dto);
         log.info("Created tag {}", dto);
         return Response.created(info.getRequestUri()).entity(dto).build();
     }
@@ -179,7 +177,7 @@ public class TagsApiServiceImpl extends TagsApiService {
     public Response listTags(String name, String timeType, String objectType, String description, Integer page,
                              Integer size, String sort,
                              SecurityContext securityContext, UriInfo info) {
-        log.debug("Search resource list using name={}, page={}, size={}, sort={}", name, page, size,
+        log.info("Search tag list using name={}, page={}, size={}, sort={}", name, page, size,
                 sort);
         if (name.equalsIgnoreCase("all")) {
             name = "%";
@@ -238,7 +236,7 @@ public class TagsApiServiceImpl extends TagsApiService {
     @Override
     @ProfileAndLog
     public Response findTagMeta(String name, SecurityContext securityContext, UriInfo info) throws NotFoundException {
-        log.debug("TagRestController processing request to find tag metadata for name " + name);
+        log.info("Search tag metadata for name " + name);
         final TagMeta entity = tagMetaService.find(name);
         final TagMetaDto dto = mapper.map(entity, TagMetaDto.class);
         final TagMetaSetDto respdto = (TagMetaSetDto) new TagMetaSetDto().addResourcesItem(dto).size(1L)
@@ -255,7 +253,8 @@ public class TagsApiServiceImpl extends TagsApiService {
     @Override
     public Response updateTagMeta(String name, Map<String, String> body, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
-        log.debug("TagRestController processing request for updating a tag meta information");
+        log.info("TagRestController processing request for updating a tag meta information for "
+                 + "name {}", name);
         TagMeta entity = tagMetaService.find(name);
         for (final String key : body.keySet()) {
             if (key == "description") {

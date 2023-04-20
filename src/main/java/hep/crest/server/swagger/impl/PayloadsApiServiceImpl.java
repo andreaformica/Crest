@@ -199,7 +199,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     public Response getPayload(String hash, String format, SecurityContext securityContext,
                                UriInfo info) {
         log.info(
-                "PayloadRestController processing request to download payload {} using format {}",
+                "Get payload {} using format {}",
                 hash, format);
         // Get only metadata from the payload.
         final Payload entity = payloadService.getPayload(hash);
@@ -251,7 +251,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                                       String version, BigDecimal endtime, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
         this.log.info(
-                "PayloadRestController processing request to store payload batch in tag {} with multi-iov ",
+                "Store payload batch in tag {} with multi-iov ",
                 tag);
         try {
             // Read input FormData as an IovSet object.
