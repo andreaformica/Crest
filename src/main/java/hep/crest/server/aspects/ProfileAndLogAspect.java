@@ -46,14 +46,14 @@ public class ProfileAndLogAspect {
             if (parameters[i].equals("securityContext") || parameters[i].equals("info")) {
                 continue;
             }
-            String keyval = String.format("%s=%s", parameters[i], args[i]);
+            String keyval = String.format("%s:%s", parameters[i], args[i]);
             logargs.add(keyval);
         }
         final Object proceed = joinPoint.proceed();
         final long executionTime = System.currentTimeMillis() - start;
         String outjson =
-                "method=" + joinPoint.toShortString()
-                + ", execTime=" + executionTime
+                "method:" + joinPoint.toShortString()
+                + ", execTime:" + executionTime
                 + ", args:[" + String.join(",", logargs) + "]";
         log.info(outjson);
         return proceed;
