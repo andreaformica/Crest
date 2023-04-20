@@ -43,6 +43,9 @@ public class ProfileAndLogAspect {
         String[] parameters = codeSignature.getParameterNames();
         List<String> logargs = new ArrayList<>();
         for (int i = 0; i < parameters.length; i++) {
+            if (parameters[i].equals("securityContext") || parameters[i].equals("info")) {
+                continue;
+            }
             String keyval = String.format("%s=%s", parameters[i], args[i]);
             logargs.add(keyval);
         }
