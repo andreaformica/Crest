@@ -41,19 +41,24 @@ public class ProfileAndLogAspect {
         final Object[] args = joinPoint.getArgs();
         CodeSignature codeSignature = (CodeSignature) joinPoint.getSignature();
         String[] parameters = codeSignature.getParameterNames();
+        Class[] paramTypes = codeSignature.getParameterTypes();
         List<String> logargs = new ArrayList<>();
         for (int i = 0; i < parameters.length; i++) {
             if (parameters[i].equals("securityContext") || parameters[i].equals("info")) {
                 continue;
             }
-            String keyval = String.format("%s:%s", parameters[i], args[i]);
-            logargs.add(keyval);
+            if (paramTypes[i].isInstance(String.class)) {
+                logargs.add(String.format("%s:'%s'", parameters[i], args[i]));
+            }
+            else {
+                logargs.add(String.format("%s:%s", parameters[i], args[i]));
+            }
         }
         final Object proceed = joinPoint.proceed();
         final long executionTime = System.currentTimeMillis() - start;
         String outjson =
-                "method:" + joinPoint.toShortString()
-                + ", execTime:" + executionTime
+                "method:'" + joinPoint.toShortString()
+                + "', execTime:" + executionTime
                 + ", args:[" + String.join(",", logargs) + "]";
         log.info(outjson);
         return proceed;
