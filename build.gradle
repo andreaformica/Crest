@@ -1,7 +1,7 @@
 plugins {
     id 'checkstyle'
     id "org.openapi.generator" version "5.4.0"
-    id 'org.springframework.boot' version '2.7.5'
+    id 'org.springframework.boot' version '2.7.11'
     id 'io.spring.dependency-management' version '1.0.15.RELEASE'
     id "org.sonarqube" version "3.0"
     id 'jacoco'
@@ -129,6 +129,7 @@ configurations {
     sourceCompatibility = 11
     targetCompatibility = 11
     compile.exclude module: "spring-boot-starter-tomcat"
+    compile.exclude module: "spring-boot-starter-logging"
 }
 
 tasks.register('list') {
@@ -245,12 +246,14 @@ dependencies {
     annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jpa"
     annotationProcessor 'org.springframework.boot:spring-boot-starter-data-jpa' // needed because the query dsl annotation processor doesn't recognize javax.persistence.Entity
 
-
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation ('org.springframework.boot:spring-boot-starter-data-jpa') {
+        exclude module: 'spring-boot-starter-logging'
+    }
     implementation "com.querydsl:querydsl-jpa:5.0.0"
 
     implementation ("org.springframework.boot:spring-boot-starter-web") {
         exclude module: 'spring-boot-starter-tomcat'
+        exclude module: 'spring-boot-starter-logging'
     }
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation ("org.springframework.boot:spring-boot-starter-undertow")
@@ -272,10 +275,17 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-databind"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-joda"
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-csv"
+    // Micrometer
+    implementation 'io.micrometer:micrometer-registry-elastic:1.10.2'
+    implementation 'io.micrometer:micrometer-core:1.10.2'
+
+
     // Logback
     //implementation "ch.qos.logback.contrib:logback-json-classic:0.1.5"
     //implementation "ch.qos.logback.contrib:logback-jackson:0.1.5"
     //implementation 'ch.qos.logback:logback-core:1.4.5'
+    //runtimeOnly "ch.qos.logback:logback-access:1.2.11"
+    //runtimeOnly "ch.qos.logback:logback-access:1.2.12"
     runtimeOnly 'net.logstash.logback:logstash-logback-encoder:7.3'
 
     implementation("org.springframework.ldap:spring-ldap-core")
