@@ -47,11 +47,14 @@ public class ProfileAndLogAspect {
             if (parameters[i].equals("securityContext") || parameters[i].equals("info")) {
                 continue;
             }
-            MDC.put(parameters[i], (args[i] != null) ? args[i].toString() : "null");
+            if (args[i] == null) {
+                continue;
+            }
+            MDC.put(parameters[i], args[i].toString());
         }
         final Object proceed = joinPoint.proceed();
         final long executionTime = System.currentTimeMillis() - start;
-        MDC.put("execTime", String.valueOf(executionTime));
+        MDC.put("crest_execution_time", String.valueOf(executionTime));
         log.info("Profile {} ", joinPoint.toShortString());
         MDC.clear();
         return proceed;

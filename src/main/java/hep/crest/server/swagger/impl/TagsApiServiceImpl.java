@@ -105,7 +105,7 @@ public class TagsApiServiceImpl extends TagsApiService {
     @Override
     public Response updateTag(String name, Map<String, String> body, SecurityContext securityContext,
                               UriInfo info) {
-        log.info("TagRestController processing request for updating a tag");
+        log.info("Updating tag {}", name);
         // Search tag.
         final Tag entity = tagService.findOne(name);
         // Send a bad request if body is null.
@@ -153,7 +153,7 @@ public class TagsApiServiceImpl extends TagsApiService {
      */
     @Override
     public Response findTag(String name, SecurityContext securityContext, UriInfo info) {
-        log.debug("TagRestController processing request for tag name " + name);
+        log.debug("Get tag {} ", name);
         final GenericMap filters = new GenericMap();
         filters.put("name", name);
         final Tag entity = tagService.findOne(name);
@@ -177,8 +177,10 @@ public class TagsApiServiceImpl extends TagsApiService {
     public Response listTags(String name, String timeType, String objectType, String description, Integer page,
                              Integer size, String sort,
                              SecurityContext securityContext, UriInfo info) {
-        log.info("Search tag list using name={}, page={}, size={}, sort={}", name, page, size,
-                sort);
+        log.info("Search tag list using name={}, timeType={}, objectType={}, descrition={}, "
+                 + "page={}, "
+                 + "size={}, "
+                 + "sort={}", name, timeType, objectType, description, page, size, sort);
         if (name.equalsIgnoreCase("all")) {
             name = "%";
         }

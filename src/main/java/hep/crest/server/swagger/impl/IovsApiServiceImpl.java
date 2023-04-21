@@ -281,6 +281,7 @@ public class IovsApiServiceImpl extends IovsApiService {
     @Override
     public Response getSizeByTag(@NotNull String tagname, SecurityContext securityContext,
                                  UriInfo info) {
+        log.info("Get size of iovs for tag {}", tagname);
         // Get the tag summary list corresponding to the tagname pattern.
         // The method in the service sends back always a list, eventually empty.
         final List<TagSummaryDto> entitylist = iovService.getTagSummaryInfo(tagname);
@@ -349,7 +350,7 @@ public class IovsApiServiceImpl extends IovsApiService {
             throws NotFoundException {
 
         log.info(
-                "IovRestController processing request for iovs and payloads meta using tag name {} and range {} - {} ",
+                "Search iovs and payloads metadata using tag {} and range {} - {} ",
                 tagname, since, until);
         List<IovPayloadDto> dtolist = null;
         if (timeformat == null) {

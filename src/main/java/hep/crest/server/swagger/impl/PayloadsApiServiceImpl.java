@@ -3,11 +3,11 @@ package hep.crest.server.swagger.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.server.annotations.ProfileAndLog;
+import hep.crest.server.caching.CachingPolicyService;
 import hep.crest.server.config.CrestProperties;
-import hep.crest.server.exceptions.AbstractCdbServiceException;
-import hep.crest.server.exceptions.CdbBadRequestException;
-import hep.crest.server.exceptions.CdbInternalException;
-import hep.crest.server.exceptions.PayloadEncodingException;
+import hep.crest.server.controllers.EntityDtoHelper;
+import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.controllers.SimpleLobStreamerProvider;
 import hep.crest.server.converters.PayloadHandler;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.IovId;
@@ -19,10 +19,10 @@ import hep.crest.server.data.repositories.PayloadDataRepository;
 import hep.crest.server.data.repositories.PayloadInfoDataRepository;
 import hep.crest.server.data.repositories.PayloadRepository;
 import hep.crest.server.data.repositories.args.PayloadQueryArgs;
-import hep.crest.server.caching.CachingPolicyService;
-import hep.crest.server.controllers.EntityDtoHelper;
-import hep.crest.server.controllers.PageRequestHelper;
-import hep.crest.server.controllers.SimpleLobStreamerProvider;
+import hep.crest.server.exceptions.AbstractCdbServiceException;
+import hep.crest.server.exceptions.CdbBadRequestException;
+import hep.crest.server.exceptions.CdbInternalException;
+import hep.crest.server.exceptions.PayloadEncodingException;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.PayloadService;
 import hep.crest.server.services.StorableData;
@@ -91,7 +91,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     /**
      * The list of payload types for download.
      */
-    private static final List<String> payloadlist = Arrays.asList("png", "svg", "json", "xml", "csv", "txt", "tgz",
+    private static final List<String> payloadlist = Arrays.asList("png", "svg", "json", "xml",
+            "csv", "txt", "tgz",
             "gz", "pdf");
 
     /**
@@ -163,10 +164,12 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     private MapperFacade mapper;
 
     @Override
-    public Response listPayloads(String hash, String objectType, Integer minsize, Integer page, Integer size,
+    public Response listPayloads(String hash, String objectType, Integer minsize, Integer page,
+                                 Integer size,
                                  String sort, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
-        log.info("PayloadController processing requests for payload metadata: {} {} {}", hash, objectType, minsize);
+        log.info("PayloadController processing requests for payload metadata: {} {} {}", hash,
+                objectType, minsize);
         PayloadQueryArgs args = new PayloadQueryArgs();
         args.size(minsize).hash(hash).objectType(objectType);
         // Create filters
@@ -216,6 +219,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         // Set caching policy depending on snapshot argument
         // this is filling a mag-age parameter in the header
         final CacheControl cc = cachesvc.getPayloadCacheControl();
+        log.debug("Set cache control to {}", cc);
         StreamingOutput streamingOutput = edh.makeStreamingOutputFromLob(
                 new SimpleLobStreamerProvider(hash, format) {
                     @Override
@@ -247,20 +251,23 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     @Override
     @ProfileAndLog
     public Response storePayloadBatch(String tag, String jsonstoreset, String xCrestPayloadFormat,
-                                      List<FormDataBodyPart> filesBodypart, String objectType, String compressionType,
-                                      String version, BigDecimal endtime, SecurityContext securityContext, UriInfo info)
+                                      List<FormDataBodyPart> filesBodypart, String objectType,
+                                      String compressionType,
+                                      String version, BigDecimal endtime,
+                                      SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
-        this.log.info(
+        log.info(
                 "Store payload batch in tag {} with multi-iov ",
                 tag);
         try {
             // Read input FormData as an IovSet object.
             if (tag == null || jsonstoreset == null) {
                 throw new CdbBadRequestException(
-                        "Cannot upload payload in batch mode : form is missing a field, " + tag + " - " + jsonstoreset);
+                        "Cannot upload payload in batch mode : form is missing a field, " + tag
+                        + " - " + jsonstoreset);
             }
             StoreSetDto storeset = jacksonMapper.readValue(jsonstoreset, StoreSetDto.class);
-            log.info("Batch insertion of {} iovs", storeset.getSize());
+            log.debug("Batch insertion of {} iovs", storeset.getSize());
             // use to send back a NotFound if the tag does not exists.
             Tag tagentity = tagService.findOne(tag);
             // Check security on tag using a fake update. This will trigger the TagSecurityAspect.
@@ -287,10 +294,12 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             if ("FILE".equalsIgnoreCase(xCrestPayloadFormat)) {
                 // Check that number of files is not too much.
                 if (filesBodypart == null) {
-                    throw new CdbBadRequestException("Cannot use header FILE with empty list of files");
+                    throw new CdbBadRequestException("Cannot use header FILE with empty list of "
+                                                     + "files");
                 }
                 if (filesBodypart.size() > MAX_FILE_UPLOAD) {
-                    throw new CdbBadRequestException("Too many files uploaded : more than " + MAX_FILE_UPLOAD);
+                    throw new CdbBadRequestException(
+                            "Too many files uploaded : more than " + MAX_FILE_UPLOAD);
                 }
                 // Only the payload format FILE is allowed here.
                 // This was created to eventually merge with other methods later on.
@@ -309,6 +318,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             tagEntity.modificationTime(Instant.now().toDate());
             // Update the tag.
             tagService.updateTag(tagEntity);
+            log.info("Batch insertion of {} iovs done", storeset.getSize());
             // Return the result.
             return Response.status(Response.Status.CREATED).entity(outdto).build();
         }
@@ -345,7 +355,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             sinfomap.put("insertionDate", new Date().toString());
             sinfomap.put("streamerInfo", piovDto.getStreamerInfo());
 
-            // Here we generate objectType and version. We should probably allow for input arguments.
+            // Here we generate objectType and version. We should probably allow for input
+            // arguments.
             Payload entity = new Payload().objectType(objectType).hash("none").version(version);
             entity.compressionType("none");
             entity.size(0);
@@ -438,7 +449,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         }
         // Create a temporary file name from tag name and time of validity.
         return cprops.getDumpdir() + SLASH + tag + "_" + since
-                         + fdetailsname;
+               + fdetailsname;
     }
 
     /**
@@ -460,10 +471,12 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     }
 
     @Override
-    public Response updatePayload(String hash, Map<String, String> body, SecurityContext securityContext,
+    public Response updatePayload(String hash, Map<String, String> body,
+                                  SecurityContext securityContext,
                                   UriInfo info) {
         log.info(
-                "PayloadRestController processing request for update payload meta information for {}",
+                "PayloadRestController processing request for update payload meta information for"
+                + " {}",
                 hash);
         // Send a bad request if body is null.
         if (body == null) {
@@ -501,7 +514,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      * @return Map<String, Object>
      * @throws PayloadEncodingException If an Exception occurred
      */
-    protected Map<String, Object> getDocumentStream(StoreDto mddto, List<FormDataBodyPart> bodyParts)
+    protected Map<String, Object> getDocumentStream(StoreDto mddto,
+                                                    List<FormDataBodyPart> bodyParts)
             throws PayloadEncodingException {
         log.debug("Extracting document BLOB for file {}", mddto.getData());
         final Map<String, Object> retmap = new HashMap<>();
@@ -586,12 +600,12 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
 
     /**
      * @param entityList the PayloadDto list
-     * @param map the filters
+     * @param map        the filters
      * @return PayloadSetDto
      */
     protected PayloadSetDto buildSet(List<PayloadDto> entityList, GenericMap map) {
         final PayloadSetDto psetdto = new PayloadSetDto().resources(entityList);
-        psetdto.datatype("payloads").filter(map).size((long)entityList.size());
+        psetdto.datatype("payloads").filter(map).size((long) entityList.size());
         return psetdto;
     }
 
