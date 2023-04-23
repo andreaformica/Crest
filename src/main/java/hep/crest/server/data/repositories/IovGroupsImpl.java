@@ -71,8 +71,7 @@ public class IovGroupsImpl extends DataGeneral implements IovGroupsCustom {
                                  + "ORDER BY SINCE";
         log.debug("Execute selectSnapshotGroups query {}", sql);
 
-        List<BigDecimal> sinceList = jdbcTemplate.queryForList(sql, BigDecimal.class, tagname, snap, groupfreq,
-                groupfreq);
+        List<BigDecimal> sinceList = jdbcTemplate.queryForList(sql, BigDecimal.class, tagname, snap, groupfreq);
         BigDecimal a = sinceList.get(0);
         log.info("Return elements like {} ", a);
         return sinceList.stream().map(BigDecimal::toBigInteger)
