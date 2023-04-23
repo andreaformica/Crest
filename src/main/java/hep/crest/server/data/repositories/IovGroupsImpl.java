@@ -57,7 +57,7 @@ public class IovGroupsImpl extends DataGeneral implements IovGroupsCustom {
         final String tablename = getCrestTableNames().getIovTableName();
         // Set the default group frequency at 1000. This can be changed via groupsize argument.
         Long groupfreq = 1000L;
-        if (groupsize != null && groupsize > 0) {
+        if (groupsize != null && groupsize > 10) {
             groupfreq = groupsize;
         }
         String snaptime = " and iv.INSERTION_TIME<=? ";
