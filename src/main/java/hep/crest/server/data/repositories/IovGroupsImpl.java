@@ -47,29 +47,6 @@ public class IovGroupsImpl extends DataGeneral implements IovGroupsCustom {
         super(ds);
     }
 
-    @Override
-    public List<BigInteger> selectGroups(String tagname, Long groupsize) {
-        log.info("Select Iov Groups for tag {} with group size {} using JDBCTEMPLATE", tagname,
-                groupsize);
-        final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-        final String tablename = getCrestTableNames().getIovTableName();
-        // Set the default group frequency at 1000. This can be changed via groupsize argument.
-        Integer groupfreq = 1000;
-        if (groupsize != null && groupsize > 0) {
-            groupfreq = groupsize.intValue();
-        }
-        final String sql = "select MIN(SINCE) from " + tablename + " where TAG_NAME=? "
-                           + " group by floor(SINCE/?)*? "
-                           + " order by min(SINCE)";
-//      usage of select floor(SINCE/?)*? did not work in some DBs.
-
-        log.debug("Execute selectGroups query {}", sql);
-        List<BigDecimal> sinceList = jdbcTemplate.queryForList(sql, BigDecimal.class, tagname, groupfreq, groupfreq);
-        BigDecimal a = sinceList.get(0);
-        log.debug("Return elements like {} ", a);
-        return sinceList.stream().map(BigDecimal::toBigInteger)
-                .collect(Collectors.toList());
-    }
 
     @Override
     public List<BigInteger> selectSnapshotGroups(String tagname, Date snap, Long groupsize) {
@@ -83,10 +60,15 @@ public class IovGroupsImpl extends DataGeneral implements IovGroupsCustom {
         if (groupsize != null && groupsize > 0) {
             groupfreq = groupsize;
         }
-        final String sql = "select MIN(SINCE) from " + tablename
-                           + " where TAG_NAME=? and INSERTION_TIME<=? "
-                           + " group by floor(SINCE/?)*? "
-                           + " order by min(SINCE)";
+        String snaptime = " and iv.INSERTION_TIME<=? ";
+        if (snap == null) {
+            snaptime = " and ? is null ";
+        }
+        final String sql = "with tag_iov as ("
+                                 + " select iv.SINCE, rownum as rid from " + tablename + " iv "
+                                 + "   where iv.TAG_NAME=? " + snaptime + " ) "
+                                 + "select ti.SINCE from tag_iov ti where mod(rid, ?) = 0 "
+                                 + "ORDER BY SINCE";
         log.debug("Execute selectSnapshotGroups query {}", sql);
 
         List<BigDecimal> sinceList = jdbcTemplate.queryForList(sql, BigDecimal.class, tagname, snap, groupfreq,

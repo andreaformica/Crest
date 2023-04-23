@@ -95,13 +95,8 @@ public class IovService {
     public List<BigInteger> selectGroupsByTagNameAndSnapshotTime(String tagname, Date snapshot,
                                                                  Long groupsize) {
         log.debug("Search for iovs groups by tag name {} and snapshot time {}", tagname, snapshot);
-        List<BigInteger> minsincelist = null;
-        if (snapshot == null) {
-            minsincelist = iovgroupsrepo.selectGroups(tagname, groupsize);
-        }
-        else {
-            minsincelist = iovgroupsrepo.selectSnapshotGroups(tagname, snapshot, groupsize);
-        }
+        List<BigInteger> minsincelist = iovgroupsrepo.selectSnapshotGroups(tagname, snapshot,
+                groupsize);
         if (minsincelist == null) {
             minsincelist = new ArrayList<>();
         }
