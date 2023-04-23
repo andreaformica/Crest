@@ -58,13 +58,6 @@ public class Application {
     public KeycloakSpringBootConfigResolver keycloakConfigResolver() {
         return new KeycloakSpringBootConfigResolver();
     }
-    /**
-     * Create logging for metrics.
-     */
-    @Bean
-    LoggingMeterRegistry loggingMeterRegistry() {
-        return new LoggingMeterRegistry();
-    }
 
     /**
      * @param args the arguments.
