@@ -69,13 +69,20 @@ build_container_job:
     PUSH_IMAGE: "true"
     DOCKER_FILE_NAME: "Dockerfile"
 
-redeploy_job:
+update_imagestream_and_redeploy:
   stage: redeploy
-  environment: cern
   image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
-  script: "oc import-image $IMAGE_NAME  --server=$SERVER --namespace $NAMESPACE --all --token=$IMAGE_IMPORT_TOKEN"
-  rules:
-    - if: $DO_DEPLOY == "yes" && $CI_COMMIT_BRANCH == "deploy" && $CI_PIPELINE_SOURCE != 'merge_request_event' && $SITE == "cern"
+  variables:
+    SERVER: https://api.paas.okd.cern.ch
+    PROJECT: crest-undertow   # name of your Openshift project
+    APP_NAME: crest-service  # name of the ImageStream/DeploymentConfig objects created by oc new-app
+  script:
+    - oc login $SERVER --token=$DEPLOY_TOKEN
+    - oc project $PROJECT
+    - oc import-image $APP_NAME --all
+    - sleep 10 && oc rollout status deploymentconfig/$APP_NAME
+  # if you are using Openshift's DeploymentConfig (instead of regular Deployments), use this command:
+  # - sleep 10 && oc rollout status deploymentconfig/$APP_NAME
 
 build_docker_image_svom:
   stage: build_docker_image
