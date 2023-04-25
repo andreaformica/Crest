@@ -3,18 +3,18 @@
  */
 package hep.crest.server.aspects;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.CodeSignature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @version %I%, %G%
@@ -23,12 +23,15 @@ import org.springframework.stereotype.Component;
  */
 @Aspect
 @Component
+@Slf4j
 public class ProfileAndLogAspect {
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(ProfileAndLogAspect.class);
 
+    /**
+     * The jackson mapper.
+     */
+    @Autowired
+    @Qualifier("jacksonMapper")
+    private ObjectMapper mapper;
     /**
      * @param joinPoint
      *            the ProceedingJoinPoint
@@ -43,6 +46,7 @@ public class ProfileAndLogAspect {
         CodeSignature codeSignature = (CodeSignature) joinPoint.getSignature();
         String[] parameters = codeSignature.getParameterNames();
         Class[] paramTypes = codeSignature.getParameterTypes();
+        Map<String, Object> esParams = new HashMap<>();
         for (int i = 0; i < parameters.length; i++) {
             if (parameters[i].equals("securityContext") || parameters[i].equals("info")) {
                 continue;
@@ -50,13 +54,13 @@ public class ProfileAndLogAspect {
             if (args[i] == null) {
                 continue;
             }
-            MDC.put(parameters[i], args[i].toString());
+            esParams.put(parameters[i], args[i]);
         }
         final Object proceed = joinPoint.proceed();
         final long executionTime = System.currentTimeMillis() - start;
-        MDC.put("crest_execution_time", String.valueOf(executionTime));
-        log.info("Profile {} ", joinPoint.toShortString());
-        MDC.clear();
+        esParams.put("crest_execution_time", executionTime);
+        esParams.put("crest_profile", joinPoint.toShortString());
+        log.info("{}", mapper.writeValueAsString(esParams));
         return proceed;
     }
 
