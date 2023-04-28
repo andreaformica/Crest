@@ -61,6 +61,8 @@ public class TagSecurityAspect {
             // Check the authentication.
             final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             String clientid = userinfo.getUserId(auth);
+            String role = entity.name().split("-")[0].toLowerCase();
+            Boolean hasrole = userinfo.isUserInRole(auth, role);
             if (entity.name().startsWith(clientid) || entity.name().startsWith("TEST")) {
                 retVal = pjp.proceed();
             }
