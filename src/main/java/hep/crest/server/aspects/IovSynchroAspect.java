@@ -76,8 +76,10 @@ public class IovSynchroAspect {
         else {
             // Check the authentication.
             final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String clientid = userinfo.getUserId(auth);
-            if (entity.tag().name().startsWith(clientid) || entity.tag().name().startsWith("TEST")) {
+            String role = entity.tag().name().split("-")[0].toLowerCase();
+            Boolean hasrole = userinfo.isUserInRole(auth, role);
+            if (hasrole || entity.tag().name().startsWith("TEST")) {
+                log.info("User is allowed to write IOVs into tag {}", entity.tag().name());
                 allowedOperation = true;
             }
         }

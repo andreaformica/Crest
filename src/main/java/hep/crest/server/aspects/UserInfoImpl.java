@@ -61,27 +61,37 @@ public class UserInfoImpl implements UserInfo {
         if (user != null) {
             // Search if tagname is in list of roles.
             String crestrole = "ROLE_crest-" + role;
-            Optional<? extends GrantedAuthority> userRole = roles.stream()
-                    .filter(r -> r.getAuthority().equalsIgnoreCase(crestrole)).findFirst();
-            if (userRole.isPresent()) {
-                log.info("User is in role {} : he can create tag with name {}",
-                        userRole.get().getAuthority(),
-                        role);
+            if (isRole(crestrole, roles)) {
                 return Boolean.TRUE;
             }
-            else {
-                log.info("check if user is an admin");
-                Optional<? extends GrantedAuthority> adminRole = roles.stream()
-                        .filter(r -> r.getAuthority().contains("admin")).findFirst();
-                if (adminRole.isPresent()) {
-                    log.info("User is an admin: he can create any tag");
-                    return Boolean.TRUE;
-                }
+            if (isRole("ROLE_crest-admin", roles)) {
+                return Boolean.TRUE;
+            }
+            if (isRole("ROLE_crest-developers", roles)) {
+                return Boolean.TRUE;
             }
         }
         // Seems that the user is not in the role.
         roles.stream()
                 .forEach(s -> log.debug("Selected role is {}", s.getAuthority()));
+        return Boolean.FALSE;
+    }
+
+    /**
+     *
+     * @param rname
+     * @param roles
+     * @return Boolean
+     */
+    protected Boolean isRole(String rname, Collection<? extends GrantedAuthority> roles) {
+        Optional<? extends GrantedAuthority> userRole = roles.stream()
+                .filter(r -> r.getAuthority().equalsIgnoreCase(rname)).findFirst();
+        if (userRole.isPresent()) {
+            log.info("User is in role {} : he can create tag with name {}",
+                    userRole.get().getAuthority(),
+                    rname);
+            return Boolean.TRUE;
+        }
         return Boolean.FALSE;
     }
 
