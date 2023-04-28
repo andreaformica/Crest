@@ -58,16 +58,19 @@ public class UserInfoImpl implements UserInfo {
         log.info("Verify the role for user : {} ",
                 user == null ? "none" : user);
         Collection<? extends GrantedAuthority> roles = auth.getAuthorities();
-        log.warn("Verify the roles for user : {} ", roles);
         if (user != null) {
             // Search if tagname is in list of roles.
+            String crestrole = "ROLE_crest-" + role;
             Optional<? extends GrantedAuthority> userRole = roles.stream()
-                    .filter(r -> r.getAuthority().contains(role)).findFirst();
+                    .filter(r -> r.getAuthority().equalsIgnoreCase(crestrole)).findFirst();
             if (userRole.isPresent()) {
+                log.info("User is in role {} : he can create tag with name {}",
+                        userRole.get().getAuthority(),
+                        role);
                 return Boolean.TRUE;
             }
             else {
-                log.debug("check if user is an admin");
+                log.info("check if user is an admin");
                 Optional<? extends GrantedAuthority> adminRole = roles.stream()
                         .filter(r -> r.getAuthority().contains("admin")).findFirst();
                 if (adminRole.isPresent()) {
