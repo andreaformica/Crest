@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Implementation of UserInfo interface.
@@ -56,23 +57,29 @@ public class UserInfoImpl implements UserInfo {
         final Principal user = (Principal) auth.getPrincipal();
         log.info("Verify the role for user : {} ",
                 user == null ? "none" : user);
-        log.warn("For the moment we print all roles without any check !");
+        Collection<? extends GrantedAuthority> roles = auth.getAuthorities();
+        log.warn("Verify the roles for user : {} ", roles);
         if (user != null) {
-            // User details are available.
-            String username = user.getName();
-            Collection<? extends GrantedAuthority> roles = auth.getAuthorities();
-            // If ATLAS-CONDITIONS role is present, then it should allow the method.
-            final GrantedAuthority[] tagroles = roles.stream()
-                    .toArray(GrantedAuthority[]::new);
-            log.debug("Found list of roles of length {} for user {}", tagroles.length, username);
-            // For the moment just print the roles.
-            // In the future, we should check if the role is present by doing a filter.
-            // Example: roles .dot. stream() .dot. filter(r -> r.getAuthority() .dot. equals(role))
-            // findFirst();
-            roles.stream()
-                    .forEach(s -> log.debug("Selected role is {}", s.getAuthority()));
+            // Search if tagname is in list of roles.
+            Optional<? extends GrantedAuthority> userRole = roles.stream()
+                    .filter(r -> r.getAuthority().contains(role)).findFirst();
+            if (userRole.isPresent()) {
+                return Boolean.TRUE;
+            }
+            else {
+                log.debug("check if user is an admin");
+                Optional<? extends GrantedAuthority> adminRole = roles.stream()
+                        .filter(r -> r.getAuthority().contains("admin")).findFirst();
+                if (adminRole.isPresent()) {
+                    log.info("User is an admin: he can create any tag");
+                    return Boolean.TRUE;
+                }
+            }
         }
-        return Boolean.TRUE;
+        // Seems that the user is not in the role.
+        roles.stream()
+                .forEach(s -> log.debug("Selected role is {}", s.getAuthority()));
+        return Boolean.FALSE;
     }
 
     /**

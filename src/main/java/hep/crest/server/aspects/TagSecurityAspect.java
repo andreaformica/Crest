@@ -63,11 +63,11 @@ public class TagSecurityAspect {
             String clientid = userinfo.getUserId(auth);
             String role = entity.name().split("-")[0].toLowerCase();
             Boolean hasrole = userinfo.isUserInRole(auth, role);
-            if (entity.name().startsWith(clientid) || entity.name().startsWith("TEST")) {
+            if (hasrole || entity.name().startsWith("TEST")) {
                 retVal = pjp.proceed();
             }
             else {
-                log.warn("Cannot use tag {} for clientid {}", entity, clientid);
+                log.warn("Cannot use tag {} for {}", entity, clientid);
                 throw new NotAuthorizedException("You cannot write tag " + entity.name());
             }
         }
