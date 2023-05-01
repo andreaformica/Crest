@@ -1,11 +1,5 @@
 package hep.crest.server;
 
-import io.micrometer.core.instrument.Clock;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.logging.LoggingMeterRegistry;
-import io.micrometer.core.lang.Nullable;
-import io.micrometer.elastic.ElasticConfig;
-import io.micrometer.elastic.ElasticMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
 import org.springframework.boot.CommandLineRunner;

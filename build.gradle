@@ -276,9 +276,9 @@ dependencies {
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-joda"
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-csv"
     // Micrometer
-    implementation 'io.micrometer:micrometer-registry-elastic:1.10.2'
+    // implementation 'io.micrometer:micrometer-registry-elastic:1.10.2'
     implementation 'io.micrometer:micrometer-core:1.10.2'
-
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.10.2'
 
     // Logback
     //implementation "ch.qos.logback.contrib:logback-json-classic:0.1.5"
