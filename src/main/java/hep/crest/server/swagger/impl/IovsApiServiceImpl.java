@@ -338,7 +338,7 @@ public class IovsApiServiceImpl extends IovsApiService {
         filters.put("tagName", tagname);
         filters.put("snapshot", snapshot.toString());
         filters.put("groupsize", groupsize.toString());
-        respdto.datatype("groups").filter(filters);
+        respdto.datatype("groups").format("IovSetDto").filter(filters);
         // In the response set the cachecontrol flag as well.
         return Response.ok().entity(respdto).cacheControl(cc).lastModified(tagentity.modificationTime()).build();
     }

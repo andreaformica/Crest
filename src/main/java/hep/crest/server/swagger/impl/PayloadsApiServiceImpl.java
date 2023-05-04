@@ -303,6 +303,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 }
                 // Only the payload format FILE is allowed here.
                 // This was created to eventually merge with other methods later on.
+                log.debug("Store payloads from uploaded files");
                 outdto = storeData(storeset, tag, objectType, version, filesBodypart);
             }
             else if ("JSON".equalsIgnoreCase(xCrestPayloadFormat)) {
@@ -320,6 +321,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             tagService.updateTag(tagEntity);
             log.info("Batch insertion of {} iovs done", storeset.getSize());
             // Return the result.
+            log.info("Return dto {}", outdto);
             return Response.status(Response.Status.CREATED).entity(outdto).build();
         }
         catch (IOException e) {

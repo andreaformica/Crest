@@ -56,7 +56,8 @@ public class JerseyExceptionHandler implements ExceptionMapper<Exception> {
 
     @Override
     public Response toResponse(Exception exception) {
-        log.warn("Handling exception: {} of type {}", exception.getMessage(), exception.getClass());
+        log.warn("Handling exception: {} of type {}", exception.getMessage(),
+                exception.getClass());
         // If exception is a webapplication exception
         if (exception instanceof WebApplicationException) {
             log.debug("Instance of WebApplicationException...get Response from there.");

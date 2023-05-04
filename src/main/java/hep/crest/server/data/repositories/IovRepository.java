@@ -91,17 +91,4 @@ public interface IovRepository
     List<Iov> getRange(@Param("name") String name, @Param("since") BigInteger since,
                        @Param("until") BigInteger until,
                        @Param("snap") Date snapshot);
-
-    /**
-     * TODO: adding method to retrieve iovs for a given global tag.
-     * We may want to retrieve the iov valid at a given time for a whole given global tag.
-     * This below is an example of SQL.
-     * select iv.* from iov iv left join tag t on t.name=iv.tag_name
-     * where t.name in (
-     * select gt.tag_name from global_tag_map gt left join tag t on gt.tag_name = t.name
-     *     where gt.global_tag_name = 'CREST-RUN12-SDR-25-MC' and t.time_type='run-lumi'
-     * ) AND iv.since =
-     * (SELECT max(pi.since) FROM iov pi WHERE pi.tag_name = iv.tag_name AND pi.since <=
-     * 951206407045120);
-     */
 }

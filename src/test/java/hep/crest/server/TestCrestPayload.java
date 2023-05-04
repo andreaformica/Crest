@@ -158,7 +158,7 @@ public class TestCrestPayload {
         };
         final HttpHeaders headers1 = new HttpHeaders();
         headers1.setContentType(MediaType.MULTIPART_FORM_DATA);
-
+        headers1.add("X-Crest-PayloadFormat", "FILE");
         final HttpEntity<ByteArrayResource> partsEntity = new HttpEntity<>(byteArrayResource, parts);
         final MultiValueMap<String, Object> map1 = new LinkedMultiValueMap<String, Object>();
         map1.add("files", partsEntity);

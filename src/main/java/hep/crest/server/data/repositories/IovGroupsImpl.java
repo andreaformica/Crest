@@ -64,10 +64,13 @@ public class IovGroupsImpl extends DataGeneral implements IovGroupsCustom {
         if (snap == null) {
             snaptime = " and ? is null ";
         }
+        // I use mod(row_id, group) = 1 because I want to select the first element of each group.
+        // When using mod(row_id, group) = 0 I may get 0 rows for a number of iovs less than
+        // groupsize.
         final String sql = "with tag_iov as ("
                                  + " select iv.SINCE, rownum as rid from " + tablename + " iv "
                                  + "   where iv.TAG_NAME=? " + snaptime + " ) "
-                                 + "select ti.SINCE from tag_iov ti where mod(rid, ?) = 0 "
+                                 + "select ti.SINCE from tag_iov ti where mod(rid, ?) = 1 "
                                  + "ORDER BY SINCE";
         log.debug("Execute selectSnapshotGroups query {}", sql);
 

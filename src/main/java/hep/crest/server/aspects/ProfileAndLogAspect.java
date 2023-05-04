@@ -42,18 +42,27 @@ public class ProfileAndLogAspect {
     @Around("@annotation(hep.crest.server.annotations.ProfileAndLog)")
     public Object profileAndLog(ProceedingJoinPoint joinPoint) throws Throwable {
         final long start = System.currentTimeMillis();
+        log.debug("Start profiling at time: {}", start);
+        log.debug("Profile method {} ", joinPoint.getSignature().getName());
         final Object[] args = joinPoint.getArgs();
+
         CodeSignature codeSignature = (CodeSignature) joinPoint.getSignature();
         String[] parameters = codeSignature.getParameterNames();
         Class[] paramTypes = codeSignature.getParameterTypes();
+        log.debug("Parameters {} and types {}", parameters, paramTypes);
+
         Map<String, Object> esParams = new HashMap<>();
         for (int i = 0; i < parameters.length; i++) {
-            if (parameters[i].equals("securityContext") || parameters[i].equals("info")) {
+            if (parameters[i].equals("securityContext")
+                || parameters[i].equals("info")
+                || parameters[i].equals("filesBodypart")
+                || paramTypes[i].getName().contains("List")) {
                 continue;
             }
             if (args[i] == null) {
                 continue;
             }
+            log.debug("Set parameter {} of type {} with value {}", parameters[i], paramTypes[i], args[i]);
             esParams.put(parameters[i], args[i]);
         }
         final Object proceed = joinPoint.proceed();

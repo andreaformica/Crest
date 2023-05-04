@@ -52,7 +52,7 @@
     			<level>INFO</level>
     		</filter>
     	</appender>
-    	<appender name="stashAppender" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+    	<appender name="stashProfileAppender" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
     		<destination>crest.atlas-ml.org:5959</destination>
     		<encoder class="net.logstash.logback.encoder.LogstashEncoder">
     			<fieldNames>
@@ -68,6 +68,7 @@
     			<level>INFO</level>
     		</filter>
     	</appender>
+
     	<appender name="HIKARI" class="ch.qos.logback.core.FileAppender">
     		<file>${crest.log.dir}/hikari.log</file>
     		<append>true</append>
@@ -86,11 +87,9 @@
 
 	<logger name="hep.crest" level="INFO" additivity="false">
 		<appender-ref ref="jsonAppender" />
-		<appender-ref ref="stashAppender" />
 	</logger>
 	<logger name="com.zaxxer.hikari" level="ALL" additivity="false">
 		<appender-ref ref="HIKARI" />
-		<appender-ref ref="stashAppender" />
 	</logger>
    
 	<root level="DEBUG">
