@@ -22,7 +22,7 @@ convert_certificate () {
   # Openshift/kubernetes provide host certificates in key and crt format.
   # Convert on the fly to PKCS12 format, in pipe so that it is used only once.
   # A dummy password is included for this operation
-  TLSDIR=/run/secrets/align-mon-tls
+  TLSDIR=/run/secrets/crest-tls
   if [ -e ${TLSDIR}/tls.key ] && [ -e ${TLSDIR}/tls.crt ]; then
     echo "Found certificates - converting to PKCS12 format in ${P12KEYSTORE}"
     mkfifo -m 600 ${P12KEYSTORE}
