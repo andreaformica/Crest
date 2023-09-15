@@ -3,7 +3,20 @@
 -- add some comment
 -- we added tables corresponding to API v4 and related CREST data model, with a split of BLOBs into separate tables
 
+drop table CREST_ROLES purge;
+drop table CREST_USERS purge;
+drop table CREST_FOLDERS purge;
+drop table PAYLOAD purge;
+drop table PAYLOAD_DATA purge;
+drop table PAYLOAD_INFO purge;
+drop table PAYLOAD_STREAMER_DATA purge;
+drop table RUN_LUMI_INFO purge;
 
+drop table IOV purge;
+drop table TAG purge;
+drop table TAG_META purge;
+drop table GLOBAL_TAG purge;
+drop table GLOBAL_TAG_MAP purge;
 
 -- =========================== CREST_ROLES ====================================
 -- The CREST_ROLEID from a DB sequence?
@@ -59,7 +72,7 @@ COMMENT ON TABLE CREST_FOLDERS is 'For management of FOLDERs inside the CREST sc
 -- ==================================== TAG ====================================
 
 -- sequence object for the TAG_IDs
-CREATE SEQUENCE TAGID_SEQUENCE MINVALUE 1 INCREMENT BY 1 NOCACHE NOORDER NOCYCLE GLOBAL ;
+-- CREATE SEQUENCE TAGID_SEQUENCE MINVALUE 1 INCREMENT BY 1 NOCACHE NOORDER NOCYCLE GLOBAL ;
 
 CREATE TABLE TAG
    (
@@ -155,8 +168,6 @@ COMMENT ON TABLE GLOBAL_TAG_MAP is 'For management of GLOBAL_TAG_MAPs informatio
 
 -- =========================== PAYLOAD ====================================
 
-drop table PAYLOAD purge;
-
 CREATE TABLE PAYLOAD
    (
 	HASH VARCHAR2(64) constraint PAYLOAD_HASH_NN NOT NULL,
@@ -172,7 +183,6 @@ CREATE TABLE PAYLOAD
 
 COMMENT ON TABLE PAYLOAD is 'For management of PAYLOADs information inside the CREST schema';
 -- DATA
-drop table PAYLOAD_DATA purge;
 
 CREATE TABLE PAYLOAD_DATA
    (
@@ -195,7 +205,6 @@ ALTER TABLE payload_data MODIFY LOB (data) (STORAGE (NEXT 512M));
 ALTER TABLE payload_data MOVE LOB (data) STORE AS (TABLESPACE ATLAS_PHYS_COND_01 DISABLE STORAGE IN ROW);
 
 -- STREAMER_INFO
-drop table PAYLOAD_STREAMER_DATA purge;
 
 CREATE TABLE PAYLOAD_STREAMER_DATA
    (
@@ -207,11 +216,11 @@ CREATE TABLE PAYLOAD_STREAMER_DATA
 
 COMMENT ON TABLE PAYLOAD_STREAMER_DATA is 'Table containing STREAMER_INFO LOBs';
 
-/*
-IMPORTANT:
-Only some LOB storage parameters can be modified. The ALTER TABLE ... MODIFY LOB statement can  change RETENTION, PCTVERSION, CACHE or NOCACHE LOGGING or NOLOGGING, and the STORAGE clause. One can also change the TABLESPACE using the ALTER TABLE ... MOVE statement.
-However, once the table has been created, we cannot change the CHUNK size, the ENABLE or DISABLE STORAGE IN ROW, or the BASICFILE, or the SECUREFILE settings.
-*/
+--/*
+--IMPORTANT:
+--Only some LOB storage parameters can be modified. The ALTER TABLE ... MODIFY LOB statement can  change RETENTION, PCTVERSION, CACHE or NOCACHE LOGGING or NOLOGGING, and the STORAGE clause. One can also change the TABLESPACE using the ALTER TABLE ... MOVE statement.
+--However, once the table has been created, we cannot change the CHUNK size, the ENABLE or DISABLE STORAGE IN ROW, or the BASICFILE, or the SECUREFILE settings.
+--*/
 
 
 -- =========================== IOV ====================================

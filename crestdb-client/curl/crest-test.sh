@@ -66,9 +66,11 @@ function get_data() {
   if [ ${token} == "" ]; then
      resp=`curl -X GET ${http_proxy} -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$2?$3"`
   else
-     resp=`curl -X GET ${http_proxy} -H "Authorization: Bearer ${token}" -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$2?$3"`
+     echo "curl -k -X GET ${http_proxy} -H \"Authorization: Bearer ${token}\" -H \"Accept: application/json\" -H \"Content-Type: application/json\" \"${host}/${apiname}/$2?$3\""
+     echo "===== executing request ====="
+     resp=`curl -k -X GET ${http_proxy} -H "Authorization: Bearer ${token}" -H "Accept: application/json" -H "Content-Type: application/json" "${host}/${apiname}/$2?$3"`
   fi  
-  echo "Received response "
+  echo "Received response $resp"
   echo $resp | json_pp
 }
 
@@ -170,8 +172,8 @@ echo "Use host = $host apiname $apiname"
 echo "Execute $3"
 
 #### this section should be uncommented for AUTH with keycloak
-##token="${ACCESS_TOKEN}"
-token=
+token="${ACCESS_TOKEN}"
+##token=
 
 ## you can set http_proxy if you need a socks proxy
 export http_proxy="--socks5 localhost:3129"

@@ -59,7 +59,7 @@ public class AdminApiServiceImpl extends AdminApiService {
      */
     @Override
     public Response removeGlobalTag(String name, SecurityContext securityContext, UriInfo info) {
-        log.info("AdminRestController processing request for removing a global tag");
+        log.info("AdminRestController processing request for removing global tag {}", name);
         // Remove the global tag identified by name.
         globalTagService.removeGlobalTag(name);
         return Response.ok().build();
@@ -81,7 +81,7 @@ public class AdminApiServiceImpl extends AdminApiService {
         if (assgt.iterator().hasNext()) {
             // Some global tags are associated to this tag. We cannot proceed to remove it.
             // Send an error message.
-            log.error("Cannot remove tag {}", name);
+            log.error("Cannot remove tag {}, found association with global tags.", name);
             throw new CdbSQLException("Cannot remove tag " + name + ": clean up associations with global tags");
         }
         // We remove the tag. Here we could also test for locking status of the tag or similar.

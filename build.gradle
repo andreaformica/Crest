@@ -36,6 +36,7 @@ ext {
     swaggerJaxrsTemplateDirectory = "$swaggerDirectory/templates/java/JavaJaxRs/openApi-5.1.0".toString()
 }
 
+
 checkstyleTest.enabled = false
 
 jacoco {
