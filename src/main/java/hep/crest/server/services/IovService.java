@@ -216,12 +216,12 @@ public class IovService {
      * @param tagname the String
      * @param since   the BigInteger
      * @param hash    the String
-     * @return boolean
+     * @return Iov or null
      */
-    public boolean existsIov(String tagname, BigInteger since, String hash) {
+    public Iov existsIov(String tagname, BigInteger since, String hash) {
         log.debug("Verify if the same IOV is already stored with the same hash....");
         final Iov tmpiov = iovRepository.exists(tagname, since, hash);
-        return tmpiov != null;
+        return tmpiov;
     }
 
     /**
@@ -241,10 +241,11 @@ public class IovService {
         }
         final Tag t = tg.get();
         // Check if iov exists
-        if (existsIov(t.name(), entity.id().since(), entity.payloadHash())) {
-            log.warn("Iov already exists [tag,since,hash]: {}", entity);
-            throw new ConflictException(
-                    "Iov already exists [tag,since,hash]: " + entity.toString());
+        Iov s = this.existsIov(t.name(), entity.id().since(), entity.payloadHash());
+        if (s != null) {
+            log.warn("Iov already exists [tag,since,hash], skip insertion: {}", entity);
+            throw new ConflictException("Iov already exists...insertion process stops: "
+                                        + s.id() + " hash " + s.payloadHash());
         }
         // Check if payload exists. Cannot store IOV without payload.
         if (payloadRepository.findById(entity.payloadHash()).isPresent()) {
@@ -311,10 +312,10 @@ public class IovService {
             throw new CdbNotFoundException("Tag " + tagname + " not found: cannot insert IOV.");
         }
         Tag t = tg.get();
-        if (this.existsIov(t.name(), entity.id().since(), entity.payloadHash())) {
-            log.warn("Iov already exists [tag,since,hash]: {}", entity);
-            throw new ConflictException(
-                    "Iov already exists [tag,since,hash]: " + entity);
+        Iov s = this.existsIov(t.name(), entity.id().since(), entity.payloadHash());
+        if (s != null) {
+            log.warn("Iov already exists [tag,since,hash], skip insertion: {}", entity);
+            return s;
         }
         entity.tag(t);
         entity.id().tagName(t.name());

@@ -351,7 +351,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         List<StorableData> storableDataList = new ArrayList<>();
         for (final StoreDto piovDto : iovlist) {
             String filename = null;
-            log.info("Store data for entry: {}", piovDto);
+            log.info("Store data from dto at since {}", piovDto.getSince());
             final Map<String, String> sinfomap = new HashMap<>();
             sinfomap.put("format", dtoset.getDatatype());
             sinfomap.put("insertionDate", new Date().toString());

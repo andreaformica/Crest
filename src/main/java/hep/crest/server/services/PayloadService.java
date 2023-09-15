@@ -331,9 +331,10 @@ public class PayloadService {
                 setdto.addResourcesItem(dto);
             }
             catch (final ConflictException e) {
-                log.warn("Payload insertion problem for hash {}: {}", entity.hash(), e);
-                throw new ConflictException("Payload hash already exists " + entity.hash() + " "
-                                            + "since " + iov.id().since() + " in tag " + tagname);
+                String msg  = "Payload hash already exists " + entity.hash() + " "
+                              + "since " + iov.id().since() + " in tag " + tagname;
+                log.warn("Payload insertion conflict: {}", msg);
+                throw new ConflictException(msg);
             }
             catch (final IOException e) {
                 log.error("Payload insertion problem for hash {}: {}", entity.hash(), e);
