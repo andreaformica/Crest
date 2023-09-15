@@ -15,7 +15,7 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
 group = 'hep.crest'
-version = '4.0-SNAPSHOT'
+version = '4.1.0'
 
 bootJar {
     archiveFileName = 'crest.jar'
@@ -40,8 +40,6 @@ ext {
 checkstyleTest.enabled = false
 
 jacoco {
-    //toolVersion = '0.8.4'
-    reportsDir = file("$buildDir/reports/jacoco")
 }
 
 jacocoTestReport {
@@ -58,9 +56,9 @@ jacocoTestReport {
     }
 
     reports {
-        xml.enabled true
-        csv.enabled false
-        html.destination file("${buildDir}/jacocoHtml")
+        xml.required = true
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
     }
 }
 
@@ -112,8 +110,8 @@ checkstyleMain {
 tasks.withType(Checkstyle) {
   checkstyleTest.enabled = false
   reports {
-    xml.enabled false
-    html.enabled true
+    xml.required = false
+    html.required = true
   }
 }
 

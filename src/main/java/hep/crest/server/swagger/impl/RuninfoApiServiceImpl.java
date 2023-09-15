@@ -125,8 +125,8 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
                 tsto = new Timestamp(zdtto.toInstant().toEpochMilli());
             }
             else if (format.equals("number")) {
-                tsfrom = new Timestamp(new Long(from));
-                tsto = new Timestamp(new Long(to));
+                tsfrom = new Timestamp(Long.valueOf(from));
+                tsto = new Timestamp(Long.valueOf(to));
             }
             // Inclusive selection.
             entitypage = runinfoService.selectInclusiveByDate(new Date(tsfrom.getTime()),

@@ -263,10 +263,10 @@ public class TagsApiServiceImpl extends TagsApiService {
                 entity.description(body.get(key));
             }
             if (key == "chansize") {
-                entity.chansize(new Integer(body.get(key)));
+                entity.chansize(Integer.valueOf(body.get(key)));
             }
             if (key == "colsize") {
-                entity.colsize(new Integer(body.get(key)));
+                entity.colsize(Integer.valueOf(body.get(key)));
             }
             if (key == "tagInfo") {
                 // The field is a string ... this is mandatory for the moment....
