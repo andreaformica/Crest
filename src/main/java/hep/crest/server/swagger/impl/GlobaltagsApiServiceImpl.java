@@ -109,7 +109,9 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
         log.info("GlobalTagRestController processing request for global tag name " + name);
         // Prepare filters.
         final GenericMap filters = new GenericMap();
-        filters.put("name", name);
+        if (name != null) {
+            filters.put("name", name);
+        }
         // Search for a global tag resource.
         final GlobalTag entity = globaltagService.findOne(name);
         final GlobalTagDto dto = mapper.map(entity, GlobalTagDto.class);
@@ -135,7 +137,15 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
         log.info("Get tags for globaltag {} ", name);
         // Prepare filters.
         final GenericMap filters = new GenericMap();
-        filters.put("name", name);
+        if (name != null) {
+            filters.put("name", name);
+        }
+        if (record != null) {
+            filters.put("record", record);
+        }
+        if (label != null) {
+            filters.put("label", label);
+        }
         // Search for a global tag and associated tags. Use record and label.
         // Presets for record and label is "none".
         // Fetch tags via record and label.
@@ -189,12 +199,21 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
                 .format("GlobalTagSetDto");
         // Create filters
         GenericMap filters = new GenericMap();
-        filters.put("name", name);
-        filters.put("workflow", workflow);
-        filters.put("description", description);
-        filters.put("scenario", scenario);
-        filters.put("release", release);
-        filters.put("validity", (validity != null) ? validity.toString() : null);
+        if (name != null) {
+            filters.put("name", name);
+        }
+        if (workflow != null) {
+            filters.put("workflow", workflow);
+        }
+        if (scenario != null) {
+            filters.put("scenario", scenario);
+        }
+        if (release != null) {
+            filters.put("release", release);
+        }
+        if (validity != null) {
+            filters.put("validity", validity.toString());
+        }
         setdto.filter(filters);
         return Response.status(rstatus).entity(setdto).build();
     }

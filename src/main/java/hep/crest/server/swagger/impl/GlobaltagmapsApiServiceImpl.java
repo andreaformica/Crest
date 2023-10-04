@@ -77,8 +77,9 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
         log.info("Get tags for globaltag {} ", name);
         // Prepare filters
         final GenericMap filters = new GenericMap();
-        filters.put("name", name);
-        filters.put("mode", xCrestMapMode);
+        if (name != null) {
+            filters.put("name", name);
+        }
         Iterable<GlobalTagMap> entitylist = null;
         // If there is no header then set it to Trace mode. Implies that you search tags
         // associated with a global tag. The input name will be considered as a
@@ -86,6 +87,8 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
         if (xCrestMapMode == null) {
             xCrestMapMode = "Trace";
         }
+        filters.put("mode", xCrestMapMode);
+
         if ("trace".equalsIgnoreCase(xCrestMapMode)) {
             // The header is Trace, so search for tags associated to a global tag.
             entitylist = globaltagmapService.getTagMap(name);
@@ -109,7 +112,9 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
         log.info("Remove association of tag {} for globaltag {} ", tagname, name);
         // Prepare filters
         final GenericMap filters = new GenericMap();
-        filters.put("globaltagname", name);
+        if (name != null) {
+            filters.put("globaltagname", name);
+        }
         filters.put("label", label);
         filters.put("tagname", tagname);
         if (mrecord != null) {
@@ -125,7 +130,8 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
         // Return the deleted list.
         List<GlobalTagMapDto> dtolist = edh.entityToDtoList(deletedlist, GlobalTagMapDto.class);
         final CrestBaseResponse setdto = new GlobalTagMapSetDto().resources(dtolist).filter(filters)
-                .size((long) dtolist.size()).datatype("maps");
+                .size((long) dtolist.size()).datatype("maps")
+                .format("GlobalTagMapSetDto");
         return Response.status(Response.Status.OK).entity(setdto).build();
     }
 

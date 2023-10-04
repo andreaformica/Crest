@@ -1,19 +1,18 @@
 package hep.crest.server.swagger.impl;
 
 import hep.crest.server.annotations.ProfileAndLog;
-import hep.crest.server.exceptions.CdbBadRequestException;
-import hep.crest.server.data.pojo.Iov;
-import hep.crest.server.data.pojo.Tag;
-import hep.crest.server.data.repositories.args.IovModeEnum;
-import hep.crest.server.data.repositories.args.IovQueryArgs;
 import hep.crest.server.caching.CachingPolicyService;
 import hep.crest.server.caching.CachingProperties;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.data.pojo.Iov;
+import hep.crest.server.data.pojo.Tag;
+import hep.crest.server.data.repositories.args.IovModeEnum;
+import hep.crest.server.data.repositories.args.IovQueryArgs;
+import hep.crest.server.exceptions.CdbBadRequestException;
 import hep.crest.server.serializers.ArgTimeUnit;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.TagService;
-import hep.crest.server.swagger.api.ApiResponseMessage;
 import hep.crest.server.swagger.api.IovsApiService;
 import hep.crest.server.swagger.api.NotFoundException;
 import hep.crest.server.swagger.model.CrestBaseResponse;
@@ -145,7 +144,7 @@ public class IovsApiServiceImpl extends IovsApiService {
     @Override
     @ProfileAndLog
     public Response storeIovBatch(IovSetDto dto, SecurityContext securityContext,
-                                           UriInfo info) {
+                                  UriInfo info) {
         log.info("Upload iovs batch of size {}",
                 dto.getSize());
         // Prepare the iov list to insert and a list representing iovs really inserted.
@@ -184,12 +183,14 @@ public class IovsApiServiceImpl extends IovsApiService {
 
     @Override
     @ProfileAndLog
-    public Response findAllIovs(String method, String tagname, Long snapshot, String since, String until,
+    public Response findAllIovs(String method, String tagname, Long snapshot, String since,
+                                String until,
                                 String timeformat,
                                 Long groupsize,
                                 String hash,
                                 Integer page, Integer size, String sort,
-                                String xCrestQuery, String xCrestSince, SecurityContext securityContext,
+                                String xCrestQuery, String xCrestSince,
+                                SecurityContext securityContext,
                                 UriInfo info) {
         log.info("Search iovs list using method={}, tag={}, since={}, until={}, timeformat={}, "
                  + "page={}, size={}, "
@@ -246,9 +247,15 @@ public class IovsApiServiceImpl extends IovsApiService {
         }
         // Create filters
         GenericMap filters = new GenericMap();
-        filters.put("tagName", tagname);
-        filters.put("since", rsince.toString());
-        filters.put("until", runtil.toString());
+        if (tagname != null) {
+            filters.put("tagName", tagname);
+        }
+        if (rsince != null) {
+            filters.put("since", rsince.toString());
+        }
+        if (runtil != null) {
+            filters.put("until", runtil.toString());
+        }
         filters.put("timeformat", timeformat);
         filters.put("method", method);
         filters.put("mode", xCrestQuery);
@@ -290,7 +297,8 @@ public class IovsApiServiceImpl extends IovsApiService {
         filters.put("tagName", tagname);
         // Prepare the Set.
         ((TagSummarySetDto) respdto.size((long) entitylist.size()).datatype("count")
-                .filter(filters)).resources(entitylist);
+                .filter(filters)).resources(entitylist)
+                .format("TagSummarySetDto");
         // Send a response 200. Even if the result is an empty list.
         return Response.ok().entity(respdto).build();
     }
@@ -336,16 +344,23 @@ public class IovsApiServiceImpl extends IovsApiService {
                 .selectGroupDtoByTagNameAndSnapshotTime(tagname, snap, groupsize);
         final GenericMap filters = new GenericMap();
         filters.put("tagName", tagname);
-        filters.put("snapshot", snapshot.toString());
-        filters.put("groupsize", groupsize.toString());
+        if (snapshot != null) {
+            filters.put("snapshot", snapshot.toString());
+        }
+        if (groupsize != null) {
+            filters.put("groupsize", groupsize.toString());
+        }
         respdto.datatype("groups").format("IovSetDto").filter(filters);
         // In the response set the cachecontrol flag as well.
-        return Response.ok().entity(respdto).cacheControl(cc).lastModified(tagentity.modificationTime()).build();
+        return Response.ok().entity(respdto).cacheControl(cc)
+                .lastModified(tagentity.modificationTime()).build();
     }
 
     @Override
-    public Response selectIovPayloads(@NotNull String tagname, String since, String until, String timeformat,
-                                      Integer page, Integer size, String sort, SecurityContext securityContext,
+    public Response selectIovPayloads(@NotNull String tagname, String since, String until,
+                                      String timeformat,
+                                      Integer page, Integer size, String sort,
+                                      SecurityContext securityContext,
                                       UriInfo info)
             throws NotFoundException {
 
@@ -378,9 +393,15 @@ public class IovsApiServiceImpl extends IovsApiService {
         ((IovPayloadSetDto) respdto.datatype("iovpayloads")).resources(dtolist)
                 .size((long) dtolist.size());
         final GenericMap filters = new GenericMap();
-        filters.put("tagName", tagname);
-        filters.put("since", rsince.toString());
-        filters.put("until", runtil.toString());
+        if (tagname != null) {
+            filters.put("tagName", tagname);
+        }
+        if (rsince != null) {
+            filters.put("since", rsince.toString());
+        }
+        if (runtil != null) {
+            filters.put("until", runtil.toString());
+        }
         respdto.filter(filters);
         return Response.ok().entity(respdto).build();
     }

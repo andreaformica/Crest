@@ -91,8 +91,9 @@ public class FoldersApiServiceImpl extends FoldersApiService {
         log.debug("Search resource list using schema={}", schema);
         // Create filters
         GenericMap filters = new GenericMap();
-        filters.put("schema", schema);
-
+        if (schema != null) {
+            filters.put("schema", schema);
+        }
         // Search for folders using schema where condition.
         List<CrestFolders> entitypage = folderService.findFoldersBySchema(schema);
         RespPage respPage = new RespPage().size(entitypage.size())
