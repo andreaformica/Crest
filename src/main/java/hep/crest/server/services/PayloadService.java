@@ -352,7 +352,7 @@ public class PayloadService {
                 }
             }
         }
-        setdto.size((long)setdto.getResources().size());
+        setdto.size((long) setdto.getResources().size());
         setdto.format("StoreSetDto");
         return setdto;
     }

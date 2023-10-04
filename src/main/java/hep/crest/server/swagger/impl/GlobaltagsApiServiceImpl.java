@@ -116,7 +116,8 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
         log.debug("Found GlobalTag " + name);
         // Prepare response set.
         final CrestBaseResponse setdto = new GlobalTagSetDto().addResourcesItem(dto)
-                .filter(filters).size(1L).datatype("globaltags");
+                .filter(filters).size(1L).datatype("globaltags")
+                .format("GlobalTagSetDto");
         return Response.ok().entity(setdto).build();
     }
 
@@ -146,7 +147,8 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
 
         final CrestBaseResponse setdto = new TagSetDto().resources(dtolist)
                 .format("TagSetDto")
-                .filter(filters).size(listsize).datatype("tags");
+                .filter(filters).size(listsize)
+                .datatype("tags");
         return Response.ok().entity(setdto).build();
     }
 
@@ -183,7 +185,8 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
         final CrestBaseResponse setdto = new GlobalTagSetDto().resources(dtolist)
                 .size((long) dtolist.size())
                 .page(respPage)
-                .datatype("globaltags");
+                .datatype("globaltags")
+                .format("GlobalTagSetDto");
         // Create filters
         GenericMap filters = new GenericMap();
         filters.put("name", name);
