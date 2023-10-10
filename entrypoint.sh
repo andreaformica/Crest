@@ -85,8 +85,11 @@ mkfifo -m 600 "${app_properties}"
 print_application_properties >> ${app_properties} &
 
 echo "$USER is starting server with JAVA_OPTS : $JAVA_OPTS from user directory $PWD, config from $SPRING_TMPDIR"
-ls $SPRING_TMPDIR/
-ls ./config
+
+echo "1. temporary fifo:"
+ls -altr $SPRING_TMPDIR/
+echo "2. config"
+ls -altr ./config
 
 if [ x"$1" = x"" ]; then
     echo "execute command ${prj_dir}/crest.jar"
