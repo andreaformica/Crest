@@ -37,7 +37,6 @@ ENV crest_dir /home/${USR}/crest
 ENV data_dir /home/${USR}/data
 ENV config_dir /home/${USR}/config
 #ENV data_dir /data
-ENV gradle_version 6.7
 ENV TZ GMT
 ENV JAVA_HOME="${jvm_location}"
 ENV PATH="$PATH:$JAVA_HOME/bin"
