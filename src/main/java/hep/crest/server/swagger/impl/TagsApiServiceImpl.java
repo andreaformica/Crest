@@ -160,7 +160,7 @@ public class TagsApiServiceImpl extends TagsApiService {
         TagDto dto = mapper.map(entity, TagDto.class);
         // Create the set.
         final TagSetDto respdto = (TagSetDto) new TagSetDto().addResourcesItem(dto).size(1L)
-                .filter(filters).datatype("tags");
+                .filter(filters).datatype("tags").format("TagSetDto");
         log.info("Retrieved tag {}: {}", name, dto);
         return Response.ok().entity(respdto).build();
     }
@@ -199,7 +199,9 @@ public class TagsApiServiceImpl extends TagsApiService {
         // Create the Set.
         final CrestBaseResponse setdto = new TagSetDto().resources(dtolist)
                 .page(respPage)
-                .size((long) dtolist.size()).datatype("tags");
+                .size((long) dtolist.size())
+                .datatype("tags")
+                .format("TagSetDto");
         // Create filters
         GenericMap filters = new GenericMap();
         filters.put("name", name);
@@ -242,7 +244,7 @@ public class TagsApiServiceImpl extends TagsApiService {
         final TagMeta entity = tagMetaService.find(name);
         final TagMetaDto dto = mapper.map(entity, TagMetaDto.class);
         final TagMetaSetDto respdto = (TagMetaSetDto) new TagMetaSetDto().addResourcesItem(dto).size(1L)
-                .datatype("tagmetas");
+                .datatype("tagmetas").format("TagMetaSetDto");
         log.info("Retrieved tag meta data {}: {}", name, dto);
         return Response.ok().entity(respdto).build();
     }

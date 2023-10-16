@@ -86,11 +86,6 @@ print_application_properties >> ${app_properties} &
 
 echo "$USER is starting server with JAVA_OPTS : $JAVA_OPTS from user directory $PWD, config from $SPRING_TMPDIR"
 
-echo "1. temporary fifo:"
-ls -altr $SPRING_TMPDIR/
-echo "2. config"
-ls -altr ./config
-
 if [ x"$1" = x"" ]; then
     echo "execute command ${prj_dir}/crest.jar"
     exec java $JAVA_OPTS -jar ${prj_dir}/crest.jar --spring.config.location=optional:classpath:/,optional:classpath:/config/,file:${app_properties} 2>>/tmp/err.log
