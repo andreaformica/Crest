@@ -75,7 +75,7 @@ update_imagestream_and_redeploy:
   variables:
     SERVER: https://api.paas.okd.cern.ch
     PROJECT: crest-undertow   # name of your Openshift project
-    APP_NAME: crest-service  # name of the ImageStream/DeploymentConfig objects created by oc new-app
+    APP_NAME: crest  # name of the ImageStream/DeploymentConfig objects created by oc new-app
   script:
     - oc login $SERVER --token=$DEPLOY_TOKEN
     - oc project $PROJECT
