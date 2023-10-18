@@ -192,6 +192,7 @@ An `application.properties` file should be created in order to run the server. E
 
 ## Openshift
 *CREST* service has a *gitlab-ci* pipeline in place to create and push a docker image to CERN [registry](https://registry.cern.ch/).
+Further instructions on deployment are available in the project `crest-deployment` .
 
 ### Constraints
 For the moment in order for the deployment to work we need to have a public access to the gitlab project.
@@ -205,9 +206,3 @@ Migration tools from COOL to CREST are available [here](https://gitlab.cern.ch/c
 ### Command line
 Several command line utilities are available in the [this](https://gitlab.cern.ch/crest-db/crest-cmd) repository.
 These tools can be used to interact with the CREST server.
-
-### gatling
-Generated via *OpenApi*. Used for testing REST API.
-
-### qt5cpp
-Generated via *OpenApi*. This is just a demo.
