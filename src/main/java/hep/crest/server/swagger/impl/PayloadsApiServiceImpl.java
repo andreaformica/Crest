@@ -70,6 +70,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 /**
  * Rest endpoint for payloads.
@@ -328,6 +329,28 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             log.error("Runtime exception while storing iovs and payloads....");
             throw new CdbInternalException(e);
         }
+    }
+
+    @Override
+    public Response uploadJson(String tag, FormDataBodyPart storesetBodypart,
+                               String objectType, String compressionType, String version,
+                               BigDecimal endtime, SecurityContext securityContext, UriInfo info)
+            throws NotFoundException {
+        final BodyPartEntity inputsource = (BodyPartEntity) storesetBodypart.getEntity();
+
+        try (Scanner scanner = new Scanner(
+                inputsource.getInputStream(), StandardCharsets.UTF_8.name())) {
+            StringBuilder jsonBuilder = new StringBuilder();
+
+            while (scanner.hasNextLine()) {
+                jsonBuilder.append(scanner.nextLine());
+            }
+
+            String json = jsonBuilder.toString();
+            // Now you can process the JSON data as needed.
+            System.out.println("Received JSON: " + json);
+        }
+        return Response.status(Response.Status.CREATED).build();
     }
 
     /**

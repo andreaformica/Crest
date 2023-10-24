@@ -145,7 +145,52 @@ paths:
           $ref: "#/components/responses/404"
         default:
           $ref: "#/components/responses/genericError"
-
+    put:
+      tags:
+        - payloads
+      summary: Upload and process large JSON data.
+      operationId: uploadJson
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                tag:
+                  description: The tag name
+                  type: string
+                storeset:
+                  description: the string representing a StoreSetDto in json
+                  type: string
+                  format: binary
+                objectType:
+                  description: The object type
+                  type: string
+                compressionType:
+                  description: The compression type
+                  type: string
+                version:
+                  description: The version
+                  type: string
+                endtime:
+                  description: The end time, shall be set at tag level.
+                  type: number
+              required:
+                - storeset
+                - tag
+      responses:
+        '201':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoreSetDto"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/StoreSetDto"
+        default:
+          $ref: "#/components/responses/genericError"
   /payloads/{hash}:
     get:
       tags:

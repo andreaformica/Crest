@@ -30,4 +30,5 @@ public abstract class PayloadsApiService {
     public abstract Response listPayloads(String hash,String objectType,Integer minsize,Integer page,Integer size,String sort,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response storePayloadBatch(String tag,String storeset,String xCrestPayloadFormat,List<FormDataBodyPart> filesBodypart,String objectType,String compressionType,String version,BigDecimal endtime,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response updatePayload(String hash,Map<String, String> requestBody,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response uploadJson(String tag,FormDataBodyPart storesetBodypart,String objectType,String compressionType,String version,BigDecimal endtime,SecurityContext securityContext, UriInfo info) throws NotFoundException;
 }

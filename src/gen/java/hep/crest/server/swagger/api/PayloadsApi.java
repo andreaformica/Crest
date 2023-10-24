@@ -125,4 +125,22 @@ public class PayloadsApi  {
         context.setRequest(request);
         return delegate.updatePayload(hash, requestBody, securityContext, info);
     }
+    @PUT
+    
+    @Consumes({ "multipart/form-data" })
+    @Produces({ "application/json", "application/xml" })
+    @io.swagger.annotations.ApiOperation(value = "Upload and process large JSON data.", notes = "", response = StoreSetDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "payloads", })
+    @io.swagger.annotations.ApiResponses(value = {
+        @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = StoreSetDto.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
+    })
+    public Response uploadJson(@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,
+ @FormDataParam("storeset") FormDataBodyPart storesetBodypart ,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The compression type")@FormDataParam("compressionType")  String compressionType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time, shall be set at tag level.")@FormDataParam("endtime")  BigDecimal endtime,@Context SecurityContext securityContext,@Context UriInfo info)
+    throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
+        return delegate.uploadJson(tag, storesetBodypart, objectType, compressionType, version, endtime, securityContext, info);
+    }
 }

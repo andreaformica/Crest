@@ -201,4 +201,25 @@ public final class HashGenerator {
         return digestHash;
     }
 
+    /**
+     * Compute hash from in memory byte array.
+     *
+     * @param bytes
+     * @return String hex representation of the hash
+     * @throws NoSuchAlgorithmException
+     */
+    public static String sha256Hash(byte[] bytes) throws NoSuchAlgorithmException {
+        MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+        // Update the digest with your data
+        sha256.update(bytes);
+
+        // Calculate the SHA-256 hash
+        byte[] hash = sha256.digest();
+
+        StringBuilder result = new StringBuilder();
+        for (byte b : hash) {
+            result.append(String.format("%02X", b));
+        }
+        return result.toString();
+    }
 }

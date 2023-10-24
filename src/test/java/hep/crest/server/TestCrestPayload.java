@@ -1,5 +1,8 @@
 package hep.crest.server;
 
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.server.data.pojo.Iov;
@@ -21,6 +24,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -32,8 +36,15 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -175,6 +186,107 @@ public class TestCrestPayload {
             StoreDto dto = respb.getResources().get(0);
             log.info("Found stored payload in response : {}", dto);
             return dto.getHash();
+        }
+    }
+
+    public static void createJSON(String path) {
+        try {
+            JsonFactory jsonfactory = new JsonFactory();
+            File jsonDoc = new File(path);
+            OutputStream out = new java.io.FileOutputStream(jsonDoc);
+            JsonGenerator generator = jsonfactory.createJsonGenerator(out, JsonEncoding.UTF8);
+            generator.writeStartObject();
+            generator.writeStringField("firstname", "Garrison");
+            generator.writeStringField("lastname", "Paul");
+            generator.writeNumberField("phone", 847332223);
+            generator.writeFieldName("address");
+            generator.writeStartArray();
+            generator.writeString("Unit - 232");
+            generator.writeString("Sofia Streat");
+            generator.writeString("Mumbai");
+            generator.writeEndArray();
+            generator.writeEndObject();
+            generator.close();
+            System.out.println("JSON file created successfully");
+        }
+        catch (IOException ioex) {
+            ioex.printStackTrace();
+        }
+    } /* * This method parse JSON String by using Jackson Streaming API example. */
+
+    protected StoreSetDto buildStoreSet(String tagname) {
+        // Upload batch iovs
+        final IovId id = new IovId().tagName(tagname)
+                .since(BigInteger.valueOf(4000000L * 1000000000L)).insertionTime(new Date());
+        final Iov miov = (Iov) rnd.generate(Iov.class);
+        miov.id(id);
+        miov.id().insertionTime(null);
+        log.info("...created iov via random gen: {}", miov);
+        final IovId id2 = new IovId().tagName(tagname)
+                .since(BigInteger.valueOf(5000000L * 1000000000L)).insertionTime(new Date());
+        final Iov miov2 = (Iov) rnd.generate(Iov.class);
+        miov2.id(id2);
+        miov2.id().insertionTime(null);
+        log.info("...created iov2 via random gen: {}", miov2);
+
+        final StoreSetDto setdto = new StoreSetDto();
+        setdto.size(2L);
+        setdto.format("StoreSetDto");
+        final GenericMap filters = new GenericMap();
+        filters.put("tagName", tagname);
+        setdto.datatype("payloads").filter(filters);
+
+        StoreDto sdto = new StoreDto();
+        sdto.streamerInfo("{\"filename\": \"test-inline-5-this is a large payload\"}");
+        sdto.since(new BigDecimal(miov.id().since()));
+        sdto.hash("somehashjson1");
+        sdto.setData("{ \"key\": \"an inline very large payload as a json\"}");
+
+        StoreDto sdto1 = new StoreDto();
+        sdto1.streamerInfo("{\"filename\": \"test-inline-2- this is another large payload\"}");
+        sdto1.since(new BigDecimal(miov2.id().since()));
+        sdto1.hash("somehashjson2");
+        sdto1.setData("{ \"key\": \"an inline very large payload as a json 2 should have "
+                      + "different hash\"}");
+        setdto.addResourcesItem(sdto).addResourcesItem(sdto1);
+        return setdto;
+    }
+
+    @Test
+    public void postJsonPayloadFromFile() throws IOException {
+        // Upload batch payload using file resource
+        log.info("=======> testPayloadRest ");
+        try {
+            String tagname = "A-TEST-WITH-JSONPYLD";
+            initializeTag(tagname);
+            StoreSetDto setDto = buildStoreSet(tagname);
+
+            final GenericMap filters = new GenericMap();
+            filters.put("tagName", tagname);
+
+            // Serialize the DTO to a JSON string using Jackson
+            ObjectMapper objectMapper = new ObjectMapper();
+            String json = objectMapper.writeValueAsString(setDto);
+
+            // Convert the JSON string to an input stream
+            InputStreamResource inputStreamResource = new InputStreamResource(
+                    new ByteArrayInputStream(json.getBytes()));
+
+            final HttpHeaders headers1 = new HttpHeaders();
+            headers1.setContentType(MediaType.MULTIPART_FORM_DATA);
+            final HttpEntity<InputStreamResource> partsEntity = new HttpEntity<>(inputStreamResource, headers1);
+            final MultiValueMap<String, Object> map1 = new LinkedMultiValueMap<String, Object>();
+            map1.add("storeset", partsEntity);
+            map1.add("tag", tagname);
+            final HttpEntity<MultiValueMap<String, Object>> request1 = new HttpEntity<MultiValueMap<String, Object>>(
+                    map1, headers1);
+            final ResponseEntity<String> resp1 = this.testRestTemplate
+                    .exchange("/crestapi/payloads", HttpMethod.PUT, request1, String.class);
+            assertEquals(resp1.getStatusCode().value(), HttpStatus.CREATED.value());
+            log.info("Received response: " + resp1);
+        }
+        catch (Exception e) {
+            log.error("Exception: {}", e.getMessage());
         }
     }
 
