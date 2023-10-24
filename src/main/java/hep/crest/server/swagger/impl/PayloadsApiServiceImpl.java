@@ -321,7 +321,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             tagService.updateTag(tagEntity);
             log.info("Batch insertion of {} iovs done", storeset.getSize());
             // Return the result.
-            log.info("Return dto {}", outdto);
+            outdto.format("StoreSetDto").datatype("iovs");
+            log.info("Return output information: {}", outdto);
             return Response.status(Response.Status.CREATED).entity(outdto).build();
         }
         catch (IOException e) {
