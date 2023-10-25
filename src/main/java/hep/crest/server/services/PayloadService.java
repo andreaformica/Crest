@@ -328,6 +328,7 @@ public class PayloadService {
                 Iov savedIov = iovService.storeIov(iov);
                 dto.since(new BigDecimal(savedIov.id().since())).hash(savedIov.payloadHash());
                 dto.data(saved.objectType() + "; " + saved.objectName());
+                dto.streamerInfo("none");
                 setdto.addResourcesItem(dto);
             }
             catch (final ConflictException e) {

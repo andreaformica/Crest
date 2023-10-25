@@ -322,7 +322,16 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             tagService.updateTag(tagEntity);
             log.info("Batch insertion of {} iovs done", storeset.getSize());
             // Return the result.
-            log.info("Return dto {}", outdto);
+            outdto.format("StoreSetDto").datatype("iovs");
+            RespPage respPage = new RespPage().size(outdto.getSize().intValue())
+                    .totalElements(outdto.getSize()).totalPages(1).number(0);
+            outdto.page(respPage);
+            // Create filters
+            GenericMap filters = new GenericMap();
+            filters.put("name", tag);
+            filters.put("objectType", objectType);
+            outdto.filter(filters);
+            log.info("Return output information: {}", outdto);
             return Response.status(Response.Status.CREATED).entity(outdto).build();
         }
         catch (IOException e) {

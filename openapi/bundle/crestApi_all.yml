@@ -1126,12 +1126,15 @@ paths:
         '200':
           description: successful operation
           content:
-            application/*:
+            application/octet-stream:
               schema:
                 type: string
             text/plain:
               schema:
                 type: string
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayloadDto'
         '404':
           $ref: '#/components/responses/404'
         default:
