@@ -50,6 +50,7 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -214,6 +215,26 @@ public class TestCrestPayload {
         }
     } /* * This method parse JSON String by using Jackson Streaming API example. */
 
+    protected String randomPayload(Integer size) {
+        // Size of the desired string in megabytes
+        int targetSizeMB = size;
+
+        // Calculate the number of characters needed for the target size
+        long targetSizeBytes = targetSizeMB * 1024 * 1024;
+
+        // Initialize the StringBuilder
+        StringBuilder largeString = new StringBuilder();
+
+        // Create a random character generator
+        Random random = new Random();
+
+        // Build the string with random characters
+        while (largeString.length() < targetSizeBytes) {
+            char randomChar = (char) (random.nextInt(26) + 'a'); // Generates a random lowercase letter
+            largeString.append(randomChar);
+        }
+        return largeString.toString();
+    }
     protected StoreSetDto buildStoreSet(String tagname) {
         // Upload batch iovs
         final IovId id = new IovId().tagName(tagname)
@@ -240,14 +261,13 @@ public class TestCrestPayload {
         sdto.streamerInfo("{\"filename\": \"test-inline-5-this is a large payload\"}");
         sdto.since(new BigDecimal(miov.id().since()));
         sdto.hash("somehashjson1");
-        sdto.setData("{ \"key\": \"an inline very large payload as a json\"}");
+        sdto.setData(randomPayload(10));
 
         StoreDto sdto1 = new StoreDto();
         sdto1.streamerInfo("{\"filename\": \"test-inline-2- this is another large payload\"}");
         sdto1.since(new BigDecimal(miov2.id().since()));
         sdto1.hash("somehashjson2");
-        sdto1.setData("{ \"key\": \"an inline very large payload as a json 2 should have "
-                      + "different hash\"}");
+        sdto1.setData(randomPayload(10));
         setdto.addResourcesItem(sdto).addResourcesItem(sdto1);
         return setdto;
     }

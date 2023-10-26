@@ -218,7 +218,7 @@ public final class HashGenerator {
 
         StringBuilder result = new StringBuilder();
         for (byte b : hash) {
-            result.append(String.format("%02X", b));
+            result.append(String.format("%02x", b));
         }
         return result.toString();
     }

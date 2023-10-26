@@ -6,6 +6,7 @@ import hep.crest.server.annotations.ProfileAndLog;
 import hep.crest.server.caching.CachingPolicyService;
 import hep.crest.server.config.CrestProperties;
 import hep.crest.server.controllers.EntityDtoHelper;
+import hep.crest.server.controllers.JsonStreamProcessor;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.controllers.SimpleLobStreamerProvider;
 import hep.crest.server.converters.PayloadHandler;
@@ -130,6 +131,11 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      */
     @Autowired
     private TagService tagService;
+    /**
+     * Service.
+     */
+    @Autowired
+    private JsonStreamProcessor jsonStreamProcessor;
     /**
      * Service.
      */
@@ -345,21 +351,58 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                                String objectType, String compressionType, String version,
                                BigDecimal endtime, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
+        log.debug("Batch insertion of json iovs stream");
         final BodyPartEntity inputsource = (BodyPartEntity) storesetBodypart.getEntity();
-
-        try (Scanner scanner = new Scanner(
-                inputsource.getInputStream(), StandardCharsets.UTF_8.name())) {
-            StringBuilder jsonBuilder = new StringBuilder();
-
-            while (scanner.hasNextLine()) {
-                jsonBuilder.append(scanner.nextLine());
-            }
-
-            String json = jsonBuilder.toString();
-            // Now you can process the JSON data as needed.
-            System.out.println("Received JSON: " + json);
+        // use to send back a NotFound if the tag does not exists.
+        Tag tagentity = tagService.findOne(tag);
+        // Check security on tag using a fake update. This will trigger the TagSecurityAspect.
+        // It controls that the user has the right to update the tag.
+        tagService.updateTag(tagentity);
+        // Add object type.
+        if (objectType == null) {
+            objectType = "lob";
         }
-        return Response.status(Response.Status.CREATED).build();
+        // Add version.
+        if (version == null) {
+            version = "default";
+        }
+        // Set default compression to none
+        if (compressionType == null) {
+            compressionType = "none";
+        }
+        // Now you can process the JSON data as needed.
+        StoreSetDto outdto = null;
+        try {
+            outdto = jsonStreamProcessor.processJsonStream(inputsource.getInputStream(),
+                    objectType, version, compressionType, tag);
+            inputsource.getInputStream().close();
+        }
+        catch (RuntimeException | IOException e) {
+            throw new CdbInternalException("Cannot deserialize data", e);
+        }
+        // Change the end time in the tag.
+        Tag tagEntity = tagService.findOne(tag);
+        tagEntity.endOfValidity((endtime != null) ? endtime.toBigInteger() : BigInteger.ZERO);
+        // Update the modification time.
+        tagEntity.modificationTime(Instant.now().toDate());
+        // Update the tag.
+        tagService.updateTag(tagEntity);
+        log.info("Batch insertion of {} iovs done", outdto.getSize());
+        // Return the result.
+        if (outdto == null) {
+            throw new CdbInternalException("No response from object deserialization...");
+        }
+        outdto.format("StoreSetDto").datatype("iovs");
+        RespPage respPage = new RespPage().size(outdto.getSize().intValue())
+                .totalElements(outdto.getSize()).totalPages(1).number(0);
+        outdto.page(respPage);
+        // Create filters
+        GenericMap filters = new GenericMap();
+        filters.put("name", tag);
+        filters.put("objectType", objectType);
+        outdto.filter(filters);
+        log.info("Return output information: {}", outdto);
+        return Response.status(Response.Status.CREATED).entity(outdto).build();
     }
 
     /**
