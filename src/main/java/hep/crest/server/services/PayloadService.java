@@ -5,9 +5,12 @@ package hep.crest.server.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.converters.HashGenerator;
 import hep.crest.server.data.pojo.Iov;
+import hep.crest.server.data.pojo.IovId;
 import hep.crest.server.data.pojo.Payload;
 import hep.crest.server.data.pojo.PayloadInfoData;
+import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.repositories.IovRepository;
 import hep.crest.server.data.repositories.PayloadDataRepository;
 import hep.crest.server.data.repositories.PayloadInfoDataRepository;
@@ -40,6 +43,7 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -357,4 +361,58 @@ public class PayloadService {
         setdto.format("StoreSetDto");
         return setdto;
     }
+
+
+    /**
+     * Save IOV and Payload in one request.
+     *
+     * @param dto
+     * @param objectType
+     * @param version
+     * @param compressionType
+     * @param tag
+     *
+     * @return StoreDto
+     * @throws AbstractCdbServiceException
+     */
+    @Transactional(rollbackOn = {Exception.class})
+    public StoreDto savePayloadIov(StoreDto dto, String objectType, String version,
+                                   String compressionType, String tag)
+            throws AbstractCdbServiceException, NoSuchAlgorithmException {
+        log.debug("Create iov and payload for time {}", dto.getSince());
+        // Here we generate objectType and version. We should probably allow for input
+        // arguments.
+        StoreDto outdto = new StoreDto();
+        // Start filling the payload data.
+        Payload entity = new Payload()
+                .objectType(objectType).hash("none")
+                .compressionType(compressionType).version(version);
+        entity.size(0);
+        PayloadInfoData sinfodata = new PayloadInfoData();
+        sinfodata.streamerInfo(dto.getStreamerInfo().getBytes(StandardCharsets.UTF_8));
+        // Initialize the iov entity from the DTO.
+        Iov iov = new Iov();
+        IovId iovId = new IovId();
+        iovId.since(dto.getSince().toBigInteger()).tagName(tag);
+        iov.id(iovId).tag(new Tag().name(tag));
+        // Generate the hash from the payload.
+        byte[] paylodContent = dto.getData().getBytes(StandardCharsets.UTF_8);
+        log.debug("Use the data string, it represents the payload : length is {}",
+                paylodContent.length);
+        entity.size(paylodContent.length);
+        final String phash = HashGenerator.sha256Hash(paylodContent);
+        iov.payloadHash(phash);
+        entity.hash(phash);
+        sinfodata.hash(phash);
+        InputStream is = new ByteArrayInputStream(paylodContent);
+        // Persist the entity using JPA
+        this.insertPayload(entity, is, sinfodata);
+        Iov savedIov = iovService.storeIov(iov);
+        // Fill summary info to return.
+        outdto.since(BigDecimal.valueOf(savedIov.id().since().longValue()));
+        outdto.setHash(phash);
+        outdto.data("payloadlength: " + paylodContent.length);
+        return outdto;
+    }
+
 }

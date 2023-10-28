@@ -4,12 +4,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hep.crest.server.converters.HashGenerator;
-import hep.crest.server.data.pojo.Iov;
-import hep.crest.server.data.pojo.IovId;
-import hep.crest.server.data.pojo.Payload;
-import hep.crest.server.data.pojo.PayloadInfoData;
-import hep.crest.server.data.pojo.Tag;
+import hep.crest.server.services.IovService;
 import hep.crest.server.services.PayloadService;
 import hep.crest.server.swagger.model.StoreDto;
 import hep.crest.server.swagger.model.StoreSetDto;
@@ -19,11 +14,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +29,10 @@ public class JsonStreamProcessor {
      */
     private PayloadService payloadService;
     /**
+     * Thee iov service.
+     */
+    private IovService iovService;
+    /**
      * Mapper.
      */
     private ObjectMapper jsonMapper;
@@ -45,12 +41,15 @@ public class JsonStreamProcessor {
      * Default ctor.
      *
      * @param payloadService
+     * @param iovService
      * @param mapper
      */
     @Autowired
     public JsonStreamProcessor(PayloadService payloadService,
+                               IovService iovService,
                                @Qualifier("jacksonMapper") ObjectMapper mapper) {
         this.payloadService = payloadService;
+        this.iovService = iovService;
         this.jsonMapper = mapper;
     }
 
@@ -130,34 +129,7 @@ public class JsonStreamProcessor {
         if (parser.getCurrentToken() == JsonToken.START_OBJECT) {
             StoreDto dto = jsonMapper.readValue(parser, StoreDto.class);
             log.debug("Convert stream to StoreDto at since: {}", dto.getSince());
-            // Here we generate objectType and version. We should probably allow for input
-            // arguments.
-            Payload entity = new Payload()
-                    .objectType(objectType).hash("none")
-                    .compressionType(compressionType).version(version);
-            entity.size(0);
-            PayloadInfoData sinfodata = new PayloadInfoData();
-            sinfodata.streamerInfo(dto.getStreamerInfo().getBytes(StandardCharsets.UTF_8));
-            // Initialize the iov entity from the DTO.
-            Iov iov = new Iov();
-            IovId iovId = new IovId();
-            iovId.since(dto.getSince().toBigInteger()).tagName(tag);
-            iov.id(iovId).tag(new Tag().name(tag));
-            // Generate the hash from the payload.
-            byte[] paylodContent = dto.getData().getBytes(StandardCharsets.UTF_8);
-            log.debug("Use the data string, it represents the payload : length is {}",
-                    paylodContent.length);
-            entity.size(paylodContent.length);
-            final String phash = HashGenerator.sha256Hash(paylodContent);
-            iov.payloadHash(phash);
-            entity.hash(phash);
-            sinfodata.hash(phash);
-            InputStream is = new ByteArrayInputStream(paylodContent);
-            // Persist the entity using JPA
-            payloadService.insertPayload(entity, is, sinfodata);
-            outdto.since(BigDecimal.valueOf(iovId.since().longValue()));
-            outdto.setHash(phash);
-            outdto.data("payloadlength: " + paylodContent.length);
+            outdto = payloadService.savePayloadIov(dto, objectType, version, compressionType, tag);
         }
         return outdto;
     }
