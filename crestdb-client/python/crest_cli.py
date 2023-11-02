@@ -3,6 +3,8 @@ import json
 import argparse
 
 DEFAULT_HOST = "http://crest-undertow-api.web.cern.ch/api-v4.0"
+proxy = {}
+host = DEFAULT_HOST
 
 def generate_tag_data(tag_name, tag_description):
     data = {
@@ -58,7 +60,7 @@ def create_tag(args):
     print(f"Creating tag with name: {name} and description: {description}")
     post_data = generate_tag_data(name, description)
     print(f"Use data {post_data}")
-    response = requests.post(f"{host}/tags", headers={"Accept": "application/json", "Content-Type": "application/json"}, data=post_data)
+    response = requests.post(f"{host}/tags", proxies=proxy, headers={"Accept": "application/json", "Content-Type": "application/json"}, data=post_data)
     print(f"Received response {response.text}")
 
 def create_gtag(args):
@@ -67,7 +69,7 @@ def create_gtag(args):
     print(f"Creating global tag with name: {name} and description: {description}")
     post_data = generate_gtag_data(name, description)
     print(f"Use data {post_data}")
-    response = requests.post(f"{host}/globaltags", headers={"Accept": "application/json", "Content-Type": "application/json"}, data=post_data)
+    response = requests.post(f"{host}/globaltags", proxies=proxy, headers={"Accept": "application/json", "Content-Type": "application/json"}, data=post_data)
     print(f"Received response {response.text}")
 
 def link_tag2gtag(args):
@@ -78,7 +80,7 @@ def link_tag2gtag(args):
     print(f"Linking tag '{tag_name}' to global tag '{gtag_name}'")
     post_data = generate_link_data(gtag_name, tag_name, record, label)
     print(f"Use data {post_data}")
-    response = requests.post(f"{host}/globaltagmaps", headers={"Accept": "application/json", "Content-Type": "application/json"}, data=post_data)
+    response = requests.post(f"{host}/globaltagmaps", proxies=proxy, headers={"Accept": "application/json", "Content-Type": "application/json"}, data=post_data)
     print(f"Received response {response.text}")
 
 def store_data(args):
@@ -91,25 +93,37 @@ def store_data(args):
     print(f"Use data {post_data}")
     with open(f"{name}_{since}_store.json", "w") as file:
         file.write(post_data)
-    response = requests.put(f"{host}/payloads", headers={"Accept": "application/json", "Content-Type": "multipart/form-data"}, data={"tag": name, "endtime": 0, "version": "1.0"}, files={"storeset": (f"{name}_{since}_store.json", open(f"{name}_{since}_store.json", "rb")), "objectType": "JSON"})
+    response = requests.put(f"{host}/payloads", proxies=proxy, headers={"Accept": "application/json", "Content-Type": "multipart/form-data"}, data={"tag": name, "endtime": 0, "version": "1.0"}, files={"storeset": (f"{name}_{since}_store.json", open(f"{name}_{since}_store.json", "rb")), "objectType": "JSON"})
     print(f"Received response {response.text}")
 
 def trace_tags(args):
     name = args.name
     print(f"Trace tags in global tag: {name}")
-    response = requests.get(f"{host}/globaltagmaps/{name}", headers={"Accept": "application/json", "Content-Type": "application/json"})
+    response = requests.get(f"{host}/globaltagmaps/{name}", proxies=proxy, headers={"Accept": "application/json", "Content-Type": "application/json"})
+    print(response.text)
+
+def list_globaltags(args):
+    name = args.name
+    print(f"List GlobalTags: {name}")
+    response = requests.get(f"{host}/globaltags?name={name}", proxies=proxy, headers={"Accept": "application/json", "Content-Type": "application/json"})
+    print(response.text)
+
+def list_tags(args):
+    name = args.name
+    print(f"List IOVs in tag: {name}")
+    response = requests.get(f"{host}/tags?name={name}", proxies=proxy, headers={"Accept": "application/json", "Content-Type": "application/json"})
     print(response.text)
 
 def list_iovs(args):
     name = args.name
     print(f"List IOVs in tag: {name}")
-    response = requests.get(f"{host}/iovs?tagname={name}", headers={"Accept": "application/json", "Content-Type": "application/json"})
+    response = requests.get(f"{host}/iovs?tagname={name}", proxies=proxy, headers={"Accept": "application/json", "Content-Type": "application/json"})
     print(response.text)
 
 def get_data(args):
     hash = args.hash
     print(f"Get data with hash: {hash}")
-    response = requests.get(f"{host}/payloads/{hash}")
+    response = requests.get(f"{host}/payloads/{hash}", proxies=proxy)
     print(response.text)
 
 def main():
@@ -118,6 +132,8 @@ def main():
     subparsers = parser.add_subparsers(dest="command")
     # Define the --host argument
     parser.add_argument("--host", default=DEFAULT_HOST, help="Base URL of the REST API")
+    # Define the --proxy argument
+    parser.add_argument("--proxy", help="Proxy URL for making requests")
 
     create_tag_parser = subparsers.add_parser("create_tag")
     create_tag_parser.add_argument("name", help="Name of the tag")
@@ -142,6 +158,10 @@ def main():
     trace_tags_parser = subparsers.add_parser("trace_tags")
     trace_tags_parser.add_argument("name", help="Name of the global tag")
 
+    list_globaltags_parser = subparsers.add_parser("list_globaltags")
+    list_globaltags_parser.add_argument("name", help="Name of the global tag")
+    list_tags_parser = subparsers.add_parser("list_tags")
+    list_tags_parser.add_argument("name", help="Name of the tag")
     list_iovs_parser = subparsers.add_parser("list_iovs")
     list_iovs_parser.add_argument("name", help="Name of the tag")
 
@@ -149,6 +169,10 @@ def main():
     get_data_parser.add_argument("hash", help="Data hash")
 
     args = parser.parse_args()
+
+    # Extract the host and proxy values
+    host = args.host
+    proxy = {"http": args.proxy, "https": args.proxy} if args.proxy else None
 
     if args.command == "create_tag":
         create_tag(args)
@@ -160,6 +184,10 @@ def main():
         store_data(args)
     elif args.command == "trace_tags":
         trace_tags(args)
+    elif args.command == "list_globaltags":
+        list_globaltags(args)
+    elif args.command == "list_tags":
+        list_tags(args)
     elif args.command == "list_iovs":
         list_iovs(args)
     elif args.command == "get_data":
