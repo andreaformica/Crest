@@ -1,7 +1,8 @@
 import requests
 import json
+import argparse
 
-host = "http://example.com"  # Replace with your CREST_SERVER_PATH
+DEFAULT_HOST = "http://crest-undertow-api.web.cern.ch/api-v4.0"
 
 def generate_tag_data(tag_name, tag_description):
     data = {
@@ -51,27 +52,40 @@ def generate_payload_data(tag_name, since, fpath, filename):
     }
     return json.dumps(data)
 
-def create_tag(name, description):
+def create_tag(args):
+    name = args.name
+    description = args.description
     print(f"Creating tag with name: {name} and description: {description}")
     post_data = generate_tag_data(name, description)
     print(f"Use data {post_data}")
     response = requests.post(f"{host}/tags", headers={"Accept": "application/json", "Content-Type": "application/json"}, data=post_data)
     print(f"Received response {response.text}")
 
-def create_gtag(name, description):
+def create_gtag(args):
+    name = args.name
+    description = args.description
     print(f"Creating global tag with name: {name} and description: {description}")
     post_data = generate_gtag_data(name, description)
     print(f"Use data {post_data}")
     response = requests.post(f"{host}/globaltags", headers={"Accept": "application/json", "Content-Type": "application/json"}, data=post_data)
     print(f"Received response {response.text}")
 
-def link_tag2gtag(tag_name, gtag_name, record, label):
+def link_tag2gtag(args):
+    tag_name = args.tag_name
+    gtag_name = args.gtag_name
+    record = args.record
+    label = args.label
     print(f"Linking tag '{tag_name}' to global tag '{gtag_name}'")
     post_data = generate_link_data(gtag_name, tag_name, record, label)
     print(f"Use data {post_data}")
     response = requests.post(f"{host}/globaltagmaps", headers={"Accept": "application/json", "Content-Type": "application/json"}, data=post_data)
+    print(f"Received response {response.text}")
 
-def store_data(name, since, path, filename):
+def store_data(args):
+    name = args.name
+    since = args.since
+    path = args.path
+    filename = args.filename
     print(f"Storing data with name: {name}, since: {since}, and filename: {filename}")
     post_data = generate_payload_data(name, since, path, filename)
     print(f"Use data {post_data}")
@@ -80,53 +94,78 @@ def store_data(name, since, path, filename):
     response = requests.put(f"{host}/payloads", headers={"Accept": "application/json", "Content-Type": "multipart/form-data"}, data={"tag": name, "endtime": 0, "version": "1.0"}, files={"storeset": (f"{name}_{since}_store.json", open(f"{name}_{since}_store.json", "rb")), "objectType": "JSON"})
     print(f"Received response {response.text}")
 
-def trace_tags(name):
+def trace_tags(args):
+    name = args.name
     print(f"Trace tags in global tag: {name}")
     response = requests.get(f"{host}/globaltagmaps/{name}", headers={"Accept": "application/json", "Content-Type": "application/json"})
     print(response.text)
 
-def list_iovs(name):
+def list_iovs(args):
+    name = args.name
     print(f"List IOVs in tag: {name}")
     response = requests.get(f"{host}/iovs?tagname={name}", headers={"Accept": "application/json", "Content-Type": "application/json"})
     print(response.text)
 
-def get_data(hash):
+def get_data(args):
+    hash = args.hash
     print(f"Get data with hash: {hash}")
     response = requests.get(f"{host}/payloads/{hash}")
     print(response.text)
 
-# Main script
-import sys
+def main():
+    parser = argparse.ArgumentParser(description="Perform various functions with different arguments.")
 
-if len(sys.argv) < 2:
-    print("Usage: python script.py [function] [arguments]")
-    print("Available functions:")
-    print("  create_tag [name] [description]")
-    print("  create_gtag [name] [description]")
-    print("  link_tag2gtag [tag_name] [gtag_name] [record] [label]")
-    print("  store_data [tag_name] [since] [filepath] [filename]")
-    print("  trace_tags [globaltag_name]")
-    print("  list_iovs [tag_name]")
-    print("  get_data [hash]")
-    sys.exit(1)
+    subparsers = parser.add_subparsers(dest="command")
+    # Define the --host argument
+    parser.add_argument("--host", default=DEFAULT_HOST, help="Base URL of the REST API")
 
-function_name = sys.argv[1]
-arguments = sys.argv[2:]
+    create_tag_parser = subparsers.add_parser("create_tag")
+    create_tag_parser.add_argument("name", help="Name of the tag")
+    create_tag_parser.add_argument("description", help="Description of the tag")
 
-if function_name == "create_tag":
-    create_tag(*arguments)
-elif function_name == "create_gtag":
-    create_gtag(*arguments)
-elif function_name == "link_tag2gtag":
-    link_tag2gtag(*arguments)
-elif function_name == "store_data":
-    store_data(*arguments)
-elif function_name == "trace_tags":
-    trace_tags(*arguments)
-elif function_name == "list_iovs":
-    list_iovs(*arguments)
-elif function_name == "get_data":
-    get_data(*arguments)
-else:
-    print(f"Invalid function: {function_name}")
-    sys.exit(1)
+    create_gtag_parser = subparsers.add_parser("create_gtag")
+    create_gtag_parser.add_argument("name", help="Name of the global tag")
+    create_gtag_parser.add_argument("description", help="Description of the global tag")
+
+    link_tag2gtag_parser = subparsers.add_parser("link_tag2gtag")
+    link_tag2gtag_parser.add_argument("tag_name", help="Name of the tag")
+    link_tag2gtag_parser.add_argument("gtag_name", help="Name of the global tag")
+    link_tag2gtag_parser.add_argument("record", help="Record")
+    link_tag2gtag_parser.add_argument("label", help="Label")
+
+    store_data_parser = subparsers.add_parser("store_data")
+    store_data_parser.add_argument("name", help="Name of the data")
+    store_data_parser.add_argument("since", type=int, help="Since value")
+    store_data_parser.add_argument("path", help="File path")
+    store_data_parser.add_argument("filename", help="File name")
+
+    trace_tags_parser = subparsers.add_parser("trace_tags")
+    trace_tags_parser.add_argument("name", help="Name of the global tag")
+
+    list_iovs_parser = subparsers.add_parser("list_iovs")
+    list_iovs_parser.add_argument("name", help="Name of the tag")
+
+    get_data_parser = subparsers.add_parser("get_data")
+    get_data_parser.add_argument("hash", help="Data hash")
+
+    args = parser.parse_args()
+
+    if args.command == "create_tag":
+        create_tag(args)
+    elif args.command == "create_gtag":
+        create_gtag(args)
+    elif args.command == "link_tag2gtag":
+        link_tag2gtag(args)
+    elif args.command == "store_data":
+        store_data(args)
+    elif args.command == "trace_tags":
+        trace_tags(args)
+    elif args.command == "list_iovs":
+        list_iovs(args)
+    elif args.command == "get_data":
+        get_data(args)
+    else:
+        print(f"Invalid function: {args.command}")
+
+if __name__ == "__main__":
+    main()
