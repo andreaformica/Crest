@@ -196,6 +196,9 @@ def main():
         get_data(args, host, mproxy)
     else:
         print(f"Invalid function: {args.command}")
+        print(f"Use --help for more information")
+        parser.print_help()
+        print("Example: python crest_cli.py --host \"http://crest.cern.ch/api-v4.0\"  --proxy \"socks5://localhost:3129\" list_iovs \"MmPdoSideA-Const-9p0\" | egrep \"Output\" | awk -F 'Output:' '{print $2}' | jq")
 
 if __name__ == "__main__":
     main()
