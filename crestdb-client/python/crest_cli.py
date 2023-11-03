@@ -3,7 +3,7 @@ import json
 import argparse
 
 DEFAULT_HOST = "http://crest-undertow-api.web.cern.ch/api-v4.0"
-proxy = {}
+mproxy = {}
 host = DEFAULT_HOST
 
 def generate_tag_data(tag_name, tag_description):
@@ -54,25 +54,25 @@ def generate_payload_data(tag_name, since, fpath, filename):
     }
     return json.dumps(data)
 
-def create_tag(args):
+def create_tag(args, host, mproxy):
     name = args.name
     description = args.description
     print(f"Creating tag with name: {name} and description: {description}")
     post_data = generate_tag_data(name, description)
     print(f"Use data {post_data}")
-    response = requests.post(f"{host}/tags", proxies=proxy, headers={"Accept": "application/json", "Content-Type": "application/json"}, data=post_data)
+    response = requests.post(f"{host}/tags", headers={"Accept": "application/json", "Content-Type": "application/json"}, data=post_data, proxies=mproxy)
     print(f"Received response {response.text}")
 
-def create_gtag(args):
+def create_gtag(args, host, mproxy):
     name = args.name
     description = args.description
     print(f"Creating global tag with name: {name} and description: {description}")
     post_data = generate_gtag_data(name, description)
     print(f"Use data {post_data}")
-    response = requests.post(f"{host}/globaltags", proxies=proxy, headers={"Accept": "application/json", "Content-Type": "application/json"}, data=post_data)
+    response = requests.post(f"{host}/globaltags", headers={"Accept": "application/json", "Content-Type": "application/json"}, data=post_data, proxies=mproxy)
     print(f"Received response {response.text}")
 
-def link_tag2gtag(args):
+def link_tag2gtag(args, host, mproxy):
     tag_name = args.tag_name
     gtag_name = args.gtag_name
     record = args.record
@@ -80,10 +80,10 @@ def link_tag2gtag(args):
     print(f"Linking tag '{tag_name}' to global tag '{gtag_name}'")
     post_data = generate_link_data(gtag_name, tag_name, record, label)
     print(f"Use data {post_data}")
-    response = requests.post(f"{host}/globaltagmaps", proxies=proxy, headers={"Accept": "application/json", "Content-Type": "application/json"}, data=post_data)
+    response = requests.post(f"{host}/globaltagmaps", headers={"Accept": "application/json", "Content-Type": "application/json"}, data=post_data, proxies=mproxy)
     print(f"Received response {response.text}")
 
-def store_data(args):
+def store_data(args, host, mproxy):
     name = args.name
     since = args.since
     path = args.path
@@ -93,38 +93,38 @@ def store_data(args):
     print(f"Use data {post_data}")
     with open(f"{name}_{since}_store.json", "w") as file:
         file.write(post_data)
-    response = requests.put(f"{host}/payloads", proxies=proxy, headers={"Accept": "application/json", "Content-Type": "multipart/form-data"}, data={"tag": name, "endtime": 0, "version": "1.0"}, files={"storeset": (f"{name}_{since}_store.json", open(f"{name}_{since}_store.json", "rb")), "objectType": "JSON"})
+    response = requests.put(f"{host}/payloads", headers={"Accept": "application/json", "Content-Type": "multipart/form-data"}, data={"tag": name, "endtime": 0, "version": "1.0"}, files={"storeset": (f"{name}_{since}_store.json", open(f"{name}_{since}_store.json", "rb")), "objectType": "JSON"}, proxies=mproxy)
     print(f"Received response {response.text}")
 
-def trace_tags(args):
+def trace_tags(args, host, mproxy):
     name = args.name
     print(f"Trace tags in global tag: {name}")
-    response = requests.get(f"{host}/globaltagmaps/{name}", proxies=proxy, headers={"Accept": "application/json", "Content-Type": "application/json"})
-    print(response.text)
+    response = requests.get(f"{host}/globaltagmaps/{name}", headers={"Accept": "application/json", "Content-Type": "application/json"}, proxies=mproxy)
+    print(f"Output: {response.text}")
 
-def list_globaltags(args):
+def list_globaltags(args, host, mproxy):
     name = args.name
-    print(f"List GlobalTags: {name}")
-    response = requests.get(f"{host}/globaltags?name={name}", proxies=proxy, headers={"Accept": "application/json", "Content-Type": "application/json"})
-    print(response.text)
+    print(f"List GlobalTags: {name} using proxies {mproxy}")
+    response = requests.get(f"{host}/globaltags?name={name}", headers={"Accept": "application/json", "Content-Type": "application/json"}, proxies=mproxy)
+    print(f"Output: {response.text}")
 
-def list_tags(args):
+def list_tags(args, host, mproxy):
+    name = args.name
+    print(f"List Tags: {name}")
+    response = requests.get(f"{host}/tags?name={name}", headers={"Accept": "application/json", "Content-Type": "application/json"}, proxies=mproxy)
+    print(f"Output: {response.text}")
+
+def list_iovs(args, host, mproxy):
     name = args.name
     print(f"List IOVs in tag: {name}")
-    response = requests.get(f"{host}/tags?name={name}", proxies=proxy, headers={"Accept": "application/json", "Content-Type": "application/json"})
-    print(response.text)
+    response = requests.get(f"{host}/iovs?tagname={name}", headers={"Accept": "application/json", "Content-Type": "application/json"}, proxies=mproxy)
+    print(f"Output: {response.text}")
 
-def list_iovs(args):
-    name = args.name
-    print(f"List IOVs in tag: {name}")
-    response = requests.get(f"{host}/iovs?tagname={name}", proxies=proxy, headers={"Accept": "application/json", "Content-Type": "application/json"})
-    print(response.text)
-
-def get_data(args):
+def get_data(args, host, mproxy):
     hash = args.hash
     print(f"Get data with hash: {hash}")
-    response = requests.get(f"{host}/payloads/{hash}", proxies=proxy)
-    print(response.text)
+    response = requests.get(f"{host}/payloads/{hash}", proxies=mproxy)
+    print(f"Output: {response.text}")
 
 def main():
     parser = argparse.ArgumentParser(description="Perform various functions with different arguments.")
@@ -133,7 +133,7 @@ def main():
     # Define the --host argument
     parser.add_argument("--host", default=DEFAULT_HOST, help="Base URL of the REST API")
     # Define the --proxy argument
-    parser.add_argument("--proxy", help="Proxy URL for making requests")
+    parser.add_argument("--proxy", help="Proxy URL for making requests: use socks5://<host>:<port> for SOCKS5 proxy")
 
     create_tag_parser = subparsers.add_parser("create_tag")
     create_tag_parser.add_argument("name", help="Name of the tag")
@@ -172,26 +172,28 @@ def main():
 
     # Extract the host and proxy values
     host = args.host
-    proxy = {"http": args.proxy, "https": args.proxy} if args.proxy else None
+    mproxy = {"http": args.proxy} if args.proxy else None
+    print(f"Using host: {host}")
+    print(f"Using proxy: {mproxy}")
 
     if args.command == "create_tag":
-        create_tag(args)
+        create_tag(args, host, mproxy)
     elif args.command == "create_gtag":
-        create_gtag(args)
+        create_gtag(args, host, mproxy)
     elif args.command == "link_tag2gtag":
-        link_tag2gtag(args)
+        link_tag2gtag(args, host, mproxy)
     elif args.command == "store_data":
-        store_data(args)
+        store_data(args, host, mproxy)
     elif args.command == "trace_tags":
-        trace_tags(args)
+        trace_tags(args, host, mproxy)
     elif args.command == "list_globaltags":
-        list_globaltags(args)
+        list_globaltags(args, host, mproxy)
     elif args.command == "list_tags":
-        list_tags(args)
+        list_tags(args, host, mproxy)
     elif args.command == "list_iovs":
-        list_iovs(args)
+        list_iovs(args, host, mproxy)
     elif args.command == "get_data":
-        get_data(args)
+        get_data(args, host, mproxy)
     else:
         print(f"Invalid function: {args.command}")
 
