@@ -351,7 +351,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                                String objectType, String compressionType, String version,
                                BigDecimal endtime, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
-        log.debug("Batch insertion of json iovs stream");
+        log.debug("Batch insertion of json iovs+payload stream in tag {} ", tag);
         final BodyPartEntity inputsource = (BodyPartEntity) storesetBodypart.getEntity();
         // use to send back a NotFound if the tag does not exists.
         Tag tagentity = tagService.findOne(tag);

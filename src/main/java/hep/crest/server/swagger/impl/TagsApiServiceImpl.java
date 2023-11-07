@@ -204,10 +204,18 @@ public class TagsApiServiceImpl extends TagsApiService {
                 .format("TagSetDto");
         // Create filters
         GenericMap filters = new GenericMap();
-        filters.put("name", name);
-        filters.put("objectType", objectType);
-        filters.put("description", description);
-        filters.put("timeType", timeType);
+        if (name != null) {
+            filters.put("name", name);
+        }
+        if (objectType != null) {
+            filters.put("objectType", objectType);
+        }
+        if (description != null) {
+            filters.put("description", description);
+        }
+        if (timeType != null) {
+            filters.put("timeType", timeType);
+        }
         setdto.filter(filters);
         // Response is 200.
         log.info("Retrieved tag list from filters {} size={} total={}",

@@ -52,7 +52,7 @@ public class TagRepositoryImpl implements TagRepositoryCustom {
             else {
                 where.and(QTag.tag.name.eq(queryArgs.name()));
             }
-            log.debug("Add where condition on globaltag name: {}", queryArgs.name());
+            log.debug("Add where condition on tag name: {}", queryArgs.name());
         }
         if (queryArgs.objectType() != null) {
             where.and(QTag.tag.objectType.like(queryArgs.objectType()));
