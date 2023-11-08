@@ -1,6 +1,6 @@
 variables:
     IMAGE: crest-service
-    VERSION: '4.1'
+    VERSION: '4.2'
     GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
 # Make the gradle wrapper executable. This essentially downloads a copy of
@@ -34,29 +34,6 @@ package_cern_application:
   rules:
     - if: $SITE == "cern"
 
-package_svom_application:
-  stage: package_application
-  environment: svom
-  image: adoptopenjdk:11-jdk-openj9
-  script:
-    - ./gradlew -g /cache/.gradle clean addPlugin assemble
-  allow_failure: false
-  artifacts:
-    paths:
-      - ./build/libs/crest.jar
-  rules:
-    - if: $SITE == "svom"
-
-sonar_application_job:
-  stage: sonar_application
-  environment: svom
-  image: adoptopenjdk:11-jdk-openj9
-  script:
-    - ./gradlew sonarqube -Dsonar.projectKey=crest -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN
-  allow_failure: false
-  rules:
-    - if: $SITE == "svom" && $CI_COMMIT_BRANCH == "quality"
-
 build_container_job:
   rules:
     - if: $DO_DOCKER_IMAGE == "yes" && $CI_PIPELINE_SOURCE != 'merge_request_event' && $SITE == "cern"
@@ -83,15 +60,3 @@ update_imagestream_and_redeploy:
     - sleep 10 && oc rollout status deploymentconfig/$APP_NAME
   # if you are using Openshift's DeploymentConfig (instead of regular Deployments), use this command:
   # - sleep 10 && oc rollout status deploymentconfig/$APP_NAME
-
-build_docker_image_svom:
-  stage: build_docker_image
-  environment: svom
-  image: $REGISTRY/python-ci:1.1
-  before_script:
-    - docker login -u svom -p $REGISTRY_PASSWORD $REGISTRY
-  script:
-    - docker build --rm --tag=$REGISTRY/$IMAGE:$CI_COMMIT_REF_NAME --file Dockerfile .
-    - docker push $REGISTRY/$IMAGE:$CI_COMMIT_REF_NAME
-  rules:
-    - if: $DO_DOCKER_IMAGE == "yes" && $CI_PIPELINE_SOURCE != 'merge_request_event' && $SITE == "svom"
