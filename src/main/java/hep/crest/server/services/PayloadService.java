@@ -412,6 +412,7 @@ public class PayloadService {
         outdto.since(BigDecimal.valueOf(savedIov.id().since().longValue()));
         outdto.setHash(phash);
         outdto.data("payloadlength: " + paylodContent.length);
+        outdto.streamerInfo("none");
         return outdto;
     }
 

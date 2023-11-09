@@ -335,7 +335,6 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             // Create filters
             GenericMap filters = new GenericMap();
             filters.put("name", tag);
-            filters.put("objectType", objectType);
             outdto.filter(filters);
             log.info("Return output information: {}", outdto);
             return Response.status(Response.Status.CREATED).entity(outdto).build();
@@ -399,7 +398,6 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         // Create filters
         GenericMap filters = new GenericMap();
         filters.put("name", tag);
-        filters.put("objectType", objectType);
         outdto.filter(filters);
         log.info("Return output information: {}", outdto);
         return Response.status(Response.Status.CREATED).entity(outdto).build();
