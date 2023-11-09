@@ -34,10 +34,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TagMetaDto"
+                $ref: "#/components/schemas/TagMetaSetDto"
             application/xml:
               schema:
-                $ref: "#/components/schemas/TagMetaDto"
+                $ref: "#/components/schemas/TagMetaSetDto"
         '404':
           $ref: "#/components/responses/404"
         default:
