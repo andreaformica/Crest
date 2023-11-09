@@ -299,6 +299,6 @@ public class TagsApiServiceImpl extends TagsApiService {
         final TagMeta saved = tagMetaService.updateTagMeta(entity);
         final TagMetaDto dto = mapper.map(saved, TagMetaDto.class);
         log.info("Updated tag meta data {}", dto);
-        return Response.ok(info.getRequestUri()).entity(saved).build();
+        return Response.ok(info.getRequestUri()).entity(dto).build();
     }
 }
