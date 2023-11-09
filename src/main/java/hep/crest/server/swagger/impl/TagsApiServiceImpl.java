@@ -251,8 +251,21 @@ public class TagsApiServiceImpl extends TagsApiService {
         log.info("Search tag metadata for name " + name);
         final TagMeta entity = tagMetaService.find(name);
         final TagMetaDto dto = mapper.map(entity, TagMetaDto.class);
-        final TagMetaSetDto respdto = (TagMetaSetDto) new TagMetaSetDto().addResourcesItem(dto).size(1L)
-                .datatype("tagmetas").format("TagMetaSetDto");
+        RespPage respPage = new RespPage().size(1)
+                .totalElements(1L).totalPages(1)
+                .number(0);
+        // Create filters
+        GenericMap filters = new GenericMap();
+        if (name != null) {
+            filters.put("name", name);
+        }
+        final TagMetaSetDto respdto = (TagMetaSetDto) new TagMetaSetDto()
+                .addResourcesItem(dto)
+                .page(respPage)
+                .size(1L)
+                .filter(filters)
+                .datatype("tagmetas")
+                .format("TagMetaSetDto");
         log.info("Retrieved tag meta data {}: {}", name, dto);
         return Response.ok().entity(respdto).build();
     }
