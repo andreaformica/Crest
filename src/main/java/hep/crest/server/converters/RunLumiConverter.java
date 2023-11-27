@@ -53,6 +53,7 @@ public class RunLumiConverter extends BidirectionalConverter<RunLumiInfo, RunLum
         entity.starttime(st).endtime(et);
         // set the id source.
         entity.id(id);
+        entity.insertionTime(null);
         return entity;
     }
 }

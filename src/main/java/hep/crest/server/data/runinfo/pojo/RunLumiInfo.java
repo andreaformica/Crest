@@ -61,18 +61,18 @@ public class RunLumiInfo implements java.io.Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "INSERTION_TIME", nullable = false, updatable = true, length = 11)
     @EqualsAndHashCode.Exclude
-    private Date insertionTime;
+    private Date insertionTime = null;
 
     /**
      * Before saving.
-     * 
+     *
      * @return
      */
     @PrePersist
     public void prePersist() {
-        if (this.insertionTime() == null) {
+        if (this.insertionTime == null) {
             final Timestamp now = Timestamp.from(Instant.now());
-            this.insertionTime(now);
+            this.insertionTime = now;
         }
     }
 }
