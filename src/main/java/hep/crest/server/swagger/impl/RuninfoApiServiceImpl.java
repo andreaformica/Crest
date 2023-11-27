@@ -79,7 +79,9 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
             // Add to the saved list for the response.
             savedlist.add(saved);
         }
-        final CrestBaseResponse respdto = new RunLumiSetDto().resources(savedlist)
+        final CrestBaseResponse respdto = new RunLumiSetDto()
+                .resources(savedlist)
+                .format("RunLumiSetDto")
                 .size((long) savedlist.size()).datatype("runs");
         return Response.created(info.getRequestUri()).entity(respdto).build();
 
@@ -95,7 +97,7 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
         List<RunLumiInfoDto> reslist = new ArrayList<>();
         reslist.add(saved);
         final CrestBaseResponse respdto = new RunLumiSetDto().resources(reslist)
-                .size((long) 1).datatype("runs");
+                .format("RunLumiSetDto").size((long) reslist.size()).datatype("runs");
         return Response.created(info.getRequestUri()).entity(respdto).build();
     }
 
@@ -195,7 +197,7 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
         final RunLumiSetDto respdto = new RunLumiSetDto();
         // Create the Set for the response.
         ((RunLumiSetDto) respdto.datatype("runs")).resources(dtolist)
-                .size((long) dtolist.size());
+                .format("RunLumiSetDto").size((long) dtolist.size());
         respdto.filter(filters);
         return respdto;
     }
