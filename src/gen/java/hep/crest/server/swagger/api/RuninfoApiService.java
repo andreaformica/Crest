@@ -21,6 +21,6 @@ import javax.validation.constraints.*;
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public abstract class RuninfoApiService {
     public abstract Response createRunInfo(RunLumiSetDto runLumiSetDto,SecurityContext securityContext, UriInfo info) throws NotFoundException;
-    public abstract Response listRunInfo(String from,String to,String format,String mode,Integer page,Integer size,String sort,SecurityContext securityContext, UriInfo info) throws NotFoundException;
+    public abstract Response listRunInfo(String since,String until,String format,String mode,Integer page,Integer size,String sort,SecurityContext securityContext, UriInfo info) throws NotFoundException;
     public abstract Response updateRunInfo(RunLumiInfoDto runLumiInfoDto,SecurityContext securityContext, UriInfo info) throws NotFoundException;
 }

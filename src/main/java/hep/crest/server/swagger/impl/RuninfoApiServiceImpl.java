@@ -3,6 +3,7 @@ package hep.crest.server.swagger.impl;
 import hep.crest.server.data.runinfo.pojo.RunLumiInfo;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.exceptions.CdbBadRequestException;
 import hep.crest.server.runinfo.services.RunInfoService;
 import hep.crest.server.swagger.api.NotFoundException;
 import hep.crest.server.swagger.api.RuninfoApiService;
@@ -117,11 +118,28 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
         final PageRequest preq = prh.createPageRequest(page, size, sort);
         Page<RunLumiInfo> entitypage = null;
         if (mode.equalsIgnoreCase("runrange")) {
-            // Interpret as Runs
-            final BigInteger bfrom = BigInteger.valueOf(Long.valueOf(from));
-            final BigInteger bto = BigInteger.valueOf(Long.valueOf(to));
-            // Inclusive selection.
-            entitypage = runinfoService.selectInclusiveByRun(bfrom, bto, preq);
+            if ("number".equalsIgnoreCase(format)) {
+                // Interpret as Runs
+                final BigInteger bfrom = BigInteger.valueOf(Long.valueOf(from));
+                final BigInteger bto = BigInteger.valueOf(Long.valueOf(to));
+                // Inclusive selection.
+                entitypage = runinfoService.selectInclusiveByRun(bfrom, bto, preq);
+            }
+            else if ("run-lumi".equalsIgnoreCase(format)) {
+                // Interpret as RunLumi
+                final String[] fromparts = from.split("-");
+                final String[] toparts = to.split("-");
+                final BigInteger run = BigInteger.valueOf(Long.valueOf(fromparts[0]));
+                final BigInteger bto = BigInteger.valueOf(Long.valueOf(toparts[0]));
+                final BigInteger run2 = BigInteger.valueOf(Long.valueOf(fromparts[1]));
+                final BigInteger lto = BigInteger.valueOf(Long.valueOf(toparts[1]));
+                if (!run.equals(run2)) {
+                    log.warn("Run numbers are different in from and to {} {}", from, to);
+                    throw new CdbBadRequestException("Run numbers are different in from and to");
+                }
+                // Inclusive selection.
+                entitypage = runinfoService.selectInclusiveByLumiBlock(run, bto, lto, preq);
+            }
         }
         else if (mode.equalsIgnoreCase("daterange")) {
             // Interpret as Dates

@@ -110,6 +110,31 @@ public class RunInfoService {
         return entitylist;
     }
 
+
+    /**
+     * @param run the BigInteger
+     * @param from
+     *            the BigInteger.
+     * @param to
+     *            the BigInteger.
+     * @param preq the PageRequest
+     * @throws AbstractCdbServiceException
+     *             If an Exception occurred.
+     * @return List<RunLumiInfo>
+     */
+    public Page<RunLumiInfo> selectInclusiveByLumiBlock(BigInteger run, BigInteger from,
+                                                      BigInteger to,
+                                                  Pageable preq) {
+        Page<RunLumiInfo> entitylist = null;
+        if (preq == null) {
+            String sort = "runNumber:ASC";
+            preq = prh.createPageRequest(0, 1000, sort);
+        }
+        entitylist = runinfoRepository.findByLumiBlockInclusive(run, from, to, preq);
+        log.trace("Retrieved list of runs {}", entitylist.getNumberOfElements());
+        return entitylist;
+    }
+
     /**
      * @param from
      *            the Date.

@@ -47,6 +47,26 @@ public interface RunLumiInfoRepository
                                                @Param("upper") BigInteger upper, Pageable preq);
 
     /**
+     * @param run
+     *           the BigInteger
+     * @param lower
+     *            the BigInteger
+     * @param upper
+     *            the BigInteger
+     * @param preq
+     *            the PageRequest
+     * @return Page<RunLumiInfo>
+     */
+    @Query("SELECT distinct p FROM RunLumiInfo p "
+           + "WHERE p.id.runNumber=(:run) AND p.id.lb <= ("
+           + "SELECT min(pi.id.lb) FROM RunLumiInfo pi "
+           + "WHERE pi.id.runNumber = (:run) AND pi.id.lb >= (:upper)) "
+           + " AND p.id.lb >= (:lower)" + "ORDER BY p.id.lb ASC")
+    Page<RunLumiInfo> findByLumiBlockInclusive(@Param("run") BigInteger run,
+                                               @Param("lower") BigInteger lower,
+                                               @Param("upper") BigInteger upper, Pageable preq);
+
+    /**
      * @param lower
      *            the Date
      * @param upper
