@@ -1260,9 +1260,10 @@ paths:
         - name: format
           in: query
           description: |
-            the format to digest previous arguments [iso], [number].
-            Time(iso) = yyyymmddhhmiss, Run(number) = runnumber,
-            Time(number) = milliseconds
+            the format to digest previous arguments [iso], [number], [run-lumi].
+            Time(iso) = yyyymmddhhmiss, 
+            Time(number) = milliseconds or Run(number) = runnumber
+            Run(run-lumi) = runnumber-lumisection
           required: false
           schema:
             type: string
@@ -1296,11 +1297,11 @@ paths:
             format: int32
         - name: sort
           in: query
-          description: 'sort: the sort pattern {name:ASC}'
+          description: 'sort: the sort pattern {id.runNumber:ASC}'
           required: false
           schema:
             type: string
-            default: 'runNumber:ASC'
+            default: 'id.runNumber:ASC'
       responses:
         '200':
           description: successful operation
