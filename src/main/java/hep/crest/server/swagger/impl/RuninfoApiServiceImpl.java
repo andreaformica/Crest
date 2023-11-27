@@ -85,6 +85,7 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
         final CrestBaseResponse respdto = new RunLumiSetDto()
                 .resources(savedlist)
                 .format("RunLumiSetDto")
+                .filter(new GenericMap())
                 .page(respPage)
                 .size((long) savedlist.size()).datatype("runs");
         return Response.created(info.getRequestUri()).entity(respdto).build();
@@ -105,6 +106,7 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
                 .number(0);
         final CrestBaseResponse respdto = new RunLumiSetDto().resources(reslist)
                 .page(respPage)
+                .filter(new GenericMap())
                 .format("RunLumiSetDto").size((long) reslist.size()).datatype("runs");
         return Response.created(info.getRequestUri()).entity(respdto).build();
     }
