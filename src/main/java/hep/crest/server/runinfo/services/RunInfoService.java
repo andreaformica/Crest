@@ -3,14 +3,14 @@
  */
 package hep.crest.server.runinfo.services;
 
-import hep.crest.server.exceptions.AbstractCdbServiceException;
+import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.data.runinfo.pojo.RunLumiInfo;
 import hep.crest.server.data.runinfo.repositories.RunLumiInfoRepository;
-import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.exceptions.AbstractCdbServiceException;
+import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.swagger.model.RunLumiInfoDto;
+import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -26,12 +26,8 @@ import java.util.Date;
  *
  */
 @Service
+@Slf4j
 public class RunInfoService {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(RunInfoService.class);
 
     /**
      * Repository.
@@ -63,6 +59,32 @@ public class RunInfoService {
         log.debug("Create runinfo from dto {}", dto);
         final RunLumiInfo entity = mapper.map(dto, RunLumiInfo.class);
         final RunLumiInfo saved = runinfoRepository.save(entity);
+        log.debug("Saved entity: {}", saved);
+        return mapper.map(saved, RunLumiInfoDto.class);
+    }
+
+    /**
+     * Can update the starttime or endtime fields of a RunLumi entity.
+     * @param dto
+     * @return RunLumiInfoDto
+     */
+    @Transactional
+    public RunLumiInfoDto updateRunInfo(RunLumiInfoDto dto) throws AbstractCdbServiceException {
+        log.debug("Update runinfo from dto {}", dto);
+        final RunLumiInfo entity = mapper.map(dto, RunLumiInfo.class);
+        RunLumiInfo dbentry = runinfoRepository.findById(entity.id());
+        if (dbentry == null) {
+            log.error("Cannot find runinfo with id {}", entity.id());
+            throw new CdbNotFoundException("Cannot find runinfo with id " + entity.id());
+        }
+        if (!entity.starttime().equals(dbentry.starttime())) {
+            dbentry.starttime(entity.starttime());
+        }
+        if (!entity.endtime().equals(dbentry.endtime())) {
+            dbentry.endtime(entity.endtime());
+        }
+        log.debug("Update runinfo with id {}", entity.id());
+        final RunLumiInfo saved = runinfoRepository.save(dbentry);
         log.debug("Saved entity: {}", saved);
         return mapper.map(saved, RunLumiInfoDto.class);
     }

@@ -55,8 +55,8 @@ public class IovGroupsImpl extends DataGeneral implements IovGroupsCustom {
                 tagname, groupsize, snap);
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
         final String tablename = getCrestTableNames().getIovTableName();
-        // Set the default group frequency at 1000. This can be changed via groupsize argument.
-        Long groupfreq = 1000L;
+        // Set the default group frequency at 100. This can be changed via groupsize argument.
+        Long groupfreq = 100L;
         if (groupsize != null && groupsize > 10) {
             groupfreq = groupsize;
         }

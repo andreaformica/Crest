@@ -84,6 +84,20 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
 
     }
 
+    @Override
+    public Response updateRunInfo(RunLumiInfoDto runLumiInfoDto, SecurityContext securityContext, UriInfo info)
+            throws NotFoundException {
+        log.info("RunInfoRestController processing request for updating a run info entry using "
+                 + runLumiInfoDto);
+        // Create a list of resources
+        final RunLumiInfoDto saved = runinfoService.updateRunInfo(runLumiInfoDto);
+        List<RunLumiInfoDto> reslist = new ArrayList<>();
+        reslist.add(saved);
+        final CrestBaseResponse respdto = new RunLumiSetDto().resources(reslist)
+                .size((long) 1).datatype("runs");
+        return Response.created(info.getRequestUri()).entity(respdto).build();
+    }
+
     /*
      * (non-Javadoc)
      *

@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiParam;
 
 import hep.crest.server.swagger.impl.JAXRSContext;
 
+import hep.crest.server.swagger.model.RunLumiInfoDto;
 import hep.crest.server.swagger.model.RunLumiSetDto;
 
 import java.util.Map;
@@ -77,5 +78,21 @@ public class RuninfoApi  {
         context.setHttpHeaders(headers);
         context.setRequest(request);
         return delegate.listRunInfo(from, to, format, mode, page, size, sort, securityContext, info);
+    }
+    @PUT
+    
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Update an entry for run information.", notes = "Run informations go into a separate table. To update an entry, the run number and the lumi section must be provided.", response = RunLumiSetDto.class, authorizations = {
+        @io.swagger.annotations.Authorization(value = "BearerAuth")
+    }, tags={ "runinfo", })
+    @io.swagger.annotations.ApiResponses(value = {
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = RunLumiSetDto.class)
+    })
+    public Response updateRunInfo(@ApiParam(value = "") @Valid  RunLumiInfoDto runLumiInfoDto,@Context SecurityContext securityContext,@Context UriInfo info)
+    throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
+        return delegate.updateRunInfo(runLumiInfoDto, securityContext, info);
     }
 }

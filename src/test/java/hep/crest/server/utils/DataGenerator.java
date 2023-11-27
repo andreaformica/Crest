@@ -10,6 +10,7 @@ import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.IovId;
 import hep.crest.server.data.pojo.Payload;
 import hep.crest.server.data.pojo.Tag;
+import hep.crest.server.data.runinfo.pojo.RunLumiId;
 import hep.crest.server.data.runinfo.pojo.RunLumiInfo;
 import hep.crest.server.data.pojo.CrestFolders;
 
@@ -74,13 +75,14 @@ public class DataGenerator {
         return entity;
     }
 
-    public static RunLumiInfo generateRunLumiInfo(BigInteger since, BigInteger run, BigInteger lb) {
+    public static RunLumiInfo generateRunLumiInfo(BigInteger run, BigInteger lb) {
         final RunLumiInfo entity = new RunLumiInfo();
-        entity.runNumber(run);
+        RunLumiId id = new RunLumiId();
+        id.runNumber(run);
+        id.lb(lb);
         entity.endtime(BigInteger.valueOf(99L));
         entity.starttime(BigInteger.valueOf(1L));
-        entity.lb(lb);
-        entity.since(since);
+        entity.id(id);
         return entity;
     }
 

@@ -33,6 +33,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RunLumiSetDto"
+    put:
+      tags:
+        - runinfo
+      summary: Update an entry for run information.
+      description: Run informations go into a separate table. To update an entry, the run number and the lumi section must be provided.
+      operationId: updateRunInfo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunLumiInfoDto'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunLumiSetDto"
     get:
       tags:
         - runinfo

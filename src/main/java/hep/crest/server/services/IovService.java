@@ -264,6 +264,8 @@ public class IovService {
 
     /**
      * Set the group size for a tag.
+     * The group size is used to compute the iov groups. We can have different group sizes,
+     * the optimal data should be taken from the DB.
      *
      * @param timetype
      * @return Long the group size
@@ -277,8 +279,6 @@ public class IovService {
         else if (timetype.equalsIgnoreCase("run-lumi")) {
             // The iov is of type RUN-LUMI. Use the group size from properties.
             groupsize = Long.valueOf(cprops.getRuntypeGroupsize());
-            // transform to COOL run-lumi
-            groupsize = groupsize * 4294967296L;
         }
         else if (timetype.equalsIgnoreCase("sec")) {
             // The iov is of type sec. Use the group size from properties.
@@ -287,9 +287,7 @@ public class IovService {
         }
         else {
             // Assume COOL time format...
-            groupsize = Long.valueOf(cprops.getTimetypeGroupsize());
-            // transform to COOL nanosec
-            groupsize = groupsize * 1000000000L;
+            groupsize = Long.valueOf(cprops.getRuntypeGroupsize());
         }
         return groupsize;
     }

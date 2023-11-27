@@ -5,13 +5,12 @@ import hep.crest.server.converters.FolderConverter;
 import hep.crest.server.converters.GlobalTagConverter;
 import hep.crest.server.converters.GlobalTagMapConverter;
 import hep.crest.server.converters.IovConverter;
+import hep.crest.server.converters.RunLumiConverter;
 import hep.crest.server.converters.TagConverter;
 import hep.crest.server.converters.TagMetaConverter;
 import hep.crest.server.converters.TimestampToOffDateTimeConverter;
 import hep.crest.server.data.pojo.Payload;
-import hep.crest.server.data.runinfo.pojo.RunLumiInfo;
 import hep.crest.server.swagger.model.PayloadDto;
-import hep.crest.server.swagger.model.RunLumiInfoDto;
 import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
 import ma.glasnost.orika.MapperFactory;
@@ -58,19 +57,11 @@ public class PojoDtoConverterConfig {
         // Register converter for TagMeta
         converterFactory.registerConverter(new TagMetaConverter());
         // Init mapper for runinfo.
-        this.initRunInfoMap(mapperFactory);
+        converterFactory.registerConverter(new RunLumiConverter());
+        //this.initRunInfoMap(mapperFactory);
         // init payload mapper.
         this.initPayloadMap(mapperFactory);
         return mapperFactory;
-    }
-
-    /**
-     * @param mapperFactory the MapperFactory
-     * @return
-     */
-    protected void initRunInfoMap(MapperFactory mapperFactory) {
-        mapperFactory.classMap(RunLumiInfo.class, RunLumiInfoDto.class)
-                .byDefault().register();
     }
 
     /**

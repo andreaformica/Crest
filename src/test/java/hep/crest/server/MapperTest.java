@@ -6,6 +6,7 @@ import hep.crest.server.data.pojo.GlobalTagMapId;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.IovId;
 import hep.crest.server.data.pojo.Tag;
+import hep.crest.server.data.runinfo.pojo.RunLumiId;
 import hep.crest.server.data.runinfo.pojo.RunLumiInfo;
 import hep.crest.server.data.pojo.CrestFolders;
 import hep.crest.server.swagger.model.FolderDto;
@@ -145,6 +146,17 @@ public class MapperTest {
         compare(iov, IovDto.class);
     }
 
+
+    @Test
+    public void testRuns() {
+        RunLumiId id = new RunLumiId();
+        fillRandom(id, RunLumiId.class);
+        RunLumiInfo li = new RunLumiInfo();
+        fillRandom(li, RunLumiInfo.class);
+        li.id(id);
+        compare(li, RunLumiInfoDto.class);
+    }
+
     @Test
     public void testGlobalTagMaps() {
         GlobalTagMapId id = new GlobalTagMapId();
@@ -155,11 +167,6 @@ public class MapperTest {
         fillRandom(map, GlobalTagMap.class);
         map.tag(tag).id(id);
         compare(map, GlobalTagMapDto.class);
-    }
-
-    @Test
-    public void testRun() {
-        testMapper(RunLumiInfo.class, RunLumiInfoDto.class);
     }
 
     @Test

@@ -27,7 +27,6 @@ import javax.validation.Valid;
  * RunLumiInfoDto
  */
 @JsonPropertyOrder({
-  RunLumiInfoDto.JSON_PROPERTY_SINCE,
   RunLumiInfoDto.JSON_PROPERTY_RUN_NUMBER,
   RunLumiInfoDto.JSON_PROPERTY_LB,
   RunLumiInfoDto.JSON_PROPERTY_STARTTIME,
@@ -35,10 +34,6 @@ import javax.validation.Valid;
 })
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class RunLumiInfoDto   {
-  public static final String JSON_PROPERTY_SINCE = "since";
-  @JsonProperty(JSON_PROPERTY_SINCE)
-  private BigDecimal since;
-
   public static final String JSON_PROPERTY_RUN_NUMBER = "runNumber";
   @JsonProperty(JSON_PROPERTY_RUN_NUMBER)
   private BigDecimal runNumber;
@@ -54,26 +49,6 @@ public class RunLumiInfoDto   {
   public static final String JSON_PROPERTY_ENDTIME = "endtime";
   @JsonProperty(JSON_PROPERTY_ENDTIME)
   private BigDecimal endtime;
-
-  public RunLumiInfoDto since(BigDecimal since) {
-    this.since = since;
-    return this;
-  }
-
-  /**
-   * Get since
-   * @return since
-   **/
-  @JsonProperty("since")
-  @ApiModelProperty(value = "")
-  @Valid 
-  public BigDecimal getSince() {
-    return since;
-  }
-
-  public void setSince(BigDecimal since) {
-    this.since = since;
-  }
 
   public RunLumiInfoDto runNumber(BigDecimal runNumber) {
     this.runNumber = runNumber;
@@ -165,8 +140,7 @@ public class RunLumiInfoDto   {
       return false;
     }
     RunLumiInfoDto runLumiInfoDto = (RunLumiInfoDto) o;
-    return Objects.equals(this.since, runLumiInfoDto.since) &&
-        Objects.equals(this.runNumber, runLumiInfoDto.runNumber) &&
+    return Objects.equals(this.runNumber, runLumiInfoDto.runNumber) &&
         Objects.equals(this.lb, runLumiInfoDto.lb) &&
         Objects.equals(this.starttime, runLumiInfoDto.starttime) &&
         Objects.equals(this.endtime, runLumiInfoDto.endtime);
@@ -174,7 +148,7 @@ public class RunLumiInfoDto   {
 
   @Override
   public int hashCode() {
-    return Objects.hash(since, runNumber, lb, starttime, endtime);
+    return Objects.hash(runNumber, lb, starttime, endtime);
   }
 
 
@@ -183,7 +157,6 @@ public class RunLumiInfoDto   {
     StringBuilder sb = new StringBuilder();
     sb.append("class RunLumiInfoDto {\n");
     
-    sb.append("    since: ").append(toIndentedString(since)).append("\n");
     sb.append("    runNumber: ").append(toIndentedString(runNumber)).append("\n");
     sb.append("    lb: ").append(toIndentedString(lb)).append("\n");
     sb.append("    starttime: ").append(toIndentedString(starttime)).append("\n");

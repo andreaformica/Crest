@@ -15,7 +15,7 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
 group = 'hep.crest'
-version = '4.2.0'
+version = '4.2.1'
 
 bootJar {
     archiveFileName = 'crest.jar'

@@ -14,8 +14,6 @@ components:
     RunLumiInfoDto:
       type: object
       properties:
-        since:
-          type: number
         runNumber:
           type: number
         lb:

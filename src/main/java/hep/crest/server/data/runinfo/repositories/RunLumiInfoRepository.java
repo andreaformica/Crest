@@ -3,6 +3,7 @@
  */
 package hep.crest.server.data.runinfo.repositories;
 
+import hep.crest.server.data.runinfo.pojo.RunLumiId;
 import hep.crest.server.data.runinfo.pojo.RunLumiInfo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,11 +23,11 @@ public interface RunLumiInfoRepository
         extends PagingAndSortingRepository<RunLumiInfo, BigInteger> {
 
     /**
-     * @param run
-     *            the BigInteger
+     * @param runLumiId
+     *            the id (run and lumi block)
      * @return RunLumiInfo
      */
-    RunLumiInfo findByRunNumber(@Param("runNumber") BigInteger run);
+    RunLumiInfo findById(@Param("id") RunLumiId runLumiId);
 
     /**
      * @param lower
@@ -37,9 +38,11 @@ public interface RunLumiInfoRepository
      *            the PageRequest
      * @return Page<RunLumiInfo>
      */
-    @Query("SELECT distinct p FROM RunLumiInfo p " + "WHERE p.runNumber <= ("
-           + "SELECT min(pi.runNumber) FROM RunLumiInfo pi " + "WHERE pi.runNumber >= (:upper)) "
-           + "AND p.runNumber >= (:lower)" + "ORDER BY p.runNumber ASC")
+    @Query("SELECT distinct p FROM RunLumiInfo p "
+           + "WHERE p.id.runNumber <= ("
+           + "SELECT min(pi.id.runNumber) FROM RunLumiInfo pi "
+           + "WHERE pi.id.runNumber >= (:upper)) "
+           + " AND p.id.runNumber >= (:lower)" + "ORDER BY p.id.runNumber ASC")
     Page<RunLumiInfo> findByRunNumberInclusive(@Param("lower") BigInteger lower,
                                                @Param("upper") BigInteger upper, Pageable preq);
 
@@ -57,7 +60,7 @@ public interface RunLumiInfoRepository
            + "SELECT min(pi.starttime) FROM RunLumiInfo pi "
            + "WHERE pi.starttime >= (:upper)) "
            + "AND p.endtime >= (:lower)"
-           + "ORDER BY p.runNumber ASC")
+           + "ORDER BY p.id.runNumber ASC")
     Page<RunLumiInfo> findByDateInclusive(@Param("lower") BigInteger lower, @Param("upper") BigInteger upper,
                                           Pageable preq);
 }

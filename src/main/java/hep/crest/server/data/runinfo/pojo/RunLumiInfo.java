@@ -9,9 +9,10 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
+import javax.persistence.AttributeOverride;
 import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -33,12 +34,17 @@ import java.util.Date;
 @ToString
 @EqualsAndHashCode
 public class RunLumiInfo implements java.io.Serializable {
+
     /**
-     * The since time.
+     * The RunLumi ID.
      */
-    @Id
-    @Column(name = "SINCE", nullable = false, precision = 38, scale = 0)
-    private BigInteger since;
+    @EmbeddedId
+    @AttributeOverride(name = "RUN",
+            column = @Column(name = "RUN", nullable = false))
+    @AttributeOverride(name = "LUMI_BLOCK",
+            column = @Column(name = "LUMI_BLOCK", nullable = false))
+    private RunLumiId id;
+
     /**
      * The start time of this run.
      */
@@ -50,23 +56,12 @@ public class RunLumiInfo implements java.io.Serializable {
     @Column(name = "END_TIME", nullable = false, precision = 38, scale = 0)
     private BigInteger endtime;
     /**
-     * The run number.
-     */
-    @Column(name = "RUN", nullable = false, precision = 38, scale = 0)
-    private BigInteger runNumber;
-    /**
-     * The lumi block.
-     */
-    @Column(name = "LUMI_BLOCK", nullable = false, precision = 38, scale = 0)
-    private BigInteger lb;
-    /**
      * The insertion time.
      */
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "INSERTION_TIME", nullable = false, updatable = true, length = 11)
     @EqualsAndHashCode.Exclude
     private Date insertionTime;
-
 
     /**
      * Before saving.
