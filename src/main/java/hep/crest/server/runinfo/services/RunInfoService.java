@@ -23,7 +23,6 @@ import java.util.Date;
 
 /**
  * @author formica
- *
  */
 @Service
 @Slf4j
@@ -48,11 +47,9 @@ public class RunInfoService {
     private PageRequestHelper prh;
 
     /**
-     * @param dto
-     *            the RunInfoDto
+     * @param dto the RunInfoDto
      * @return RunLumiInfoDto
-     * @throws AbstractCdbServiceException
-     *             If an Exception occurred
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     @Transactional
     public RunLumiInfoDto insertRunInfo(RunLumiInfoDto dto) throws AbstractCdbServiceException {
@@ -65,6 +62,7 @@ public class RunInfoService {
 
     /**
      * Can update the starttime or endtime fields of a RunLumi entity.
+     *
      * @param dto
      * @return RunLumiInfoDto
      */
@@ -90,19 +88,16 @@ public class RunInfoService {
     }
 
     /**
-     * @param from
-     *            the BigInteger.
-     * @param to
-     *            the BigInteger.
+     * @param from the BigInteger.
+     * @param to   the BigInteger.
      * @param preq the PageRequest
-     * @throws AbstractCdbServiceException
-     *             If an Exception occurred.
      * @return List<RunLumiInfo>
+     * @throws AbstractCdbServiceException If an Exception occurred.
      */
     public Page<RunLumiInfo> selectInclusiveByRun(BigInteger from, BigInteger to, Pageable preq) {
         Page<RunLumiInfo> entitylist = null;
         if (preq == null) {
-            String sort = "runNumber:ASC";
+            String sort = "id.runNumber:ASC";
             preq = prh.createPageRequest(0, 1000, sort);
         }
         entitylist = runinfoRepository.findByRunNumberInclusive(from, to, preq);
@@ -112,22 +107,19 @@ public class RunInfoService {
 
 
     /**
-     * @param run the BigInteger
-     * @param from
-     *            the BigInteger.
-     * @param to
-     *            the BigInteger.
+     * @param run  the BigInteger
+     * @param from the BigInteger.
+     * @param to   the BigInteger.
      * @param preq the PageRequest
-     * @throws AbstractCdbServiceException
-     *             If an Exception occurred.
      * @return List<RunLumiInfo>
+     * @throws AbstractCdbServiceException If an Exception occurred.
      */
     public Page<RunLumiInfo> selectInclusiveByLumiBlock(BigInteger run, BigInteger from,
-                                                      BigInteger to,
-                                                  Pageable preq) {
+                                                        BigInteger to,
+                                                        Pageable preq) {
         Page<RunLumiInfo> entitylist = null;
         if (preq == null) {
-            String sort = "runNumber:ASC";
+            String sort = "id.runNumber:ASC,id.lb:ASC";
             preq = prh.createPageRequest(0, 1000, sort);
         }
         entitylist = runinfoRepository.findByLumiBlockInclusive(run, from, to, preq);
@@ -136,19 +128,16 @@ public class RunInfoService {
     }
 
     /**
-     * @param from
-     *            the Date.
-     * @param to
-     *            the Date.
+     * @param from the Date.
+     * @param to   the Date.
      * @param preq the PageRequest
-     * @throws AbstractCdbServiceException
-     *             If an Exception occurred.
      * @return Page<RunLumiInfo>
+     * @throws AbstractCdbServiceException If an Exception occurred.
      */
     public Page<RunLumiInfo> selectInclusiveByDate(Date from, Date to, Pageable preq) {
         Page<RunLumiInfo> entitylist = null;
         if (preq == null) {
-            String sort = "runNumber:ASC";
+            String sort = "id.runNumber:ASC";
             preq = prh.createPageRequest(0, 1000, sort);
         }
         entitylist = runinfoRepository.findByDateInclusive(BigInteger.valueOf(from.getTime()),
