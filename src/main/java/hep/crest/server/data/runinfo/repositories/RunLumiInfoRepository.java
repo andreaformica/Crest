@@ -39,9 +39,7 @@ public interface RunLumiInfoRepository
      * @return Page<RunLumiInfo>
      */
     @Query("SELECT distinct p FROM RunLumiInfo p "
-           + "WHERE p.id.runNumber <= ("
-           + "SELECT min(pi.id.runNumber) FROM RunLumiInfo pi "
-           + "WHERE pi.id.runNumber >= (:upper)) "
+           + "WHERE p.id.runNumber <= (:upper) "
            + " AND p.id.runNumber >= (:lower) ")
     Page<RunLumiInfo> findByRunNumberInclusive(@Param("lower") BigInteger lower,
                                                @Param("upper") BigInteger upper, Pageable preq);
@@ -58,9 +56,7 @@ public interface RunLumiInfoRepository
      * @return Page<RunLumiInfo>
      */
     @Query("SELECT distinct p FROM RunLumiInfo p "
-           + "WHERE p.id.runNumber=(:run) AND p.id.lb <= ("
-           + "SELECT min(pi.id.lb) FROM RunLumiInfo pi "
-           + "WHERE pi.id.runNumber = (:run) AND pi.id.lb >= (:upper)) "
+           + "WHERE p.id.runNumber=(:run) AND p.id.lb <= (:upper) "
            + " AND p.id.lb >= (:lower)")
     Page<RunLumiInfo> findByLumiBlockInclusive(@Param("run") BigInteger run,
                                                @Param("lower") BigInteger lower,
@@ -76,9 +72,7 @@ public interface RunLumiInfoRepository
      * @return Page<RunLumiInfo>
      */
     @Query("SELECT distinct p FROM RunLumiInfo p "
-           + "WHERE p.starttime <= ("
-           + "SELECT min(pi.starttime) FROM RunLumiInfo pi "
-           + "WHERE pi.starttime >= (:upper)) "
+           + "WHERE p.starttime <= (:upper) "
            + "AND p.endtime >= (:lower) "
            + "ORDER BY p.id.runNumber ASC")
     Page<RunLumiInfo> findByDateInclusive(@Param("lower") BigInteger lower, @Param("upper") BigInteger upper,

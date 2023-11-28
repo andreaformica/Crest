@@ -100,6 +100,7 @@ public class RunInfoService {
             String sort = "id.runNumber:ASC";
             preq = prh.createPageRequest(0, 1000, sort);
         }
+        log.debug("Search runinfo list using from={}, to={}", from, to);
         entitylist = runinfoRepository.findByRunNumberInclusive(from, to, preq);
         log.trace("Retrieved list of runs {}", entitylist.getNumberOfElements());
         return entitylist;
