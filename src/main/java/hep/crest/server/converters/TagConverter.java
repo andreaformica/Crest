@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
 
 /**
  * Converter for tags.
@@ -52,18 +51,7 @@ public class TagConverter extends BidirectionalConverter<Tag, TagDto> {
                                  MappingContext mappingContext) {
         // Create a pojo.
         Tag entity = new Tag();
-        // Set modification time as date.
-        if (source.getModificationTime() != null) {
-            final Instant sinst = source.getModificationTime().toInstant();
-            Date st = Date.from(sinst);
-            entity.modificationTime(st);
-        }
-        // Set insertion time as date.
-        if (source.getInsertionTime() != null) {
-            final Instant insinst = source.getInsertionTime().toInstant();
-            Date it = Date.from(insinst);
-            entity.insertionTime(it);
-        }
+        // Ignore insertion and modification time.
         // Set all fields.
         entity.name(source.getName()).description(source.getDescription())
                 .objectType(source.getPayloadSpec()).synchronization(source.getSynchronization())

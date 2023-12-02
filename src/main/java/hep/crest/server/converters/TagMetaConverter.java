@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
 
 /**
  * Converter for tags.
@@ -43,12 +42,7 @@ public class TagMetaConverter extends BidirectionalConverter<TagMeta, TagMetaDto
                                MappingContext mappingContext) {
         // Create a pojo.
         TagMeta entity = new TagMeta();
-        // Set insertion time as date.
-        if (source.getInsertionTime() != null) {
-            final Instant insinst = source.getInsertionTime().toInstant();
-            Date it = Date.from(insinst);
-            entity.insertionTime(it);
-        }
+        // Ignore insertion and modification time.
         // Set all fields.
         entity.tagName(source.getTagName()).description(source.getDescription())
                 .colsize(source.getColsize()).chansize(source.getChansize())
