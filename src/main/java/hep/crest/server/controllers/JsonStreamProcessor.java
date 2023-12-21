@@ -69,12 +69,13 @@ public class JsonStreamProcessor {
         JsonFactory jsonFactory = jsonMapper.getFactory();
         StoreSetDto setDto = new StoreSetDto();
         List<StoreDto> dtoList = new ArrayList<>();
-        log.info("Start processing JSON stream");
+        log.info("Start processing JSON stream: {}", jsonInputStream);
         try (JsonParser parser = jsonFactory.createParser(jsonInputStream)) {
             // Start creating objects to store from JSON stream.
             while (parser.nextToken() != JsonToken.END_OBJECT) {
                 String token = parser
                         .getCurrentName();
+                log.info("token is: {}", token);
                 if ("resources".equals(token)) {
                     parser.nextToken(); //next token contains value
                     log.info("loading resources array...");

@@ -100,7 +100,7 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
         }
         List<GlobalTagMapDto> dtolist = edh.entityToDtoList(entitylist, GlobalTagMapDto.class);
         final CrestBaseResponse setdto = new GlobalTagMapSetDto().resources(dtolist).filter(filters)
-                .size((long) dtolist.size()).datatype("maps");
+                .size((long) dtolist.size()).datatype("maps").format("GlobalTagMapSetDto");
         Response.Status status = Response.Status.OK;
         return Response.status(status).entity(setdto).build();
     }
