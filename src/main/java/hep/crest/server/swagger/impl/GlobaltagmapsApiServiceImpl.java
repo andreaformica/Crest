@@ -8,6 +8,7 @@ import hep.crest.server.swagger.model.CrestBaseResponse;
 import hep.crest.server.swagger.model.GenericMap;
 import hep.crest.server.swagger.model.GlobalTagMapDto;
 import hep.crest.server.swagger.model.GlobalTagMapSetDto;
+import hep.crest.server.swagger.model.RespPage;
 import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,8 +100,13 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
             entitylist = globaltagmapService.getTagMapByTagName(name);
         }
         List<GlobalTagMapDto> dtolist = edh.entityToDtoList(entitylist, GlobalTagMapDto.class);
+        RespPage respPage = new RespPage().size(dtolist.size())
+                .totalElements((long)dtolist.size()).totalPages(1)
+                .number(0);
         final CrestBaseResponse setdto = new GlobalTagMapSetDto().resources(dtolist).filter(filters)
-                .size((long) dtolist.size()).datatype("maps").format("GlobalTagMapSetDto");
+                .size((long) dtolist.size())
+                .page(respPage)
+                .datatype("maps").format("GlobalTagMapSetDto");
         Response.Status status = Response.Status.OK;
         return Response.status(status).entity(setdto).build();
     }
