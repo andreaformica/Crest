@@ -115,10 +115,14 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
         // Search for a global tag resource.
         final GlobalTag entity = globaltagService.findOne(name);
         final GlobalTagDto dto = mapper.map(entity, GlobalTagDto.class);
+        RespPage respPage = new RespPage().size(1)
+                .totalElements(1L).totalPages(1).number(0);
         log.debug("Found GlobalTag " + name);
         // Prepare response set.
         final CrestBaseResponse setdto = new GlobalTagSetDto().addResourcesItem(dto)
-                .filter(filters).size(1L).datatype("globaltags")
+                .filter(filters).size(1L)
+                .page(respPage)
+                .datatype("globaltags")
                 .format("GlobalTagSetDto");
         return Response.ok().entity(setdto).build();
     }
@@ -154,10 +158,12 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
         final List<TagDto> dtolist = edh.entityToDtoList(entitylist, TagDto.class);
         final long listsize = dtolist == null ? 0L : dtolist.size();
         log.debug("Found list of {} tags for globaltag {}", listsize, name);
-
+        RespPage respPage = new RespPage().size((int)listsize)
+                .totalElements(listsize).totalPages(1).number(0);
         final CrestBaseResponse setdto = new TagSetDto().resources(dtolist)
                 .format("TagSetDto")
                 .filter(filters).size(listsize)
+                .page(respPage)
                 .datatype("tags");
         return Response.ok().entity(setdto).build();
     }
