@@ -1129,9 +1129,6 @@ paths:
             application/octet-stream:
               schema:
                 type: string
-            text/plain:
-              schema:
-                type: string
             application/json:
               schema:
                 $ref: '#/components/schemas/PayloadDto'

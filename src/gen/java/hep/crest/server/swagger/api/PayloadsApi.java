@@ -56,7 +56,7 @@ public class PayloadsApi  {
     @GET
     @Path("/{hash}")
     
-    @Produces({ "application/octet-stream", "text/plain", "application/json" })
+    @Produces({ "application/octet-stream", "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Finds a payload resource associated to the hash.", notes = "This method retrieves a payload resource. Arguments: hash=<hash> the hash of the payload Depending on the header, this method will either retrieve the data, the metadata of the payload  or the streamerInfo alone. ", response = String.class, authorizations = {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "payloads", })

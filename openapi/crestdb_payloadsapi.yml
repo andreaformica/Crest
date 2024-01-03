@@ -226,9 +226,6 @@ paths:
             application/octet-stream:
               schema:
                 type: string  # Modify the schema type to 'string' for octet-stream
-            text/plain:
-              schema:
-                type: string
             application/json:
               schema:
                 $ref: "#/components/schemas/PayloadDto"
