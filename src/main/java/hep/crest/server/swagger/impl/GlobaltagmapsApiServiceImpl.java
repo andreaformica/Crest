@@ -133,10 +133,15 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
         entitylist = globaltagmapService.findMapsByGlobalTagLabelTag(name, label, tagname, mrecord);
         // Delete the full list inside a transaction.
         List<GlobalTagMap> deletedlist = globaltagmapService.deleteMapList(entitylist);
+        RespPage respPage = new RespPage().size(deletedlist.size())
+                .totalElements((long)deletedlist.size()).totalPages(1)
+                .number(0);
         // Return the deleted list.
         List<GlobalTagMapDto> dtolist = edh.entityToDtoList(deletedlist, GlobalTagMapDto.class);
         final CrestBaseResponse setdto = new GlobalTagMapSetDto().resources(dtolist).filter(filters)
-                .size((long) dtolist.size()).datatype("maps")
+                .size((long) dtolist.size())
+                .page(respPage)
+                .datatype("maps")
                 .format("GlobalTagMapSetDto");
         return Response.status(Response.Status.OK).entity(setdto).build();
     }
