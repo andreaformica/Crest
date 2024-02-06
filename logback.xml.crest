@@ -56,7 +56,7 @@
     		<destination>crest.atlas-ml.org:5959</destination>
     		<encoder class="net.logstash.logback.encoder.LogstashEncoder">
     			<fieldNames>
-    				<timestamp>ts</timestamp>
+    				<timestamp>[ignore]</timestamp>
     				<message>msg</message>
     				<thread>[ignore]</thread>
     				<levelValue>[ignore]</levelValue>
@@ -84,10 +84,13 @@
 	<logger name="org.springframework" level="info" />
 	<logger name="org.glassfish" level="info" />
 	<logger name="io.swagger" level="warn" />
-<!-- remove this to enable json logging
-	<logger name="hep.crest" level="INFO" additivity="false">
-		<appender-ref ref="jsonAppender" />
+	<logger name="hep.crest.server.aspects.ProfileAndLogAspect" level="INFO" additivity="true">
+		<appender-ref ref="stashProfileAppender" />
 	</logger>
+	<logger name="hep.crest.server.config.JerseyExceptionHandler" level="warn" additivity="true">
+		<appender-ref ref="stashProfileAppender" />
+	</logger>
+<!-- remove this to enable json logging
 	<logger name="com.zaxxer.hikari" level="ALL" additivity="false">
 		<appender-ref ref="HIKARI" />
 	</logger>

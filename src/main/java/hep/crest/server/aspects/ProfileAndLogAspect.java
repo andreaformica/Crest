@@ -9,6 +9,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.CodeSignature;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -67,9 +68,22 @@ public class ProfileAndLogAspect {
         }
         final Object proceed = joinPoint.proceed();
         final long executionTime = System.currentTimeMillis() - start;
-        esParams.put("crest_execution_time", executionTime);
+        // Set MDC context data
+        MDC.put("crest_execution_time", String.valueOf(executionTime));
+        MDC.put("token", "crest");
+        if (esParams.containsKey("hash")) {
+            MDC.put("hash", esParams.get("hash").toString());
+        }
+        if (esParams.containsKey("tagname")) {
+            MDC.put("name", esParams.get("tagname").toString());
+        }
+        if (esParams.containsKey("name")) {
+            MDC.put("name", esParams.get("name").toString());
+        }
+        MDC.put("crest_method", joinPoint.getSignature().getName());
         esParams.put("crest_profile", joinPoint.toShortString());
-        log.info("{}", mapper.writeValueAsString(esParams));
+        log.info("{}", esParams);
+        MDC.clear();
         return proceed;
     }
 

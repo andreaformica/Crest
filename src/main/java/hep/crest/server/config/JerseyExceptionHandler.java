@@ -5,6 +5,7 @@ import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbBadRequestException;
 import hep.crest.server.swagger.model.HTTPResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
@@ -56,8 +57,12 @@ public class JerseyExceptionHandler implements ExceptionMapper<Exception> {
 
     @Override
     public Response toResponse(Exception exception) {
+        MDC.put("token", "crest");
+        MDC.put("crest_exception", exception.getClass().getSimpleName());
+        MDC.put("message", exception.getMessage());
         log.warn("Handling exception: {} of type {}", exception.getMessage(),
                 exception.getClass());
+        MDC.clear();
         // If exception is a webapplication exception
         if (exception instanceof WebApplicationException) {
             log.debug("Instance of WebApplicationException...get Response from there.");
