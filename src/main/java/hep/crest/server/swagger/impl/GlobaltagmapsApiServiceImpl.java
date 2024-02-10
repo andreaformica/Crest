@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -81,6 +82,9 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
         if (name != null) {
             filters.put("name", name);
         }
+        // Set cache control to 5 minutes.
+        CacheControl cc = new CacheControl();
+        cc.setMaxAge(300);
         Iterable<GlobalTagMap> entitylist = null;
         // If there is no header then set it to Trace mode. Implies that you search tags
         // associated with a global tag. The input name will be considered as a
@@ -108,7 +112,7 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
                 .page(respPage)
                 .datatype("maps").format("GlobalTagMapSetDto");
         Response.Status status = Response.Status.OK;
-        return Response.status(status).entity(setdto).build();
+        return Response.status(status).cacheControl(cc).entity(setdto).build();
     }
 
     @Override

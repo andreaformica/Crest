@@ -1,8 +1,7 @@
 package hep.crest.server.config.filters;
 
 import hep.crest.server.annotations.CacheControlCdb;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
@@ -17,12 +16,8 @@ import java.lang.annotation.Annotation;
  */
 @Provider
 @CacheControlCdb
+@Slf4j
 public class CacheControlFilter implements ContainerResponseFilter {
-
-    /**
-     * Logger.
-     */
-    private static final Logger log = LoggerFactory.getLogger(CacheControlFilter.class);
 
     /**
      * The header for Frontier cache control settings.

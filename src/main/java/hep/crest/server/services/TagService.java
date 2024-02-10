@@ -17,6 +17,8 @@ import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.ConflictException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -81,6 +83,7 @@ public class TagService {
      * @return Tag
      * @throws AbstractCdbServiceException If object was not found
      */
+    @Cacheable(value = "tagCache", key = "#id")
     public Tag findOne(String id) throws AbstractCdbServiceException {
         log.debug("Search for tag by Id...{}", id);
         return tagRepository.findById(id).orElseThrow(() -> new CdbNotFoundException(
@@ -132,6 +135,7 @@ public class TagService {
      * @return TagDto of the updated entity.
      * @throws AbstractCdbServiceException If an Exception occurred
      */
+    @CacheEvict(value = "tagCache", key = "#entity.name()")
     @Transactional
     public Tag updateTag(Tag entity) throws AbstractCdbServiceException {
         log.debug("Update tag from dto {}", entity);
@@ -150,6 +154,7 @@ public class TagService {
      * @param name the String
      * @throws AbstractCdbServiceException If an Exception occurred
      */
+    @CacheEvict(value = "tagCache", key = "#name")
     @Transactional
     public void removeTag(String name) throws AbstractCdbServiceException {
         log.debug("Remove tag {} after checking if IOVs are present", name);
