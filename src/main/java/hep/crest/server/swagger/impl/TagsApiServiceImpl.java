@@ -158,9 +158,13 @@ public class TagsApiServiceImpl extends TagsApiService {
         filters.put("name", name);
         final Tag entity = tagService.findOne(name);
         TagDto dto = mapper.map(entity, TagDto.class);
+        // Response page
+        RespPage respPage = new RespPage().size(1)
+                .totalElements(1L).totalPages(1)
+                .number(0);
         // Create the set.
         final TagSetDto respdto = (TagSetDto) new TagSetDto().addResourcesItem(dto).size(1L)
-                .filter(filters).datatype("tags").format("TagSetDto");
+                .filter(filters).page(respPage).datatype("tags").format("TagSetDto");
         log.info("Retrieved tag {}: {}", name, dto);
         return Response.ok().entity(respdto).build();
     }
