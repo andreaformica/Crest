@@ -83,11 +83,11 @@ public class TagService {
      * @return Tag
      * @throws AbstractCdbServiceException If object was not found
      */
-    @Cacheable(value = "tagCache", key = "#id")
-    public Tag findOne(String id) throws AbstractCdbServiceException {
-        log.debug("Search for tag by Id...{}", id);
-        return tagRepository.findById(id).orElseThrow(() -> new CdbNotFoundException(
-                "Tag not found: " + id));
+    @Cacheable(value = "tagCache", key = "#name")
+    public Tag findOne(String name) throws AbstractCdbServiceException {
+        log.debug("Search for tag by Id...{}", name);
+        return tagRepository.findById(name).orElseThrow(() -> new CdbNotFoundException(
+                "Tag not found: " + name));
     }
 
     /**
