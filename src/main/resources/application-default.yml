@@ -7,7 +7,6 @@
 # security options: reco (no POST allowed), weak (no authentication needed), active (GET and POST requires roles)
 server:
     port: 8090
-    servlet.path: /    
     connection-timeout: 120s
 spring:
     autoconfigure:
@@ -15,7 +14,7 @@ spring:
     security:
       strategy: MODE_INHERITABLETHREADLOCAL
     jersey:
-      application-path: ${crest.api.name}
+      application-path: ${crest.apiname}
       servlet:
         load-on-startup: 1
     datasource:
@@ -41,11 +40,11 @@ info:
 crest:
   dumpdir: /tmp
   schemaname: none
-  security: ${crest.server.security}
+  security: none
   synchro: none
   webstaticdir: /tmp
   dbfile: /tmp/crestdbh2
-  apiname: ${crest.api.name}
+  apiname: /api
   authenticationtype: none
 
     
