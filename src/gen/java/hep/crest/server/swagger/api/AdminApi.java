@@ -8,7 +8,7 @@ import io.swagger.annotations.ApiParam;
 import hep.crest.server.swagger.impl.JAXRSContext;
 
 import hep.crest.server.swagger.model.GlobalTagDto;
-import hep.crest.server.swagger.model.Model404;
+import hep.crest.server.swagger.model.HTTPResponse;
 
 import java.util.Map;
 import java.util.List;
@@ -56,7 +56,8 @@ public class AdminApi  {
     }, tags={ "admin", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = Void.class),
-        @io.swagger.annotations.ApiResponse(code = 404, message = "not found", response = Model404.class)
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response removeGlobalTag(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
@@ -73,7 +74,8 @@ public class AdminApi  {
     }, tags={ "admin", })
     @io.swagger.annotations.ApiResponses(value = {
         @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = Void.class),
-        @io.swagger.annotations.ApiResponse(code = 404, message = "not found", response = Model404.class)
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response removeTag(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {

@@ -55,11 +55,9 @@ paths:
         '200':
           description: successful operation
         '404':
-          description: not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/responses/404"
+          $ref: "#/components/responses/404"
+        default:
+          $ref: "#/components/responses/genericError"
 
   /admin/tags/{name}:
     delete:
@@ -78,11 +76,9 @@ paths:
         '200':
           description: successful operation
         '404':
-          description: not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/responses/404"
+          $ref: "#/components/responses/404"
+        default:
+          $ref: "#/components/responses/genericError"
   /folders:
     post:
       tags:
