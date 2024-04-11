@@ -63,6 +63,12 @@ paths:
       responses:
         '200':
           description: successful operation
+        '404':
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/404'
   '/admin/tags/{name}':
     delete:
       tags:
@@ -79,6 +85,12 @@ paths:
       responses:
         '200':
           description: successful operation
+        '404':
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/404'
   /folders:
     post:
       tags:

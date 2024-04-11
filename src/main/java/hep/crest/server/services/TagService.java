@@ -79,7 +79,7 @@ public class TagService {
     private PageRequestHelper prh;
 
     /**
-     * @param id the String representing the Tag name
+     * @param name
      * @return Tag
      * @throws AbstractCdbServiceException If object was not found
      */

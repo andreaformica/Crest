@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiParam;
 import hep.crest.server.swagger.impl.JAXRSContext;
 
 import hep.crest.server.swagger.model.GlobalTagMapDto;
+import hep.crest.server.swagger.model.GlobalTagMapSetDto;
 import hep.crest.server.swagger.model.HTTPResponse;
 
 import java.util.Map;
@@ -68,11 +69,11 @@ public class GlobaltagmapsApi  {
     @Path("/{name}")
     
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Delete GlobalTagMapDto lists.", notes = "This method search for mappings using the global tag name and deletes all mappings.", response = GlobalTagMapDto.class, authorizations = {
+    @io.swagger.annotations.ApiOperation(value = "Delete GlobalTagMapDto lists.", notes = "This method search for mappings using the global tag name and deletes all mappings.", response = GlobalTagMapSetDto.class, authorizations = {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "globaltagmaps", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagMapDto.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagMapSetDto.class),
         @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
         @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
@@ -86,11 +87,11 @@ public class GlobaltagmapsApi  {
     @Path("/{name}")
     
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Find GlobalTagMapDto lists.", notes = "This method search for mappings using the global tag name.", response = GlobalTagMapDto.class, authorizations = {
+    @io.swagger.annotations.ApiOperation(value = "Find GlobalTagMapDto lists.", notes = "This method search for mappings using the global tag name.", response = GlobalTagMapSetDto.class, authorizations = {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "globaltagmaps", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagMapDto.class),
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagMapSetDto.class),
         @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
         @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })

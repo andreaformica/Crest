@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiParam;
 import hep.crest.server.swagger.impl.JAXRSContext;
 
 import hep.crest.server.swagger.model.GlobalTagDto;
+import hep.crest.server.swagger.model.Model404;
 
 import java.util.Map;
 import java.util.List;
@@ -49,12 +50,13 @@ public class AdminApi  {
     @DELETE
     @Path("/globaltags/{name}")
     
-    
+    @Produces({ "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Remove a GlobalTag from the database.", notes = "This method allows to remove a GlobalTag.Arguments: the name has to uniquely identify a global tag.", response = Void.class, authorizations = {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "admin", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = Void.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = Void.class),
+        @io.swagger.annotations.ApiResponse(code = 404, message = "not found", response = Model404.class)
     })
     public Response removeGlobalTag(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
@@ -65,12 +67,13 @@ public class AdminApi  {
     @DELETE
     @Path("/tags/{name}")
     
-    
+    @Produces({ "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Remove a Tag from the database.", notes = "This method allows to remove a Tag.Arguments: the name has to uniquely identify a tag.", response = Void.class, authorizations = {
         @io.swagger.annotations.Authorization(value = "BearerAuth")
     }, tags={ "admin", })
     @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = Void.class)
+        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = Void.class),
+        @io.swagger.annotations.ApiResponse(code = 404, message = "not found", response = Model404.class)
     })
     public Response removeTag(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {

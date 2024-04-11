@@ -6,6 +6,7 @@ import hep.crest.server.swagger.model.*;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 
 import hep.crest.server.swagger.model.GlobalTagMapDto;
+import hep.crest.server.swagger.model.GlobalTagMapSetDto;
 import hep.crest.server.swagger.model.HTTPResponse;
 
 import java.util.List;
