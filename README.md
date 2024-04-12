@@ -72,6 +72,10 @@ Be careful to checkout the correct branch.
 | DESCRIPTOR | BRANCH |
 | First attempt to clean up API from older versions | v3.0 |
 | New API | v4.0 |
+
+### CAVEAT: Java>=17 
+The library providing mapping between pojos and dtos does not support Java 17.
+We will migrate those converters using another library when we will updagrade the system to newer spring boot version.
  
 ## Run the server
 The server will use by default an embedded `undertow` web server.
