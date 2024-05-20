@@ -58,7 +58,7 @@ public class JerseyExceptionHandler implements ExceptionMapper<Exception> {
     @Override
     public Response toResponse(Exception exception) {
         MDC.put("token", "crest");
-        MDC.put("crest_exception", exception.getClass().getSimpleName());
+        MDC.put("crest_method", exception.getClass().getSimpleName());
         MDC.put("message", exception.getMessage().substring(0,
                 Math.min(100, exception.getMessage().length())));
         log.warn("Handling exception type {}", exception.getClass());
