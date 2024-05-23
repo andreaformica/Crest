@@ -16,6 +16,7 @@ import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.ConflictException;
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -25,6 +26,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -219,6 +222,32 @@ public class TagService {
         }
         catch (AbstractCdbServiceException e) {
             log.error("Tag removal exception: {}", name);
+            cacheManager.getCache("tagCache").evict(name);
+            throw e;
+        }
+    }
+
+    /**
+     * Update the end of validity of a tag.
+     * @param name
+     * @param endtime
+     * @throws AbstractCdbServiceException
+     * @return void
+     */
+    @CacheEvict(value = "tagCache", key = "#name")
+    public void updateModificationTime(String name, BigDecimal endtime) {
+        // Change the end time in the tag.
+        try {
+            Tag tagEntity = tagRepository.findById(name).orElseThrow(
+                    () -> new CdbNotFoundException("Tag does not exists for name " + name));
+            tagEntity.endOfValidity((endtime != null) ? endtime.toBigInteger() : BigInteger.ZERO);
+            // Update the modification time.
+            tagEntity.modificationTime(Instant.now().toDate());
+            // Update the tag.
+            this.updateTag(tagEntity);
+        }
+        catch (CdbNotFoundException e) {
+            log.error("Tag not found: {}", name);
             cacheManager.getCache("tagCache").evict(name);
             throw e;
         }

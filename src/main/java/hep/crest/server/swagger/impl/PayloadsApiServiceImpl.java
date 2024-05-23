@@ -319,12 +319,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 throw new CdbBadRequestException("Bad header parameter: " + xCrestPayloadFormat);
             }
             // Change the end time in the tag.
-            Tag tagEntity = tagService.findOne(tag);
-            tagEntity.endOfValidity((endtime != null) ? endtime.toBigInteger() : BigInteger.ZERO);
-            // Update the modification time.
-            tagEntity.modificationTime(Instant.now().toDate());
-            // Update the tag.
-            tagService.updateTag(tagEntity);
+            tagService.updateModificationTime(tag, endtime);
+            // Return the result.
             log.info("Batch insertion of {} iovs done", storeset.getSize());
             // Return the result.
             outdto.format("StoreSetDto").datatype("iovs");
@@ -379,12 +375,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             throw new CdbInternalException("Cannot deserialize data", e);
         }
         // Change the end time in the tag.
-        Tag tagEntity = tagService.findOne(tag);
-        tagEntity.endOfValidity((endtime != null) ? endtime.toBigInteger() : BigInteger.ZERO);
-        // Update the modification time.
-        tagEntity.modificationTime(Instant.now().toDate());
-        // Update the tag.
-        tagService.updateTag(tagEntity);
+        tagService.updateModificationTime(tag, endtime);
+        // Return the result.
         log.info("Batch insertion of {} iovs done", outdto.getSize());
         // Return the result.
         if (outdto == null) {
