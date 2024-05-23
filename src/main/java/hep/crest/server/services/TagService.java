@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -79,6 +80,12 @@ public class TagService {
     private PageRequestHelper prh;
 
     /**
+     * Cache manager.
+     */
+    @Autowired
+    private CacheManager cacheManager;
+
+    /**
      * @param name
      * @return Tag
      * @throws AbstractCdbServiceException If object was not found
@@ -86,8 +93,15 @@ public class TagService {
     @Cacheable(value = "tagCache", key = "#name")
     public Tag findOne(String name) throws AbstractCdbServiceException {
         log.debug("Search for tag by Id...{}", name);
-        return tagRepository.findById(name).orElseThrow(() -> new CdbNotFoundException(
-                "Tag not found: " + name));
+        try {
+            return tagRepository.findById(name).orElseThrow(() -> new CdbNotFoundException(
+                    "Tag not found: " + name));
+        }
+        catch (CdbNotFoundException e) {
+            log.error("Tag not found: {}", name);
+            cacheManager.getCache("tagCache").evict(name);
+            throw e;
+        }
     }
 
     /**
@@ -139,15 +153,23 @@ public class TagService {
     @Transactional
     public Tag updateTag(Tag entity) throws AbstractCdbServiceException {
         log.debug("Update tag from dto {}", entity);
-        final Tag toupd = tagRepository.findById(entity.name()).orElseThrow(
-                () -> new CdbNotFoundException("Tag does not exists for name " + entity.name()));
-        toupd.description(entity.description()).objectType(entity.objectType())
-                .synchronization(entity.synchronization()).endOfValidity(entity.endOfValidity())
-                .lastValidatedTime(entity.lastValidatedTime())
-                .timeType(entity.timeType());
-        final Tag saved = tagRepository.save(toupd);
-        log.debug("Updated entity: {}", saved);
-        return saved;
+        try {
+            final Tag toupd = tagRepository.findById(entity.name()).orElseThrow(
+                    () -> new CdbNotFoundException(
+                            "Tag does not exists for name " + entity.name()));
+            toupd.description(entity.description()).objectType(entity.objectType())
+                    .synchronization(entity.synchronization()).endOfValidity(entity.endOfValidity())
+                    .lastValidatedTime(entity.lastValidatedTime())
+                    .timeType(entity.timeType());
+            final Tag saved = tagRepository.save(toupd);
+            log.debug("Updated entity: {}", saved);
+            return saved;
+        }
+        catch (CdbNotFoundException e) {
+            log.error("Tag not found: {}", entity.name());
+            cacheManager.getCache("tagCache").evict(entity.name());
+            throw e;
+        }
     }
 
     /**
@@ -158,41 +180,48 @@ public class TagService {
     @Transactional
     public void removeTag(String name) throws AbstractCdbServiceException {
         log.debug("Remove tag {} after checking if IOVs are present", name);
-        Tag remTag = tagRepository.findById(name).orElseThrow(
-                () -> new CdbNotFoundException("Tag does not exists for name " + name));
-        // Remove meta information associated with the tag.
-        log.debug("Removing meta info on tag {}", remTag);
-        Optional<TagMeta> opt = tagMetaRepository.findByTagName(name);
-        if (opt.isPresent()) {
-            tagMetaService.removeTagMeta(name);
-        }
+        try {
+            Tag remTag = tagRepository.findById(name).orElseThrow(
+                    () -> new CdbNotFoundException("Tag does not exists for name " + name));
+            // Remove meta information associated with the tag.
+            log.debug("Removing meta info on tag {}", remTag);
+            Optional<TagMeta> opt = tagMetaRepository.findByTagName(name);
+            if (opt.isPresent()) {
+                tagMetaService.removeTagMeta(name);
+            }
 
-        log.debug("Removing tag {}", remTag);
-        long niovs = iovGroupsCustom.getSize(name);
-        if (niovs > 0) {
-            String sort = "id.since:ASC,id.insertionTime:DESC";
-            Pageable preq = prh.createPageRequest(0, 1000, sort);
-            Page<Iov> iovspage = iovRepository.findByIdTagName(name, preq);
-            for (int ip = 0; ip < iovspage.getTotalPages(); ip++) {
-                List<Iov> iovlist = iovspage.getContent();
-                log.info("Delete {} payloads associated to iovs....", niovs);
-                List<String> hashList = this.removeIovList(iovlist);
-                for (String hash : hashList) {
-                    log.debug("Delete payload {}....", hash);
-                    // Delete iov payloads one by one because we need to check the payload
-                    // It could belong as well to another tag, in that case we cannot remove it
-                    // but we can remove the iov.
-                    if (payloadService.exists(hash)) {
-                        String rem = payloadService.removePayload(name, hash);
-                        if (!rem.equals(hash)) {
-                            log.warn("Skip removal of payload for hash {}", hash);
+            log.debug("Removing tag {}", remTag);
+            long niovs = iovGroupsCustom.getSize(name);
+            if (niovs > 0) {
+                String sort = "id.since:ASC,id.insertionTime:DESC";
+                Pageable preq = prh.createPageRequest(0, 1000, sort);
+                Page<Iov> iovspage = iovRepository.findByIdTagName(name, preq);
+                for (int ip = 0; ip < iovspage.getTotalPages(); ip++) {
+                    List<Iov> iovlist = iovspage.getContent();
+                    log.info("Delete {} payloads associated to iovs....", niovs);
+                    List<String> hashList = this.removeIovList(iovlist);
+                    for (String hash : hashList) {
+                        log.debug("Delete payload {}....", hash);
+                        // Delete iov payloads one by one because we need to check the payload
+                        // It could belong as well to another tag, in that case we cannot remove it
+                        // but we can remove the iov.
+                        if (payloadService.exists(hash)) {
+                            String rem = payloadService.removePayload(name, hash);
+                            if (!rem.equals(hash)) {
+                                log.warn("Skip removal of payload for hash {}", hash);
+                            }
                         }
                     }
                 }
             }
+            tagRepository.deleteById(name);
+            log.debug("Removed entity: {}", name);
         }
-        tagRepository.deleteById(name);
-        log.debug("Removed entity: {}", name);
+        catch (AbstractCdbServiceException e) {
+            log.error("Tag removal exception: {}", name);
+            cacheManager.getCache("tagCache").evict(name);
+            throw e;
+        }
     }
 
     /**
