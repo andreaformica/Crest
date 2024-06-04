@@ -368,7 +368,8 @@ test.dependsOn purgedb
 task addPlugin() {
     doLast {
         println "Adding plugin"
-        sourceSets.getByName("main").java.srcDirs += "plugins/nats/java"
+        //sourceSets.getByName("main").java.srcDirs += "plugins/nats/java"
+        sourceSets.getByName("main").java.srcDirs += "plugins/trigger/java"
     }
 }
 

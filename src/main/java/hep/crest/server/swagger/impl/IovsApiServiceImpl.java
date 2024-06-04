@@ -420,6 +420,10 @@ public class IovsApiServiceImpl extends IovsApiService {
                 .size((long) dtolist.size());
         respdto.filter(filters);
         respdto.format("IovSetDto");
+        RespPage respPage = new RespPage().size(dtolist.size())
+                .totalElements(Long.valueOf(dtolist.size())).totalPages(1)
+                .number(0);
+        respdto.page(respPage);
         return respdto;
     }
 

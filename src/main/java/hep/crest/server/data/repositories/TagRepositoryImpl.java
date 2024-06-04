@@ -35,7 +35,7 @@ public class TagRepositoryImpl implements TagRepositoryCustom {
     /**
      * The entity manager.
      */
-    @PersistenceContext
+    @PersistenceContext(unitName = "persistence.main")
     private EntityManager entityManager;
 
     @Override

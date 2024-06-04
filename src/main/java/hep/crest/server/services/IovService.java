@@ -248,12 +248,20 @@ public class IovService {
                                         + s.id() + " hash " + s.payloadHash());
         }
         // Check if payload exists. Cannot store IOV without payload.
-        if (payloadRepository.findById(entity.payloadHash()).isPresent()) {
+        if (!entity.payloadHash().startsWith("triggerdb")
+            & payloadRepository.findById(entity.payloadHash()).isPresent()) {
             log.warn("Payload found for hash: {}", entity.payloadHash());
             log.debug("Storing iov entity {} in tag {}", entity, t);
             entity.tag(t);
             final Iov saved = iovRepository.save(entity);
             log.debug("Saved iov entity: {}", saved);
+            return saved;
+        }
+        else if (entity.payloadHash().startsWith("triggerdb")) {
+            log.warn("Assume payload is in trigger db: {}", entity.payloadHash());
+            entity.tag(t);
+            final Iov saved = iovRepository.save(entity);
+            log.debug("Saved trigger iov entity: {}", saved);
             return saved;
         }
         else {

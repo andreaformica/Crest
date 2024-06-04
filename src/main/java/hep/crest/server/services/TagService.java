@@ -232,7 +232,6 @@ public class TagService {
      * @param name
      * @param endtime
      * @throws AbstractCdbServiceException
-     * @return void
      */
     @CacheEvict(value = "tagCache", key = "#name")
     public void updateModificationTime(String name, BigDecimal endtime) {
