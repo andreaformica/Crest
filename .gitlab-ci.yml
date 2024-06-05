@@ -1,6 +1,6 @@
 variables:
     IMAGE: crest-service
-    VERSION: '4.2'
+    VERSION: '5.0'
     GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
 # Make the gradle wrapper executable. This essentially downloads a copy of
@@ -60,3 +60,5 @@ update_imagestream_and_redeploy:
     - sleep 10 && oc rollout status deploymentconfig/$APP_NAME
   # if you are using Openshift's DeploymentConfig (instead of regular Deployments), use this command:
   # - sleep 10 && oc rollout status deploymentconfig/$APP_NAME
+  only:
+    - /^release-\d+\.\d+\.\d+$/
