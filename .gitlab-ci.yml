@@ -46,6 +46,7 @@ build_container_job:
     PUSH_IMAGE: "true"
     DOCKER_FILE_NAME: "Dockerfile"
 
+## We should add a rule for redeploying the application
 update_imagestream_and_redeploy:
   stage: redeploy
   image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
