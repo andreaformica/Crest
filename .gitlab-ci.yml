@@ -45,6 +45,8 @@ build_container_job:
     CONTEXT_DIR: ""
     PUSH_IMAGE: "true"
     DOCKER_FILE_NAME: "Dockerfile"
+  only:
+    - /^release-\d+\.\d+\.\d+$/
 
 update_imagestream_and_redeploy:
   stage: redeploy
@@ -60,5 +62,6 @@ update_imagestream_and_redeploy:
     - sleep 10 && oc rollout status deploymentconfig/$APP_NAME
   # if you are using Openshift's DeploymentConfig (instead of regular Deployments), use this command:
   # - sleep 10 && oc rollout status deploymentconfig/$APP_NAME
-  only:
-    - /^release-\d+\.\d+\.\d+$/
+  rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production" && $SITE == "cern"'
+      when: always
