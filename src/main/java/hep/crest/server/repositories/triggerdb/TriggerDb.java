@@ -26,25 +26,100 @@ public class TriggerDb implements ITriggerDb {
     }
 
     /**
-     * Get L1 prescale set.
+     * Get TriggerDB data using the provided hash-URL.
      *
-     * @param id
+     * @param components
      * @return InputStream
      */
-    public InputStream getL1PrescaleSet(Long id) {
-        String sql = "select L1PS_DATA from ATLAS_CONF_TRIGGER_RUN3.l1_prescale_set where "
-                     + "l1ps_id=?";
+    public InputStream getTriggerDBData(UrlComponents components) {
+        String sql = buildSql(components);
         try {
+            Long id = components.getId();
+            String columnName = getColumnName(components);
             log.debug("Execute query {} using {}", sql, id);
             return jdbcTemplate.queryForObject(sql, new Object[]{id}, (rs, rowNum) -> {
-                Blob blob = rs.getBlob("L1PS_DATA");
+                Blob blob = rs.getBlob(columnName);
                 return blob.getBinaryStream();
             });
         }
         catch (EmptyResultDataAccessException e) {
             // No result, log the error.
-            log.error("Cannot find L1 prescale sets for ID {}: {}", id, e);
+            log.error("Cannot find {} for ID {}: {}", components.getFullTable(),
+                    components.getId(), e);
             return null;
+        }
+    }
+
+    /**
+     * Get the SQL query.
+     * @param components
+     * @return String
+     */
+    protected String buildSql(UrlComponents components) {
+        String schema = components.getSchema();
+        switch (components.getTable()) {
+            case "L1PSK":
+                return "select L1PS_DATA from "
+                       + schema + "." + components.getFullTable()
+                       + " where l1ps_id=?";
+            case "HLTMK":
+                return "select HMT.HTM_DATA from "
+                       + schema + ".SUPER_MASTER_TABLE SMT, "
+                       + schema + "." + components.getFullTable() + " HMT"
+                       + " where HMT.HTM_ID=SMT.SMT_HLT_MENU_ID and SMT.SMT_ID=?";
+            case "L1MK":
+                return "select L1MT.L1TM_DATA from "
+                       + schema + ".SUPER_MASTER_TABLE SMT, "
+                       + schema + "." + components.getFullTable() + " L1MT"
+                       + " where L1MT.L1TM_ID=SMT.SMT_L1_MENU_ID and SMT.SMT_ID=?";
+            case "HLTPSK":
+                return "select HPS_DATA from "
+                       + schema + "." + components.getFullTable()
+                       + " where HPS_ID=?";
+            case "BGK":
+                return "select L1BGS_DATA from "
+                       + schema + "." + components.getFullTable()
+                       + " where L1BGS_ID=?";
+            case "MGK":
+                return "select HMG.HMG_DATA from "
+                       + schema + ".SUPER_MASTER_TABLE SMT, "
+                       + schema + "." + components.getFullTable() + " HMG"
+                       + " where HMG.HMG_IN_USE=1 and SMT.SMT_HLT_MENU_ID = HMG.HMG_HLT_MENU_ID "
+                       + " and SMT.SMT_ID=?";
+            case "JOK":
+                return "select JO.HJO_DATA from "
+                       + schema + ".SUPER_MASTER_TABLE SMT, "
+                       + schema + "." + components.getFullTable() + " JO"
+                       + " where JO.HJO_ID=SMT.SMT_HLT_JOBOPTIONS_ID "
+                       + " and SMT.SMT_ID=?";
+            default:
+                throw new IllegalArgumentException("Unknown table: " + components.getTable());
+        }
+    }
+
+    /**
+     * Get the column name.
+     * @param components
+     * @return String
+     */
+    protected String getColumnName(UrlComponents components) {
+        switch (components.getTable()) {
+            case "L1PSK":
+                return "L1PS_DATA";
+            case "HLTMK":
+                return "HTM_DATA";
+            case "L1MK":
+                return "L1TM_DATA";
+            case "HLTPSK":
+                return "HPS_DATA";
+            case "BGK":
+                return "L1BGS_DATA";
+            case "MGK":
+                return "HMG_DATA";
+            case "JOK":
+                return "HJO_DATA";
+            default:
+                throw new IllegalArgumentException("Unknown table: " + components.getTable());
         }
     }
 
@@ -66,7 +141,7 @@ public class TriggerDb implements ITriggerDb {
             return new UrlComponents(schema, table, Long.valueOf(id));
         }
         else {
-            return null; // URL doesn't match the expected pattern
+            throw new IllegalArgumentException("Invalid URL: " + url);
         }
     }
 }

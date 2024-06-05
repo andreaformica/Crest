@@ -283,7 +283,7 @@ public class PayloadService {
     public InputStream getTriggerData(String hash) {
         UrlComponents components = triggerDbService.parseUrl(hash);
         log.info("Parsed triggerdb url components: {}", components);
-        return triggerDbService.getL1PrescaleSet(components.getId());
+        return triggerDbService.getTriggerDBData(components);
     }
 
     /**

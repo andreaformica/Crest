@@ -335,7 +335,8 @@ public class TestCrestPayload {
 
             // Retrieve a payload metadata and streamer info from hash.
             log.info("Retrieve payload for hash : {}", hash);
-            final ResponseEntity<String> resp3 = this.testRestTemplate.exchange("/crestapi/payloads/" + hash,
+            String pyldurl1 = "/crestapi/payloads/data?hash=" + hash;
+            final ResponseEntity<String> resp3 = this.testRestTemplate.exchange(pyldurl1,
                     HttpMethod.GET, null, String.class);
             log.info("Received payload : {}", resp3);
             assertTrue(resp3.getBody().contains("theresource1"));
@@ -354,8 +355,9 @@ public class TestCrestPayload {
             assertTrue(respiov1.getBody().contains(tagname));
 
             log.info("Retrieve payload streamer for hash : {}", hash);
-            String format = "?format=STREAMER";
-            final ResponseEntity<String> resp2 = this.testRestTemplate.exchange("/crestapi/payloads/" + hash + format,
+            String format = "&format=STREAMER";
+            String pyldurl = "/crestapi/payloads/data?hash=" + hash + format;
+            final ResponseEntity<String> resp2 = this.testRestTemplate.exchange(pyldurl,
                     HttpMethod.GET, null, String.class);
             log.info("Received payload : {}", resp2);
             assertTrue(resp2.getBody().contains("test-file-1"));

@@ -5,11 +5,11 @@ import java.io.InputStream;
 public interface ITriggerDb {
 
     /**
-     * Get L1 prescale set.
-     * @param id
+     * Get trigger DB data.
+     * @param components
      * @return InputStream
      */
-    InputStream getL1PrescaleSet(Long id);
+    InputStream getTriggerDBData(UrlComponents components);
 
     UrlComponents parseUrl(String url);
 }
