@@ -24,8 +24,8 @@ public class TriggerDb implements ITriggerDb {
             "L1M", "select L1MT.L1TM_DATA from %s.SUPER_MASTER_TABLE SMT, %s.%s L1MT "
                    + "where L1MT.L1TM_ID=SMT.SMT_L1_MENU_ID and SMT.SMT_ID=?",
             "HLTPS", "select HPS_DATA from %s.%s where hps_id=?",
-            "BG", "select L1BGS_DATA from %s.%s where l1bgs_id=?",
-            "MG", "select HMG.HMG_DATA from %s.SUPER_MASTER_TABLE SMT, %s.%s HMK, "
+            "BGS", "select L1BGS_DATA from %s.%s where l1bgs_id=?",
+            "MGS", "select HMG.HMG_DATA from %s.SUPER_MASTER_TABLE SMT, %s.%s HMK, "
                   + " %s.HLT_MENU_GROUP_KEY HMG "
                   + " where HMG.HMG_IN_USE=1 and SMT.SMT_HLT_MENU_ID = HMG.HMG_HLT_MENU_ID "
                   + " and SMT.SMT_ID=?",
@@ -51,8 +51,8 @@ public class TriggerDb implements ITriggerDb {
             "HLTM", "hlt_menu",
             "L1M", "l1_menu",
             "HLTPS", "hlt_prescale_set",
-            "BG", "l1_bunch_group_set",
-            "MG", "hlt_monitoring_groups",
+            "BGS", "l1_bunch_group_set",
+            "MGS", "hlt_monitoring_groups",
             "JO", "hlt_joboptions"
     );
 
@@ -64,8 +64,8 @@ public class TriggerDb implements ITriggerDb {
             "HLTM", "HTM_DATA",
             "L1M", "L1TM_DATA",
             "HLTPS", "HPS_DATA",
-            "BG", "L1BGS_DATA",
-            "MG", "HMG_DATA",
+            "BGS", "L1BGS_DATA",
+            "MGS", "HMG_DATA",
             "JO", "HJO_DATA"
     );
 
@@ -126,7 +126,7 @@ public class TriggerDb implements ITriggerDb {
         switch (components.getTable()) {
             case "L1PS":
             case "HLTPS":
-            case "BG":
+            case "BGS":
                 return String.format(query, schema, TABLE_MAP.get(components.getTable()));
             default:
                 return String.format(query, schema, schema, TABLE_MAP.get(components.getTable()));
