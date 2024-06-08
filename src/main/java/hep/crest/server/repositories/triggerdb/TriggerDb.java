@@ -25,8 +25,7 @@ public class TriggerDb implements ITriggerDb {
                    + "where L1MT.L1TM_ID=SMT.SMT_L1_MENU_ID and SMT.SMT_ID=?",
             "HLTPS", "select HPS_DATA from %s.%s where hps_id=?",
             "BGS", "select L1BGS_DATA from %s.%s where l1bgs_id=?",
-            "MGS", "select HMG.HMG_DATA from %s.SUPER_MASTER_TABLE SMT, %s.%s HMK, "
-                  + " %s.HLT_MENU_GROUP_KEY HMG "
+            "MGS", "select HMG.HMG_DATA from %s.SUPER_MASTER_TABLE SMT, %s.%s HMG "
                   + " where HMG.HMG_IN_USE=1 and SMT.SMT_HLT_MENU_ID = HMG.HMG_HLT_MENU_ID "
                   + " and SMT.SMT_ID=?",
             "JO", "select JO.HJO_DATA from %s.SUPER_MASTER_TABLE SMT, %s.%s JO "
