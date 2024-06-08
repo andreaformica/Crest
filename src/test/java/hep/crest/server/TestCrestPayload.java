@@ -343,7 +343,7 @@ public class TestCrestPayload {
 
             log.info("Insert a new iov with the same hash : {}", hash);
             IovDto dto = new IovDto();
-            dto.setSince(new BigDecimal(BigInteger.valueOf(5000000L)));
+            dto.setSince(BigInteger.valueOf(5000000L).longValue());
             Instant now = Instant.now();
             dto.insertionTime(now.atOffset(ZoneOffset.UTC));
             dto.tagName(tagname).payloadHash(hash);

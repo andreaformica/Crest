@@ -266,7 +266,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     public Response storePayloadBatch(String tag, String jsonstoreset, String xCrestPayloadFormat,
                                       List<FormDataBodyPart> filesBodypart, String objectType,
                                       String compressionType,
-                                      String version, BigDecimal endtime,
+                                      String version,
+                                      Long endtime,
                                       SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
         log.info(
@@ -325,8 +326,13 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             else {
                 throw new CdbBadRequestException("Bad header parameter: " + xCrestPayloadFormat);
             }
+            // Get the endtime
+            BigDecimal crestEndTime = BigDecimal.valueOf(-1L);
+            if (endtime != null) {
+                crestEndTime = BigDecimal.valueOf(endtime);
+            }
             // Change the end time in the tag.
-            tagService.updateModificationTime(tag, endtime);
+            tagService.updateModificationTime(tag, crestEndTime);
             // Return the result.
             log.info("Batch insertion of {} iovs done", storeset.getSize());
             // Return the result.
@@ -350,7 +356,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     @Override
     public Response uploadJson(String tag, FormDataBodyPart storesetBodypart,
                                String objectType, String compressionType, String version,
-                               BigDecimal endtime, SecurityContext securityContext, UriInfo info)
+                               Long endtime, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
         log.debug("Batch insertion of json iovs+payload stream in tag {} ", tag);
         final BodyPartEntity inputsource = (BodyPartEntity) storesetBodypart.getEntity();
@@ -381,8 +387,13 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         catch (RuntimeException | IOException e) {
             throw new CdbInternalException("Cannot deserialize data", e);
         }
+        // Get the endtime
+        BigDecimal crestEndTime = BigDecimal.valueOf(-1L);
+        if (endtime != null) {
+            crestEndTime = BigDecimal.valueOf(endtime);
+        }
         // Change the end time in the tag.
-        tagService.updateModificationTime(tag, endtime);
+        tagService.updateModificationTime(tag, crestEndTime);
         // Return the result.
         log.info("Batch insertion of {} iovs done", outdto.getSize());
         // Return the result.

@@ -7,7 +7,6 @@ import ma.glasnost.orika.MappingContext;
 import ma.glasnost.orika.converter.BidirectionalConverter;
 import ma.glasnost.orika.metadata.Type;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -40,7 +39,7 @@ public class IovConverter extends BidirectionalConverter<Iov, IovDto> {
             dto.since(null);
         }
         else {
-            dto.since(new BigDecimal(id.since()));
+            dto.since(id.since().longValue());
         }
         // Set all fields.
         dto.payloadHash(source.payloadHash()).tagName(id.tagName());
@@ -54,7 +53,7 @@ public class IovConverter extends BidirectionalConverter<Iov, IovDto> {
         // Create the IovId.
         BigInteger s = null;
         if (source.getSince() != null) {
-            s = source.getSince().toBigInteger();
+            s = BigInteger.valueOf(source.getSince());
         }
         IovId id = new IovId().since(s).tagName(source.getTagName());
         // Set the insertion time as a date.

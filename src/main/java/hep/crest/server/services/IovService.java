@@ -31,7 +31,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
@@ -115,7 +114,7 @@ public class IovService {
         final List<BigInteger> minsincelist = selectGroupsByTagNameAndSnapshotTime(tagname,
                 snapshot, groupsize);
         final List<IovDto> iovlist =
-                minsincelist.stream().map(s -> new IovDto().since(new BigDecimal(s)).tagName(tagname))
+                minsincelist.stream().map(s -> new IovDto().since(s.longValue()).tagName(tagname))
                         .collect(Collectors.toList());
         return new IovSetDto().resources(iovlist).size((long) iovlist.size());
     }
@@ -250,7 +249,7 @@ public class IovService {
         // Check if payload exists. Cannot store IOV without payload.
         if (!entity.payloadHash().startsWith("triggerdb")
             & !payloadRepository.findById(entity.payloadHash()).isPresent()) {
-            log.error("Payload not found for hash: {}", entity.payloadHash());
+            log.warn("Payload not found for hash: {}", entity.payloadHash());
             throw new CdbNotFoundException("Payload not found: " + entity.payloadHash());
         }
         log.debug("Storing iov entity {} in tag {}", entity, t);

@@ -7,7 +7,6 @@ import io.swagger.annotations.ApiParam;
 
 import hep.crest.server.swagger.impl.JAXRSContext;
 
-import java.math.BigDecimal;
 import java.io.File;
 import hep.crest.server.swagger.model.GenericMap;
 import hep.crest.server.swagger.model.HTTPResponse;
@@ -101,7 +100,7 @@ public class PayloadsApi  {
         @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response storePayloadBatch(@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,@ApiParam(value = "the string representing a StoreSetDto in json", required=true)@FormDataParam("storeset")  String storeset,@ApiParam(value = "The format of the input data. StoreSetDto entries will have either the content inline (JSON) or stored via external files (FILE). " , allowableValues="FILE, JSON", defaultValue="FILE")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,
- @FormDataParam("files") List<FormDataBodyPart> filesBodypart ,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The compression type")@FormDataParam("compressionType")  String compressionType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time, shall be set at tag level.")@FormDataParam("endtime")  BigDecimal endtime,@Context SecurityContext securityContext,@Context UriInfo info)
+ @FormDataParam("files") List<FormDataBodyPart> filesBodypart ,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The compression type")@FormDataParam("compressionType")  String compressionType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time, shall be set at tag level.")@FormDataParam("endtime")  Long endtime,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
@@ -137,7 +136,7 @@ public class PayloadsApi  {
         @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response uploadJson(@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,
- @FormDataParam("storeset") FormDataBodyPart storesetBodypart ,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The compression type")@FormDataParam("compressionType")  String compressionType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time, shall be set at tag level.")@FormDataParam("endtime")  BigDecimal endtime,@Context SecurityContext securityContext,@Context UriInfo info)
+ @FormDataParam("storeset") FormDataBodyPart storesetBodypart ,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The compression type")@FormDataParam("compressionType")  String compressionType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time, shall be set at tag level.")@FormDataParam("endtime")  Long endtime,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);

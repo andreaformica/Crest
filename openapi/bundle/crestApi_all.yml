@@ -974,7 +974,8 @@ paths:
                   type: string
                 endtime:
                   description: 'The end time, shall be set at tag level.'
-                  type: number
+                  type: integer
+                  format: int64
               required:
                 - storeset
                 - tag
@@ -1083,7 +1084,8 @@ paths:
                   type: string
                 endtime:
                   description: 'The end time, shall be set at tag level.'
-                  type: number
+                  type: integer
+                  format: int64
               required:
                 - storeset
                 - tag
@@ -1572,7 +1574,8 @@ components:
         tagName:
           type: string
         since:
-          type: number
+          type: integer
+          format: int64
         insertionTime:
           type: string
           format: date-time
