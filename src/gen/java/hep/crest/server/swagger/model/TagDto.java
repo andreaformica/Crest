@@ -18,7 +18,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import javax.validation.constraints.*;
@@ -62,11 +61,11 @@ public class TagDto   {
 
   public static final String JSON_PROPERTY_LAST_VALIDATED_TIME = "lastValidatedTime";
   @JsonProperty(JSON_PROPERTY_LAST_VALIDATED_TIME)
-  private BigDecimal lastValidatedTime;
+  private Long lastValidatedTime;
 
   public static final String JSON_PROPERTY_END_OF_VALIDITY = "endOfValidity";
   @JsonProperty(JSON_PROPERTY_END_OF_VALIDITY)
-  private BigDecimal endOfValidity;
+  private Long endOfValidity;
 
   public static final String JSON_PROPERTY_INSERTION_TIME = "insertionTime";
   @JsonProperty(JSON_PROPERTY_INSERTION_TIME)
@@ -176,7 +175,7 @@ public class TagDto   {
     this.description = description;
   }
 
-  public TagDto lastValidatedTime(BigDecimal lastValidatedTime) {
+  public TagDto lastValidatedTime(Long lastValidatedTime) {
     this.lastValidatedTime = lastValidatedTime;
     return this;
   }
@@ -187,16 +186,16 @@ public class TagDto   {
    **/
   @JsonProperty("lastValidatedTime")
   @ApiModelProperty(value = "")
-  @Valid 
-  public BigDecimal getLastValidatedTime() {
+  
+  public Long getLastValidatedTime() {
     return lastValidatedTime;
   }
 
-  public void setLastValidatedTime(BigDecimal lastValidatedTime) {
+  public void setLastValidatedTime(Long lastValidatedTime) {
     this.lastValidatedTime = lastValidatedTime;
   }
 
-  public TagDto endOfValidity(BigDecimal endOfValidity) {
+  public TagDto endOfValidity(Long endOfValidity) {
     this.endOfValidity = endOfValidity;
     return this;
   }
@@ -207,12 +206,12 @@ public class TagDto   {
    **/
   @JsonProperty("endOfValidity")
   @ApiModelProperty(value = "")
-  @Valid 
-  public BigDecimal getEndOfValidity() {
+  
+  public Long getEndOfValidity() {
     return endOfValidity;
   }
 
-  public void setEndOfValidity(BigDecimal endOfValidity) {
+  public void setEndOfValidity(Long endOfValidity) {
     this.endOfValidity = endOfValidity;
   }
 

@@ -22,9 +22,11 @@ components:
         description:
           type: string
         lastValidatedTime:
-          type: number
+          type: integer
+          format: int64
         endOfValidity:
-          type: number
+          type: integer
+          format: int64
         insertionTime:
           type: string
           format: date-time
