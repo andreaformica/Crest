@@ -6,6 +6,7 @@ import ma.glasnost.orika.MappingContext;
 import ma.glasnost.orika.converter.BidirectionalConverter;
 import ma.glasnost.orika.metadata.Type;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -42,10 +43,13 @@ public class GlobalTagConverter extends BidirectionalConverter<GlobalTag, Global
             OffsetDateTime st = sinst.atOffset(ZoneOffset.UTC);
             dto.snapshotTime(st);
         }
+        if (source.validity() != null) {
+            dto.validity(source.validity().longValue());
+        }
         // Set all the fields from source.
         dto.name(source.name()).description(source.description())
                 .workflow(source.workflow()).release(source.release())
-                .scenario(source.scenario()).validity(source.validity())
+                .scenario(source.scenario())
                 .type(String.valueOf(source.type()));
         return dto;
     }
@@ -72,10 +76,13 @@ public class GlobalTagConverter extends BidirectionalConverter<GlobalTag, Global
         if (source.getType() != null) {
             entity.type(source.getType().toCharArray()[0]);
         }
+        if (source.getValidity() != null) {
+            entity.validity(BigDecimal.valueOf(source.getValidity()));
+        }
         // Set all the fields from source.
         entity.name(source.getName()).description(source.getDescription())
                 .workflow(source.getWorkflow()).release(source.getRelease())
-                .scenario(source.getScenario()).validity(source.getValidity());
+                .scenario(source.getScenario());
         return entity;
     }
 }

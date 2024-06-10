@@ -18,7 +18,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import javax.validation.constraints.*;
@@ -48,7 +47,7 @@ public class GlobalTagDto   {
 
   public static final String JSON_PROPERTY_VALIDITY = "validity";
   @JsonProperty(JSON_PROPERTY_VALIDITY)
-  private BigDecimal validity;
+  private Long validity;
 
   public static final String JSON_PROPERTY_DESCRIPTION = "description";
   @JsonProperty(JSON_PROPERTY_DESCRIPTION)
@@ -106,7 +105,7 @@ public class GlobalTagDto   {
     this.name = name;
   }
 
-  public GlobalTagDto validity(BigDecimal validity) {
+  public GlobalTagDto validity(Long validity) {
     this.validity = validity;
     return this;
   }
@@ -117,12 +116,12 @@ public class GlobalTagDto   {
    **/
   @JsonProperty("validity")
   @ApiModelProperty(value = "")
-  @Valid 
-  public BigDecimal getValidity() {
+  
+  public Long getValidity() {
     return validity;
   }
 
-  public void setValidity(BigDecimal validity) {
+  public void setValidity(Long validity) {
     this.validity = validity;
   }
 

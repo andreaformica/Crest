@@ -111,7 +111,7 @@ public class TestCrestGlobalTag {
         log.info("Try to update global tag : {} ", dto);
         final GlobalTagDto body = dto;
         body.setDescription("Description has changed");
-        body.validity(new BigDecimal(1990L));
+        body.validity(1990L);
         body.scenario("update");
         body.type("new");
         final HttpEntity<GlobalTagDto> updrequest = new HttpEntity<GlobalTagDto>(body);

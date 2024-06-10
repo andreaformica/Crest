@@ -6,7 +6,8 @@ components:
         name:
           type: string
         validity:
-          type: number
+          type: integer
+          format: int64
         description:
           type: string
         release:
