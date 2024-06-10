@@ -123,7 +123,7 @@ public class TestCrestTag {
 
         StoreDto sdto = new StoreDto();
         sdto.streamerInfo("{\"filename\": \"test-file-1\"}");
-        sdto.since(new BigDecimal(BigInteger.valueOf(0L)));
+        sdto.since(0L);
         sdto.hash("hashresource1");
         sdto.setData("theresource1");
 

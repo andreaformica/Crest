@@ -27,7 +27,8 @@ components:
         hash:
           type: string
         since:
-          type: number
+          type: integer
+          format: int64
         data:
           type: string
         streamerInfo:

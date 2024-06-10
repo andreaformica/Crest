@@ -109,13 +109,13 @@ public class TestCrestPayload {
 
         StoreDto sdto = new StoreDto();
         sdto.streamerInfo("{\"filename\": \"test-inline-1\"}");
-        sdto.since(new BigDecimal(miov.id().since()));
+        sdto.since(miov.id().since().longValue());
         sdto.hash("somehash1");
         sdto.setData("{ \"key\": \"an inline payload as a json\"}");
 
         StoreDto sdto1 = new StoreDto();
         sdto1.streamerInfo("{\"filename\": \"test-inline-2\"}");
-        sdto1.since(new BigDecimal(miov2.id().since()));
+        sdto1.since(miov2.id().since().longValue());
         sdto1.hash("somehash2");
         sdto1.setData("{ \"key\": \"an inline payload as a json 2 should have different hash\"}");
         setdto.addResourcesItem(sdto).addResourcesItem(sdto1);
@@ -153,7 +153,7 @@ public class TestCrestPayload {
 
         StoreDto sdto3 = new StoreDto();
         sdto3.streamerInfo("{\"filename\": \"test-file-1\"}");
-        sdto3.since(new BigDecimal(BigInteger.valueOf(4000000L * 1000000000L)));
+        sdto3.since(4000000L * 1000000000L);
         sdto3.hash("hashresource1");
         sdto3.setData("theresource1");
 
@@ -259,13 +259,13 @@ public class TestCrestPayload {
 
         StoreDto sdto = new StoreDto();
         sdto.streamerInfo("{\"filename\": \"test-inline-5-this is a large payload\"}");
-        sdto.since(new BigDecimal(miov.id().since()));
+        sdto.since(miov.id().since().longValue());
         sdto.hash("somehashjson1");
         sdto.setData(randomPayload(10));
 
         StoreDto sdto1 = new StoreDto();
         sdto1.streamerInfo("{\"filename\": \"test-inline-2- this is another large payload\"}");
-        sdto1.since(new BigDecimal(miov2.id().since()));
+        sdto1.since(miov2.id().since().longValue());
         sdto1.hash("somehashjson2");
         sdto1.setData(randomPayload(10));
         setdto.addResourcesItem(sdto).addResourcesItem(sdto1);

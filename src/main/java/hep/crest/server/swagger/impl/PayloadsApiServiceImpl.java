@@ -447,7 +447,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             // Initialize the iov entity from the DTO.
             Iov iov = new Iov();
             IovId iovId = new IovId();
-            iovId.since(piovDto.getSince().toBigInteger()).tagName(tag);
+            iovId.since(BigInteger.valueOf(piovDto.getSince())).tagName(tag);
             iov.id(iovId).tag(new Tag().name(tag));
             // Initialize the payload entity from the DTO.
             StorableData data;

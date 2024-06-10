@@ -40,7 +40,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -354,7 +354,7 @@ public class PayloadService {
                 }
                 log.debug("Saving iov {} in tag {}", iov, tagname);
                 Iov savedIov = iovService.storeIov(iov);
-                dto.since(new BigDecimal(savedIov.id().since())).hash(savedIov.payloadHash());
+                dto.since(savedIov.id().since().longValue()).hash(savedIov.payloadHash());
                 dto.data(saved.objectType() + "; " + saved.objectName());
                 dto.streamerInfo("none");
                 setdto.addResourcesItem(dto);
@@ -417,7 +417,7 @@ public class PayloadService {
         // Initialize the iov entity from the DTO.
         Iov iov = new Iov();
         IovId iovId = new IovId();
-        iovId.since(dto.getSince().toBigInteger()).tagName(tag);
+        iovId.since(BigInteger.valueOf(dto.getSince())).tagName(tag);
         iov.id(iovId).tag(new Tag().name(tag));
         // Generate the hash from the payload.
         byte[] paylodContent = dto.getData().getBytes(StandardCharsets.UTF_8);
@@ -433,7 +433,7 @@ public class PayloadService {
         this.insertPayload(entity, is, sinfodata);
         Iov savedIov = iovService.storeIov(iov);
         // Fill summary info to return.
-        outdto.since(BigDecimal.valueOf(savedIov.id().since().longValue()));
+        outdto.since(savedIov.id().since().longValue());
         outdto.setHash(phash);
         outdto.data("payloadlength: " + paylodContent.length);
         outdto.streamerInfo("none");

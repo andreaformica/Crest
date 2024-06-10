@@ -18,7 +18,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import java.math.BigDecimal;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import javax.validation.constraints.*;
 import javax.validation.Valid;
@@ -40,7 +39,7 @@ public class StoreDto   {
 
   public static final String JSON_PROPERTY_SINCE = "since";
   @JsonProperty(JSON_PROPERTY_SINCE)
-  private BigDecimal since;
+  private Long since;
 
   public static final String JSON_PROPERTY_DATA = "data";
   @JsonProperty(JSON_PROPERTY_DATA)
@@ -70,7 +69,7 @@ public class StoreDto   {
     this.hash = hash;
   }
 
-  public StoreDto since(BigDecimal since) {
+  public StoreDto since(Long since) {
     this.since = since;
     return this;
   }
@@ -81,12 +80,12 @@ public class StoreDto   {
    **/
   @JsonProperty("since")
   @ApiModelProperty(value = "")
-  @Valid 
-  public BigDecimal getSince() {
+  
+  public Long getSince() {
     return since;
   }
 
-  public void setSince(BigDecimal since) {
+  public void setSince(Long since) {
     this.since = since;
   }
 
