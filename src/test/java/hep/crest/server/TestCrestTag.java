@@ -91,7 +91,7 @@ public class TestCrestTag {
     public void updateTag(TagDto body) throws JsonProcessingException {
         // Update a tag
         body.setDescription("another description updated");
-        body.endOfValidity(BigDecimal.valueOf(1000L));
+        body.endOfValidity(1000L);
         body.synchronization("blkp");
         body.payloadSpec("newspec");
         final HttpEntity<TagDto> updrequest = new HttpEntity<TagDto>(body);
