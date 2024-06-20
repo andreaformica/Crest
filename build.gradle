@@ -218,6 +218,10 @@ task buildCrestPythonClient(type: org.openapitools.generator.gradle.plugin.tasks
     inputSpec = "$swaggerBundleDirectory/crestApi_all.yml".toString()
     outputDir = "$rootDir/pycrest".toString()
     packageName = "hep.crest.client"
+    configOptions = [
+            packageVersion: "1.0.0",
+            projectName: "hep-crest-client"]
+
 }
 
 task buildCrestShellClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask){
