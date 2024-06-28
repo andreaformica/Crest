@@ -92,15 +92,16 @@ public class TriggerDb implements ITriggerDb {
             Long id = components.getId();
             String columnName = COLUMN_MAP.get(components.getTable());
             log.debug("Execute query {} using {}", sql, id);
-            return jdbcTemplate.queryForObject(sql, new Object[]{id}, (rs, rowNum) -> {
+
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
                 Blob blob = rs.getBlob(columnName);
                 return blob.getBinaryStream();
-            });
+            }, id);
         }
         catch (EmptyResultDataAccessException e) {
             // No result, log the error.
             log.error("Cannot find {} for ID {}: {}", components.getTable(),
-                    components.getId(), e);
+                    components.getId(), e.getMessage());
             return null;
         }
     }
