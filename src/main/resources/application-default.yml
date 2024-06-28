@@ -40,7 +40,7 @@ info:
 crest:
   dumpdir: /tmp
   schemaname: none
-  security: none
+  security: ${crest.server.security}
   synchro: none
   webstaticdir: /tmp
   dbfile: /tmp/crestdbh2
