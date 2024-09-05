@@ -146,13 +146,13 @@ public class JsonParserTest {
 
         StoreDto sdto = new StoreDto();
         sdto.streamerInfo("{\"filename\": \"test-inline-5-this is a large payload\"}");
-        sdto.since(new BigDecimal(miov.id().since()));
+        sdto.since(miov.id().since().longValue());
         sdto.hash("somehashjson1");
         sdto.setData("{ \"key\": \"an inline very large payload as a json\"}");
 
         StoreDto sdto1 = new StoreDto();
         sdto1.streamerInfo("{\"filename\": \"test-inline-2- this is another large payload\"}");
-        sdto1.since(new BigDecimal(miov2.id().since()));
+        sdto1.since(miov2.id().since().longValue());
         sdto1.hash("somehashjson2");
         sdto1.setData("{ \"key\": \"an inline very large payload as a json 2 should have "
                       + "different hash\"}");

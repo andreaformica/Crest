@@ -38,7 +38,7 @@ public class GlobalTagRepositoryImpl implements GlobalTagRepositoryCustom {
     /**
      * The entity manager.
      */
-    @PersistenceContext
+    @PersistenceContext(unitName = "persistence.main")
     private EntityManager entityManager;
 
     @Override

@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  version: '4.2'
+  version: '5.0'
   title: CREST Server
   description: OpenApi3 for CREST Server
   license:
@@ -974,7 +974,8 @@ paths:
                   type: string
                 endtime:
                   description: 'The end time, shall be set at tag level.'
-                  type: number
+                  type: integer
+                  format: int64
               required:
                 - storeset
                 - tag
@@ -1083,7 +1084,8 @@ paths:
                   type: string
                 endtime:
                   description: 'The end time, shall be set at tag level.'
-                  type: number
+                  type: integer
+                  format: int64
               required:
                 - storeset
                 - tag
@@ -1099,7 +1101,7 @@ paths:
                 $ref: '#/components/schemas/StoreSetDto'
         default:
           $ref: '#/components/responses/genericError'
-  '/payloads/{hash}':
+  /payloads/data:
     get:
       tags:
         - payloads
@@ -1112,7 +1114,7 @@ paths:
       operationId: getPayload
       parameters:
         - name: hash
-          in: path
+          in: query
           description: 'hash:  the hash of the payload'
           required: true
           schema:
@@ -1436,9 +1438,11 @@ components:
         description:
           type: string
         lastValidatedTime:
-          type: number
+          type: integer
+          format: int64
         endOfValidity:
-          type: number
+          type: integer
+          format: int64
         insertionTime:
           type: string
           format: date-time
@@ -1487,7 +1491,8 @@ components:
         name:
           type: string
         validity:
-          type: number
+          type: integer
+          format: int64
         description:
           type: string
         release:
@@ -1572,7 +1577,8 @@ components:
         tagName:
           type: string
         since:
-          type: number
+          type: integer
+          format: int64
         insertionTime:
           type: string
           format: date-time
@@ -1653,7 +1659,8 @@ components:
         hash:
           type: string
         since:
-          type: number
+          type: integer
+          format: int64
         data:
           type: string
         streamerInfo:

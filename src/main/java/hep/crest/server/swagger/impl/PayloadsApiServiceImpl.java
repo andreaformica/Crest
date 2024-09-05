@@ -213,6 +213,12 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         // Get only metadata from the payload.
         final Payload entity = payloadService.getPayload(hash);
         final String ptype = entity.objectType();
+
+        String localFormat = format;
+        if (ptype.equalsIgnoreCase("triggerdb")) {
+            log.info("Format is triggerdb");
+            localFormat = ptype;
+        }
         log.debug("Found metadata {}", entity);
         if ("META".equalsIgnoreCase(format)) {
             // Return the metadata.
@@ -226,11 +232,12 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         // this is filling a mag-age parameter in the header
         final CacheControl cc = cachesvc.getPayloadCacheControl();
         log.debug("Set cache control to {}", cc);
+        String finalLocalFormat = localFormat;
         StreamingOutput streamingOutput = edh.makeStreamingOutputFromLob(
-                new SimpleLobStreamerProvider(hash, format) {
+                new SimpleLobStreamerProvider(hash, finalLocalFormat) {
                     @Override
                     public InputStream getInputStream() {
-                        PayloadService.LobStream lob = payloadService.getLobData(hash, format);
+                        PayloadService.LobStream lob = payloadService.getLobData(hash, finalLocalFormat);
                         return lob.getInputStream();
                     }
                 }
@@ -259,7 +266,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     public Response storePayloadBatch(String tag, String jsonstoreset, String xCrestPayloadFormat,
                                       List<FormDataBodyPart> filesBodypart, String objectType,
                                       String compressionType,
-                                      String version, BigDecimal endtime,
+                                      String version,
+                                      Long endtime,
                                       SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
         log.info(
@@ -318,8 +326,13 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             else {
                 throw new CdbBadRequestException("Bad header parameter: " + xCrestPayloadFormat);
             }
+            // Get the endtime
+            BigDecimal crestEndTime = BigDecimal.valueOf(-1L);
+            if (endtime != null) {
+                crestEndTime = BigDecimal.valueOf(endtime);
+            }
             // Change the end time in the tag.
-            tagService.updateModificationTime(tag, endtime);
+            tagService.updateModificationTime(tag, crestEndTime);
             // Return the result.
             log.info("Batch insertion of {} iovs done", storeset.getSize());
             // Return the result.
@@ -343,7 +356,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     @Override
     public Response uploadJson(String tag, FormDataBodyPart storesetBodypart,
                                String objectType, String compressionType, String version,
-                               BigDecimal endtime, SecurityContext securityContext, UriInfo info)
+                               Long endtime, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
         log.debug("Batch insertion of json iovs+payload stream in tag {} ", tag);
         final BodyPartEntity inputsource = (BodyPartEntity) storesetBodypart.getEntity();
@@ -374,8 +387,13 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         catch (RuntimeException | IOException e) {
             throw new CdbInternalException("Cannot deserialize data", e);
         }
+        // Get the endtime
+        BigDecimal crestEndTime = BigDecimal.valueOf(-1L);
+        if (endtime != null) {
+            crestEndTime = BigDecimal.valueOf(endtime);
+        }
         // Change the end time in the tag.
-        tagService.updateModificationTime(tag, endtime);
+        tagService.updateModificationTime(tag, crestEndTime);
         // Return the result.
         log.info("Batch insertion of {} iovs done", outdto.getSize());
         // Return the result.
@@ -429,7 +447,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             // Initialize the iov entity from the DTO.
             Iov iov = new Iov();
             IovId iovId = new IovId();
-            iovId.since(piovDto.getSince().toBigInteger()).tagName(tag);
+            iovId.since(BigInteger.valueOf(piovDto.getSince())).tagName(tag);
             iov.id(iovId).tag(new Tag().name(tag));
             // Initialize the payload entity from the DTO.
             StorableData data;

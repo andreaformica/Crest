@@ -106,7 +106,7 @@ public class TestCrestTagMeta {
 
         StoreDto sdto = new StoreDto();
         sdto.streamerInfo("{\"filename\": \"test-file-2\"}");
-        sdto.since(new BigDecimal(BigInteger.valueOf(0L)));
+        sdto.since(0L);
         sdto.hash("hashresource2");
         sdto.setData("theresource2");
 

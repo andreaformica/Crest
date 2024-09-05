@@ -59,8 +59,8 @@ paths:
   # payloads
   /payloads:
     $ref: 'crestdb_payloadsapi.yml#/paths/~1payloads'
-  /payloads/{hash}:
-    $ref: 'crestdb_payloadsapi.yml#/paths/~1payloads~1{hash}'
+  /payloads/data:
+    $ref: 'crestdb_payloadsapi.yml#/paths/~1payloads~1data'
   /monitoring/payloads:
     $ref: 'crestdb_monitoringapi.yml#/paths/~1monitoring~1payloads'
   # runinfo

@@ -109,13 +109,13 @@ public class TestCrestPayload {
 
         StoreDto sdto = new StoreDto();
         sdto.streamerInfo("{\"filename\": \"test-inline-1\"}");
-        sdto.since(new BigDecimal(miov.id().since()));
+        sdto.since(miov.id().since().longValue());
         sdto.hash("somehash1");
         sdto.setData("{ \"key\": \"an inline payload as a json\"}");
 
         StoreDto sdto1 = new StoreDto();
         sdto1.streamerInfo("{\"filename\": \"test-inline-2\"}");
-        sdto1.since(new BigDecimal(miov2.id().since()));
+        sdto1.since(miov2.id().since().longValue());
         sdto1.hash("somehash2");
         sdto1.setData("{ \"key\": \"an inline payload as a json 2 should have different hash\"}");
         setdto.addResourcesItem(sdto).addResourcesItem(sdto1);
@@ -153,7 +153,7 @@ public class TestCrestPayload {
 
         StoreDto sdto3 = new StoreDto();
         sdto3.streamerInfo("{\"filename\": \"test-file-1\"}");
-        sdto3.since(new BigDecimal(BigInteger.valueOf(4000000L * 1000000000L)));
+        sdto3.since(4000000L * 1000000000L);
         sdto3.hash("hashresource1");
         sdto3.setData("theresource1");
 
@@ -259,13 +259,13 @@ public class TestCrestPayload {
 
         StoreDto sdto = new StoreDto();
         sdto.streamerInfo("{\"filename\": \"test-inline-5-this is a large payload\"}");
-        sdto.since(new BigDecimal(miov.id().since()));
+        sdto.since(miov.id().since().longValue());
         sdto.hash("somehashjson1");
         sdto.setData(randomPayload(10));
 
         StoreDto sdto1 = new StoreDto();
         sdto1.streamerInfo("{\"filename\": \"test-inline-2- this is another large payload\"}");
-        sdto1.since(new BigDecimal(miov2.id().since()));
+        sdto1.since(miov2.id().since().longValue());
         sdto1.hash("somehashjson2");
         sdto1.setData(randomPayload(10));
         setdto.addResourcesItem(sdto).addResourcesItem(sdto1);
@@ -335,14 +335,15 @@ public class TestCrestPayload {
 
             // Retrieve a payload metadata and streamer info from hash.
             log.info("Retrieve payload for hash : {}", hash);
-            final ResponseEntity<String> resp3 = this.testRestTemplate.exchange("/crestapi/payloads/" + hash,
+            String pyldurl1 = "/crestapi/payloads/data?hash=" + hash;
+            final ResponseEntity<String> resp3 = this.testRestTemplate.exchange(pyldurl1,
                     HttpMethod.GET, null, String.class);
             log.info("Received payload : {}", resp3);
             assertTrue(resp3.getBody().contains("theresource1"));
 
             log.info("Insert a new iov with the same hash : {}", hash);
             IovDto dto = new IovDto();
-            dto.setSince(new BigDecimal(BigInteger.valueOf(5000000L)));
+            dto.setSince(BigInteger.valueOf(5000000L).longValue());
             Instant now = Instant.now();
             dto.insertionTime(now.atOffset(ZoneOffset.UTC));
             dto.tagName(tagname).payloadHash(hash);
@@ -354,8 +355,9 @@ public class TestCrestPayload {
             assertTrue(respiov1.getBody().contains(tagname));
 
             log.info("Retrieve payload streamer for hash : {}", hash);
-            String format = "?format=STREAMER";
-            final ResponseEntity<String> resp2 = this.testRestTemplate.exchange("/crestapi/payloads/" + hash + format,
+            String format = "&format=STREAMER";
+            String pyldurl = "/crestapi/payloads/data?hash=" + hash + format;
+            final ResponseEntity<String> resp2 = this.testRestTemplate.exchange(pyldurl,
                     HttpMethod.GET, null, String.class);
             log.info("Received payload : {}", resp2);
             assertTrue(resp2.getBody().contains("test-file-1"));

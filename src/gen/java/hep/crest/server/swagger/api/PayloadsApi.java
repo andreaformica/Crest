@@ -7,7 +7,6 @@ import io.swagger.annotations.ApiParam;
 
 import hep.crest.server.swagger.impl.JAXRSContext;
 
-import java.math.BigDecimal;
 import java.io.File;
 import hep.crest.server.swagger.model.GenericMap;
 import hep.crest.server.swagger.model.HTTPResponse;
@@ -54,7 +53,7 @@ public class PayloadsApi  {
    protected JAXRSContext context;
 
     @GET
-    @Path("/{hash}")
+    @Path("/data")
     
     @Produces({ "application/octet-stream", "application/json" })
     @io.swagger.annotations.ApiOperation(value = "Finds a payload resource associated to the hash.", notes = "This method retrieves a payload resource. Arguments: hash=<hash> the hash of the payload Depending on the header, this method will either retrieve the data, the metadata of the payload  or the streamerInfo alone. ", response = String.class, authorizations = {
@@ -65,7 +64,7 @@ public class PayloadsApi  {
         @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
         @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
-    public Response getPayload(@ApiParam(value = "hash:  the hash of the payload", required = true) @PathParam("hash") @NotNull  String hash,@ApiParam(value = "The format of the output data.  It can be : BLOB (default), META (meta data) or STREAMER (streamerInfo). ", required = true, allowableValues="BLOB, META, STREAMER", defaultValue = "BLOB") @DefaultValue("BLOB") @Pattern(regexp="BLOB|META|STREAMER") @QueryParam("format") @NotNull  String format,@Context SecurityContext securityContext,@Context UriInfo info)
+    public Response getPayload(@ApiParam(value = "hash:  the hash of the payload", required = true) @QueryParam("hash") @NotNull  String hash,@ApiParam(value = "The format of the output data.  It can be : BLOB (default), META (meta data) or STREAMER (streamerInfo). ", required = true, allowableValues="BLOB, META, STREAMER", defaultValue = "BLOB") @DefaultValue("BLOB") @Pattern(regexp="BLOB|META|STREAMER") @QueryParam("format") @NotNull  String format,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
@@ -101,14 +100,14 @@ public class PayloadsApi  {
         @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response storePayloadBatch(@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,@ApiParam(value = "the string representing a StoreSetDto in json", required=true)@FormDataParam("storeset")  String storeset,@ApiParam(value = "The format of the input data. StoreSetDto entries will have either the content inline (JSON) or stored via external files (FILE). " , allowableValues="FILE, JSON", defaultValue="FILE")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,
- @FormDataParam("files") List<FormDataBodyPart> filesBodypart ,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The compression type")@FormDataParam("compressionType")  String compressionType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time, shall be set at tag level.")@FormDataParam("endtime")  BigDecimal endtime,@Context SecurityContext securityContext,@Context UriInfo info)
+ @FormDataParam("files") List<FormDataBodyPart> filesBodypart ,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The compression type")@FormDataParam("compressionType")  String compressionType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time, shall be set at tag level.")@FormDataParam("endtime")  Long endtime,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
         return delegate.storePayloadBatch(tag, storeset, xCrestPayloadFormat, filesBodypart, objectType, compressionType, version, endtime, securityContext, info);
     }
     @PUT
-    @Path("/{hash}")
+    @Path("/data")
     @Consumes({ "application/json" })
     @Produces({ "application/json", "application/xml" })
     @io.swagger.annotations.ApiOperation(value = "Update a streamerInfo in a payload", notes = "This method will update the streamerInfo. This is provided via a generic map in the request body containing the key 'streamerInfo' ", response = PayloadDto.class, authorizations = {
@@ -137,7 +136,7 @@ public class PayloadsApi  {
         @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
     })
     public Response uploadJson(@ApiParam(value = "The tag name", required=true)@FormDataParam("tag")  String tag,
- @FormDataParam("storeset") FormDataBodyPart storesetBodypart ,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The compression type")@FormDataParam("compressionType")  String compressionType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time, shall be set at tag level.")@FormDataParam("endtime")  BigDecimal endtime,@Context SecurityContext securityContext,@Context UriInfo info)
+ @FormDataParam("storeset") FormDataBodyPart storesetBodypart ,@ApiParam(value = "The object type")@FormDataParam("objectType")  String objectType,@ApiParam(value = "The compression type")@FormDataParam("compressionType")  String compressionType,@ApiParam(value = "The version")@FormDataParam("version")  String version,@ApiParam(value = "The end time, shall be set at tag level.")@FormDataParam("endtime")  Long endtime,@Context SecurityContext securityContext,@Context UriInfo info)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);

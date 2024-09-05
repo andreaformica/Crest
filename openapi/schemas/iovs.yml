@@ -9,7 +9,8 @@ components:
         tagName:
           type: string
         since:
-          type: number
+          type: integer
+          format: int64
         insertionTime:
           type: string
           format: date-time

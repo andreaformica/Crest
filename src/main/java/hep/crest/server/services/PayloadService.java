@@ -22,6 +22,8 @@ import hep.crest.server.exceptions.CdbBadRequestException;
 import hep.crest.server.exceptions.CdbInternalException;
 import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.ConflictException;
+import hep.crest.server.repositories.triggerdb.ITriggerDb;
+import hep.crest.server.repositories.triggerdb.UrlComponents;
 import hep.crest.server.swagger.model.StoreDto;
 import hep.crest.server.swagger.model.StoreSetDto;
 import lombok.Data;
@@ -38,7 +40,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -70,6 +72,12 @@ public class PayloadService {
      */
     @Autowired
     private IovService iovService;
+
+    /**
+     * Repository.
+     */
+    @Autowired
+    private ITriggerDb triggerDbService;
     /**
      * Mapper.
      */
@@ -224,6 +232,8 @@ public class PayloadService {
             case "STREAMER":
                 byte[] si = getPayloadStreamerInfo(hash);
                 return new LobStream(hash, new ByteArrayInputStream(si));
+            case "triggerdb":
+                return new LobStream(hash, getTriggerData(hash));
             default:
                 throw new CdbBadRequestException("Cannot process Lob data for source " + source);
         }
@@ -236,6 +246,9 @@ public class PayloadService {
      */
     @Transactional
     public Payload getPayload(String hash) throws CdbNotFoundException {
+        if (hash.startsWith("triggerdb")) {
+            return new Payload().hash(hash).objectType("triggerdb").objectName("triggerdb");
+        }
         return payloadRepository.findById(hash).orElseThrow(
                 () -> new CdbNotFoundException("Cannot find payload for hash " + hash)
         );
@@ -260,6 +273,17 @@ public class PayloadService {
                 () -> new CdbNotFoundException("Cannot find payload streamer info for hash " + hash)
         );
         return entity.streamerInfo();
+    }
+
+    /**
+     * Load trigger data using dedicated repository.
+     * @param hash
+     * @return byte[]
+     */
+    public InputStream getTriggerData(String hash) {
+        UrlComponents components = triggerDbService.parseUrl(hash);
+        log.info("Parsed triggerdb url components: {}", components);
+        return triggerDbService.getTriggerDBData(components);
     }
 
     /**
@@ -330,7 +354,7 @@ public class PayloadService {
                 }
                 log.debug("Saving iov {} in tag {}", iov, tagname);
                 Iov savedIov = iovService.storeIov(iov);
-                dto.since(new BigDecimal(savedIov.id().since())).hash(savedIov.payloadHash());
+                dto.since(savedIov.id().since().longValue()).hash(savedIov.payloadHash());
                 dto.data(saved.objectType() + "; " + saved.objectName());
                 dto.streamerInfo("none");
                 setdto.addResourcesItem(dto);
@@ -393,7 +417,7 @@ public class PayloadService {
         // Initialize the iov entity from the DTO.
         Iov iov = new Iov();
         IovId iovId = new IovId();
-        iovId.since(dto.getSince().toBigInteger()).tagName(tag);
+        iovId.since(BigInteger.valueOf(dto.getSince())).tagName(tag);
         iov.id(iovId).tag(new Tag().name(tag));
         // Generate the hash from the payload.
         byte[] paylodContent = dto.getData().getBytes(StandardCharsets.UTF_8);
@@ -409,7 +433,7 @@ public class PayloadService {
         this.insertPayload(entity, is, sinfodata);
         Iov savedIov = iovService.storeIov(iov);
         // Fill summary info to return.
-        outdto.since(BigDecimal.valueOf(savedIov.id().since().longValue()));
+        outdto.since(savedIov.id().since().longValue());
         outdto.setHash(phash);
         outdto.data("payloadlength: " + paylodContent.length);
         outdto.streamerInfo("none");

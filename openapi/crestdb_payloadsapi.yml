@@ -66,7 +66,8 @@ paths:
                   type: string
                 endtime:
                   description: The end time, shall be set at tag level.
-                  type: number
+                  type: integer
+                  format: int64
               required:
                 - storeset
                 - tag
@@ -175,7 +176,8 @@ paths:
                   type: string
                 endtime:
                   description: The end time, shall be set at tag level.
-                  type: number
+                  type: integer
+                  format: int64
               required:
                 - storeset
                 - tag
@@ -191,7 +193,7 @@ paths:
                 $ref: "#/components/schemas/StoreSetDto"
         default:
           $ref: "#/components/responses/genericError"
-  /payloads/{hash}:
+  /payloads/data:
     get:
       tags:
         - payloads
@@ -204,7 +206,7 @@ paths:
       operationId: getPayload
       parameters:
         - name: hash
-          in: path
+          in: query
           description: 'hash:  the hash of the payload'
           required: true
           schema:

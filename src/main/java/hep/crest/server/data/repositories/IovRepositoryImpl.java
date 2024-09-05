@@ -36,7 +36,7 @@ public class IovRepositoryImpl implements IovRepositoryCustom {
     /**
      * The entity manager.
      */
-    @PersistenceContext
+    @PersistenceContext(unitName = "persistence.main")
     private EntityManager entityManager;
 
     @Override
@@ -109,7 +109,7 @@ public class IovRepositoryImpl implements IovRepositoryCustom {
              */
             log.warn("Adding where condition on MAX of since");
             JPQLQuery<Iov> subquery = new JPAQuery<>(entityManager);
-            where.and(QIov.iov.id.since.goe(
+            where.or(QIov.iov.id.since.goe(
                     subquery.select(QIov.iov.id.since.max()).from(QIov.iov).where(subwhere).fetchOne()));
 
         }

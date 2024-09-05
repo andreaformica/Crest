@@ -15,7 +15,7 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
 group = 'hep.crest'
-version = '4.2.1'
+version = '5.0.0'
 
 bootJar {
     archiveFileName = 'crest.jar'
@@ -218,6 +218,10 @@ task buildCrestPythonClient(type: org.openapitools.generator.gradle.plugin.tasks
     inputSpec = "$swaggerBundleDirectory/crestApi_all.yml".toString()
     outputDir = "$rootDir/pycrest".toString()
     packageName = "hep.crest.client"
+    configOptions = [
+            packageVersion: "1.0.0",
+            projectName: "hep-crest-client"]
+
 }
 
 task buildCrestShellClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask){
@@ -368,7 +372,8 @@ test.dependsOn purgedb
 task addPlugin() {
     doLast {
         println "Adding plugin"
-        sourceSets.getByName("main").java.srcDirs += "plugins/nats/java"
+        //sourceSets.getByName("main").java.srcDirs += "plugins/nats/java"
+        sourceSets.getByName("main").java.srcDirs += "plugins/trigger/java"
     }
 }
 

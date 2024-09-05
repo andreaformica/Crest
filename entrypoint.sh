@@ -37,6 +37,9 @@ print_application_properties () {
   if [ -e /run/secrets/crest-phys-cond ] ; then
     echo "crest.db.password=$(cat /run/secrets/crest-phys-cond)"
   fi
+  if [ -e /run/secrets/crest-trigger-cond ] ; then
+    echo "crest.triggerdb.password=$(cat /run/secrets/crest-trigger-cond)"
+  fi
   if [ -e /run/secrets/svom-pg-crest ] ; then
     echo "crest.db.password=$(cat /run/secrets/svom-pg-crest)"
   fi
