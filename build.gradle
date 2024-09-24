@@ -270,7 +270,6 @@ dependencies {
 
     //// BE CAREFUL when using starter-jersey : the following JARS should be coherent with the jersey version !!!!!!!
     implementation group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '2.35'
-
     // Jackson
     implementation "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider"
     implementation "com.fasterxml.jackson.core:jackson-core"

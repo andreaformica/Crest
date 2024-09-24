@@ -41,7 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFacade;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -358,7 +357,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                                String objectType, String compressionType, String version,
                                Long endtime, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
-        log.debug("Batch insertion of json iovs+payload stream in tag {} ", tag);
+        log.info("Batch insertion of json iovs+payload stream in tag {} ", tag);
         // use to send back a NotFound if the tag does not exists.
         Tag tagentity = tagService.findOne(tag);
         // Check security on tag using a fake update. This will trigger the TagSecurityAspect.
