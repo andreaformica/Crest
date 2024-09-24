@@ -359,7 +359,6 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                                Long endtime, SecurityContext securityContext, UriInfo info)
             throws NotFoundException {
         log.debug("Batch insertion of json iovs+payload stream in tag {} ", tag);
-        final BodyPartEntity inputsource = (BodyPartEntity) storesetBodypart.getEntity();
         // use to send back a NotFound if the tag does not exists.
         Tag tagentity = tagService.findOne(tag);
         // Check security on tag using a fake update. This will trigger the TagSecurityAspect.
@@ -379,10 +378,9 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         }
         // Now you can process the JSON data as needed.
         StoreSetDto outdto = null;
-        try {
-            outdto = jsonStreamProcessor.processJsonStream(inputsource.getInputStream(),
+        try (InputStream inputStream = storesetBodypart.getEntityAs(InputStream.class)) {
+            outdto = jsonStreamProcessor.processJsonStream(inputStream,
                     objectType, version, compressionType, tag);
-            inputsource.getInputStream().close();
         }
         catch (RuntimeException | IOException e) {
             throw new CdbInternalException("Cannot deserialize data", e);
