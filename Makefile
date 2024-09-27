@@ -12,7 +12,7 @@ SPECFILE_VERSION    = $(shell awk '$$1 == "Version:"  { print $$2 }' $(SPECFILE)
 SPECFILE_RELEASE    = $(shell awk '$$1 == "Release:"  { print $$2 }' $(SPECFILE) )
 TARFILE             = $(SPECFILE_NAME)-$(SPECFILE_VERSION).tgz
 DIST                = $(shell rpm --eval %{dist})
-CREST_VERSION       = 2.0
+CREST_VERSION       = $(shell sed -nr '/version=/ s/.*version=([^"]+).*/\1/p' $(PWD)/src/main/resources/messages.properties)
 CREST_RELEASE       = $(shell sed -nr '/release=/ s/.*release=([^"]+).*/\1/p' $(PWD)/src/main/resources/messages.properties)
 TARGET_DIR          = "crest-dist"
 CREST_TARFILE       = $(SPECFILE_NAME)-$(CREST_VERSION).tgz
