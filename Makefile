@@ -13,10 +13,10 @@ SPECFILE_RELEASE    = $(shell awk '$$1 == "Release:"  { print $$2 }' $(SPECFILE)
 TARFILE             = $(SPECFILE_NAME)-$(SPECFILE_VERSION).tgz
 DIST                = $(shell rpm --eval %{dist})
 CREST_VERSION       = 2.0
-CREST_RELEASE       = $(shell sed -nr '/release=/ s/.*release=([^"]+).*/\1/p' $(PWD)/crestdb-web/src/main/resources/messages.properties)
+CREST_RELEASE       = $(shell sed -nr '/release=/ s/.*release=([^"]+).*/\1/p' $(PWD)/src/main/resources/messages.properties)
 TARGET_DIR          = "crest-dist"
 CREST_TARFILE       = $(SPECFILE_NAME)-$(CREST_VERSION).tgz
-CREST_WAR           = $(shell find ./crestdb-web/ -maxdepth 3 -type f -name "crest.war")
+CREST_JAR           = $(shell find ./ -maxdepth 3 -type f -name "crest.jar")
 CREST_IMAGE         = "gitlab-registry.cern.ch/formica/crest:$(CREST_VERSION)"
 ##CREST_IMAGE         = "crest-test"
 ## Commands
@@ -49,7 +49,7 @@ dist:
 build: clean
 	$(GRADLE) clean build
 package: dist
-	$(CP) $(CREST_WAR) $(TARGET_DIR)/crest.war
+	$(CP) $(CREST_JAR) $(TARGET_DIR)/crest.jar
 	$(CP) ./logback.xml.crest $(TARGET_DIR)/logback.xml
 	$(CP) ./javaopts.properties.rpm $(TARGET_DIR)/javaopts.properties
 	$(CP) ./entrypoint.sh $(TARGET_DIR)/entrypoint.sh
