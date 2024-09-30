@@ -1,0 +1,205 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.3.4'
+	id 'io.spring.dependency-management' version '1.1.6'
+	id("org.openapi.generator") version "7.8.0"
+	id 'jacoco'
+	id 'checkstyle'
+}
+
+group = 'hep.crest'
+version = '5.1.0-SNAPSHOT'
+
+java {
+//	toolchain {
+//		languageVersion = JavaLanguageVersion.of(23)
+//	}
+}
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+	querydsl.extendsFrom annotationProcessor
+}
+
+
+checkstyleMain {
+	setExcludes(new HashSet(['**/hep/crest/data/**/Q*java',
+							 '**/src/gen/**',
+							 '**/hep/crest/data/repositories/externals/*',
+							 '**/hep/crest/server/swagger/**',
+							 '**/plugins/nats/**',
+							 '**/plugin/nats/model/*java']))
+}
+
+tasks.withType(Checkstyle) {
+	checkstyleTest.enabled = false
+	reports {
+		xml.required = false
+		html.required = true
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	swaggerDirectory = "$rootDir/openapi".toString()
+	swaggerSpecDirectory =  "$swaggerDirectory".toString()
+	swaggerBundleDirectory = "$swaggerDirectory/bundle".toString()
+	swaggerJaxrsTemplateDirectory = "$swaggerDirectory/templates/JavaJaxRs".toString()
+}
+
+task openApiBundle {
+	// Bundle the openapi spec files together, to mitigate a bug with the main openapi generator
+	// Bug: https://github.com/OpenAPITools/openapi-generator/issues/1976
+	// For this to work, the swagger-cli (from the javascript world) needs to be installed
+	// with e.g: npm install -g @apidevtools/swagger-cli
+	inputs.files(fileTree(dir: swaggerSpecDirectory, include: '**/*.yml'))
+	outputs.file("$swaggerBundleDirectory/crestAtlasApi_all.yml".toString())
+	outputs.file("$swaggerBundleDirectory/admin_api.yml".toString())
+	outputs.file("$swaggerBundleDirectory/globaltags_api.yml".toString())
+	outputs.file("$swaggerBundleDirectory/tags_api.yml".toString())
+/// not for CMS
+	outputs.file("$swaggerBundleDirectory/tagsmeta_api.yml".toString())
+	outputs.file("$swaggerBundleDirectory/globaltagmaps_api.yml".toString())
+	outputs.file("$swaggerBundleDirectory/iovs_api.yml".toString())
+	outputs.file("$swaggerBundleDirectory/payloads_api.yml".toString())
+	outputs.file("$swaggerBundleDirectory/monitoring_api.yml".toString())
+	outputs.file("$swaggerBundleDirectory/runinfo_api.yml".toString())
+
+	doLast {
+		exec {
+			workingDir swaggerSpecDirectory
+			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/crestApi_all.yml".toString(), "$swaggerSpecDirectory/crestAtlasApi_all.yml".toString()
+		}
+		exec {
+			workingDir swaggerSpecDirectory
+			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/admin_api.yml".toString(), "$swaggerSpecDirectory/admin_api.yml".toString()
+		}
+		exec {
+			workingDir swaggerSpecDirectory
+			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/globaltags_api.yml".toString(), "$swaggerSpecDirectory/globaltags_api.yml".toString()
+		}
+		exec {
+			workingDir swaggerSpecDirectory
+			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/tags_api.yml".toString(), "$swaggerSpecDirectory/tags_api.yml".toString()
+		}
+		exec {
+			workingDir swaggerSpecDirectory
+			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/tagsmeta_api.yml".toString(), "$swaggerSpecDirectory/tagsmeta_api.yml".toString()
+		}
+		exec {
+			workingDir swaggerSpecDirectory
+			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/globaltagmaps_api.yml".toString(), "$swaggerSpecDirectory/globaltagmaps_api.yml".toString()
+		}
+		exec {
+			workingDir swaggerSpecDirectory
+			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/iovs_api.yml".toString(), "$swaggerSpecDirectory/iovs_api.yml".toString()
+		}
+		exec {
+			workingDir swaggerSpecDirectory
+			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/payloads_api.yml".toString(), "$swaggerSpecDirectory/payloads_api.yml".toString()
+		}
+		exec {
+			workingDir swaggerSpecDirectory
+			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/runinfo_api.yml".toString(), "$swaggerSpecDirectory/runinfo_api.yml".toString()
+		}
+		exec {
+			workingDir swaggerSpecDirectory
+			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/monitoring_api.yml".toString(), "$swaggerSpecDirectory/monitoring_api.yml".toString()
+		}
+	}
+}
+
+openApiGenerate {
+	generatorName = "jaxrs-jersey"
+	inputSpec = "$swaggerBundleDirectory/crestApi_all.yml".toString()
+	outputDir = "$projectDir".toString()
+	templateDir = swaggerJaxrsTemplateDirectory
+	apiPackage = "hep.crest.server.swagger.api"
+	modelPackage = "hep.crest.server.swagger.model"
+	configOptions = [
+			dateLibrary: "java8",
+			hideGenerationTimestamp: "true",
+			useJakartaEe: "true"
+	]
+}
+
+task buildCrestPythonClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask){
+	generatorName = "python"
+	inputSpec = "$swaggerBundleDirectory/crestApi_all.yml".toString()
+	outputDir = "$rootDir/pycrest".toString()
+	packageName = "hep.crest.client"
+	configOptions = [
+			packageVersion: "5.0.0",
+			projectName: "hep-crest-client"]
+
+}
+
+dependencies {
+	compileOnly 'org.projectlombok:lombok:1.18.34'
+	annotationProcessor 'org.projectlombok:lombok:1.18.34'
+	// Mappper
+	implementation 'org.mapstruct:mapstruct:1.6.2'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.2'
+	// Lombok-MapStruct Binding
+	implementation 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+	// QueryDSL
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta' // QueryDSL for JPA
+	annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	// Spring Boot
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-jersey'
+	// Jackson libraries
+	implementation "com.fasterxml.jackson.jakarta.rs:jackson-jakarta-rs-json-provider:2.17.2"
+	implementation group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '3.1.0'
+	// Keycloak
+	implementation 'org.keycloak:keycloak-spring-boot-starter:22.0.1'
+	// Hibernate
+	// Hibernate Core
+	implementation 'org.hibernate:hibernate-core:6.5.3.Final' // Adjust to your Hibernate version
+	implementation 'org.hibernate:hibernate-jpamodelgen:6.5.3.Final' // For JPA model generation, if needed
+
+	// Swagger
+	implementation group: 'io.swagger.core.v3', name: 'swagger-annotations', version: '2.2.7'
+	implementation group: 'io.swagger.core.v3', name: 'swagger-models', version: '2.2.7'
+
+	runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
+	runtimeOnly 'org.postgresql:postgresql'
+	runtimeOnly 'com.h2database:h2'  // Add H2 database dependency
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testRuntimeOnly 'com.h2database:h2'  // Add H2 database dependency
+
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+sourceSets {
+	main {
+		java {
+			srcDirs = ['src/main/java', 'src/gen/java']
+			// srcDirs = ['src/main/java', 'src/gen/java', 'plugins/nats/java']
+		}
+	}
+	// println main.output.classesDir
+	test {
+		java {
+			srcDirs = ['src/test/java']
+		}
+	}
+}
