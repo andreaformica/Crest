@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -90,7 +91,7 @@ public class TagService {
     private CacheManager cacheManager;
 
     /**
-     * @param name
+     * @param name the tag name
      * @return Tag
      * @throws AbstractCdbServiceException If object was not found
      */
@@ -103,7 +104,7 @@ public class TagService {
         }
         catch (CdbNotFoundException e) {
             log.error("Tag not found: {}", name);
-            cacheManager.getCache("tagCache").evict(name);
+            Objects.requireNonNull(cacheManager.getCache("tagCache")).evict(name);
             throw e;
         }
     }
@@ -171,8 +172,8 @@ public class TagService {
             return saved;
         }
         catch (CdbNotFoundException e) {
-            log.error("Tag not found: {}", entity.getName());
-            cacheManager.getCache("tagCache").evict(entity.getName());
+            log.error("updateTag error for : {}", entity.getName());
+            Objects.requireNonNull(cacheManager.getCache("tagCache")).evict(entity.getName());
             throw e;
         }
     }
@@ -224,7 +225,7 @@ public class TagService {
         }
         catch (AbstractCdbServiceException e) {
             log.error("Tag removal exception: {}", name);
-            cacheManager.getCache("tagCache").evict(name);
+            Objects.requireNonNull(cacheManager.getCache("tagCache")).evict(name);
             throw e;
         }
     }
@@ -249,8 +250,8 @@ public class TagService {
             this.updateTag(tagEntity);
         }
         catch (CdbNotFoundException e) {
-            log.error("Tag not found: {}", name);
-            cacheManager.getCache("tagCache").evict(name);
+            log.error("updateModificationTime error for tag: {}", name);
+            Objects.requireNonNull(cacheManager.getCache("tagCache")).evict(name);
             throw e;
         }
     }
@@ -258,7 +259,7 @@ public class TagService {
     /**
      * Remove a list of iovs, send back the hash of payloads.
      *
-     * @param iovList
+     * @param iovList the List of Iov
      * @return List<String>
      */
     @Transactional(Transactional.TxType.REQUIRES_NEW)

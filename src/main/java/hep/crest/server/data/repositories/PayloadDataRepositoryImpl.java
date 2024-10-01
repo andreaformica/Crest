@@ -47,8 +47,8 @@ public class PayloadDataRepositoryImpl implements PayloadDataRepositoryCustom {
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void saveData(String id, InputStream is, int length) throws CdbSQLException {
         PayloadData entity = new PayloadData();
-        entity.hash(id);
-        entity.data(BlobProxy.generateProxy(is, length));
+        entity.setHash(id);
+        entity.setData(BlobProxy.generateProxy(is, length));
         entityManager.persist(entity);
     }
 
@@ -58,7 +58,7 @@ public class PayloadDataRepositoryImpl implements PayloadDataRepositoryCustom {
             // It is important that this method does not apply any transaction.
             // All existing transactions should be handled externally.
             PayloadData entity = entityManager.find(PayloadData.class, id);
-            return entity.data().getBinaryStream();
+            return entity.getData().getBinaryStream();
         }
         catch (SQLException e) {
             log.error("Cannot get payload data for " + id);

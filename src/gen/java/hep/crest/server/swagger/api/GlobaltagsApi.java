@@ -74,6 +74,7 @@ public class GlobaltagsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.createGlobalTag(force, globalTagDto, securityContext);
     }
 
@@ -95,6 +96,7 @@ public class GlobaltagsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.findGlobalTag(name, securityContext);
     }
 
@@ -116,6 +118,7 @@ public class GlobaltagsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.findGlobalTagFetchTags(name, record, label, securityContext);
     }
 
@@ -136,6 +139,7 @@ public class GlobaltagsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.listGlobalTags(name, workflow, scenario, release, validity, description, page, size, sort, securityContext);
     }
 }

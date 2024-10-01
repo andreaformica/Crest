@@ -266,20 +266,20 @@ public class PayloadService {
     public Payload insertPayload(Payload entity, InputStream is, PayloadInfoData streamer)
             throws AbstractCdbServiceException {
         log.debug("Save payload {}", entity);
-        if (entity.size() == null) {
+        if (entity.getSize() == null) {
             throw new CdbBadRequestException("Cannot store payload without size being set");
         }
         // Check if exists
-        Optional<Payload> exists = payloadRepository.findById(entity.hash());
+        Optional<Payload> exists = payloadRepository.findById(entity.getHash());
         if (exists.isPresent()) {
             log.warn("Payload already exists for hash {}: send back the saved instance",
-                    entity.hash());
+                    entity.getHash());
             // Having the existing instance will allow to store IOVs.
             return exists.get();
         }
         // Store the payload dto
         final Payload saved = payloadRepository.save(entity);
-        payloadDataRepository.saveData(entity.hash(), is, entity.size());
+        payloadDataRepository.saveData(entity.getHash(), is, entity.getSize());
         payloadInfoDataRepository.save(streamer);
         log.debug("Saved payload and related entity: {}", saved);
         return saved;
@@ -314,11 +314,11 @@ public class PayloadService {
                  FileChannel tempchan = FileChannel.open(Paths.get(uploadedFile))) {
                 // We set the size of the payload here.
                 // In case this is null, the payload will not be stored.
-                entity.size((int) tempchan.size());
+                entity.setSize((int) tempchan.size());
                 Payload saved = insertPayload(entity, is, streamer);
                 log.debug("Payload saved is : {}", saved);
                 // Now insert IOV. The method will perform many verifications.
-                iov.setPayloadHash(saved.hash());
+                iov.setPayloadHash(saved.getHash());
                 if (tagname == null) {
                     tagname = iov.getTag().getName();
                 }
@@ -326,18 +326,18 @@ public class PayloadService {
                 Iov savedIov = iovService.storeIov(iov);
                 dto.since((savedIov.getId().getSince()).longValue())
                         .setHash(savedIov.getPayloadHash());
-                dto.data(saved.objectType() + "; " + saved.objectName());
+                dto.data(saved.getObjectName() + "; " + saved.getObjectName());
                 dto.streamerInfo("none");
                 setdto.addresourcesItem(dto);
             }
             catch (final ConflictException e) {
-                String msg  = "Payload hash already exists " + entity.hash() + " "
+                String msg  = "Payload hash already exists " + entity.getHash() + " "
                               + "since " + iov.getId().getSince() + " in tag " + tagname;
                 log.warn("Payload insertion conflict: {}", msg);
                 throw new ConflictException(msg);
             }
             catch (final IOException e) {
-                log.error("Payload insertion problem for hash {}: {}", entity.hash(), e);
+                log.error("Payload insertion problem for hash {}: {}", entity.getHash(), e);
                 throw new CdbInternalException("Cannot read payload file " + uploadedFile);
             }
             finally {
@@ -380,9 +380,9 @@ public class PayloadService {
         StoreDto outdto = new StoreDto();
         // Start filling the payload data.
         Payload entity = new Payload()
-                .objectType(objectType).hash("none")
-                .compressionType(compressionType).version(version);
-        entity.size(0);
+                .setObjectType(objectType).setHash("none")
+                .setCompressionType(compressionType).setVersion(version);
+        entity.setSize(0);
         PayloadInfoData sinfodata = new PayloadInfoData();
         sinfodata.streamerInfo(dto.getStreamerInfo().getBytes(StandardCharsets.UTF_8));
         // Initialize the iov entity from the DTO.
@@ -394,10 +394,10 @@ public class PayloadService {
         byte[] paylodContent = dto.getData().getBytes(StandardCharsets.UTF_8);
         log.debug("Use the data string, it represents the payload : length is {}",
                 paylodContent.length);
-        entity.size(paylodContent.length);
+        entity.setSize(paylodContent.length);
         final String phash = HashGenerator.sha256Hash(paylodContent);
         iov.setPayloadHash(phash);
-        entity.hash(phash);
+        entity.setHash(phash);
         sinfodata.hash(phash);
         InputStream is = new ByteArrayInputStream(paylodContent);
         // Persist the entity using JPA

@@ -70,6 +70,7 @@ public class FoldersApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.createFolder(folderDto, securityContext);
     }
 
@@ -86,6 +87,7 @@ public class FoldersApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.listFolders(schema, securityContext);
     }
 }

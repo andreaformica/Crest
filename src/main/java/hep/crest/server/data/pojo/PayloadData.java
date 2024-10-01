@@ -22,7 +22,7 @@ import java.sql.Blob;
 // Define default constructors.
 @NoArgsConstructor
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 public class PayloadData {
 
     /**

@@ -74,6 +74,7 @@ public class AdminApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.removeGlobalTag(name, securityContext);
     }
 
@@ -95,6 +96,7 @@ public class AdminApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.removeTag(name, securityContext);
     }
 
@@ -113,6 +115,7 @@ public class AdminApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.updateGlobalTag(name, globalTagDto, securityContext);
     }
 }

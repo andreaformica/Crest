@@ -84,6 +84,7 @@ public class {{classname}}  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.{{nickname}}({{#allParams}}{{#isFormParam}}{{#isFile}}{{paramName}}Bodypart{{/isFile}}{{/isFormParam}}{{^isFile}}{{paramName}}{{/isFile}}{{^isFormParam}}{{#isFile}}{{paramName}}{{/isFile}}{{/isFormParam}}, {{/allParams}}securityContext);
     }
 {{/operation}}

@@ -73,6 +73,7 @@ public class GlobaltagmapsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.createGlobalTagMap(globalTagMapDto, securityContext);
     }
 
@@ -94,6 +95,7 @@ public class GlobaltagmapsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.deleteGlobalTagMap(name, label, tagname, record, securityContext);
     }
 
@@ -115,6 +117,7 @@ public class GlobaltagmapsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.findGlobalTagMap(name, xCrestMapMode, securityContext);
     }
 }

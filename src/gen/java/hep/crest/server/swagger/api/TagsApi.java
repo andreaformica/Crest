@@ -76,6 +76,7 @@ public class TagsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.createTag(tagDto, securityContext);
     }
 
@@ -98,6 +99,7 @@ public class TagsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.createTagMeta(name, tagMetaDto, securityContext);
     }
 
@@ -119,6 +121,7 @@ public class TagsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.findTag(name, securityContext);
     }
 
@@ -140,6 +143,7 @@ public class TagsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.findTagMeta(name, securityContext);
     }
 
@@ -160,6 +164,7 @@ public class TagsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.listTags(name, timeType, objectType, description, page, size, sort, securityContext);
     }
 
@@ -182,6 +187,7 @@ public class TagsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.updateTag(name, genericMap, securityContext);
     }
 
@@ -204,6 +210,7 @@ public class TagsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.updateTagMeta(name, genericMap, securityContext);
     }
 }

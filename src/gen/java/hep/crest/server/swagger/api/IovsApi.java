@@ -88,6 +88,7 @@ public class IovsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.findAllIovs(method, tagname, snapshot, since, until, timeformat, groupsize, hash, page, size, sort, xCrestQuery, xCrestSince, securityContext);
     }
 
@@ -109,6 +110,7 @@ public class IovsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.getSizeByTag(tagname, securityContext);
     }
 
@@ -130,6 +132,7 @@ public class IovsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.selectIovPayloads(tagname, since, until, timeformat, page, size, sort, securityContext);
     }
 
@@ -149,6 +152,7 @@ public class IovsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.storeIovBatch(iovSetDto, securityContext);
     }
 
@@ -172,6 +176,7 @@ public class IovsApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.storeIovOne(iovDto, securityContext);
     }
 }

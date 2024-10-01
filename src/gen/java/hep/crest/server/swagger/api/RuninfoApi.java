@@ -70,6 +70,7 @@ public class RuninfoApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.createRunInfo(runLumiSetDto, securityContext);
     }
 
@@ -89,6 +90,7 @@ public class RuninfoApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.listRunInfo(since, until, format, mode, page, size, sort, securityContext);
     }
 
@@ -106,6 +108,7 @@ public class RuninfoApi  {
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
+        context.setUriInfo(uriInfo);
         return delegate.updateRunInfo(runLumiInfoDto, securityContext);
     }
 }

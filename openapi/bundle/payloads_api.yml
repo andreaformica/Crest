@@ -69,9 +69,9 @@ paths:
                   description: The version
                   type: string
                 endtime:
-                  description: 'The end time, shall be set at tag level.'
-                  type: integer
-                  format: int64
+                  type: string
+                  pattern: '^[0-9]+$'
+                  description: A BigInteger value.
               required:
                 - storeset
                 - tag
@@ -179,9 +179,9 @@ paths:
                   description: The version
                   type: string
                 endtime:
-                  description: 'The end time, shall be set at tag level.'
-                  type: integer
-                  format: int64
+                  type: string
+                  pattern: '^[0-9]+$'
+                  description: A BigInteger value.
               required:
                 - storeset
                 - tag
