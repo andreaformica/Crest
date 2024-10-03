@@ -15,6 +15,13 @@ java {
 //		languageVersion = JavaLanguageVersion.of(23)
 //	}
 }
+
+
+bootJar {
+	archiveFileName = 'crest.jar'
+//    metaInf { from 'src/main/resources/spring.factories' }
+}
+
 sourceCompatibility = '17'
 targetCompatibility = '17'
 
@@ -24,7 +31,9 @@ configurations {
 	}
 	querydsl.extendsFrom annotationProcessor
 }
-
+configurations.all {
+	exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+}
 
 checkstyleMain {
 	setExcludes(new HashSet(['**/hep/crest/data/**/Q*java',
@@ -158,14 +167,26 @@ dependencies {
 	// Spring Boot
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-jersey'
+	// implementation 'org.springframework.boot:spring-boot-starter-data-rest'
+// Exclude default Tomcat
+	implementation('org.springframework.boot:spring-boot-starter-web') {
+		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+	}
+	// Add Undertow as the embedded server
+	implementation 'org.springframework.boot:spring-boot-starter-undertow'
+
+	implementation ('org.springframework.boot:spring-boot-starter-jersey'){
+		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+	}
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation('org.springframework.boot:spring-boot-starter-oauth2-client')
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+
 	// Jackson libraries
 	implementation "com.fasterxml.jackson.jakarta.rs:jackson-jakarta-rs-json-provider:2.17.2"
 	implementation group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '3.1.0'
 	// Keycloak
-	implementation 'org.keycloak:keycloak-spring-boot-starter:22.0.1'
+	// implementation 'org.keycloak:keycloak-spring-boot-starter:22.0.1'
 	// Hibernate
 	// Hibernate Core
 	implementation 'org.hibernate:hibernate-core:6.5.3.Final' // Adjust to your Hibernate version

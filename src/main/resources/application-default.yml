@@ -9,8 +9,6 @@ server:
     port: 8090
     connection-timeout: 120s
 spring:
-    autoconfigure:
-      exclude: org.keycloak.adapters.springboot.KeycloakAutoConfiguration
     security:
       strategy: MODE_INHERITABLETHREADLOCAL
     jersey:
