@@ -25,6 +25,7 @@ public interface TagMapper extends GenericMapper<TagDto, Tag> {
      * @param source
      * @return TagDto
      */
+    @Mapping(source = "objectType", target = "payloadSpec")
     @Mapping(source = "insertionTime", target = "insertionTime", qualifiedByName = "toOffsetDateTime")
     @Mapping(source = "modificationTime", target = "modificationTime", qualifiedByName = "toOffsetDateTime")
     TagDto toDto(Tag source);
@@ -34,6 +35,7 @@ public interface TagMapper extends GenericMapper<TagDto, Tag> {
      * @param source
      * @return Tag
      */
+    @Mapping(target = "objectType", source = "payloadSpec")
     @Mapping(target = "insertionTime", ignore = true)
     @Mapping(target = "modificationTime", ignore = true)
     Tag toEntity(TagDto source);

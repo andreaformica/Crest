@@ -17,9 +17,9 @@ import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.ConflictException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -95,19 +95,62 @@ public class TagService {
      * @return Tag
      * @throws AbstractCdbServiceException If object was not found
      */
-    @Cacheable(value = "tagCache", key = "#name")
     public Tag findOne(String name) throws AbstractCdbServiceException {
         log.debug("Search for tag by Id...{}", name);
         try {
-            return tagRepository.findById(name).orElseThrow(() -> new CdbNotFoundException(
+            Tag cached = getTagFromCache(name);
+            if (cached != null) {
+                return cached;
+            }
+            Tag entity = tagRepository.findById(name).orElseThrow(() -> new CdbNotFoundException(
                     "Tag not found: " + name));
+            cacheTag(entity);
+            return entity;
         }
         catch (CdbNotFoundException e) {
             log.error("Tag not found: {}", name);
-            Objects.requireNonNull(cacheManager.getCache("tagCache")).evict(name);
+            cacheEviction(name);
             throw e;
         }
     }
+
+    /**
+     * Cache eviction method.
+     * @param name
+     */
+    protected void cacheEviction(String name) {
+        Cache cache = cacheManager.getCache("tagCache");
+        if (cache != null) {
+            cache.evictIfPresent(name);  // Evict based on the 'name' key
+        }
+    }
+
+
+    /**
+     * Cache add method.
+     * @param tag the Tag entity
+     */
+    protected void cacheTag(Tag tag) {
+        Cache cache = cacheManager.getCache("tagCache");
+        if (cache != null && tag != null) {
+            cache.put(tag.getName(), tag);  // Use tag.getName() as the key and the entity as the value
+        }
+    }
+
+    /**
+     * Get entity from cache.
+     *
+     * @param name the Tag name
+     * @return Tag the entity
+     */
+    protected Tag getTagFromCache(String name) {
+        Cache cache = cacheManager.getCache("tagCache");
+        if (cache != null) {
+            return cache.get(name, Tag.class);  // Retrieve the cached entity by key
+        }
+        return null;
+    }
+
 
     /**
      * Select Tags.
@@ -154,7 +197,7 @@ public class TagService {
      * @return TagDto of the updated entity.
      * @throws AbstractCdbServiceException If an Exception occurred
      */
-    @CacheEvict(value = "tagCache", key = "#entity.name()")
+    @CacheEvict(value = "tagCache", key = "#entity.getName()")
     @Transactional
     public Tag updateTag(Tag entity) throws AbstractCdbServiceException {
         log.debug("Update tag from dto {}", entity);

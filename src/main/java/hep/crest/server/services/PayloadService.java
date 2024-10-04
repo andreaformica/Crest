@@ -361,23 +361,27 @@ public class PayloadService {
     /**
      * Save IOV and Payload in one request.
      *
-     * @param dto
-     * @param objectType
-     * @param version
-     * @param compressionType
-     * @param tag
+     * @param dto the StoreDto
+     * @param objectType the object type
+     * @param version the version
+     * @param compressionType the compression type
+     * @param tag the tag name
      *
-     * @return StoreDto
+     * @return StoreDto the store dto of inserted iov.
      * @throws AbstractCdbServiceException
+     *              if a CREST exception occurred.
+     * @throws NoSuchAlgorithmException
+     *              if an Hashing problem occurred.
+     * @throws IOException
+     *              if a IO exception occurred.
      */
     @Transactional(rollbackOn = {Exception.class})
     public StoreDto savePayloadIov(StoreDto dto, String objectType, String version,
                                    String compressionType, String tag)
-            throws AbstractCdbServiceException, NoSuchAlgorithmException {
+            throws AbstractCdbServiceException, NoSuchAlgorithmException, IOException {
         log.debug("Create iov and payload for time {}", dto.getSince());
         // Here we generate objectType and version. We should probably allow for input
         // arguments.
-        StoreDto outdto = new StoreDto();
         // Start filling the payload data.
         Payload entity = new Payload()
                 .setObjectType(objectType).setHash("none")
@@ -403,12 +407,16 @@ public class PayloadService {
         // Persist the entity using JPA
         this.insertPayload(entity, is, sinfodata);
         Iov savedIov = iovService.storeIov(iov);
+        // Close stream
+        is.close();
         // Fill summary info to return.
-        outdto.since(savedIov.getId().getSince().longValue());
-        outdto.setHash(phash);
-        outdto.data("payloadlength: " + paylodContent.length);
-        outdto.streamerInfo("none");
-        return outdto;
+        // This is a "fake" object containing only some meta information.
+        StoreDto outDto = new StoreDto();
+        outDto.since(savedIov.getId().getSince().longValue());
+        outDto.setHash(phash);
+        outDto.data("payload_length: " + paylodContent.length);
+        outDto.streamerInfo("none");
+        return outDto;
     }
 
 }

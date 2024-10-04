@@ -67,7 +67,7 @@ joptfile=./javaopts.properties
 echo "use opt : "
 cat $joptfile
 if [ -e $joptfile ]; then
-   export JAVA_OPTS=
+   export JAVA_OPTS="-Xms512m -Xmx2g -Xss1m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Xlog:gc*:file=gc.log:time,uptime,level,tags"
    while read line; do JAVA_OPTS="$JAVA_OPTS -D$line"; done < $joptfile
 fi
 

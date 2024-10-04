@@ -11,6 +11,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -67,8 +68,8 @@ public class SecurityDefaultConfig {
             log.info("Allow all requests....");
             http.securityMatcher("/**").authorizeHttpRequests(
                     authorize -> authorize.anyRequest().permitAll()  // Allow all requests
-            )
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+            );
+            http.csrf(AbstractHttpConfigurer::disable);  // Disable CSRF
         }
         return http.build();
     }
