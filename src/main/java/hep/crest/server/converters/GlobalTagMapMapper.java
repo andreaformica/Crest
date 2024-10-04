@@ -27,7 +27,7 @@ public interface GlobalTagMapMapper extends GenericMapper<GlobalTagMapDto, Globa
      * @param source
      * @return GlobalTagMapDto
      */
-    @Mapping(source = "globalTag.name", target = "globalTagName")
+    @Mapping(source = "id.globalTagName", target = "globalTagName")
     @Mapping(source = "id.tagRecord", target = "record")
     @Mapping(source = "id.label", target = "label")
     @Mapping(source = "tag.name", target = "tagName")
@@ -42,7 +42,5 @@ public interface GlobalTagMapMapper extends GenericMapper<GlobalTagMapDto, Globa
     @Mapping(target = "id.tagRecord", source = "record")
     @Mapping(target = "id.label", source = "label")
     @Mapping(target = "tag", expression = "java(new Tag().setName(source.getTagName()))")
-    @Mapping(target = "globalTag", expression = "java(new GlobalTag().setName(source"
-            + ".getGlobalTagName()))")
     GlobalTagMap toEntity(GlobalTagMapDto source);
 }

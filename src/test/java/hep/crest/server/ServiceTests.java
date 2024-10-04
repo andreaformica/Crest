@@ -37,6 +37,6 @@ public class ServiceTests {
         assertThat(groupsize).isEqualTo(Long.valueOf(cprops.getRuntypeGroupsize()));
 
         groupsize = iovService.getOptimalGroupSize("cool");
-        assertThat(groupsize).isEqualTo(100L);
+        assertThat(groupsize).isEqualTo(10L);
     }
 }

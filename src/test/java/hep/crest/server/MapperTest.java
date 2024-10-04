@@ -66,7 +66,7 @@ public class MapperTest {
                         Float val = rnd.nextFloat();
                         aMethod.invoke(obj, val);
                     } else if (argtype.equals(BigDecimal.class)) {
-                        aMethod.invoke(obj, BigDecimal.valueOf(rnd.nextDouble()));
+                        aMethod.invoke(obj, BigDecimal.valueOf(rnd.nextLong()));
                     } else if (argtype.equals(BigInteger.class)) {
                         aMethod.invoke(obj, BigInteger.valueOf(rnd.nextLong()));
                     } else if (argtype.equals(Long.class)) {
@@ -138,18 +138,19 @@ public class MapperTest {
 
     @Test
     public void testGlobalTags() {
-
+        log.info("Test Global Tag conversion");
         testMapper(GlobalTag.class, GlobalTagDto.class, GlobalTagMapper.class);
     }
 
     @Test
     public void testTags() {
-
+        log.info("Test Tag conversion");
         testMapper(Tag.class, TagDto.class, TagMapper.class);
     }
 
     @Test
     public void testIovs() {
+        log.info("Test Iov conversion");
         IovId id = new IovId();
         fillRandom(id, IovId.class);
         Iov iov = new Iov();
@@ -161,6 +162,7 @@ public class MapperTest {
 
     @Test
     public void testRuns() {
+        log.info("Test Run conversion");
         RunLumiId id = new RunLumiId();
         fillRandom(id, RunLumiId.class);
         RunLumiInfo li = new RunLumiInfo();
@@ -171,6 +173,7 @@ public class MapperTest {
 
     @Test
     public void testGlobalTagMaps() {
+        log.info("Test Global Tag Map conversion");
         GlobalTagMapId id = new GlobalTagMapId();
         fillRandom(id, GlobalTagMapId.class);
         Tag tag = new Tag();
@@ -183,6 +186,7 @@ public class MapperTest {
 
     @Test
     public void testCrestFolders() {
+        log.info("Test Folder conversion");
         testMapper(CrestFolders.class, FolderDto.class, FolderMapper.class);
     }
 

@@ -148,8 +148,11 @@ public class GlobalTagService {
      * @param name the String
      */
     @Transactional
-    public void removeGlobalTag(String name) {
+    public void removeGlobalTag(String name) throws CdbNotFoundException {
         log.debug("Remove global tag {}", name);
+        globalTagRepository.findByName(name).orElseThrow(
+                () -> new CdbNotFoundException("Cannot remove global tag " + name)
+        );
         globalTagRepository.deleteById(name);
         log.debug("Removed entity: {}", name);
     }
