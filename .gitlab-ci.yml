@@ -26,7 +26,6 @@ package_cern_application:
   environment: cern
   image: eclipse-temurin:22-alpine
   script:
-   - microdnf install findutils
    - ./gradlew clean build
   allow_failure: false
   artifacts:
