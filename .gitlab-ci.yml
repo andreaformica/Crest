@@ -24,7 +24,7 @@ stages:
 package_cern_application:
   stage: package_application
   environment: cern
-  image: adoptopenjdk:21-jdk-openj9
+  image: openjdk:24-oraclelinux9
   script:
    - ./gradlew -g /cache/.gradle clean assemble
   allow_failure: false
