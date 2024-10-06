@@ -26,6 +26,7 @@ package_cern_application:
   environment: cern
   image: openjdk:24-oraclelinux9
   script:
+   - microdnf install findutils
    - ./gradlew clean build
   allow_failure: false
   artifacts:
