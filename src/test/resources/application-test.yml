@@ -16,19 +16,26 @@ server:
   servlet.path: /
   connection-timeout: 60s
 spring:
-  autoconfigure:
-    exclude: org.keycloak.adapters.springboot.KeycloakSpringBootConfiguration
   security:
       strategy: MODE_INHERITABLETHREADLOCAL
   jersey:
       application-path: /crestapi
   datasource:
-      url: jdbc:h2:/tmp/crestdbh2web;DB_CLOSE_ON_EXIT=FALSE
+    main:
+      jdbcUrl: jdbc:h2:/tmp/crestdbh2web;DB_CLOSE_ON_EXIT=FALSE
       driverClassName: org.h2.Driver
       username: root
       password: root
       hikari:
-        connection-test-query: SELECT 1 
+        connection-test-query: SELECT 1
+        maximum-pool-size: 2
+    trigger:
+      jdbcUrl: jdbc:h2:/tmp/triggdbh2web;DB_CLOSE_ON_EXIT=FALSE
+      driverClassName: org.h2.Driver
+      username: root
+      password: root
+      hikari:
+        connection-test-query: SELECT 1
         maximum-pool-size: 2
   jpa:
       properties:

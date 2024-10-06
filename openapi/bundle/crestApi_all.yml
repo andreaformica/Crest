@@ -973,9 +973,8 @@ paths:
                   description: The version
                   type: string
                 endtime:
+                  description: The tag end time. This represents a number.
                   type: string
-                  pattern: '^[0-9]+$'
-                  description: A BigInteger value.
               required:
                 - storeset
                 - tag
@@ -1083,9 +1082,8 @@ paths:
                   description: The version
                   type: string
                 endtime:
+                  description: 'The tag end time, represent a number.'
                   type: string
-                  pattern: '^[0-9]+$'
-                  description: A BigInteger value.
               required:
                 - storeset
                 - tag
@@ -1161,7 +1159,7 @@ paths:
               $ref: '#/components/schemas/GenericMap'
       parameters:
         - name: hash
-          in: query
+          in: path
           description: 'hash:  the hash of the payload'
           required: true
           schema:

@@ -226,3 +226,13 @@ sourceSets {
 		}
 	}
 }
+
+// Clean files and directories used for unit testing
+task purgedb(type: Delete) {
+	delete fileTree('/tmp') {
+		include 'crest*.db'
+		include 'crest*sqlite*'
+	}
+}
+
+test.dependsOn purgedb

@@ -67,8 +67,8 @@ public class TagSecurityAspect {
                 retVal = pjp.proceed();
             }
             else {
-                log.warn("Cannot use tag {} for {}", entity, clientid);
-                throw new NotAuthorizedException("You cannot write tag " + entity.getName());
+                log.warn("Cannot use tag {} for clientId {}", entity, clientid);
+                throw new NotAuthorizedException("Cannot write tag " + entity.getName());
             }
         }
         return retVal;

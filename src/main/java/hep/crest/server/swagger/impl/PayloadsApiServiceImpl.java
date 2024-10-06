@@ -215,6 +215,13 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         // Get only metadata from the payload.
         final Payload entity = payloadService.getPayload(hash);
         final String ptype = entity.getObjectType();
+        // Check the objectType from the payload.
+        String localFormat = format;
+        if (ptype.equalsIgnoreCase("triggerdb")) {
+            log.info("Format is triggerdb");
+            localFormat = ptype;
+        }
+
         log.debug("Found metadata {}", entity);
         if ("META".equalsIgnoreCase(format)) {
             // Return the metadata.
@@ -228,11 +235,13 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         // this is filling a mag-age parameter in the header
         final CacheControl cc = cachesvc.getPayloadCacheControl();
         log.debug("Set cache control to {}", cc);
+        String finalLocalFormat = localFormat;
         StreamingOutput streamingOutput = edh.makeStreamingOutputFromLob(
-                new SimpleLobStreamerProvider(hash, format) {
+                new SimpleLobStreamerProvider(hash, finalLocalFormat) {
                     @Override
                     public InputStream getInputStream() {
-                        PayloadService.LobStream lob = payloadService.getLobData(hash, format);
+                        PayloadService.LobStream lob =
+                                payloadService.getLobData(hash, finalLocalFormat);
                         return lob.getInputStream();
                     }
                 }

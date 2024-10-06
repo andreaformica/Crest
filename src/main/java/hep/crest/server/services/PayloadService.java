@@ -22,6 +22,8 @@ import hep.crest.server.exceptions.CdbBadRequestException;
 import hep.crest.server.exceptions.CdbInternalException;
 import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.ConflictException;
+import hep.crest.server.repositories.triggerdb.ITriggerDb;
+import hep.crest.server.repositories.triggerdb.UrlComponents;
 import hep.crest.server.swagger.model.StoreDto;
 import hep.crest.server.swagger.model.StoreSetDto;
 import lombok.Data;
@@ -90,6 +92,11 @@ public class PayloadService {
      */
     @Autowired
     private PayloadInfoDataRepository payloadInfoDataRepository;
+    /**
+     * Repository.
+     */
+    @Autowired
+    private ITriggerDb triggerDbService;
 
     /**
      * Mapper.
@@ -205,6 +212,7 @@ public class PayloadService {
         }
     }
 
+
     /**
      * @param hash   the String
      * @param source the LOB type
@@ -218,6 +226,8 @@ public class PayloadService {
             case "STREAMER":
                 byte[] si = getPayloadStreamerInfo(hash);
                 return new LobStream(hash, new ByteArrayInputStream(si));
+            case "triggerdb":
+                return new LobStream(hash, getTriggerData(hash));
             default:
                 throw new CdbBadRequestException("Cannot process Lob data for source " + source);
         }
@@ -230,6 +240,10 @@ public class PayloadService {
      */
     @Transactional
     public Payload getPayload(String hash) throws CdbNotFoundException {
+        if (hash.startsWith("triggerdb")) {
+            return new Payload().setHash(hash).setObjectType("triggerdb").setObjectName(
+                    "triggerdb");
+        }
         return payloadRepository.findById(hash).orElseThrow(
                 () -> new CdbNotFoundException("Cannot find payload for hash " + hash)
         );
@@ -254,6 +268,18 @@ public class PayloadService {
                 () -> new CdbNotFoundException("Cannot find payload streamer info for hash " + hash)
         );
         return entity.streamerInfo();
+    }
+
+
+    /**
+     * Load trigger data using dedicated repository.
+     * @param hash
+     * @return byte[]
+     */
+    public InputStream getTriggerData(String hash) {
+        UrlComponents components = triggerDbService.parseUrl(hash);
+        log.info("Parsed triggerdb url components: {}", components);
+        return triggerDbService.getTriggerDBData(components);
     }
 
     /**

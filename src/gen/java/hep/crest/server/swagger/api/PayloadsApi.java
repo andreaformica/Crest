@@ -122,7 +122,7 @@ public class PayloadsApi  {
 "FILE", "JSON"
 })
 , example="FILE")@HeaderParam("X-Crest-PayloadFormat") String xCrestPayloadFormat,
- @FormDataParam("files") List<FormDataBodyPart> filesBodypart ,@Parameter(description = "The object type")@FormDataParam("objectType")  String objectType,@Parameter(description = "The compression type")@FormDataParam("compressionType")  String compressionType,@Parameter(description = "The version")@FormDataParam("version")  String version,@Parameter(description = "A BigInteger value.")@FormDataParam("endtime")  String endtime,@Context SecurityContext securityContext)
+ @FormDataParam("files") List<FormDataBodyPart> filesBodypart ,@Parameter(description = "The object type")@FormDataParam("objectType")  String objectType,@Parameter(description = "The compression type")@FormDataParam("compressionType")  String compressionType,@Parameter(description = "The version")@FormDataParam("version")  String version,@Parameter(description = "The tag end time. This represents a number.")@FormDataParam("endtime")  String endtime,@Context SecurityContext securityContext)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
@@ -145,7 +145,7 @@ public class PayloadsApi  {
             @SecurityRequirement(name = "OpenID", scopes={ "openid" }),
             @SecurityRequirement(name = "BearerAuth")
         }, tags={ "payloads", })
-    public Response updatePayload(@Parameter(description = "hash:  the hash of the payload", required = true) @QueryParam("hash") @NotNull  String hash,@Parameter(description = "") @Valid  GenericMap genericMap,@Context SecurityContext securityContext)
+    public Response updatePayload(@Parameter(description = "hash:  the hash of the payload", required = true) @PathParam("hash") @NotNull  String hash,@Parameter(description = "") @Valid  GenericMap genericMap,@Context SecurityContext securityContext)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
@@ -166,7 +166,7 @@ public class PayloadsApi  {
             @SecurityRequirement(name = "BearerAuth")
         }, tags={ "payloads", })
     public Response uploadJson(@Parameter(description = "The tag name", required=true)@FormDataParam("tag")  String tag,
- @FormDataParam("storeset") FormDataBodyPart storesetBodypart ,@Parameter(description = "The object type")@FormDataParam("objectType")  String objectType,@Parameter(description = "The compression type")@FormDataParam("compressionType")  String compressionType,@Parameter(description = "The version")@FormDataParam("version")  String version,@Parameter(description = "A BigInteger value.")@FormDataParam("endtime")  String endtime,@Context SecurityContext securityContext)
+ @FormDataParam("storeset") FormDataBodyPart storesetBodypart ,@Parameter(description = "The object type")@FormDataParam("objectType")  String objectType,@Parameter(description = "The compression type")@FormDataParam("compressionType")  String compressionType,@Parameter(description = "The version")@FormDataParam("version")  String version,@Parameter(description = "The tag end time, represent a number.")@FormDataParam("endtime")  String endtime,@Context SecurityContext securityContext)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);

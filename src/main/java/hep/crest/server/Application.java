@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import java.util.Arrays;
 
@@ -16,7 +15,6 @@ import java.util.Arrays;
  * @author formica
  */
 @SpringBootApplication
-@EnableJpaRepositories(basePackages = "hep.crest.server")
 @EntityScan(basePackages = "hep.crest.server")
 @ComponentScan(basePackages = {"hep.crest.server", "plugin"})
 @Slf4j
