@@ -1,5 +1,5 @@
 # CrestDB
-FROM openjdk:24-oraclelinux9
+FROM eclipse-temurin:22-alpine
 MAINTAINER Andrea Formica
 
 ENV USR crestsvc
@@ -12,7 +12,10 @@ ENV config_dir /home/${USR}/config
 #ENV data_dir /data
 ENV TZ GMT
 
-RUN groupadd -g 208 crest && adduser -u $CREST_GID -g $CREST_GID -d /home/${USR} ${USR} && usermod -aG crest ${USR}
+## RUN groupadd -g 208 crest && adduser -u $CREST_GID -g $CREST_GID -d /home/${USR} ${USR} && usermod -aG crest ${USR}
+RUN addgroup -g $CREST_GID crest \
+    && adduser -u $CREST_GID -G crest -h /home/${USR} -D ${USR} \
+    && addgroup ${USR} crest
 
 RUN  mkdir -p ${crest_dir} \
   && mkdir -p ${config_dir} \

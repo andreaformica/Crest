@@ -24,7 +24,7 @@ stages:
 package_cern_application:
   stage: package_application
   environment: cern
-  image: openjdk:24-oraclelinux9
+  image: eclipse-temurin:22-alpine
   script:
    - microdnf install findutils
    - ./gradlew clean build
