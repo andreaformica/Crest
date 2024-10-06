@@ -26,13 +26,11 @@ package_cern_application:
   environment: cern
   image: openjdk:24-oraclelinux9
   script:
-   - ./gradlew -g /cache/.gradle clean assemble
+   - ./gradlew clean build
   allow_failure: false
   artifacts:
    paths:
    - ./build/libs/crest.jar
-  rules:
-    - if: $SITE == "cern"
 
 build_container_job:
   rules:
