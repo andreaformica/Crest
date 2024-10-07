@@ -11,9 +11,9 @@ group = 'hep.crest'
 version = '5.1.0-SNAPSHOT'
 
 java {
-//	toolchain {
-//		languageVersion = JavaLanguageVersion.of(23)
-//	}
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(23)
+	}
 }
 
 
@@ -200,12 +200,12 @@ dependencies {
 	runtimeOnly 'org.postgresql:postgresql'
 	runtimeOnly 'com.h2database:h2'  // Add H2 database dependency
 
+	testImplementation "org.mockito:mockito-inline:+"
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testRuntimeOnly 'com.h2database:h2'  // Add H2 database dependency
 	testImplementation 'org.projectlombok:lombok:1.18.34'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
-
 }
 
 tasks.named('test') {

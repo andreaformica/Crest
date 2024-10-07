@@ -1,5 +1,5 @@
 # CrestDB
-FROM eclipse-temurin:22-alpine
+FROM eclipse-temurin:23-alpine
 MAINTAINER Andrea Formica
 
 ENV USR crestsvc
@@ -9,7 +9,6 @@ ENV crest_version 1.0-SNAPSHOT
 ENV crest_dir /home/${USR}/crest
 ENV data_dir /home/${USR}/data
 ENV config_dir /home/${USR}/config
-#ENV data_dir /data
 ENV TZ GMT
 
 ## RUN groupadd -g 208 crest && adduser -u $CREST_GID -g $CREST_GID -d /home/${USR} ${USR} && usermod -aG crest ${USR}
