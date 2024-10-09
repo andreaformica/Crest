@@ -26,7 +26,7 @@ cp -p %{_sourcedir}/config/application.properties $RPM_BUILD_ROOT/usr/local/shar
 cp -p %{_sourcedir}/crest.service $RPM_BUILD_ROOT/usr/local/share/crest
 cp -p %{_sourcedir}/entrypoint.sh $RPM_BUILD_ROOT/usr/local/share/crest
 cp -p %{_sourcedir}/logback.xml.crest $RPM_BUILD_ROOT/usr/local/share/crest/logback.xml
-cp -p %{_sourcedir}/javaopts.properties.rpm $RPM_BUILD_ROOT/usr/local/share/crest/javaopts.properties
+cp -p %{_sourcedir}/javaopts.properties $RPM_BUILD_ROOT/usr/local/share/crest/javaopts.properties
 mkdir -p $RPM_BUILD_ROOT/usr/local/share/crest/data/dump
 mkdir -p $RPM_BUILD_ROOT/usr/local/share/crest/data/web
 %post
