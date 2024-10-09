@@ -21,8 +21,9 @@ getent passwd crest >/dev/null || \
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/usr/local/share/crest
+mkdir -p $RPM_BUILD_ROOT/usr/local/share/crest/config
 cp -p %{_sourcedir}/build/libs/crest.jar $RPM_BUILD_ROOT/usr/local/share/crest
-cp -p %{_sourcedir}/config/application.properties $RPM_BUILD_ROOT/usr/local/share/crest
+cp -p %{_sourcedir}/config/application.properties $RPM_BUILD_ROOT/usr/local/share/crest/config
 cp -p %{_sourcedir}/crest.service $RPM_BUILD_ROOT/usr/local/share/crest
 cp -p %{_sourcedir}/entrypoint.sh $RPM_BUILD_ROOT/usr/local/share/crest
 cp -p %{_sourcedir}/logback.xml.crest $RPM_BUILD_ROOT/usr/local/share/crest/logback.xml
@@ -37,7 +38,7 @@ systemctl restart crest
 
 %files
 %attr(755,crest,crest) /usr/local/share/crest
-%attr(644,crest,crest) /usr/local/share/crest/application.properties
+%attr(644,crest,crest) /usr/local/share/crest/config/application.properties
 
 %changelog
 * Sat Nov 7 2020 Andrea Formica  1.0.0
