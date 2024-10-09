@@ -10,7 +10,7 @@ BuildArch: noarch
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 %description
-A REST service access to COOL DB
+A REST service access to CREST DB
 
 %pre
 getent group crest >/dev/null || groupadd -r crest
@@ -21,7 +21,7 @@ getent passwd crest >/dev/null || \
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/usr/local/share/crest
-cp -p %{_sourcedir}/coolR-web/build/libs/crest.war $RPM_BUILD_ROOT/usr/local/share/crest
+cp -p %{_sourcedir}/build/libs/crest.jar $RPM_BUILD_ROOT/usr/local/share/crest
 cp -p %{_sourcedir}/config/application.properties $RPM_BUILD_ROOT/usr/local/share/crest
 cp -p %{_sourcedir}/crest.service $RPM_BUILD_ROOT/usr/local/share/crest
 cp -p %{_sourcedir}/entrypoint.sh $RPM_BUILD_ROOT/usr/local/share/crest
