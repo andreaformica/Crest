@@ -32,42 +32,6 @@
 			<level>TRACE</level>
 		</filter>
 	</appender>
-    	<appender name="jsonAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    		<file>${crest.log.dir}/crest-json.log</file>
-    		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-    			<FileNamePattern>${crest.log.dir}/crest-json.%d{yyyy-MM-dd}.log</FileNamePattern>
-    			<maxHistory>30</maxHistory>
-    		</rollingPolicy>
-    		<encoder class="net.logstash.logback.encoder.LogstashEncoder">
-    			<fieldNames>
-    				<timestamp>ts</timestamp>
-    				<message>msg</message>
-    				<thread>[ignore]</thread>
-    				<levelValue>[ignore]</levelValue>
-    				<logger>logger</logger>
-    				<version>[ignore]</version>
-    			</fieldNames>
-    		</encoder>
-    		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-    			<level>INFO</level>
-    		</filter>
-    	</appender>
-    	<appender name="stashProfileAppender" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-    		<destination>crest.atlas-ml.org:5959</destination>
-    		<encoder class="net.logstash.logback.encoder.LogstashEncoder">
-    			<fieldNames>
-    				<timestamp>[ignore]</timestamp>
-    				<message>msg</message>
-    				<thread>[ignore]</thread>
-    				<levelValue>[ignore]</levelValue>
-    				<logger>logger</logger>
-    				<version>[ignore]</version>
-    			</fieldNames>
-    		</encoder>
-    		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-    			<level>INFO</level>
-    		</filter>
-    	</appender>
 
     	<appender name="HIKARI" class="ch.qos.logback.core.FileAppender">
     		<file>${crest.log.dir}/hikari.log</file>
@@ -84,12 +48,6 @@
 	<logger name="org.springframework" level="info" />
 	<logger name="org.glassfish" level="info" />
 	<logger name="io.swagger" level="warn" />
-	<logger name="hep.crest.server.aspects.ProfileAndLogAspect" level="INFO" additivity="true">
-		<appender-ref ref="stashProfileAppender" />
-	</logger>
-	<logger name="hep.crest.server.config.JerseyExceptionHandler" level="warn" additivity="true">
-		<appender-ref ref="stashProfileAppender" />
-	</logger>
 <!-- remove this to enable json logging
 	<logger name="com.zaxxer.hikari" level="ALL" additivity="false">
 		<appender-ref ref="HIKARI" />
