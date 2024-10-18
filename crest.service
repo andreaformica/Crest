@@ -4,7 +4,7 @@ After=syslog.target
 
 [Service]
 User=coolr
-ExecStart=/usr/local/share/coolr/entrypoint.sh
+ExecStart=/usr/local/share/crest/entrypoint.sh
 SuccessExitStatus=143
 Restart=always
 RestartSec=20
