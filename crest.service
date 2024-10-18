@@ -3,7 +3,7 @@ Description=CREST REST application (SpringBoot v3.3.4)
 After=syslog.target
 
 [Service]
-User=coolr
+User=crest
 ExecStart=/usr/local/share/crest/entrypoint.sh
 SuccessExitStatus=143
 Restart=always
