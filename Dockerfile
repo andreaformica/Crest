@@ -1,15 +1,15 @@
 # CrestDB
 FROM eclipse-temurin:23-alpine
-MAINTAINER Andrea Formica
+LABEL maintainer="Andrea Formica"
 
-ENV USR crestsvc
-ENV CREST_GID 208
+ENV USR=crestsvc
+ENV CREST_GID=208
 
-ENV crest_version 1.0-SNAPSHOT
-ENV crest_dir /home/${USR}/crest
-ENV data_dir /home/${USR}/data
-ENV config_dir /home/${USR}/config
-ENV TZ GMT
+ENV crest_version=1.0-SNAPSHOT
+ENV crest_dir=/home/${USR}/crest
+ENV data_dir=/home/${USR}/data
+ENV config_dir=/home/${USR}/config
+ENV TZ=GMT
 
 ## RUN groupadd -g 208 crest && adduser -u $CREST_GID -g $CREST_GID -d /home/${USR} ${USR} && usermod -aG crest ${USR}
 RUN addgroup -g $CREST_GID crest \
@@ -33,9 +33,9 @@ EXPOSE 8080
 
 # copy the entrypoint
 COPY ./entrypoint.sh /home/${USR}
-#COPY ./logback.xml.crest /home/${USR}/logback.xml
+COPY ./logback.xml.crest /home/${USR}/logback.xml
 ## This is not needed in swarm deployment, only for local testing.
-#COPY ./javaopts.properties /home/${USR}
+COPY ./javaopts.properties /home/${USR}
 #COPY ./create-properties.sh /home/${USR}
 
 RUN chown -R $USR:$CREST_GID /home/${USR}
