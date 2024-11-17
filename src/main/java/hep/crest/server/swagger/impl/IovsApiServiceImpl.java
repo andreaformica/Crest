@@ -240,9 +240,7 @@ public class IovsApiServiceImpl extends IovsApiService {
         }
         // Create filters
         GenericMap filters = new GenericMap();
-        if (tagname != null) {
-            filters.put("tagName", tagname);
-        }
+        filters.put("tagName", tagname);
         if (rsince != null) {
             filters.put("since", rsince.toString());
         }
