@@ -63,6 +63,22 @@ print_application_properties () {
     echo "server.ssl.enabled=true"
   fi
 }
+## Set working directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+if [ -e /usr/local/share/crest ]; then
+   DIR="$( cd "/usr/local/share/crest" >/dev/null 2>&1 && pwd )"
+   echo "Use $DIR as working directory"
+fi
+## Work dir
+cd $DIR
+## Check if tnsnames is available
+echo "Check tnsnames"
+if [ -e /etc/tnsnames.ora ]; then
+   echo "Use local tnsnames version"
+else
+   echo "get tnsnames from service-oracle-tnsnames.web.cern.ch"
+   curl https://service-oracle-tnsnames.web.cern.ch/service-oracle-tnsnames/tnsnames.ora -o ${DIR}/tnsnames.ora
+fi
 
 ## -Dlogging.config=/data/logs/logback.xml
 echo "Setting JAVA_OPTS from file javaopts.properties"
@@ -72,6 +88,10 @@ cat $joptfile
 if [ -e $joptfile ]; then
    export JAVA_OPTS=
    while read line; do JAVA_OPTS="$JAVA_OPTS -D$line"; done < $joptfile
+fi
+## Set the directory with the JAR file
+if [ -e ${DIR}/crest.jar ]; then
+   crest_dir=$DIR
 fi
 
 prj_dir=$crest_dir

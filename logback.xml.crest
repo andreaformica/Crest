@@ -21,8 +21,9 @@
 	<appender name="fileAppender"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>${crest.log.dir}/crest.log</file>
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<FileNamePattern>${crest.log.dir}/crest.%d{yyyy-MM-dd}.log</FileNamePattern>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<FileNamePattern>${crest.log.dir}/crest.%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
 			<maxHistory>10</maxHistory>
 		</rollingPolicy>
 		<encoder>

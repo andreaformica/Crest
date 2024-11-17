@@ -1,10 +1,10 @@
 [Unit]
-Description=COOLR REST application (SpringBoot v2.3.0)
+Description=CREST application (SpringBoot v2.3.0)
 After=syslog.target
 
 [Service]
-User=coolr
-ExecStart=/usr/local/share/coolr/entrypoint.sh
+User=crest
+ExecStart=/usr/local/share/crest/entrypoint.sh
 SuccessExitStatus=143
 Restart=always
 RestartSec=20
