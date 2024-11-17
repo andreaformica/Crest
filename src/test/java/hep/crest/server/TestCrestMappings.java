@@ -6,7 +6,6 @@ import hep.crest.server.swagger.model.GlobalTagMapDto;
 import hep.crest.server.swagger.model.TagDto;
 import hep.crest.server.utils.RandomGenerator;
 import lombok.extern.slf4j.Slf4j;
-import ma.glasnost.orika.MapperFacade;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,10 +35,6 @@ public class TestCrestMappings {
     @Qualifier("jacksonMapper")
     private ObjectMapper mapper;
 
-    @Autowired
-    @Qualifier("mapper")
-    private MapperFacade mapperFacade;
-
     private static final RandomGenerator rnd = new RandomGenerator();
 
     public void initializeTag(String gtname) {
@@ -55,6 +50,7 @@ public class TestCrestMappings {
     public void initializeGtag(String gtname) {
         GlobalTagDto dto = (GlobalTagDto) rnd.generate(GlobalTagDto.class);
         dto.name(gtname);
+        dto.type("N");
         log.info("Store global tag : {} ", dto);
         final ResponseEntity<GlobalTagDto> response = testRestTemplate
                 .postForEntity("/crestapi/globaltags", dto, GlobalTagDto.class);
@@ -66,10 +62,12 @@ public class TestCrestMappings {
     @Test
     public void testTagMappingsRest() {
         log.info("=======> testTagMappingsRest ");
+        String tagname = "A-CRESTMAPPINGS-41";
         initializeGtag("A-TEST-GT-40");
-        initializeTag("A-TEST-41");
+        initializeTag(tagname);
         GlobalTagMapDto mapDto = new GlobalTagMapDto();
-        mapDto.tagName("A-TEST-41").globalTagName("A-TEST-GT-40").record("some-rec").label("TEST-4");
+        mapDto.tagName(tagname)
+                .globalTagName("A-TEST-GT-40").record("some-rec").label("TEST-4");
         log.info("Store global tag to tag mapping : {} ", mapDto);
         final ResponseEntity<GlobalTagMapDto> response = testRestTemplate
                 .postForEntity("/crestapi/globaltagmaps", mapDto, GlobalTagMapDto.class);
@@ -79,17 +77,18 @@ public class TestCrestMappings {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             log.info("Response from server is: " + respb);
             assertThat(respb).isNotNull();
-            assertThat(respb.getTagName()).isEqualTo("A-TEST-41");
+            assertThat(respb.getTagName()).isEqualTo(tagname);
         }
         GlobalTagMapDto mapNfDto = new GlobalTagMapDto();
-        mapNfDto.tagName("A-TEST-51").globalTagName("A-TEST-GT-40").record("some-rec-2").label("TEST-NF-4");
+        mapNfDto.tagName("A-CRESTMAPPINGS-51").globalTagName("A-TEST-GT-40").record("some-rec-2").label("TEST-NF-4");
         final ResponseEntity<String> responsenotfound = testRestTemplate
                 .postForEntity("/crestapi/globaltagmaps", mapNfDto, String.class);
         {
             log.info("Created global tag to not existing tag mapping {} ", responsenotfound.getBody());
             assertThat(responsenotfound.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
-        mapNfDto.tagName("A-TEST-41").globalTagName("A-TEST-GT-50").record("some-rec-2").label("TEST-NF-4");
+        mapNfDto.tagName(tagname).globalTagName("A-TEST-GT-50").record("some-rec-2").label("TEST" +
+                "-NF-4");
         final ResponseEntity<String> responsenotfound2 = testRestTemplate
                 .postForEntity("/crestapi/globaltagmaps", mapNfDto, String.class);
         {
@@ -110,7 +109,7 @@ public class TestCrestMappings {
         final HttpEntity<?> entity = new HttpEntity<>(headers);
 
         final ResponseEntity<String> respbktrace = testRestTemplate
-                .exchange("/crestapi/globaltagmaps/A-TEST-41" , HttpMethod.GET,
+                .exchange("/crestapi/globaltagmaps/" + tagname , HttpMethod.GET,
                         entity, String.class);
         {
             log.info("Find tag -> global tag mappings {} ", respbktrace.getBody());

@@ -14,39 +14,43 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import hep.crest.server.swagger.model.CrestBaseResponse;
-import hep.crest.server.swagger.model.GenericMap;
-import hep.crest.server.swagger.model.RespPage;
-import hep.crest.server.swagger.model.TagSummaryDto;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * An Set containing TagSummaryDto objects.
  */
-@ApiModel(description = "An Set containing TagSummaryDto objects.")
+@Schema(description = "An Set containing TagSummaryDto objects.")
 @JsonPropertyOrder({
   TagSummarySetDto.JSON_PROPERTY_RESOURCES
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class TagSummarySetDto extends CrestBaseResponse  {
   public static final String JSON_PROPERTY_RESOURCES = "resources";
   @JsonProperty(JSON_PROPERTY_RESOURCES)
-  private List<TagSummaryDto> resources = null;
+  private List<@Valid TagSummaryDto> resources = new ArrayList<>();
 
-  public TagSummarySetDto resources(List<TagSummaryDto> resources) {
+  public TagSummarySetDto resources(List<@Valid TagSummaryDto> resources) {
     this.resources = resources;
     return this;
   }
 
-  public TagSummarySetDto addResourcesItem(TagSummaryDto resourcesItem) {
+  public TagSummarySetDto addresourcesItem(TagSummaryDto resourcesItem) {
     if (this.resources == null) {
       this.resources = new ArrayList<>();
     }
@@ -58,14 +62,13 @@ public class TagSummarySetDto extends CrestBaseResponse  {
    * Get resources
    * @return resources
    **/
-  @JsonProperty("resources")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "resources")
   @Valid 
-  public List<TagSummaryDto> getResources() {
+  public List<@Valid TagSummaryDto> getResources() {
     return resources;
   }
 
-  public void setResources(List<TagSummaryDto> resources) {
+  public void setResources(List<@Valid TagSummaryDto> resources) {
     this.resources = resources;
   }
 
@@ -79,15 +82,13 @@ public class TagSummarySetDto extends CrestBaseResponse  {
       return false;
     }
     TagSummarySetDto tagSummarySetDto = (TagSummarySetDto) o;
-    return Objects.equals(this.resources, tagSummarySetDto.resources) &&
-        super.equals(o);
+    return super.equals(o) && Objects.equals(resources, tagSummarySetDto.resources);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(resources, super.hashCode());
+    return Objects.hash(super.hashCode(), resources);
   }
-
 
   @Override
   public String toString() {

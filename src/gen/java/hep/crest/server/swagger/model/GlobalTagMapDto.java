@@ -14,13 +14,23 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * GlobalTagMapDto
@@ -31,7 +41,7 @@ import javax.validation.Valid;
   GlobalTagMapDto.JSON_PROPERTY_LABEL,
   GlobalTagMapDto.JSON_PROPERTY_TAG_NAME
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class GlobalTagMapDto   {
   public static final String JSON_PROPERTY_GLOBAL_TAG_NAME = "globalTagName";
   @JsonProperty(JSON_PROPERTY_GLOBAL_TAG_NAME)
@@ -58,8 +68,7 @@ public class GlobalTagMapDto   {
    * Get globalTagName
    * @return globalTagName
    **/
-  @JsonProperty("globalTagName")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "globalTagName")
   
   public String getGlobalTagName() {
     return globalTagName;
@@ -78,8 +87,7 @@ public class GlobalTagMapDto   {
    * Get record
    * @return record
    **/
-  @JsonProperty("record")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "record")
   
   public String getRecord() {
     return record;
@@ -98,8 +106,7 @@ public class GlobalTagMapDto   {
    * Get label
    * @return label
    **/
-  @JsonProperty("label")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "label")
   
   public String getLabel() {
     return label;
@@ -118,8 +125,7 @@ public class GlobalTagMapDto   {
    * Get tagName
    * @return tagName
    **/
-  @JsonProperty("tagName")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "tagName")
   
   public String getTagName() {
     return tagName;
@@ -139,17 +145,16 @@ public class GlobalTagMapDto   {
       return false;
     }
     GlobalTagMapDto globalTagMapDto = (GlobalTagMapDto) o;
-    return Objects.equals(this.globalTagName, globalTagMapDto.globalTagName) &&
-        Objects.equals(this.record, globalTagMapDto.record) &&
-        Objects.equals(this.label, globalTagMapDto.label) &&
-        Objects.equals(this.tagName, globalTagMapDto.tagName);
+    return Objects.equals(globalTagName, globalTagMapDto.globalTagName) &&
+        Objects.equals(record, globalTagMapDto.record) &&
+        Objects.equals(label, globalTagMapDto.label) &&
+        Objects.equals(tagName, globalTagMapDto.tagName);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(globalTagName, record, label, tagName);
   }
-
 
   @Override
   public String toString() {

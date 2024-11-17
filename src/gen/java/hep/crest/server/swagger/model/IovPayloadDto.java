@@ -14,15 +14,23 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * IovPayloadDto
@@ -37,7 +45,7 @@ import javax.validation.Valid;
   IovPayloadDto.JSON_PROPERTY_SIZE,
   IovPayloadDto.JSON_PROPERTY_PAYLOAD_HASH
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class IovPayloadDto   {
   public static final String JSON_PROPERTY_SINCE = "since";
   @JsonProperty(JSON_PROPERTY_SINCE)
@@ -80,8 +88,7 @@ public class IovPayloadDto   {
    * Get since
    * @return since
    **/
-  @JsonProperty("since")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "since")
   @Valid 
   public BigDecimal getSince() {
     return since;
@@ -100,8 +107,7 @@ public class IovPayloadDto   {
    * Get insertionTime
    * @return insertionTime
    **/
-  @JsonProperty("insertionTime")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "insertionTime")
   
   public OffsetDateTime getInsertionTime() {
     return insertionTime;
@@ -120,8 +126,7 @@ public class IovPayloadDto   {
    * Get version
    * @return version
    **/
-  @JsonProperty("version")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "version")
   
   public String getVersion() {
     return version;
@@ -140,8 +145,7 @@ public class IovPayloadDto   {
    * Get objectType
    * @return objectType
    **/
-  @JsonProperty("objectType")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "objectType")
   
   public String getObjectType() {
     return objectType;
@@ -160,8 +164,7 @@ public class IovPayloadDto   {
    * Get objectName
    * @return objectName
    **/
-  @JsonProperty("objectName")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "objectName")
   
   public String getObjectName() {
     return objectName;
@@ -180,8 +183,7 @@ public class IovPayloadDto   {
    * Get compressionType
    * @return compressionType
    **/
-  @JsonProperty("compressionType")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "compressionType")
   
   public String getCompressionType() {
     return compressionType;
@@ -200,8 +202,7 @@ public class IovPayloadDto   {
    * Get size
    * @return size
    **/
-  @JsonProperty("size")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "size")
   
   public Integer getSize() {
     return size;
@@ -220,8 +221,7 @@ public class IovPayloadDto   {
    * Get payloadHash
    * @return payloadHash
    **/
-  @JsonProperty("payloadHash")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "payloadHash")
   
   public String getPayloadHash() {
     return payloadHash;
@@ -241,21 +241,20 @@ public class IovPayloadDto   {
       return false;
     }
     IovPayloadDto iovPayloadDto = (IovPayloadDto) o;
-    return Objects.equals(this.since, iovPayloadDto.since) &&
-        Objects.equals(this.insertionTime, iovPayloadDto.insertionTime) &&
-        Objects.equals(this.version, iovPayloadDto.version) &&
-        Objects.equals(this.objectType, iovPayloadDto.objectType) &&
-        Objects.equals(this.objectName, iovPayloadDto.objectName) &&
-        Objects.equals(this.compressionType, iovPayloadDto.compressionType) &&
-        Objects.equals(this.size, iovPayloadDto.size) &&
-        Objects.equals(this.payloadHash, iovPayloadDto.payloadHash);
+    return Objects.equals(since, iovPayloadDto.since) &&
+        Objects.equals(insertionTime, iovPayloadDto.insertionTime) &&
+        Objects.equals(version, iovPayloadDto.version) &&
+        Objects.equals(objectType, iovPayloadDto.objectType) &&
+        Objects.equals(objectName, iovPayloadDto.objectName) &&
+        Objects.equals(compressionType, iovPayloadDto.compressionType) &&
+        Objects.equals(size, iovPayloadDto.size) &&
+        Objects.equals(payloadHash, iovPayloadDto.payloadHash);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(since, insertionTime, version, objectType, objectName, compressionType, size, payloadHash);
   }
-
 
   @Override
   public String toString() {

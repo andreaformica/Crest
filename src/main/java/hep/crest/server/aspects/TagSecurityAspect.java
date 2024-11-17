@@ -14,7 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.NotAuthorizedException;
+import jakarta.ws.rs.NotAuthorizedException;
 
 /**
  * Aspect to be used for security.
@@ -61,14 +61,14 @@ public class TagSecurityAspect {
             // Check the authentication.
             final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             String clientid = userinfo.getUserId(auth);
-            String role = entity.name().split("-")[0].toLowerCase();
+            String role = entity.getName().split("-")[0].toLowerCase();
             Boolean hasrole = userinfo.isUserInRole(auth, role);
-            if (hasrole || entity.name().startsWith("TEST")) {
+            if (hasrole || entity.getName().startsWith("TEST")) {
                 retVal = pjp.proceed();
             }
             else {
-                log.warn("Cannot use tag {} for {}", entity, clientid);
-                throw new NotAuthorizedException("You cannot write tag " + entity.name());
+                log.warn("Cannot use tag {} for clientId {}", entity, clientid);
+                throw new NotAuthorizedException("Cannot write tag " + entity.getName());
             }
         }
         return retVal;

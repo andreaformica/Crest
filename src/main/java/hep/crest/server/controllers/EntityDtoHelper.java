@@ -1,12 +1,12 @@
 package hep.crest.server.controllers;
 
-import ma.glasnost.orika.MapperFacade;
+import hep.crest.server.converters.GenericMapper;
+import org.springframework.context.ApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import javax.ws.rs.core.StreamingOutput;
+import jakarta.ws.rs.core.StreamingOutput;
 import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,8 +25,7 @@ public class EntityDtoHelper {
      * Mapper.
      */
     @Autowired
-    @Qualifier("mapper")
-    private MapperFacade mapper;
+    private ApplicationContext applicationContext;
     /**
      * The transaction manager.
      */
@@ -42,10 +41,13 @@ public class EntityDtoHelper {
      *            List of T
      * @param clazz
      *            the D class to which you to convert.
+     * @param mapperClass
      * @return List<D>
      */
-    public <D, T> List<D> entityToDtoList(List<T> entitylist, Class<D> clazz) {
-        return StreamSupport.stream(entitylist.spliterator(), false).map(s -> mapper.map(s, clazz))
+    public <D, T> List<D> entityToDtoList(List<T> entitylist, Class<D> clazz,
+                                          Class<? extends GenericMapper<D, T>> mapperClass) {
+        GenericMapper<D, T> mapper = applicationContext.getBean(mapperClass);
+        return StreamSupport.stream(entitylist.spliterator(), false).map(mapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -58,10 +60,13 @@ public class EntityDtoHelper {
      *            Iterable of T
      * @param clazz
      *            the D class to which you to convert.
+     * @param mapperClass
      * @return List<D>
      */
-    public <D, T> List<D> entityToDtoList(Iterable<T> entitylist, Class<D> clazz) {
-        return StreamSupport.stream(entitylist.spliterator(), false).map(s -> mapper.map(s, clazz))
+    public <D, T> List<D> entityToDtoList(Iterable<T> entitylist, Class<D> clazz,
+                                          Class<? extends GenericMapper<D, T>> mapperClass) {
+        GenericMapper<D, T> mapper = applicationContext.getBean(mapperClass);
+        return StreamSupport.stream(entitylist.spliterator(), false).map(mapper::toDto)
                 .collect(Collectors.toList());
     }
 

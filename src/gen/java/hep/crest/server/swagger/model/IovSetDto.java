@@ -14,39 +14,43 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import hep.crest.server.swagger.model.CrestBaseResponse;
-import hep.crest.server.swagger.model.GenericMap;
-import hep.crest.server.swagger.model.IovDto;
-import hep.crest.server.swagger.model.RespPage;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * An Set containing IovDto objects.
  */
-@ApiModel(description = "An Set containing IovDto objects.")
+@Schema(description = "An Set containing IovDto objects.")
 @JsonPropertyOrder({
   IovSetDto.JSON_PROPERTY_RESOURCES
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class IovSetDto extends CrestBaseResponse  {
   public static final String JSON_PROPERTY_RESOURCES = "resources";
   @JsonProperty(JSON_PROPERTY_RESOURCES)
-  private List<IovDto> resources = null;
+  private List<@Valid IovDto> resources = new ArrayList<>();
 
-  public IovSetDto resources(List<IovDto> resources) {
+  public IovSetDto resources(List<@Valid IovDto> resources) {
     this.resources = resources;
     return this;
   }
 
-  public IovSetDto addResourcesItem(IovDto resourcesItem) {
+  public IovSetDto addresourcesItem(IovDto resourcesItem) {
     if (this.resources == null) {
       this.resources = new ArrayList<>();
     }
@@ -58,14 +62,13 @@ public class IovSetDto extends CrestBaseResponse  {
    * Get resources
    * @return resources
    **/
-  @JsonProperty("resources")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "resources")
   @Valid 
-  public List<IovDto> getResources() {
+  public List<@Valid IovDto> getResources() {
     return resources;
   }
 
-  public void setResources(List<IovDto> resources) {
+  public void setResources(List<@Valid IovDto> resources) {
     this.resources = resources;
   }
 
@@ -79,15 +82,13 @@ public class IovSetDto extends CrestBaseResponse  {
       return false;
     }
     IovSetDto iovSetDto = (IovSetDto) o;
-    return Objects.equals(this.resources, iovSetDto.resources) &&
-        super.equals(o);
+    return super.equals(o) && Objects.equals(resources, iovSetDto.resources);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(resources, super.hashCode());
+    return Objects.hash(super.hashCode(), resources);
   }
-
 
   @Override
   public String toString() {

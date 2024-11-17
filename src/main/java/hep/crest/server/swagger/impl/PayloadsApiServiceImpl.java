@@ -10,6 +10,7 @@ import hep.crest.server.controllers.JsonStreamProcessor;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.controllers.SimpleLobStreamerProvider;
 import hep.crest.server.converters.PayloadHandler;
+import hep.crest.server.converters.PayloadMapper;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.IovId;
 import hep.crest.server.data.pojo.Payload;
@@ -38,22 +39,19 @@ import hep.crest.server.swagger.model.RespPage;
 import hep.crest.server.swagger.model.StoreDto;
 import hep.crest.server.swagger.model.StoreSetDto;
 import lombok.extern.slf4j.Slf4j;
-import ma.glasnost.orika.MapperFacade;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriInfo;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.CacheControl;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.StreamingOutput;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -165,13 +163,18 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      * Mapper.
      */
     @Autowired
-    @Qualifier("mapper")
-    private MapperFacade mapper;
+    private PayloadMapper mapper;
+
+    /**
+     * Context.
+     */
+    @Autowired
+    private JAXRSContext context;
 
     @Override
-    public Response listPayloads(String hash, String objectType, Integer minsize, Integer page,
-                                 Integer size,
-                                 String sort, SecurityContext securityContext, UriInfo info)
+    public Response listPayloads(String hash, String objectType, Integer minsize,
+                                 Integer page, Integer size,
+                                 String sort, SecurityContext securityContext)
             throws NotFoundException {
         log.info("PayloadController processing requests for payload metadata: {} {} {}", hash,
                 objectType, minsize);
@@ -190,7 +193,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
                 .number(entitypage.getNumber());
 
-        final List<PayloadDto> dtolist = edh.entityToDtoList(entitypage.toList(), PayloadDto.class);
+        final List<PayloadDto> dtolist = edh.entityToDtoList(entitypage.toList(),
+                PayloadDto.class, PayloadMapper.class);
         Response.Status rstatus = Response.Status.OK;
         // Prepare the Set.
         final CrestBaseResponse pdto = buildSet(dtolist, filters);
@@ -204,24 +208,24 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     //     name definition, by looking for the annotation @Path
     @Override
     @ProfileAndLog
-    public Response getPayload(String hash, String format, SecurityContext securityContext,
-                               UriInfo info) {
+    public Response getPayload(String hash, String format, SecurityContext securityContext) {
         log.info(
                 "Get payload {} using format {}",
                 hash, format);
         // Get only metadata from the payload.
         final Payload entity = payloadService.getPayload(hash);
-        final String ptype = entity.objectType();
-
+        final String ptype = entity.getObjectType();
+        // Check the objectType from the payload.
         String localFormat = format;
         if (ptype.equalsIgnoreCase("triggerdb")) {
             log.info("Format is triggerdb");
             localFormat = ptype;
         }
+
         log.debug("Found metadata {}", entity);
         if ("META".equalsIgnoreCase(format)) {
             // Return the metadata.
-            final PayloadDto dto = mapper.map(entity, PayloadDto.class);
+            final PayloadDto dto = mapper.toDto(entity);
             return Response.status(Response.Status.OK).entity(dto).build();
         }
         // Get the media type. It utilizes the objectType field.
@@ -236,7 +240,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 new SimpleLobStreamerProvider(hash, finalLocalFormat) {
                     @Override
                     public InputStream getInputStream() {
-                        PayloadService.LobStream lob = payloadService.getLobData(hash, finalLocalFormat);
+                        PayloadService.LobStream lob =
+                                payloadService.getLobData(hash, finalLocalFormat);
                         return lob.getInputStream();
                     }
                 }
@@ -247,15 +252,13 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         // Get extension
         final String ext = getExtension(ptype);
         String fname = hash + "." + ext;
-        if (!entity.objectName().equalsIgnoreCase("none")) {
-            fname = entity.objectName();
+        if (!entity.getObjectName().equalsIgnoreCase("none")) {
+            fname = entity.getObjectName();
         }
         // Set the content type in the response, and the file name as well.
         return Response.ok(streamingOutput) /// MediaType.APPLICATION_JSON_TYPE)
                 .header("Content-type", rettype)
                 .header("Content-Disposition", "Inline; filename=\"" + fname + "\"")
-                // .header("Content-Length", new
-                // Long(f.length()).toString())
                 .cacheControl(cc)
                 .build();
     }
@@ -266,13 +269,18 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                                       List<FormDataBodyPart> filesBodypart, String objectType,
                                       String compressionType,
                                       String version,
-                                      Long endtime,
-                                      SecurityContext securityContext, UriInfo info)
+                                      String endtime,
+                                      SecurityContext securityContext)
             throws NotFoundException {
         log.info(
                 "Store payload batch in tag {} with multi-iov ",
                 tag);
         try {
+            // Read endtime as a BigDecimal.
+            if (endtime == null) {
+                endtime = "0";
+            }
+            BigDecimal bendtime = new BigDecimal(endtime);
             // Read input FormData as an IovSet object.
             if (tag == null || jsonstoreset == null) {
                 throw new CdbBadRequestException(
@@ -325,13 +333,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             else {
                 throw new CdbBadRequestException("Bad header parameter: " + xCrestPayloadFormat);
             }
-            // Get the endtime
-            BigDecimal crestEndTime = BigDecimal.valueOf(-1L);
-            if (endtime != null) {
-                crestEndTime = BigDecimal.valueOf(endtime);
-            }
             // Change the end time in the tag.
-            tagService.updateModificationTime(tag, crestEndTime);
+            tagService.updateModificationTime(tag, bendtime);
             // Return the result.
             log.info("Batch insertion of {} iovs done", storeset.getSize());
             // Return the result.
@@ -355,9 +358,11 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     @Override
     public Response uploadJson(String tag, FormDataBodyPart storesetBodypart,
                                String objectType, String compressionType, String version,
-                               Long endtime, SecurityContext securityContext, UriInfo info)
+                               String endtime, SecurityContext securityContext)
             throws NotFoundException {
-        log.info("Batch insertion of json iovs+payload stream in tag {} ", tag);
+        log.debug("Batch insertion of json iovs+payload stream in tag {} ", tag);
+        BigDecimal bendtime = new BigDecimal(endtime);
+        final BodyPartEntity inputsource = (BodyPartEntity) storesetBodypart.getEntity();
         // use to send back a NotFound if the tag does not exists.
         Tag tagentity = tagService.findOne(tag);
         // Check security on tag using a fake update. This will trigger the TagSecurityAspect.
@@ -377,20 +382,18 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         }
         // Now you can process the JSON data as needed.
         StoreSetDto outdto = null;
-        try (InputStream inputStream = storesetBodypart.getEntityAs(InputStream.class)) {
-            outdto = jsonStreamProcessor.processJsonStream(inputStream,
+        try {
+            BufferedInputStream bufferedInputStream =
+                    new BufferedInputStream(inputsource.getInputStream());
+            outdto = jsonStreamProcessor.processJsonStream(bufferedInputStream,
                     objectType, version, compressionType, tag);
+            inputsource.getInputStream().close();
         }
         catch (RuntimeException | IOException e) {
             throw new CdbInternalException("Cannot deserialize data", e);
         }
-        // Get the endtime
-        BigDecimal crestEndTime = BigDecimal.valueOf(-1L);
-        if (endtime != null) {
-            crestEndTime = BigDecimal.valueOf(endtime);
-        }
         // Change the end time in the tag.
-        tagService.updateModificationTime(tag, crestEndTime);
+        tagService.updateModificationTime(tag, bendtime);
         // Return the result.
         log.info("Batch insertion of {} iovs done", outdto.getSize());
         // Return the result.
@@ -422,8 +425,10 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      * @throws IOException                 If an Exception occurred
      * @throws AbstractCdbServiceException if an exception occurred in insertion.
      */
-    protected StoreSetDto storeData(StoreSetDto dtoset, String tag, String objectType,
-                                    String version, List<FormDataBodyPart> filesbodyparts)
+    protected StoreSetDto storeData(StoreSetDto dtoset,
+                                    String tag, String objectType,
+                                    String version,
+                                    List<FormDataBodyPart> filesbodyparts)
             throws IOException, AbstractCdbServiceException {
         final List<StoreDto> iovlist = dtoset.getResources();
         // Loop over iovs found in the Set.
@@ -438,14 +443,15 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
 
             // Here we generate objectType and version. We should probably allow for input
             // arguments.
-            Payload entity = new Payload().objectType(objectType).hash("none").version(version);
-            entity.compressionType("none");
-            entity.size(0);
+            Payload entity =
+                    new Payload().setObjectType(objectType).setHash("none").setVersion(version);
+            entity.setCompressionType("none");
+            entity.setSize(0);
             // Initialize the iov entity from the DTO.
             Iov iov = new Iov();
             IovId iovId = new IovId();
-            iovId.since(BigInteger.valueOf(piovDto.getSince())).tagName(tag);
-            iov.id(iovId).tag(new Tag().name(tag));
+            iovId.setSince(BigInteger.valueOf(piovDto.getSince())).setTagName(tag);
+            iov.setId(iovId).setTag(new Tag().setName(tag));
             // Initialize the payload entity from the DTO.
             StorableData data;
             if (filesbodyparts == null) {
@@ -453,8 +459,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 byte[] paylodContent = piovDto.getData().getBytes(StandardCharsets.UTF_8);
                 log.debug("Use the data string, it represents the payload : length is {}",
                         paylodContent.length);
-                entity.size(paylodContent.length);
-                String outFilename = generateUploadFilename("inline", tag, iov.id().since());
+                entity.setSize(paylodContent.length);
+                String outFilename = generateUploadFilename("inline", tag, iov.getId().getSince());
                 log.info("Dump data in file {} to compute the hash", outFilename);
                 final String hash = getHash(
                         new ByteArrayInputStream(paylodContent), outFilename);
@@ -468,11 +474,11 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 log.debug("Use attached file : {}", piovDto.getData());
                 final Map<String, Object> retmap = getDocumentStream(piovDto, filesbodyparts);
                 filename = (String) retmap.get("file");
-                String outFilename = generateUploadFilename(filename, tag, iov.id().since());
+                String outFilename = generateUploadFilename(filename, tag, iov.getId().getSince());
                 final String hash = getHash((InputStream) retmap.get("stream"), outFilename);
                 retmap.put("uploadedFile", outFilename);
                 sinfomap.put("filename", filename);
-                entity.objectName(filename);
+                entity.setObjectName(filename);
                 data = buildStorable(iov, entity, sinfomap, hash);
                 data.streamsMap(retmap);
             }
@@ -499,9 +505,9 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         PayloadInfoData sinfodata = new PayloadInfoData();
         StorableData data = new StorableData();
         // Set the hash into the iov and entity.
-        iov.payloadHash(hash);
-        entity.hash(hash);
-        content.hash(hash);
+        iov.setPayloadHash(hash);
+        entity.setHash(hash);
+        content.setHash(hash);
         // Fill the streamer info map.
         sinfodata.hash(hash).streamerInfo(jacksonMapper.writeValueAsBytes(sinfomap));
         // Fill the StorableData object.
@@ -552,9 +558,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     }
 
     @Override
-    public Response updatePayload(String hash, Map<String, String> body,
-                                  SecurityContext securityContext,
-                                  UriInfo info) {
+    public Response updatePayload(String hash, GenericMap body,
+                                  SecurityContext securityContext) {
         log.info(
                 "PayloadRestController processing request for update payload meta information for"
                 + " {}",
@@ -578,7 +583,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             }
         }
         payloadService.updatePayloadMetaInfo(hash, sinfo);
-        PayloadDto dto = mapper.map(entity, PayloadDto.class);
+        PayloadDto dto = mapper.toDto(entity);
         GenericMap filters = new GenericMap();
         filters.put("hash", hash);
         List<PayloadDto> dtoList = new ArrayList<>();

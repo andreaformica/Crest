@@ -8,6 +8,7 @@ import hep.crest.server.data.runinfo.pojo.RunLumiInfo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +21,8 @@ import java.math.BigInteger;
  */
 @Transactional(readOnly = true)
 public interface RunLumiInfoRepository
-        extends PagingAndSortingRepository<RunLumiInfo, BigInteger> {
+        extends PagingAndSortingRepository<RunLumiInfo, BigInteger>,
+        CrudRepository<RunLumiInfo, BigInteger> {
 
     /**
      * @param runLumiId

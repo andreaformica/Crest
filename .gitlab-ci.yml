@@ -1,6 +1,6 @@
 variables:
-    IMAGE: crest-service
-    VERSION: '5.0'
+    IMAGE: crest21-service
+    VERSION: '6.0'
     GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
 # Make the gradle wrapper executable. This essentially downloads a copy of
@@ -24,15 +24,13 @@ stages:
 package_cern_application:
   stage: package_application
   environment: cern
-  image: adoptopenjdk:11-jdk-openj9
+  image: eclipse-temurin:23-alpine
   script:
-   - ./gradlew -g /cache/.gradle clean assemble
+   - ./gradlew clean build
   allow_failure: false
   artifacts:
    paths:
    - ./build/libs/crest.jar
-  rules:
-    - if: $SITE == "cern"
 
 build_container_job:
   rules:
@@ -45,22 +43,3 @@ build_container_job:
     CONTEXT_DIR: ""
     PUSH_IMAGE: "true"
     DOCKER_FILE_NAME: "Dockerfile"
-
-## We should add a rule for redeploying the application
-update_imagestream_and_redeploy:
-  stage: redeploy
-  image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
-  variables:
-    SERVER: https://api.paas.okd.cern.ch
-    PROJECT: crest-undertow   # name of your Openshift project
-    APP_NAME: crest  # name of the ImageStream/DeploymentConfig objects created by oc new-app
-  script:
-    - oc login $SERVER --token=$DEPLOY_TOKEN
-    - oc project $PROJECT
-    - oc import-image $APP_NAME --all
-    - sleep 10 && oc rollout status deploymentconfig/$APP_NAME
-  # if you are using Openshift's DeploymentConfig (instead of regular Deployments), use this command:
-  # - sleep 10 && oc rollout status deploymentconfig/$APP_NAME
-  rules:
-    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production" && $SITE == "cern"'
-      when: always

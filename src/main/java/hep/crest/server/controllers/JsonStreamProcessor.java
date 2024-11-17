@@ -13,9 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,43 +62,44 @@ public class JsonStreamProcessor {
      * @param tag
      * @return StoreSetDto
      */
-    @Transactional
-    public StoreSetDto processJsonStream(InputStream jsonInputStream, String objectType,
+    public StoreSetDto processJsonStream(BufferedInputStream jsonInputStream, String objectType,
                                          String version, String compressionType, String tag) {
         JsonFactory jsonFactory = jsonMapper.getFactory();
         StoreSetDto setDto = new StoreSetDto();
         List<StoreDto> dtoList = new ArrayList<>();
+        int nstored = 0;
+        // Input resource size.
+        int size = 0;
         log.info("Start processing JSON stream: {}", jsonInputStream);
         try (JsonParser parser = jsonFactory.createParser(jsonInputStream)) {
             // Start creating objects to store from JSON stream.
             while (parser.nextToken() != JsonToken.END_OBJECT) {
-                String token = parser
-                        .getCurrentName();
+                String token = parser.currentName();
                 log.info("token is: {}", token);
                 if ("resources".equals(token)) {
                     parser.nextToken(); //next token contains value
                     log.info("loading resources array...");
                     while (parser.nextToken() != JsonToken.END_ARRAY) {
-                        StoreDto dto = processData(parser, objectType, version, compressionType, tag);
-                        dtoList.add(dto);
+                        processData(parser, objectType, version, compressionType, tag);
+                        nstored++;
                     }
                 }
                 if ("size".equals(token)) {
                     parser.nextToken();
-                    Integer size = parser.getValueAsInt();
+                    size = parser.getValueAsInt();
                     log.info("Data size : {}", size);
                 }
             }
             parser.close();
-            setDto.setResources(dtoList);
-            setDto.size((long) dtoList.size());
+            if (nstored != size) {
+                log.warn("The stored data are not equal to input data");
+            }
+            setDto.setResources(dtoList); // empty list
+            setDto.size((long) nstored);
             setDto.format("StoreSetDto");
             setDto.datatype("payloads");
         }
-        catch (IOException e) {
-            log.error("IOException while reading input JSON stream with payload: {}", e);
-        }
-        catch (NoSuchAlgorithmException e) {
+        catch (IOException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
         return setDto;

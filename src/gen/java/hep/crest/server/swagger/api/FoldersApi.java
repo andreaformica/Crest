@@ -1,11 +1,15 @@
 package hep.crest.server.swagger.api;
 
-import hep.crest.server.swagger.model.*;
 import hep.crest.server.swagger.api.FoldersApiService;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import io.swagger.annotations.ApiParam;
-
-import hep.crest.server.swagger.impl.JAXRSContext;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import hep.crest.server.swagger.model.FolderDto;
 import hep.crest.server.swagger.model.FolderSetDto;
@@ -18,65 +22,72 @@ import java.io.InputStream;
 
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.springframework.beans.factory.annotation.Autowired;
+import hep.crest.server.swagger.impl.JAXRSContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Request;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-
-import javax.ws.rs.*;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.*;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 @Path("/folders")
 
 
-@io.swagger.annotations.Api(description = "the folders API")
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+///// @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class FoldersApi  {
+
    @Autowired
    private FoldersApiService delegate;
    @Context
    protected Request request;
    @Context
    protected HttpHeaders headers;
+   @Context
+   protected UriInfo uriInfo;
    @Autowired
    protected JAXRSContext context;
 
-    @POST
-    
+
+
+
+    @jakarta.ws.rs.POST
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Create an entry for folder information.", notes = "Folder informations go into a dedicated table.", response = FolderDto.class, authorizations = {
-        @io.swagger.annotations.Authorization(value = "BearerAuth")
-    }, tags={ "folders", })
-    @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = FolderDto.class)
-    })
-    public Response createFolder(@ApiParam(value = "") @Valid  FolderDto folderDto,@Context SecurityContext securityContext,@Context UriInfo info)
+    @Operation(summary = "Create an entry for folder information.", description = "", responses = {
+            @ApiResponse(responseCode = "201", description = "successful operation", content =
+                @Content(schema = @Schema(implementation = FolderDto.class))),
+            },security = {
+            @SecurityRequirement(name = "OpenID", scopes={ "openid" }),
+            @SecurityRequirement(name = "BearerAuth")
+        }, tags={ "folders", })
+    public Response createFolder(@Parameter(description = "") @Valid  FolderDto folderDto,@Context SecurityContext securityContext)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
-        return delegate.createFolder(folderDto, securityContext, info);
+        context.setUriInfo(uriInfo);
+        return delegate.createFolder(folderDto, securityContext);
     }
-    @GET
-    
-    
+
+    @jakarta.ws.rs.GET
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Finds a FolderDto list.", notes = "This method allows to perform search and sorting.Arguments: by=<pattern>, sort=<sortpattern>. The pattern <pattern> is in the form <param-name><operation><param-value>       <param-name> is the name of one of the fields in the dto       <operation> can be [< : >] ; for string use only [:]        <param-value> depends on the chosen parameter. A list of this criteria can be provided       using comma separated strings for <pattern>.      The pattern <sortpattern> is <field>:[DESC|ASC]", response = FolderSetDto.class, authorizations = {
-        @io.swagger.annotations.Authorization(value = "BearerAuth")
-    }, tags={ "folders", })
-    @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = FolderSetDto.class)
-    })
-    public Response listFolders(@ApiParam(value = "the schema pattern {none}", defaultValue = "none") @DefaultValue("none") @QueryParam("schema")  String schema,@Context SecurityContext securityContext,@Context UriInfo info)
+    @Operation(summary = "Finds a FolderDto list.", description = "", responses = {
+            @ApiResponse(responseCode = "200", description = "successful operation", content =
+                @Content(schema = @Schema(implementation = FolderSetDto.class))),
+            },security = {
+            @SecurityRequirement(name = "OpenID", scopes={ "openid" }),
+            @SecurityRequirement(name = "BearerAuth")
+        }, tags={ "folders", })
+    public Response listFolders(@Parameter(description = "the schema pattern {none}", example = "none") @DefaultValue("none") @QueryParam("schema")  String schema,@Context SecurityContext securityContext)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
-        return delegate.listFolders(schema, securityContext, info);
+        context.setUriInfo(uriInfo);
+        return delegate.listFolders(schema, securityContext);
     }
 }

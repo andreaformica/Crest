@@ -1,8 +1,10 @@
 package hep.crest.server.config;
 
+import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import hep.crest.server.serializers.CustomTimeDeserializer;
@@ -51,7 +53,11 @@ public class ServicesConfig {
                 .appendPattern("xxxx")
                 .toFormatter();
 
-        ObjectMapper mapper = new ObjectMapper();
+        // Create and configure the ObjectMapper
+        ObjectMapper mapper = JsonMapper.builder().build();
+        mapper.getFactory()
+                .setStreamReadConstraints(StreamReadConstraints.builder().maxStringLength(100_000_000).build());
+
         mapper.configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false);
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         mapper.setDateFormat(new StdDateFormat());
@@ -59,6 +65,7 @@ public class ServicesConfig {
         module.addSerializer(OffsetDateTime.class, new CustomTimeSerializer(formatter));
         module.addDeserializer(OffsetDateTime.class, new CustomTimeDeserializer(formatter));
         mapper.registerModule(module);
+
         return mapper;
     }
 

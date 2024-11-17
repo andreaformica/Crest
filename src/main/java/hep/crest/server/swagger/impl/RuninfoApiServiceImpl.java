@@ -1,10 +1,11 @@
 package hep.crest.server.swagger.impl;
 
-import hep.crest.server.data.runinfo.pojo.RunLumiInfo;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.converters.RunLumiMapper;
+import hep.crest.server.data.runinfo.pojo.RunLumiInfo;
 import hep.crest.server.exceptions.CdbBadRequestException;
-import hep.crest.server.runinfo.services.RunInfoService;
+import hep.crest.server.services.RunInfoService;
 import hep.crest.server.swagger.api.NotFoundException;
 import hep.crest.server.swagger.api.RuninfoApiService;
 import hep.crest.server.swagger.model.CrestBaseResponse;
@@ -18,9 +19,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -36,8 +36,6 @@ import java.util.List;
  *
  * @author formica
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen",
-        date = "2017-11-07T14:29:18.354+01:00")
 @Component
 @Slf4j
 public class RuninfoApiServiceImpl extends RuninfoApiService {
@@ -58,15 +56,21 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
     @Autowired
     private RunInfoService runinfoService;
 
+    /**
+     * Context.
+     */
+    @Autowired
+    private JAXRSContext context;
+
     /*
      * (non-Javadoc)
      *
      * @see hep.crest.server.swagger.api.RuninfoApiService#createRunLumiInfo(hep.crest.
-     * swagger.model.RunLumiSetDto, javax.ws.rs.core.SecurityContext,
-     * javax.ws.rs.core.UriInfo)
+     * swagger.model.RunLumiSetDto, jakarta.ws.rs.core.SecurityContext,
+     * jakarta.ws.rs.core.UriInfo)
      */
     @Override
-    public Response createRunInfo(RunLumiSetDto body, SecurityContext securityContext, UriInfo info)
+    public Response createRunInfo(RunLumiSetDto body, SecurityContext securityContext)
             throws NotFoundException {
         log.info("RunInfoRestController processing request for creating a run info entry using "
                  + body);
@@ -88,12 +92,12 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
                 .filter(new GenericMap())
                 .page(respPage)
                 .size((long) savedlist.size()).datatype("runs");
-        return Response.created(info.getRequestUri()).entity(respdto).build();
+        return Response.created(context.getUriInfo().getRequestUri()).entity(respdto).build();
 
     }
 
     @Override
-    public Response updateRunInfo(RunLumiInfoDto runLumiInfoDto, SecurityContext securityContext, UriInfo info)
+    public Response updateRunInfo(RunLumiInfoDto runLumiInfoDto, SecurityContext securityContext)
             throws NotFoundException {
         log.info("RunInfoRestController processing request for updating a run info entry using "
                  + runLumiInfoDto);
@@ -108,7 +112,7 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
                 .page(respPage)
                 .filter(new GenericMap())
                 .format("RunLumiSetDto").size((long) reslist.size()).datatype("runs");
-        return Response.created(info.getRequestUri()).entity(respdto).build();
+        return Response.created(context.getUriInfo().getRequestUri()).entity(respdto).build();
     }
 
     /*
@@ -116,13 +120,13 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
      *
      * @see hep.crest.server.swagger.api.RuninfoApiService#selectRunInfo(java.lang.
      * String, java.lang.String, java.lang.String, java.lang.Integer,
-     * java.lang.Integer, java.lang.String, javax.ws.rs.core.SecurityContext,
-     * javax.ws.rs.core.UriInfo)
+     * java.lang.Integer, java.lang.String, jakarta.ws.rs.core.SecurityContext,
+     * jakarta.ws.rs.core.UriInfo)
      */
     @Override
     public Response listRunInfo(String from, String to, String format, String mode,
                                 Integer page, Integer size, String sort,
-                                SecurityContext securityContext, UriInfo info) throws NotFoundException {
+                                SecurityContext securityContext) throws NotFoundException {
         log.debug("Search resource list using from={}, to={}, format={}, mode={}", from, to,
                 format, mode);
         // Select RunInfo in a range.
@@ -187,7 +191,8 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
                 .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
                 .number(entitypage.getNumber());
 
-        final List<RunLumiInfoDto> dtolist = edh.entityToDtoList(entitypage.toList(), RunLumiInfoDto.class);
+        final List<RunLumiInfoDto> dtolist = edh.entityToDtoList(entitypage.toList(),
+                RunLumiInfoDto.class, RunLumiMapper.class);
         Response.Status rstatus = Response.Status.OK;
         // Prepare the Set.
         final CrestBaseResponse saveddto = buildEntityResponse(dtolist, filters);

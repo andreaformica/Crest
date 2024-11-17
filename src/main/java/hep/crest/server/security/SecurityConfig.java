@@ -1,25 +1,17 @@
 package hep.crest.server.security;
 
 import hep.crest.server.config.CrestProperties;
-import org.keycloak.adapters.springsecurity.KeycloakSecurityComponents;
-import org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationProvider;
-import org.keycloak.adapters.springsecurity.config.KeycloakWebSecurityConfigurerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
-import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
-import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.security.web.SecurityFilterChain;
 
 /**
  * Web security configuration. This is used only with profile keycloak.
@@ -30,8 +22,8 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 @Profile({"keycloak"})
 @Configuration
 @EnableWebSecurity
-@ComponentScan(basePackageClasses = KeycloakSecurityComponents.class)
-public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
+@EnableMethodSecurity
+public class SecurityConfig {
 
     /**
      * Logger.
@@ -44,60 +36,21 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
     @Autowired
     private CrestProperties cprops;
 
-    /**
-     * Registers the KeycloakAuthenticationProvider with the authentication manager.
-     * @param auth
-     */
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) {
-        KeycloakAuthenticationProvider keycloakAuthenticationProvider =
-                keycloakAuthenticationProvider();
-        keycloakAuthenticationProvider.setGrantedAuthoritiesMapper(new SimpleAuthorityMapper());
-        auth.authenticationProvider(keycloakAuthenticationProvider);
-    }
-
-    /**
-     * Defines the session authentication strategy.
-     */
     @Bean
-    @Override
-    protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
-        // Stateless server: do not create a session
-        return new NullAuthenticatedSessionStrategy();
-    }
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-    /**
-     * Configure the security rules.
-     */
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        super.configure(http);
-        // Deal with specific configuration.
         if ("active".equals(cprops.getSecurity())) {
-            // If active then authorize requests. Role is guest.
-            http
-                // stateless, sessionless: no need for csrf
-                .csrf(AbstractHttpConfigurer::disable)
-                // enforce stateless-ness on the spring side
-                .sessionManagement((sessionManagement) ->
-                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                // the rules
-                .authorizeRequests((authorizeRequests) -> authorizeRequests
-                        .antMatchers(HttpMethod.GET, "/actuator/health/**").permitAll()
-                        .antMatchers(HttpMethod.GET, "/**").hasRole("crest-viewer")
-                        // POST and PUT are more restricted
-                        .antMatchers(HttpMethod.POST, "/**").hasAnyRole("crest-expert", "crest-admin")
-                        .antMatchers(HttpMethod.PUT, "/**").hasAnyRole("crest-expert", "crest-admin")
-                        // DELETE is only for admin
-                        .antMatchers(HttpMethod.DELETE, "/**").hasRole("crest-admin")
-                        .anyRequest().denyAll()
-                );
+            log.info("Security is active for this server....");
+
         }
         else if ("none".equals(cprops.getSecurity())) {
             log.info("No security enabled for this server....");
-            http.authorizeRequests().antMatchers("/**").permitAll().and().httpBasic().disable().csrf()
-                    .disable();
+            http.securityMatcher("/**")
+                    .authorizeHttpRequests(authorize -> authorize.anyRequest()
+                            .permitAll())
+                    .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
         }
+
+        return http.build();
     }
 }

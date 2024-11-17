@@ -3,16 +3,16 @@
  */
 package hep.crest.server.services;
 
+import hep.crest.server.data.pojo.TagMeta;
+import hep.crest.server.data.repositories.TagMetaRepository;
 import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.ConflictException;
-import hep.crest.server.data.pojo.TagMeta;
-import hep.crest.server.data.repositories.TagMetaRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.Optional;
 
 /**
@@ -53,7 +53,7 @@ public class TagMetaService {
      */
     public TagMeta insertTagMeta(TagMeta entity) {
         log.debug("Create tag meta data from entity {}", entity);
-        final String name = entity.tagName();
+        final String name = entity.getTagName();
         Optional<TagMeta> opt = tagmetaRepository.findByTagName(name);
         if (opt.isPresent()) {
             log.debug("Cannot store tag meta {} : resource already exists.. ", name);
@@ -76,14 +76,16 @@ public class TagMetaService {
     @Transactional
     public TagMeta updateTagMeta(TagMeta entity) {
         log.debug("Update tag meta from entity {}", entity);
-        Optional<TagMeta> opt = tagmetaRepository.findByTagName(entity.tagName());
+        Optional<TagMeta> opt = tagmetaRepository.findByTagName(entity.getTagName());
         if (opt.isEmpty()) {
-            throw new CdbNotFoundException("Cannot find meta info for " + entity.tagName());
+            throw new CdbNotFoundException("Cannot find meta info for " + entity.getTagName());
         }
         TagMeta stored = opt.get();
         log.debug("Updating existing tag meta {}", stored);
-        stored.tagInfo(entity.tagInfo())
-                .chansize(entity.chansize()).colsize(entity.colsize()).description(entity.description());
+        stored.setTagInfo(entity.getTagInfo())
+                .setChansize(entity.getChansize())
+                .setColsize(entity.getColsize())
+                .setDescription(entity.getDescription());
         final TagMeta saved = tagmetaRepository.save(stored);
         log.debug("Updated entity: {}", saved);
         return saved;

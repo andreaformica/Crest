@@ -14,13 +14,23 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * StoreDto
@@ -31,7 +41,7 @@ import javax.validation.Valid;
   StoreDto.JSON_PROPERTY_DATA,
   StoreDto.JSON_PROPERTY_STREAMER_INFO
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class StoreDto   {
   public static final String JSON_PROPERTY_HASH = "hash";
   @JsonProperty(JSON_PROPERTY_HASH)
@@ -58,8 +68,7 @@ public class StoreDto   {
    * Get hash
    * @return hash
    **/
-  @JsonProperty("hash")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "hash")
   
   public String getHash() {
     return hash;
@@ -78,8 +87,7 @@ public class StoreDto   {
    * Get since
    * @return since
    **/
-  @JsonProperty("since")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "since")
   
   public Long getSince() {
     return since;
@@ -98,8 +106,7 @@ public class StoreDto   {
    * Get data
    * @return data
    **/
-  @JsonProperty("data")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "data")
   
   public String getData() {
     return data;
@@ -118,8 +125,7 @@ public class StoreDto   {
    * Get streamerInfo
    * @return streamerInfo
    **/
-  @JsonProperty("streamerInfo")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "streamerInfo")
   
   public String getStreamerInfo() {
     return streamerInfo;
@@ -139,17 +145,16 @@ public class StoreDto   {
       return false;
     }
     StoreDto storeDto = (StoreDto) o;
-    return Objects.equals(this.hash, storeDto.hash) &&
-        Objects.equals(this.since, storeDto.since) &&
-        Objects.equals(this.data, storeDto.data) &&
-        Objects.equals(this.streamerInfo, storeDto.streamerInfo);
+    return Objects.equals(hash, storeDto.hash) &&
+        Objects.equals(since, storeDto.since) &&
+        Objects.equals(data, storeDto.data) &&
+        Objects.equals(streamerInfo, storeDto.streamerInfo);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(hash, since, data, streamerInfo);
   }
-
 
   @Override
   public String toString() {

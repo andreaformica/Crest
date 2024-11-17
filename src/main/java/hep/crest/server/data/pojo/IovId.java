@@ -5,8 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import java.math.BigInteger;
 import java.util.Date;
 
@@ -19,7 +19,7 @@ import java.util.Date;
 // These are essential for ID comparison.
 @Embeddable
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 public class IovId implements java.io.Serializable {
 
     /**

@@ -3,7 +3,6 @@ package hep.crest.server.utils;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import hep.crest.server.data.pojo.Iov;
@@ -124,17 +123,17 @@ public class JsonParserTest {
 
     public static StoreSetDto buildStoreSet(String tagname) {
         // Upload batch iovs
-        final IovId id = new IovId().tagName(tagname)
-                .since(BigInteger.valueOf(4000000L * 1000000000L)).insertionTime(new Date());
+        final IovId id = new IovId().setTagName(tagname)
+                .setSince(BigInteger.valueOf(4000000L * 1000000000L)).setInsertionTime(new Date());
         final Iov miov = new Iov();
-        miov.id(id);
-        miov.id().insertionTime(null);
+        miov.setId(id);
+        miov.getId().setInsertionTime(null);
         log.info("...created iov via random gen: {}", miov);
-        final IovId id2 = new IovId().tagName(tagname)
-                .since(BigInteger.valueOf(5000000L * 1000000000L)).insertionTime(new Date());
+        final IovId id2 = new IovId().setTagName(tagname)
+                .setSince(BigInteger.valueOf(5000000L * 1000000000L)).setInsertionTime(new Date());
         final Iov miov2 = new Iov();
-        miov2.id(id2);
-        miov2.id().insertionTime(null);
+        miov2.setId(id2);
+        miov2.getId().setInsertionTime(null);
         log.info("...created iov2 via random gen: {}", miov2);
 
         final StoreSetDto setdto = new StoreSetDto();
@@ -146,17 +145,17 @@ public class JsonParserTest {
 
         StoreDto sdto = new StoreDto();
         sdto.streamerInfo("{\"filename\": \"test-inline-5-this is a large payload\"}");
-        sdto.since(miov.id().since().longValue());
+        sdto.setSince((miov.getId().getSince()).longValue());
         sdto.hash("somehashjson1");
         sdto.setData("{ \"key\": \"an inline very large payload as a json\"}");
 
         StoreDto sdto1 = new StoreDto();
         sdto1.streamerInfo("{\"filename\": \"test-inline-2- this is another large payload\"}");
-        sdto1.since(miov2.id().since().longValue());
+        sdto1.since((miov2.getId().getSince()).longValue());
         sdto1.hash("somehashjson2");
         sdto1.setData("{ \"key\": \"an inline very large payload as a json 2 should have "
                       + "different hash\"}");
-        setdto.addResourcesItem(sdto).addResourcesItem(sdto1);
+        setdto.addresourcesItem(sdto).addresourcesItem(sdto1);
         return setdto;
     }
 

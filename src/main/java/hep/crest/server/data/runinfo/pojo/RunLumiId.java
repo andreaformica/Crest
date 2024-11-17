@@ -3,14 +3,14 @@ package hep.crest.server.data.runinfo.pojo;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.math.BigInteger;
 
 @Embeddable
-@Accessors(fluent = true)
 @Data
+@Accessors(chain = true)
 public class RunLumiId implements Serializable {
     /**
      * The run number.

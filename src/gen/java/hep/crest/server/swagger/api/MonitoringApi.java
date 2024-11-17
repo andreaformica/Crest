@@ -1,11 +1,15 @@
 package hep.crest.server.swagger.api;
 
-import hep.crest.server.swagger.model.*;
 import hep.crest.server.swagger.api.MonitoringApiService;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import io.swagger.annotations.ApiParam;
-
-import hep.crest.server.swagger.impl.JAXRSContext;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import hep.crest.server.swagger.model.HTTPResponse;
 import hep.crest.server.swagger.model.PayloadTagInfoSetDto;
@@ -18,51 +22,58 @@ import java.io.InputStream;
 
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.springframework.beans.factory.annotation.Autowired;
+import hep.crest.server.swagger.impl.JAXRSContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Request;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-
-import javax.ws.rs.*;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.*;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 @Path("/monitoring/payloads")
 
 
-@io.swagger.annotations.Api(description = "the monitoring API")
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+///// @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class MonitoringApi  {
+
    @Autowired
    private MonitoringApiService delegate;
    @Context
    protected Request request;
    @Context
    protected HttpHeaders headers;
+   @Context
+   protected UriInfo uriInfo;
    @Autowired
    protected JAXRSContext context;
 
-    @GET
-    
-    
+
+
+
+    @jakarta.ws.rs.GET
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieves monitoring information on payload as a list of PayloadTagInfoDtos.", notes = "This method allows to perform search and sorting.Arguments: tagname=<pattern>, page={ipage}, size={isize}, sort=<sortpattern>. The pattern <pattern> is in the form <param-name><operation><param-value>       <param-name> is the name of one of the fields in the dto       <operation> can be [< : >] ; for string use only [:]        <param-value> depends on the chosen parameter. A list of this criteria can be provided       using comma separated strings for <pattern>.      The pattern <sortpattern> is <field>:[DESC|ASC]", response = PayloadTagInfoSetDto.class, authorizations = {
-        @io.swagger.annotations.Authorization(value = "BearerAuth")
-    }, tags={ "monitoring", })
-    @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = PayloadTagInfoSetDto.class),
-        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
-        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
-    })
-    public Response listPayloadTagInfo(@ApiParam(value = "tagname: the search pattern {none}", defaultValue = "none") @DefaultValue("none") @QueryParam("tagname")  String tagname,@Context SecurityContext securityContext,@Context UriInfo info)
+    @Operation(summary = "Retrieves monitoring information on payload as a list of PayloadTagInfoDtos.", description = "", responses = {
+            @ApiResponse(responseCode = "200", description = "successful operation", content =
+                @Content(schema = @Schema(implementation = PayloadTagInfoSetDto.class))),
+            @ApiResponse(responseCode = "404", description = "Not found", content =
+                @Content(schema = @Schema(implementation = HTTPResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Generic error response", content =
+                @Content(schema = @Schema(implementation = HTTPResponse.class))),
+            },security = {
+            @SecurityRequirement(name = "OpenID", scopes={ "openid" }),
+            @SecurityRequirement(name = "BearerAuth")
+        }, tags={ "monitoring", })
+    public Response listPayloadTagInfo(@Parameter(description = "tagname: the search pattern {none}", example = "none") @DefaultValue("none") @QueryParam("tagname")  String tagname,@Context SecurityContext securityContext)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
-        return delegate.listPayloadTagInfo(tagname, securityContext, info);
+        context.setUriInfo(uriInfo);
+        return delegate.listPayloadTagInfo(tagname, securityContext);
     }
 }

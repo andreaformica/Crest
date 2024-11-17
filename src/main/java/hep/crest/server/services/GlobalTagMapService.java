@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -72,25 +72,25 @@ public class GlobalTagMapService {
     @Transactional
     public GlobalTagMap insertGlobalTagMap(GlobalTagMap entity) throws AbstractCdbServiceException {
         log.debug("Create GlobalTagMap from {}", entity);
-        Optional<GlobalTagMap> map = globalTagMapRepository.findById(entity.id());
+        Optional<GlobalTagMap> map = globalTagMapRepository.findById(entity.getId());
         if (map.isPresent()) {
             log.warn("GlobalTagMap {} already exists.", map.get());
-            throw new ConflictException("GlobalTagMap already exists for ID " + entity.id());
+            throw new ConflictException("GlobalTagMap already exists for ID " + entity.getId());
         }
-        String gtname = entity.id().globalTagName();
+        String gtname = entity.getId().getGlobalTagName();
         final Optional<GlobalTag> gt = globalTagRepository.findById(gtname);
         if (!gt.isPresent()) {
             log.warn("GlobalTag {} does not exists.", gtname);
             throw new CdbNotFoundException("GlobalTag does not exists for name " + gtname);
         }
-        String tagname = entity.tag().name();
+        String tagname = entity.getTag().getName();
         final Optional<Tag> tg = tagRepository.findById(tagname);
         if (!tg.isPresent()) {
             log.warn("Tag {} does not exists.", tagname);
             throw new CdbNotFoundException("Tag does not exists for name " + tagname);
         }
-        entity.globalTag(gt.get());
-        entity.tag(tg.get());
+        entity.setGlobalTag(gt.get());
+        entity.setTag(tg.get());
         final GlobalTagMap saved = globalTagMapRepository.save(entity);
         log.debug("Saved entity: {}", saved);
         return saved;
@@ -120,7 +120,7 @@ public class GlobalTagMapService {
                 tag);
         if (mrecord != null && !mrecord.isEmpty()) {
             return StreamSupport.stream(maplist.spliterator(), false)
-                    .filter(c -> c.id().tagRecord().equals(mrecord))
+                    .filter(c -> c.getId().getTagRecord().equals(mrecord))
                     .collect(Collectors.toList());
         }
         return maplist;

@@ -16,20 +16,22 @@ import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.ConflictException;
 import lombok.extern.slf4j.Slf4j;
-import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -89,23 +91,66 @@ public class TagService {
     private CacheManager cacheManager;
 
     /**
-     * @param name
+     * @param name the tag name
      * @return Tag
      * @throws AbstractCdbServiceException If object was not found
      */
-    @Cacheable(value = "tagCache", key = "#name")
     public Tag findOne(String name) throws AbstractCdbServiceException {
         log.debug("Search for tag by Id...{}", name);
         try {
-            return tagRepository.findById(name).orElseThrow(() -> new CdbNotFoundException(
+            Tag cached = getTagFromCache(name);
+            if (cached != null) {
+                return cached;
+            }
+            Tag entity = tagRepository.findById(name).orElseThrow(() -> new CdbNotFoundException(
                     "Tag not found: " + name));
+            cacheTag(entity);
+            return entity;
         }
         catch (CdbNotFoundException e) {
             log.error("Tag not found: {}", name);
-            cacheManager.getCache("tagCache").evict(name);
+            cacheEviction(name);
             throw e;
         }
     }
+
+    /**
+     * Cache eviction method.
+     * @param name
+     */
+    protected void cacheEviction(String name) {
+        Cache cache = cacheManager.getCache("tagCache");
+        if (cache != null) {
+            cache.evictIfPresent(name);  // Evict based on the 'name' key
+        }
+    }
+
+
+    /**
+     * Cache add method.
+     * @param tag the Tag entity
+     */
+    protected void cacheTag(Tag tag) {
+        Cache cache = cacheManager.getCache("tagCache");
+        if (cache != null && tag != null) {
+            cache.put(tag.getName(), tag);  // Use tag.getName() as the key and the entity as the value
+        }
+    }
+
+    /**
+     * Get entity from cache.
+     *
+     * @param name the Tag name
+     * @return Tag the entity
+     */
+    protected Tag getTagFromCache(String name) {
+        Cache cache = cacheManager.getCache("tagCache");
+        if (cache != null) {
+            return cache.get(name, Tag.class);  // Retrieve the cached entity by key
+        }
+        return null;
+    }
+
 
     /**
      * Select Tags.
@@ -134,11 +179,11 @@ public class TagService {
     @Transactional
     public Tag insertTag(Tag entity) throws ConflictException {
         log.debug("Create Tag from {}", entity);
-        final Optional<Tag> tmpt = tagRepository.findById(entity.name());
+        final Optional<Tag> tmpt = tagRepository.findById(entity.getName());
         if (tmpt.isPresent()) {
             log.warn("Tag {} already exists.", tmpt.get());
             throw new ConflictException(
-                    "Tag already exists for name " + entity.name());
+                    "Tag already exists for name " + entity.getName());
         }
         final Tag saved = tagRepository.save(entity);
         log.debug("Saved entity: {}", saved);
@@ -152,25 +197,26 @@ public class TagService {
      * @return TagDto of the updated entity.
      * @throws AbstractCdbServiceException If an Exception occurred
      */
-    @CacheEvict(value = "tagCache", key = "#entity.name()")
+    @CacheEvict(value = "tagCache", key = "#entity.getName()")
     @Transactional
     public Tag updateTag(Tag entity) throws AbstractCdbServiceException {
         log.debug("Update tag from dto {}", entity);
         try {
-            final Tag toupd = tagRepository.findById(entity.name()).orElseThrow(
+            final Tag toupd = tagRepository.findById(entity.getName()).orElseThrow(
                     () -> new CdbNotFoundException(
-                            "Tag does not exists for name " + entity.name()));
-            toupd.description(entity.description()).objectType(entity.objectType())
-                    .synchronization(entity.synchronization()).endOfValidity(entity.endOfValidity())
-                    .lastValidatedTime(entity.lastValidatedTime())
-                    .timeType(entity.timeType());
+                            "Tag does not exists for name " + entity.getName()));
+            toupd.setDescription(entity.getDescription()).setObjectType(entity.getObjectType())
+                    .setSynchronization(entity.getSynchronization())
+                    .setEndOfValidity(entity.getEndOfValidity())
+                    .setLastValidatedTime(entity.getLastValidatedTime())
+                    .setTimeType(entity.getTimeType());
             final Tag saved = tagRepository.save(toupd);
             log.debug("Updated entity: {}", saved);
             return saved;
         }
         catch (CdbNotFoundException e) {
-            log.error("Tag not found: {}", entity.name());
-            cacheManager.getCache("tagCache").evict(entity.name());
+            log.error("updateTag error for : {}", entity.getName());
+            Objects.requireNonNull(cacheManager.getCache("tagCache")).evict(entity.getName());
             throw e;
         }
     }
@@ -222,7 +268,7 @@ public class TagService {
         }
         catch (AbstractCdbServiceException e) {
             log.error("Tag removal exception: {}", name);
-            cacheManager.getCache("tagCache").evict(name);
+            Objects.requireNonNull(cacheManager.getCache("tagCache")).evict(name);
             throw e;
         }
     }
@@ -239,15 +285,16 @@ public class TagService {
         try {
             Tag tagEntity = tagRepository.findById(name).orElseThrow(
                     () -> new CdbNotFoundException("Tag does not exists for name " + name));
-            tagEntity.endOfValidity((endtime != null) ? endtime.toBigInteger() : BigInteger.ZERO);
+            tagEntity.setEndOfValidity(
+                    (endtime != null) ? endtime.toBigInteger() : BigInteger.ZERO);
             // Update the modification time.
-            tagEntity.modificationTime(Instant.now().toDate());
+            tagEntity.setModificationTime(Date.from(Instant.now()));
             // Update the tag.
             this.updateTag(tagEntity);
         }
         catch (CdbNotFoundException e) {
-            log.error("Tag not found: {}", name);
-            cacheManager.getCache("tagCache").evict(name);
+            log.error("updateModificationTime error for tag: {}", name);
+            Objects.requireNonNull(cacheManager.getCache("tagCache")).evict(name);
             throw e;
         }
     }
@@ -255,7 +302,7 @@ public class TagService {
     /**
      * Remove a list of iovs, send back the hash of payloads.
      *
-     * @param iovList
+     * @param iovList the List of Iov
      * @return List<String>
      */
     @Transactional(Transactional.TxType.REQUIRES_NEW)
@@ -263,7 +310,7 @@ public class TagService {
         List<String> hashList = new ArrayList<>();
         for (Iov iov : iovList) {
             log.debug("Delete iov {}....", iov);
-            hashList.add(iov.payloadHash());
+            hashList.add(iov.getPayloadHash());
             iovRepository.delete(iov);
         }
         return hashList;

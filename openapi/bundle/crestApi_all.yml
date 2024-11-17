@@ -973,9 +973,8 @@ paths:
                   description: The version
                   type: string
                 endtime:
-                  description: 'The end time, shall be set at tag level.'
-                  type: integer
-                  format: int64
+                  description: The tag end time. This represents a number.
+                  type: string
               required:
                 - storeset
                 - tag
@@ -1083,9 +1082,8 @@ paths:
                   description: The version
                   type: string
                 endtime:
-                  description: 'The end time, shall be set at tag level.'
-                  type: integer
-                  format: int64
+                  description: 'The tag end time, represent a number.'
+                  type: string
               required:
                 - storeset
                 - tag

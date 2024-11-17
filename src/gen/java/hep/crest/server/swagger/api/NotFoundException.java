@@ -1,6 +1,6 @@
 package hep.crest.server.swagger.api;
 
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class NotFoundException extends ApiException {
     private int code;
     public NotFoundException (int code, String msg) {

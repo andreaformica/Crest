@@ -9,13 +9,12 @@ import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.CdbSQLException;
 import hep.crest.server.exceptions.ConflictException;
 import hep.crest.server.exceptions.PayloadEncodingException;
+import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-
-import javax.ws.rs.core.Response;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

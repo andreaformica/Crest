@@ -14,14 +14,23 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import java.time.OffsetDateTime;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * GlobalTagDto
@@ -39,7 +48,7 @@ import javax.validation.Valid;
   GlobalTagDto.JSON_PROPERTY_SNAPSHOT_TIME_MILLI,
   GlobalTagDto.JSON_PROPERTY_INSERTION_TIME_MILLI
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class GlobalTagDto   {
   public static final String JSON_PROPERTY_NAME = "name";
   @JsonProperty(JSON_PROPERTY_NAME)
@@ -94,8 +103,7 @@ public class GlobalTagDto   {
    * Get name
    * @return name
    **/
-  @JsonProperty("name")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "name")
   
   public String getName() {
     return name;
@@ -114,8 +122,7 @@ public class GlobalTagDto   {
    * Get validity
    * @return validity
    **/
-  @JsonProperty("validity")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "validity")
   
   public Long getValidity() {
     return validity;
@@ -134,8 +141,7 @@ public class GlobalTagDto   {
    * Get description
    * @return description
    **/
-  @JsonProperty("description")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "description")
   
   public String getDescription() {
     return description;
@@ -154,8 +160,7 @@ public class GlobalTagDto   {
    * Get release
    * @return release
    **/
-  @JsonProperty("release")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "release")
   
   public String getRelease() {
     return release;
@@ -174,8 +179,7 @@ public class GlobalTagDto   {
    * Get insertionTime
    * @return insertionTime
    **/
-  @JsonProperty("insertionTime")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "insertionTime")
   
   public OffsetDateTime getInsertionTime() {
     return insertionTime;
@@ -194,8 +198,7 @@ public class GlobalTagDto   {
    * Get snapshotTime
    * @return snapshotTime
    **/
-  @JsonProperty("snapshotTime")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "snapshotTime")
   
   public OffsetDateTime getSnapshotTime() {
     return snapshotTime;
@@ -214,8 +217,7 @@ public class GlobalTagDto   {
    * Get scenario
    * @return scenario
    **/
-  @JsonProperty("scenario")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "scenario")
   
   public String getScenario() {
     return scenario;
@@ -234,8 +236,7 @@ public class GlobalTagDto   {
    * Get workflow
    * @return workflow
    **/
-  @JsonProperty("workflow")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "workflow")
   
   public String getWorkflow() {
     return workflow;
@@ -254,8 +255,7 @@ public class GlobalTagDto   {
    * Get type
    * @return type
    **/
-  @JsonProperty("type")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "type")
   
   public String getType() {
     return type;
@@ -274,8 +274,7 @@ public class GlobalTagDto   {
    * Get snapshotTimeMilli
    * @return snapshotTimeMilli
    **/
-  @JsonProperty("snapshotTimeMilli")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "snapshotTimeMilli")
   
   public Long getSnapshotTimeMilli() {
     return snapshotTimeMilli;
@@ -294,8 +293,7 @@ public class GlobalTagDto   {
    * Get insertionTimeMilli
    * @return insertionTimeMilli
    **/
-  @JsonProperty("insertionTimeMilli")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "insertionTimeMilli")
   
   public Long getInsertionTimeMilli() {
     return insertionTimeMilli;
@@ -315,24 +313,23 @@ public class GlobalTagDto   {
       return false;
     }
     GlobalTagDto globalTagDto = (GlobalTagDto) o;
-    return Objects.equals(this.name, globalTagDto.name) &&
-        Objects.equals(this.validity, globalTagDto.validity) &&
-        Objects.equals(this.description, globalTagDto.description) &&
-        Objects.equals(this.release, globalTagDto.release) &&
-        Objects.equals(this.insertionTime, globalTagDto.insertionTime) &&
-        Objects.equals(this.snapshotTime, globalTagDto.snapshotTime) &&
-        Objects.equals(this.scenario, globalTagDto.scenario) &&
-        Objects.equals(this.workflow, globalTagDto.workflow) &&
-        Objects.equals(this.type, globalTagDto.type) &&
-        Objects.equals(this.snapshotTimeMilli, globalTagDto.snapshotTimeMilli) &&
-        Objects.equals(this.insertionTimeMilli, globalTagDto.insertionTimeMilli);
+    return Objects.equals(name, globalTagDto.name) &&
+        Objects.equals(validity, globalTagDto.validity) &&
+        Objects.equals(description, globalTagDto.description) &&
+        Objects.equals(release, globalTagDto.release) &&
+        Objects.equals(insertionTime, globalTagDto.insertionTime) &&
+        Objects.equals(snapshotTime, globalTagDto.snapshotTime) &&
+        Objects.equals(scenario, globalTagDto.scenario) &&
+        Objects.equals(workflow, globalTagDto.workflow) &&
+        Objects.equals(type, globalTagDto.type) &&
+        Objects.equals(snapshotTimeMilli, globalTagDto.snapshotTimeMilli) &&
+        Objects.equals(insertionTimeMilli, globalTagDto.insertionTimeMilli);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(name, validity, description, release, insertionTime, snapshotTime, scenario, workflow, type, snapshotTimeMilli, insertionTimeMilli);
   }
-
 
   @Override
   public String toString() {

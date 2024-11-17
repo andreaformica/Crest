@@ -14,13 +14,23 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * RespPage
@@ -31,7 +41,7 @@ import javax.validation.Valid;
   RespPage.JSON_PROPERTY_TOTAL_PAGES,
   RespPage.JSON_PROPERTY_NUMBER
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class RespPage   {
   public static final String JSON_PROPERTY_SIZE = "size";
   @JsonProperty(JSON_PROPERTY_SIZE)
@@ -58,8 +68,7 @@ public class RespPage   {
    * Get size
    * @return size
    **/
-  @JsonProperty("size")
-  @ApiModelProperty(required = true, value = "")
+  @JsonProperty(value = "size")
   @NotNull 
   public Integer getSize() {
     return size;
@@ -78,8 +87,7 @@ public class RespPage   {
    * Get totalElements
    * @return totalElements
    **/
-  @JsonProperty("totalElements")
-  @ApiModelProperty(required = true, value = "")
+  @JsonProperty(value = "totalElements")
   @NotNull 
   public Long getTotalElements() {
     return totalElements;
@@ -98,8 +106,7 @@ public class RespPage   {
    * Get totalPages
    * @return totalPages
    **/
-  @JsonProperty("totalPages")
-  @ApiModelProperty(required = true, value = "")
+  @JsonProperty(value = "totalPages")
   @NotNull 
   public Integer getTotalPages() {
     return totalPages;
@@ -118,8 +125,7 @@ public class RespPage   {
    * Get number
    * @return number
    **/
-  @JsonProperty("number")
-  @ApiModelProperty(required = true, value = "")
+  @JsonProperty(value = "number")
   @NotNull 
   public Integer getNumber() {
     return number;
@@ -139,17 +145,16 @@ public class RespPage   {
       return false;
     }
     RespPage respPage = (RespPage) o;
-    return Objects.equals(this.size, respPage.size) &&
-        Objects.equals(this.totalElements, respPage.totalElements) &&
-        Objects.equals(this.totalPages, respPage.totalPages) &&
-        Objects.equals(this.number, respPage.number);
+    return Objects.equals(size, respPage.size) &&
+        Objects.equals(totalElements, respPage.totalElements) &&
+        Objects.equals(totalPages, respPage.totalPages) &&
+        Objects.equals(number, respPage.number);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(size, totalElements, totalPages, number);
   }
-
 
   @Override
   public String toString() {

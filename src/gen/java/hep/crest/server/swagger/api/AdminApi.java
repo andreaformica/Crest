@@ -1,11 +1,15 @@
 package hep.crest.server.swagger.api;
 
-import hep.crest.server.swagger.model.*;
 import hep.crest.server.swagger.api.AdminApiService;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import io.swagger.annotations.ApiParam;
-
-import hep.crest.server.swagger.impl.JAXRSContext;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import hep.crest.server.swagger.model.GlobalTagDto;
 import hep.crest.server.swagger.model.HTTPResponse;
@@ -18,85 +22,100 @@ import java.io.InputStream;
 
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.springframework.beans.factory.annotation.Autowired;
+import hep.crest.server.swagger.impl.JAXRSContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Request;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-
-import javax.ws.rs.*;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.*;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 @Path("/admin")
 
 
-@io.swagger.annotations.Api(description = "the admin API")
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+///// @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class AdminApi  {
+
    @Autowired
    private AdminApiService delegate;
    @Context
    protected Request request;
    @Context
    protected HttpHeaders headers;
+   @Context
+   protected UriInfo uriInfo;
    @Autowired
    protected JAXRSContext context;
 
-    @DELETE
+
+
+
+    @jakarta.ws.rs.DELETE
     @Path("/globaltags/{name}")
-    
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Remove a GlobalTag from the database.", notes = "This method allows to remove a GlobalTag.Arguments: the name has to uniquely identify a global tag.", response = Void.class, authorizations = {
-        @io.swagger.annotations.Authorization(value = "BearerAuth")
-    }, tags={ "admin", })
-    @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = Void.class),
-        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
-        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
-    })
-    public Response removeGlobalTag(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@Context SecurityContext securityContext,@Context UriInfo info)
+    @Operation(summary = "Remove a GlobalTag from the database.", description = "", responses = {
+            @ApiResponse(responseCode = "200", description = "successful operation", content =
+                @Content(schema = @Schema(implementation = Void.class))),
+            @ApiResponse(responseCode = "404", description = "Not found", content =
+                @Content(schema = @Schema(implementation = HTTPResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Generic error response", content =
+                @Content(schema = @Schema(implementation = HTTPResponse.class))),
+            },security = {
+            @SecurityRequirement(name = "OpenID", scopes={ "openid" }),
+            @SecurityRequirement(name = "BearerAuth")
+        }, tags={ "admin", })
+    public Response removeGlobalTag(@Parameter(description = "", required = true) @PathParam("name") @NotNull  String name,@Context SecurityContext securityContext)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
-        return delegate.removeGlobalTag(name, securityContext, info);
+        context.setUriInfo(uriInfo);
+        return delegate.removeGlobalTag(name, securityContext);
     }
-    @DELETE
+
+    @jakarta.ws.rs.DELETE
     @Path("/tags/{name}")
-    
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Remove a Tag from the database.", notes = "This method allows to remove a Tag.Arguments: the name has to uniquely identify a tag.", response = Void.class, authorizations = {
-        @io.swagger.annotations.Authorization(value = "BearerAuth")
-    }, tags={ "admin", })
-    @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = Void.class),
-        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
-        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
-    })
-    public Response removeTag(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@Context SecurityContext securityContext,@Context UriInfo info)
+    @Operation(summary = "Remove a Tag from the database.", description = "", responses = {
+            @ApiResponse(responseCode = "200", description = "successful operation", content =
+                @Content(schema = @Schema(implementation = Void.class))),
+            @ApiResponse(responseCode = "404", description = "Not found", content =
+                @Content(schema = @Schema(implementation = HTTPResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Generic error response", content =
+                @Content(schema = @Schema(implementation = HTTPResponse.class))),
+            },security = {
+            @SecurityRequirement(name = "OpenID", scopes={ "openid" }),
+            @SecurityRequirement(name = "BearerAuth")
+        }, tags={ "admin", })
+    public Response removeTag(@Parameter(description = "", required = true) @PathParam("name") @NotNull  String name,@Context SecurityContext securityContext)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
-        return delegate.removeTag(name, securityContext, info);
+        context.setUriInfo(uriInfo);
+        return delegate.removeTag(name, securityContext);
     }
-    @PUT
+
+    @jakarta.ws.rs.PUT
     @Path("/globaltags/{name}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Update a GlobalTag in the database.", notes = "This method allows to update a GlobalTag.Arguments: the name has to uniquely identify a global tag.", response = GlobalTagDto.class, authorizations = {
-        @io.swagger.annotations.Authorization(value = "BearerAuth")
-    }, tags={ "admin", })
-    @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagDto.class)
-    })
-    public Response updateGlobalTag(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "") @Valid  GlobalTagDto globalTagDto,@Context SecurityContext securityContext,@Context UriInfo info)
+    @Operation(summary = "Update a GlobalTag in the database.", description = "", responses = {
+            @ApiResponse(responseCode = "200", description = "successful operation", content =
+                @Content(schema = @Schema(implementation = GlobalTagDto.class))),
+            },security = {
+            @SecurityRequirement(name = "OpenID", scopes={ "openid" }),
+            @SecurityRequirement(name = "BearerAuth")
+        }, tags={ "admin", })
+    public Response updateGlobalTag(@Parameter(description = "", required = true) @PathParam("name") @NotNull  String name,@Parameter(description = "") @Valid  GlobalTagDto globalTagDto,@Context SecurityContext securityContext)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
-        return delegate.updateGlobalTag(name, globalTagDto, securityContext, info);
+        context.setUriInfo(uriInfo);
+        return delegate.updateGlobalTag(name, globalTagDto, securityContext);
     }
 }

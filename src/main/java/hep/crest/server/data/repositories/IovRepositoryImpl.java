@@ -8,20 +8,19 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.core.types.dsl.PathBuilderFactory;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQuery;
-import hep.crest.server.exceptions.CdbNotFoundException;
-import hep.crest.server.data.pojo.QIov;
 import hep.crest.server.data.pojo.Iov;
+import hep.crest.server.data.pojo.QIov;
 import hep.crest.server.data.repositories.args.IovModeEnum;
 import hep.crest.server.data.repositories.args.IovQueryArgs;
+import hep.crest.server.exceptions.CdbNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.Querydsl;
-import org.springframework.stereotype.Repository;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
 
 /**
@@ -30,13 +29,12 @@ import java.util.List;
  * @author formica
  *
  */
-@Repository
 @Slf4j
 public class IovRepositoryImpl implements IovRepositoryCustom {
     /**
      * The entity manager.
      */
-    @PersistenceContext(unitName = "persistence.main")
+    @PersistenceContext
     private EntityManager entityManager;
 
     @Override
@@ -109,7 +107,7 @@ public class IovRepositoryImpl implements IovRepositoryCustom {
              */
             log.warn("Adding where condition on MAX of since");
             JPQLQuery<Iov> subquery = new JPAQuery<>(entityManager);
-            where.or(QIov.iov.id.since.goe(
+            where.and(QIov.iov.id.since.goe(
                     subquery.select(QIov.iov.id.since.max()).from(QIov.iov).where(subwhere).fetchOne()));
 
         }

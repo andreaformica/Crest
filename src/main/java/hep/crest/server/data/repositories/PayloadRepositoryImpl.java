@@ -8,19 +8,18 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.core.types.dsl.PathBuilderFactory;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQuery;
-import hep.crest.server.exceptions.CdbNotFoundException;
-import hep.crest.server.data.pojo.QPayload;
 import hep.crest.server.data.pojo.Payload;
+import hep.crest.server.data.pojo.QPayload;
 import hep.crest.server.data.repositories.args.PayloadQueryArgs;
+import hep.crest.server.exceptions.CdbNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.Querydsl;
-import org.springframework.stereotype.Repository;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
 
 /**
@@ -29,13 +28,12 @@ import java.util.List;
  * @author formica
  *
  */
-@Repository
 @Slf4j
 public class PayloadRepositoryImpl implements PayloadRepositoryCustom {
     /**
      * The entity manager.
      */
-    @PersistenceContext(unitName = "persistence.main")
+    @PersistenceContext
     private EntityManager entityManager;
 
     @Override

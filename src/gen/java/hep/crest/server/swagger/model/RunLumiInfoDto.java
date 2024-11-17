@@ -14,14 +14,23 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import java.math.BigDecimal;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * RunLumiInfoDto
@@ -32,7 +41,7 @@ import javax.validation.Valid;
   RunLumiInfoDto.JSON_PROPERTY_STARTTIME,
   RunLumiInfoDto.JSON_PROPERTY_ENDTIME
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class RunLumiInfoDto   {
   public static final String JSON_PROPERTY_RUN_NUMBER = "runNumber";
   @JsonProperty(JSON_PROPERTY_RUN_NUMBER)
@@ -59,8 +68,7 @@ public class RunLumiInfoDto   {
    * Get runNumber
    * @return runNumber
    **/
-  @JsonProperty("runNumber")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "runNumber")
   @Valid 
   public BigDecimal getRunNumber() {
     return runNumber;
@@ -79,8 +87,7 @@ public class RunLumiInfoDto   {
    * Get lb
    * @return lb
    **/
-  @JsonProperty("lb")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "lb")
   @Valid 
   public BigDecimal getLb() {
     return lb;
@@ -99,8 +106,7 @@ public class RunLumiInfoDto   {
    * Get starttime
    * @return starttime
    **/
-  @JsonProperty("starttime")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "starttime")
   @Valid 
   public BigDecimal getStarttime() {
     return starttime;
@@ -119,8 +125,7 @@ public class RunLumiInfoDto   {
    * Get endtime
    * @return endtime
    **/
-  @JsonProperty("endtime")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "endtime")
   @Valid 
   public BigDecimal getEndtime() {
     return endtime;
@@ -140,17 +145,16 @@ public class RunLumiInfoDto   {
       return false;
     }
     RunLumiInfoDto runLumiInfoDto = (RunLumiInfoDto) o;
-    return Objects.equals(this.runNumber, runLumiInfoDto.runNumber) &&
-        Objects.equals(this.lb, runLumiInfoDto.lb) &&
-        Objects.equals(this.starttime, runLumiInfoDto.starttime) &&
-        Objects.equals(this.endtime, runLumiInfoDto.endtime);
+    return Objects.equals(runNumber, runLumiInfoDto.runNumber) &&
+        Objects.equals(lb, runLumiInfoDto.lb) &&
+        Objects.equals(starttime, runLumiInfoDto.starttime) &&
+        Objects.equals(endtime, runLumiInfoDto.endtime);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(runNumber, lb, starttime, endtime);
   }
-
 
   @Override
   public String toString() {

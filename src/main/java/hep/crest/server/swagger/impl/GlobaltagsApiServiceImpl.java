@@ -1,10 +1,12 @@
 package hep.crest.server.swagger.impl;
 
+import hep.crest.server.controllers.EntityDtoHelper;
+import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.converters.GlobalTagMapper;
+import hep.crest.server.converters.TagMapper;
 import hep.crest.server.data.pojo.GlobalTag;
 import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.repositories.args.GtagQueryArgs;
-import hep.crest.server.controllers.EntityDtoHelper;
-import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.services.GlobalTagService;
 import hep.crest.server.swagger.api.GlobaltagsApiService;
 import hep.crest.server.swagger.api.NotFoundException;
@@ -16,16 +18,14 @@ import hep.crest.server.swagger.model.RespPage;
 import hep.crest.server.swagger.model.TagDto;
 import hep.crest.server.swagger.model.TagSetDto;
 import lombok.extern.slf4j.Slf4j;
-import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
@@ -37,8 +37,6 @@ import java.util.ResourceBundle;
  *
  * @author formica
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen",
-        date = "2017-09-05T16:23:23.401+02:00")
 @Component
 @Slf4j
 public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
@@ -64,8 +62,13 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
      * Mapper.
      */
     @Autowired
-    @Qualifier("mapper")
-    private MapperFacade mapper;
+    private GlobalTagMapper mapper;
+
+    /**
+     * Context
+     */
+    @Autowired
+    private JAXRSContext context;
 
     /**
      * Resource bundle.
@@ -78,11 +81,11 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
      * @see
      * hep.crest.server.swagger.api.GlobaltagsApiService#createGlobalTag(hep.crest.
      * swagger.model.GlobalTagDto, java.lang.String,
-     * javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+     * jakarta.ws.rs.core.SecurityContext, jakarta.ws.rs.core.UriInfo)
      */
     @Override
     public Response createGlobalTag(String force, GlobalTagDto body,
-                                    SecurityContext securityContext, UriInfo info) {
+                                    SecurityContext securityContext) {
         log.info("Create a global tag {}", body.getName());
         // If the force mode is active, the insertion time is imposed by the client.
         if (force.equals("false")) {
@@ -90,11 +93,11 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
             body.setInsertionTime(null);
         }
         // Insert a new global tag.
-        final GlobalTag entity = mapper.map(body, GlobalTag.class);
+        final GlobalTag entity = mapper.toEntity(body);
         final GlobalTag saved = globaltagService.insertGlobalTag(entity);
-        final GlobalTagDto dto = mapper.map(saved, GlobalTagDto.class);
+        final GlobalTagDto dto = mapper.toDto(saved);
         // Send the created status.
-        return Response.created(info.getRequestUri()).entity(dto).build();
+        return Response.created(context.getUriInfo().getRequestUri()).entity(dto).build();
     }
 
     /*
@@ -102,10 +105,10 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
      *
      * @see
      * hep.crest.server.swagger.api.GlobaltagsApiService#findGlobalTag(java.lang.
-     * String, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+     * String, jakarta.ws.rs.core.SecurityContext, jakarta.ws.rs.core.UriInfo)
      */
     @Override
-    public Response findGlobalTag(String name, SecurityContext securityContext, UriInfo info) {
+    public Response findGlobalTag(String name, SecurityContext securityContext) {
         log.info("GlobalTagRestController processing request for global tag name " + name);
         // Prepare filters.
         final GenericMap filters = new GenericMap();
@@ -114,12 +117,12 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
         }
         // Search for a global tag resource.
         final GlobalTag entity = globaltagService.findOne(name);
-        final GlobalTagDto dto = mapper.map(entity, GlobalTagDto.class);
+        final GlobalTagDto dto = mapper.toDto(entity);
         RespPage respPage = new RespPage().size(1)
                 .totalElements(1L).totalPages(1).number(0);
         log.debug("Found GlobalTag " + name);
         // Prepare response set.
-        final CrestBaseResponse setdto = new GlobalTagSetDto().addResourcesItem(dto)
+        final CrestBaseResponse setdto = new GlobalTagSetDto().addresourcesItem(dto)
                 .filter(filters).size(1L)
                 .page(respPage)
                 .datatype("globaltags")
@@ -133,11 +136,11 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
      * @see
      * hep.crest.server.swagger.api.GlobaltagsApiService#findGlobalTagFetchTags(java
      * .lang.String, java.lang.String, java.lang.String,
-     * javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+     * jakarta.ws.rs.core.SecurityContext, jakarta.ws.rs.core.UriInfo)
      */
     @Override
     public Response findGlobalTagFetchTags(String name, String record, String label,
-                                           SecurityContext securityContext, UriInfo info) {
+                                           SecurityContext securityContext) {
         log.info("Get tags for globaltag {} ", name);
         // Prepare filters.
         final GenericMap filters = new GenericMap();
@@ -155,7 +158,7 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
         // Fetch tags via record and label.
         final List<Tag> entitylist = globaltagService.getGlobalTagByNameFetchTags(name, record,
                 label);
-        final List<TagDto> dtolist = edh.entityToDtoList(entitylist, TagDto.class);
+        final List<TagDto> dtolist = edh.entityToDtoList(entitylist, TagDto.class, TagMapper.class);
         final long listsize = dtolist == null ? 0L : dtolist.size();
         log.debug("Found list of {} tags for globaltag {}", listsize, name);
         RespPage respPage = new RespPage().size((int)listsize)
@@ -169,9 +172,11 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
     }
 
     @Override
-    public Response listGlobalTags(String name, String workflow, String scenario, String release, Long validity
-            , String description, Integer page, Integer size, String sort, SecurityContext securityContext,
-                                   UriInfo info)
+    public Response listGlobalTags(String name, String workflow, String scenario, String release,
+                                   Long validity,
+                                   String description,
+                                   Integer page, Integer size, String sort,
+                                   SecurityContext securityContext)
             throws NotFoundException {
         log.info("Search global tag list using name={}, page={}, size={}, sort={}", name, page,
                 size,
@@ -195,7 +200,8 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
                 .number(entitypage.getNumber());
 
         log.debug("Transform to dto global tags");
-        final List<GlobalTagDto> dtolist = edh.entityToDtoList(entitypage.toList(), GlobalTagDto.class);
+        final List<GlobalTagDto> dtolist = edh.entityToDtoList(entitypage.toList(),
+                GlobalTagDto.class, GlobalTagMapper.class);
         final Response.Status rstatus = Response.Status.OK;
         log.debug("Prepare response dto set global tags : {}", dtolist.size());
         final CrestBaseResponse setdto = new GlobalTagSetDto().resources(dtolist)

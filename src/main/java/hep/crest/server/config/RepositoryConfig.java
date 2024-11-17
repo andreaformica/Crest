@@ -41,6 +41,7 @@ public class RepositoryConfig {
 
     /**
      * Create a DataSource CREST DB.
+     *
      * @return DataSource
      */
     @Primary
@@ -52,6 +53,7 @@ public class RepositoryConfig {
 
     /**
      * Create a DataSource for trigger DB.
+     *
      * @return DataSource
      */
     @Bean(name = "triggerDataSource")
@@ -90,6 +92,7 @@ public class RepositoryConfig {
 
     /**
      * Create a helper bean.
+     *
      * @param cprops the properties.
      * @return CrestTableNames
      */
@@ -106,7 +109,7 @@ public class RepositoryConfig {
     /**
      * Create a IovGroups Repository bean.
      *
-     * @param mainDataSource the DataSource
+     * @param mainDataSource  the DataSource
      * @param crestTableNames the helper for table names
      * @return IovGroupsCustom
      */
@@ -122,6 +125,7 @@ public class RepositoryConfig {
 
     /**
      * Create a repository for trigger DB data.
+     *
      * @param triggerDataSource
      * @return ITriggerDb
      */

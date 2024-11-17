@@ -6,9 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.CacheControl;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -39,6 +39,16 @@ public class CachingPolicyService {
         }
         final CacheControl cc = new CacheControl();
         cc.setMaxAge(maxage);
+        return cc;
+    }
+
+    /**
+     * Get the default cache control.
+     * @return CacheControl
+     */
+    public CacheControl getDefaultsCacheControl() {
+        final CacheControl cc = new CacheControl();
+        cc.setMaxAge(CachingProperties.DEFAULT_CACHE_TIME);
         return cc;
     }
 
@@ -82,7 +92,7 @@ public class CachingPolicyService {
      * @return ResponseBuilder
      */
     public ResponseBuilder verifyLastModified(Request request, Tag tagentity) {
-        final Date lastModified = tagentity.modificationTime();
+        final Date lastModified = tagentity.getModificationTime();
         log.debug("Use tag modification time {} and request {}", lastModified, request);
         final ResponseBuilder builder = request.evaluatePreconditions(lastModified);
         if (builder != null) {

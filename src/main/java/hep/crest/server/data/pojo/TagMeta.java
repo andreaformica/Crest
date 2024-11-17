@@ -3,16 +3,19 @@ package hep.crest.server.data.pojo;
 
 import hep.crest.server.config.DatabasePropertyConfigurator;
 import lombok.Data;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.PrePersist;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Date;
@@ -23,7 +26,8 @@ import java.util.Date;
 @Entity
 @Table(name = "TAG_META", schema = DatabasePropertyConfigurator.SCHEMA_NAME)
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
+@NoArgsConstructor
 public class TagMeta implements java.io.Serializable {
 
     /**
@@ -54,6 +58,7 @@ public class TagMeta implements java.io.Serializable {
     /**
      * The tag info json.
      */
+    @ToString.Exclude
     @Column(name = "TAG_INFO", nullable = false)
     @Lob
     private byte[] tagInfo;

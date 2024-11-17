@@ -1,17 +1,16 @@
 package hep.crest.server.data.pojo;
 
 import hep.crest.server.config.DatabasePropertyConfigurator;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
 
 /**
  * @author formica
@@ -20,7 +19,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "CREST_FOLDERS", schema = DatabasePropertyConfigurator.SCHEMA_NAME)
 // Set all lombok annotation for method generation.
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Getter
 @Setter
 @NoArgsConstructor

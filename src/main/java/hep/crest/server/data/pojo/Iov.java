@@ -2,21 +2,22 @@ package hep.crest.server.data.pojo;
 // Generated Aug 2, 2016 3:50:25 PM by Hibernate Tools 3.2.2.GA
 
 import hep.crest.server.config.DatabasePropertyConfigurator;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.PrePersist;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+
 import java.sql.Timestamp;
 import java.time.Instant;
 
@@ -29,7 +30,7 @@ import java.time.Instant;
 // This object represents an Iov.
 // Define default constructors.
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 public class Iov implements java.io.Serializable {
 
     /**
@@ -72,9 +73,9 @@ public class Iov implements java.io.Serializable {
      */
     @PrePersist
     public void prePersist() {
-        if (this.id.insertionTime() == null) {
+        if (this.id.getInsertionTime() == null) {
             final Timestamp now = Timestamp.from(Instant.now());
-            this.id.insertionTime(now);
+            this.id.setInsertionTime(now);
         }
     }
 }

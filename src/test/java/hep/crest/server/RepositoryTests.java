@@ -44,21 +44,23 @@ public class RepositoryTests {
         log.info("====> testTags: ");
         final Tag mtag = (Tag) rndgen.generate(Tag.class);
         log.info("...created tag via random gen: {}", mtag);
-        mtag.insertionTime(null);
-        mtag.modificationTime(null);
+        mtag.setInsertionTime(null);
+        mtag.setModificationTime(null);
         final Tag savedtag = tagrepository.save(mtag);
 
-        final IovId id = new IovId().tagName(savedtag.name()).since(BigInteger.valueOf(999L)).insertionTime(new Date());
+        final IovId id =
+                new IovId().setTagName(savedtag.getName()).setSince(BigInteger.valueOf(999L))
+                        .setInsertionTime(new Date());
         final Iov miov = (Iov) rndgen.generate(Iov.class);
-        miov.id(id);
-        miov.id().insertionTime(null);
+        miov.setId(id);
+        miov.getId().setInsertionTime(null);
         log.info("...created iov via random gen: {}", miov);
         final Iov savediov = iovRepository.save(miov);
 
         final Iov m1iov = (Iov) rndgen.generate(Iov.class);
-        m1iov.id(id);
-        m1iov.id().insertionTime(null);
-        m1iov.id().since(BigInteger.valueOf(1010L));
+        m1iov.setId(id);
+        m1iov.getId().setInsertionTime(null);
+        m1iov.getId().setSince(BigInteger.valueOf(1010L));
         log.info("...created iov via random gen: {}", m1iov);
         final Iov savediov1 = iovRepository.save(m1iov);
     }

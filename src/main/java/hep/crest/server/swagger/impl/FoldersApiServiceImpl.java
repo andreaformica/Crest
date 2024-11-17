@@ -1,8 +1,9 @@
 package hep.crest.server.swagger.impl;
 
-import hep.crest.server.data.pojo.CrestFolders;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.converters.FolderMapper;
+import hep.crest.server.data.pojo.CrestFolders;
 import hep.crest.server.services.FolderService;
 import hep.crest.server.swagger.api.FoldersApiService;
 import hep.crest.server.swagger.api.NotFoundException;
@@ -12,14 +13,12 @@ import hep.crest.server.swagger.model.FolderSetDto;
 import hep.crest.server.swagger.model.GenericMap;
 import hep.crest.server.swagger.model.RespPage;
 import lombok.extern.slf4j.Slf4j;
-import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+
 import java.util.List;
 
 /**
@@ -31,8 +30,6 @@ import java.util.List;
  *
  * @author formica
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen",
-        date = "2018-05-10T14:57:11.305+02:00")
 @Component
 @Slf4j
 public class FoldersApiServiceImpl extends FoldersApiService {
@@ -51,8 +48,7 @@ public class FoldersApiServiceImpl extends FoldersApiService {
      * Mapper.
      */
     @Autowired
-    @Qualifier("mapper")
-    private MapperFacade mapper;
+    private FolderMapper mapper;
 
     /**
      * Service.
@@ -60,22 +56,28 @@ public class FoldersApiServiceImpl extends FoldersApiService {
     @Autowired
     private FolderService folderService;
 
+    /**
+     * Context.
+     */
+    @Autowired
+    private JAXRSContext context;
+
     /*
      * (non-Javadoc)
      *
      * @see
      * hep.crest.server.swagger.api.FoldersApiService#createFolder(hep.crest.swagger
-     * .model.FolderDto, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+     * .model.FolderDto, jakarta.ws.rs.core.SecurityContext, jakarta.ws.rs.core.UriInfo)
      */
     @Override
-    public Response createFolder(FolderDto body, SecurityContext securityContext, UriInfo info)
+    public Response createFolder(FolderDto body, SecurityContext securityContext)
             throws NotFoundException {
         log.info("FolderRestController processing request for creating a folder");
         // Insert the new folder.
-        CrestFolders entity = mapper.map(body, CrestFolders.class);
+        CrestFolders entity = mapper.toEntity(body);
         final CrestFolders saved = folderService.insertFolder(entity);
-        FolderDto dto = mapper.map(saved, FolderDto.class);
-        return Response.created(info.getRequestUri()).entity(dto).build();
+        FolderDto dto = mapper.toDto(saved);
+        return Response.created(context.getUriInfo().getRequestUri()).entity(dto).build();
     }
 
     /*
@@ -83,11 +85,11 @@ public class FoldersApiServiceImpl extends FoldersApiService {
      *
      * @see
      * hep.crest.server.swagger.api.FoldersApiService#listFolders(java.lang.String,
-     * java.lang.String, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+     * java.lang.String, jakarta.ws.rs.core.SecurityContext, jakarta.ws.rs.core.UriInfo)
      */
     @Override
-    public Response listFolders(String schema, SecurityContext securityContext,
-                                UriInfo info) throws NotFoundException {
+    public Response listFolders(String schema, SecurityContext securityContext)
+            throws NotFoundException {
         log.debug("Search resource list using schema={}", schema);
         // Create filters
         GenericMap filters = new GenericMap();
@@ -100,7 +102,8 @@ public class FoldersApiServiceImpl extends FoldersApiService {
                 .totalElements(Long.valueOf(entitypage.size())).totalPages(1)
                 .number(0);
         // Now pass back the dto list.
-        final List<FolderDto> dtolist = edh.entityToDtoList(entitypage, FolderDto.class);
+        final List<FolderDto> dtolist = edh.entityToDtoList(entitypage, FolderDto.class,
+                FolderMapper.class);
         Response.Status rstatus = Response.Status.OK;
         // Create the response object using also the page.
         final CrestBaseResponse setdto = new FolderSetDto().resources(dtolist)

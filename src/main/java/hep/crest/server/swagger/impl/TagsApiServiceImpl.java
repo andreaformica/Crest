@@ -1,8 +1,11 @@
 package hep.crest.server.swagger.impl;
 
 import hep.crest.server.annotations.ProfileAndLog;
+import hep.crest.server.caching.CachingPolicyService;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.converters.TagMapper;
+import hep.crest.server.converters.TagMetaMapper;
 import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.pojo.TagMeta;
 import hep.crest.server.data.repositories.args.TagQueryArgs;
@@ -19,21 +22,21 @@ import hep.crest.server.swagger.model.TagMetaDto;
 import hep.crest.server.swagger.model.TagMetaSetDto;
 import hep.crest.server.swagger.model.TagSetDto;
 import lombok.extern.slf4j.Slf4j;
-import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.CacheControl;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 /**
@@ -41,8 +44,6 @@ import java.util.ResourceBundle;
  *
  * @author formica
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen",
-        date = "2017-09-05T16:23:23.401+02:00")
 @Component
 @Slf4j
 public class TagsApiServiceImpl extends TagsApiService {
@@ -64,6 +65,11 @@ public class TagsApiServiceImpl extends TagsApiService {
      * Service.
      */
     @Autowired
+    private CachingPolicyService cachesvc;
+    /**
+     * Service.
+     */
+    @Autowired
     private TagService tagService;
     /**
      * Service.
@@ -74,37 +80,48 @@ public class TagsApiServiceImpl extends TagsApiService {
      * Mapper.
      */
     @Autowired
-    @Qualifier("mapper")
-    private MapperFacade mapper;
+    private TagMapper tagmapper;
+    /**
+     * Mapper.
+     */
+    @Autowired
+    private TagMetaMapper tagmetamapper;
+
+    /**
+     * Context
+     */
+    @Autowired
+    private JAXRSContext context;
     /*
      * (non-Javadoc)
      *
      * @see
      * hep.crest.server.swagger.api.TagsApiService#createTag(hep.crest.swagger.model
-     * .TagDto, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+     * .TagDto, jakarta.ws.rs.core.SecurityContext, jakarta.ws.rs.core.UriInfo)
      */
     @Override
-    public Response createTag(TagDto body, SecurityContext securityContext, UriInfo info) {
+    public Response createTag(TagDto body, SecurityContext securityContext) {
         log.info("Creating a new tag {}", body.getName());
         // Create a tag.
-        Tag entity = mapper.map(body, Tag.class);
+        Tag entity = tagmapper.toEntity(body);
         final Tag saved = tagService.insertTag(entity);
-        TagDto dto = mapper.map(saved, TagDto.class);
+        TagDto dto = tagmapper.toDto(saved);
         // Response is 201.
         log.info("Created tag {}", dto);
-        return Response.created(info.getRequestUri()).entity(dto).build();
+        return Response.created(context.getUriInfo().getRequestUri()).entity(dto).build();
     }
 
     /*
      * (non-Javadoc)
      *
      * @see hep.crest.server.swagger.api.TagsApiService#updateTag(java.lang.String,
-     * hep.crest.swagger.model.GenericMap, javax.ws.rs.core.SecurityContext,
-     * javax.ws.rs.core.UriInfo)
+     * hep.crest.swagger.model.GenericMap, jakarta.ws.rs.core.SecurityContext,
+     * jakarta.ws.rs.core.UriInfo)
      */
     @Override
-    public Response updateTag(String name, Map<String, String> body, SecurityContext securityContext,
-                              UriInfo info) {
+    public Response updateTag(String name,
+                              GenericMap body,
+                              SecurityContext securityContext) {
         log.info("Updating tag {}", name);
         // Search tag.
         final Tag entity = tagService.findOne(name);
@@ -116,54 +133,54 @@ public class TagsApiServiceImpl extends TagsApiService {
         for (final String key : body.keySet()) {
             if ("description".equals(key)) {
                 // Update description.
-                entity.description(body.get(key));
+                entity.setDescription(body.get(key));
             }
             else if (key == "timeType") {
-                entity.timeType(body.get(key));
+                entity.setTimeType(body.get(key));
             }
             else if (key == "lastValidatedTime") {
                 final BigInteger val = new BigInteger(body.get(key));
-                entity.lastValidatedTime(val);
+                entity.setLastValidatedTime(val);
             }
             else if (key == "endOfValidity") {
                 final BigInteger val = new BigInteger(body.get(key));
-                entity.endOfValidity(val);
+                entity.setEndOfValidity(val);
             }
             else if (key == "synchronization") {
-                entity.synchronization(body.get(key));
+                entity.setSynchronization(body.get(key));
             }
             else if (key == "payloadSpec") {
-                entity.objectType(body.get(key));
+                entity.setObjectType(body.get(key));
             }
             else {
                 log.warn("Ignored key {} in updateTag: field does not exists", key);
             }
         }
         final Tag saved = tagService.updateTag(entity);
-        TagDto dto = mapper.map(saved, TagDto.class);
+        TagDto dto = tagmapper.toDto(saved);
         log.info("Updated tag {}", dto);
-        return Response.ok(info.getRequestUri()).entity(dto).build();
+        return Response.ok(context.getUriInfo().getRequestUri()).entity(dto).build();
     }
 
     /*
      * (non-Javadoc)
      *
      * @see hep.crest.server.swagger.api.TagsApiService#findTag(java.lang.String,
-     * javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+     * jakarta.ws.rs.core.SecurityContext, jakarta.ws.rs.core.UriInfo)
      */
     @Override
-    public Response findTag(String name, SecurityContext securityContext, UriInfo info) {
+    public Response findTag(String name, SecurityContext securityContext) {
         log.debug("Get tag {} ", name);
         final GenericMap filters = new GenericMap();
         filters.put("name", name);
         final Tag entity = tagService.findOne(name);
-        TagDto dto = mapper.map(entity, TagDto.class);
+        TagDto dto = tagmapper.toDto(entity);
         // Response page
         RespPage respPage = new RespPage().size(1)
                 .totalElements(1L).totalPages(1)
                 .number(0);
         // Create the set.
-        final TagSetDto respdto = (TagSetDto) new TagSetDto().addResourcesItem(dto).size(1L)
+        final TagSetDto respdto = (TagSetDto) new TagSetDto().addresourcesItem(dto).size(1L)
                 .filter(filters).page(respPage).datatype("tags").format("TagSetDto");
         log.info("Retrieved tag {}: {}", name, dto);
         return Response.ok().entity(respdto).build();
@@ -174,13 +191,14 @@ public class TagsApiServiceImpl extends TagsApiService {
      *
      * @see hep.crest.server.swagger.api.TagsApiService#listTags(java.lang.String,
      * java.lang.Integer, java.lang.Integer, java.lang.String,
-     * javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+     * jakarta.ws.rs.core.SecurityContext, jakarta.ws.rs.core.UriInfo)
      */
     @Override
     @ProfileAndLog
-    public Response listTags(String name, String timeType, String objectType, String description, Integer page,
+    public Response listTags(String name, String timeType, String objectType,
+                             String description, Integer page,
                              Integer size, String sort,
-                             SecurityContext securityContext, UriInfo info) {
+                             SecurityContext securityContext) {
         log.info("Search tag list using name={}, timeType={}, objectType={}, descrition={}, "
                  + "page={}, "
                  + "size={}, "
@@ -199,7 +217,8 @@ public class TagsApiServiceImpl extends TagsApiService {
         RespPage respPage = new RespPage().size(entitypage.getSize())
                 .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
                 .number(entitypage.getNumber());
-        List<TagDto> dtolist = edh.entityToDtoList(entitypage.toList(), TagDto.class);
+        List<TagDto> dtolist = edh.entityToDtoList(entitypage.toList(),
+                TagDto.class, TagMapper.class);
         // Create the Set.
         final CrestBaseResponse setdto = new TagSetDto().resources(dtolist)
                 .page(respPage)
@@ -229,32 +248,32 @@ public class TagsApiServiceImpl extends TagsApiService {
 
     /* (non-Javadoc)
      * @see hep.crest.server.swagger.api.TagsApiService#createTagMeta(java.lang.String, hep.crest.swagger.model
-     * .TagMetaDto, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+     * .TagMetaDto, jakarta.ws.rs.core.SecurityContext, jakarta.ws.rs.core.UriInfo)
      */
     @Override
-    public Response createTagMeta(String name, TagMetaDto body, SecurityContext securityContext, UriInfo info) {
+    public Response createTagMeta(String name, TagMetaDto body, SecurityContext securityContext) {
         log.debug("TagRestController processing request for creating a tag meta data entry for {}",
                 name);
         final Tag tag = tagService.findOne(name);
         log.debug("Add meta information to tag {}", name);
-        TagMeta entity = mapper.map(body, TagMeta.class);
+        TagMeta entity = tagmetamapper.toEntity(body);
 
         final TagMeta savedEntity = tagMetaService.insertTagMeta(entity);
-        TagMetaDto saved = mapper.map(savedEntity, TagMetaDto.class);
+        TagMetaDto saved = tagmetamapper.toDto(savedEntity);
         log.info("Created tag meta data {}", saved);
-        return Response.created(info.getRequestUri()).entity(saved).build();
+        return Response.created(context.getUriInfo().getRequestUri()).entity(saved).build();
     }
 
     /* (non-Javadoc)
-     * @see hep.crest.server.swagger.api.TagsApiService#findTagMeta(java.lang.String, javax.ws.rs.core
-     * .SecurityContext, javax.ws.rs.core.UriInfo)
+     * @see hep.crest.server.swagger.api.TagsApiService#findTagMeta(java.lang.String, jakarta.ws.rs.core
+     * .SecurityContext, jakarta.ws.rs.core.UriInfo)
      */
     @Override
     @ProfileAndLog
-    public Response findTagMeta(String name, SecurityContext securityContext, UriInfo info) throws NotFoundException {
+    public Response findTagMeta(String name, SecurityContext securityContext) throws NotFoundException {
         log.info("Search tag metadata for name " + name);
         final TagMeta entity = tagMetaService.find(name);
-        final TagMetaDto dto = mapper.map(entity, TagMetaDto.class);
+        final TagMetaDto dto = tagmetamapper.toDto(entity);
         RespPage respPage = new RespPage().size(1)
                 .totalElements(1L).totalPages(1)
                 .number(0);
@@ -264,45 +283,49 @@ public class TagsApiServiceImpl extends TagsApiService {
             filters.put("name", name);
         }
         final TagMetaSetDto respdto = (TagMetaSetDto) new TagMetaSetDto()
-                .addResourcesItem(dto)
+                .addresourcesItem(dto)
                 .page(respPage)
                 .size(1L)
                 .filter(filters)
                 .datatype("tagmetas")
                 .format("TagMetaSetDto");
         log.info("Retrieved tag meta data {}: {}", name, dto);
-        return Response.ok().entity(respdto).build();
+
+        final CacheControl cc = cachesvc.getDefaultsCacheControl();
+        cc.setMaxAge(3600); // 1 hour caching for this resource.
+        return Response.ok().entity(respdto).cacheControl(cc).build();
     }
 
 
     /* (non-Javadoc)
      * @see hep.crest.server.swagger.api.TagsApiService#updateTagMeta(java.lang.String, hep.crest.swagger.model
-     * .GenericMap, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+     * .GenericMap, jakarta.ws.rs.core.SecurityContext, jakarta.ws.rs.core.UriInfo)
      */
     @Override
-    public Response updateTagMeta(String name, Map<String, String> body, SecurityContext securityContext, UriInfo info)
+    public Response updateTagMeta(String name, GenericMap body,
+                                  SecurityContext securityContext)
             throws NotFoundException {
         log.info("TagRestController processing request for updating a tag meta information for "
                  + "name {}", name);
         TagMeta entity = tagMetaService.find(name);
         for (final String key : body.keySet()) {
-            if (key == "description") {
-                entity.description(body.get(key));
+            if (Objects.equals(key, "description")) {
+                entity.setDescription(body.get(key));
             }
-            if (key == "chansize") {
-                entity.chansize(Integer.valueOf(body.get(key)));
+            if (Objects.equals(key, "chansize")) {
+                entity.setChansize(Integer.valueOf(body.get(key)));
             }
-            if (key == "colsize") {
-                entity.colsize(Integer.valueOf(body.get(key)));
+            if (Objects.equals(key, "colsize")) {
+                entity.setColsize(Integer.valueOf(body.get(key)));
             }
-            if (key == "tagInfo") {
+            if (Objects.equals(key, "tagInfo")) {
                 // The field is a string ... this is mandatory for the moment....
-                entity.tagInfo(body.get(key).getBytes(StandardCharsets.UTF_8));
+                entity.setTagInfo(body.get(key).getBytes(StandardCharsets.UTF_8));
             }
         }
         final TagMeta saved = tagMetaService.updateTagMeta(entity);
-        final TagMetaDto dto = mapper.map(saved, TagMetaDto.class);
+        final TagMetaDto dto = tagmetamapper.toDto(saved);
         log.info("Updated tag meta data {}", dto);
-        return Response.ok(info.getRequestUri()).entity(dto).build();
+        return Response.ok(context.getUriInfo().getRequestUri()).entity(dto).build();
     }
 }

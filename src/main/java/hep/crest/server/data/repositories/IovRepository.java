@@ -3,13 +3,14 @@
  */
 package hep.crest.server.data.repositories;
 
-import hep.crest.server.exceptions.AbstractCdbServiceException;
-import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.IovId;
+import hep.crest.server.exceptions.AbstractCdbServiceException;
+import hep.crest.server.exceptions.CdbNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -26,7 +27,9 @@ import java.util.List;
  */
 @Repository
 public interface IovRepository
-        extends PagingAndSortingRepository<Iov, IovId>, IovRepositoryCustom {
+        extends PagingAndSortingRepository<Iov, IovId>,
+        CrudRepository<Iov, IovId>,
+        IovRepositoryCustom {
 
     /**
      * Retrieve all iovs for a tag. Used when deleting.

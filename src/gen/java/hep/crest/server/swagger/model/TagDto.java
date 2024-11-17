@@ -14,14 +14,23 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import java.time.OffsetDateTime;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * TagDto
@@ -37,7 +46,7 @@ import javax.validation.Valid;
   TagDto.JSON_PROPERTY_INSERTION_TIME,
   TagDto.JSON_PROPERTY_MODIFICATION_TIME
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class TagDto   {
   public static final String JSON_PROPERTY_NAME = "name";
   @JsonProperty(JSON_PROPERTY_NAME)
@@ -84,8 +93,7 @@ public class TagDto   {
    * Get name
    * @return name
    **/
-  @JsonProperty("name")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "name")
   
   public String getName() {
     return name;
@@ -104,8 +112,7 @@ public class TagDto   {
    * Get timeType
    * @return timeType
    **/
-  @JsonProperty("timeType")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "timeType")
   
   public String getTimeType() {
     return timeType;
@@ -124,8 +131,7 @@ public class TagDto   {
    * Get payloadSpec
    * @return payloadSpec
    **/
-  @JsonProperty("payloadSpec")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "payloadSpec")
   
   public String getPayloadSpec() {
     return payloadSpec;
@@ -144,8 +150,7 @@ public class TagDto   {
    * Get synchronization
    * @return synchronization
    **/
-  @JsonProperty("synchronization")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "synchronization")
   
   public String getSynchronization() {
     return synchronization;
@@ -164,8 +169,7 @@ public class TagDto   {
    * Get description
    * @return description
    **/
-  @JsonProperty("description")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "description")
   
   public String getDescription() {
     return description;
@@ -184,8 +188,7 @@ public class TagDto   {
    * Get lastValidatedTime
    * @return lastValidatedTime
    **/
-  @JsonProperty("lastValidatedTime")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "lastValidatedTime")
   
   public Long getLastValidatedTime() {
     return lastValidatedTime;
@@ -204,8 +207,7 @@ public class TagDto   {
    * Get endOfValidity
    * @return endOfValidity
    **/
-  @JsonProperty("endOfValidity")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "endOfValidity")
   
   public Long getEndOfValidity() {
     return endOfValidity;
@@ -224,8 +226,7 @@ public class TagDto   {
    * Get insertionTime
    * @return insertionTime
    **/
-  @JsonProperty("insertionTime")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "insertionTime")
   
   public OffsetDateTime getInsertionTime() {
     return insertionTime;
@@ -244,8 +245,7 @@ public class TagDto   {
    * Get modificationTime
    * @return modificationTime
    **/
-  @JsonProperty("modificationTime")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "modificationTime")
   
   public OffsetDateTime getModificationTime() {
     return modificationTime;
@@ -265,22 +265,21 @@ public class TagDto   {
       return false;
     }
     TagDto tagDto = (TagDto) o;
-    return Objects.equals(this.name, tagDto.name) &&
-        Objects.equals(this.timeType, tagDto.timeType) &&
-        Objects.equals(this.payloadSpec, tagDto.payloadSpec) &&
-        Objects.equals(this.synchronization, tagDto.synchronization) &&
-        Objects.equals(this.description, tagDto.description) &&
-        Objects.equals(this.lastValidatedTime, tagDto.lastValidatedTime) &&
-        Objects.equals(this.endOfValidity, tagDto.endOfValidity) &&
-        Objects.equals(this.insertionTime, tagDto.insertionTime) &&
-        Objects.equals(this.modificationTime, tagDto.modificationTime);
+    return Objects.equals(name, tagDto.name) &&
+        Objects.equals(timeType, tagDto.timeType) &&
+        Objects.equals(payloadSpec, tagDto.payloadSpec) &&
+        Objects.equals(synchronization, tagDto.synchronization) &&
+        Objects.equals(description, tagDto.description) &&
+        Objects.equals(lastValidatedTime, tagDto.lastValidatedTime) &&
+        Objects.equals(endOfValidity, tagDto.endOfValidity) &&
+        Objects.equals(insertionTime, tagDto.insertionTime) &&
+        Objects.equals(modificationTime, tagDto.modificationTime);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(name, timeType, payloadSpec, synchronization, description, lastValidatedTime, endOfValidity, insertionTime, modificationTime);
   }
-
 
   @Override
   public String toString() {

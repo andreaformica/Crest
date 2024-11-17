@@ -14,14 +14,23 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import java.time.OffsetDateTime;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * TagMetaDto
@@ -34,7 +43,7 @@ import javax.validation.Valid;
   TagMetaDto.JSON_PROPERTY_TAG_INFO,
   TagMetaDto.JSON_PROPERTY_INSERTION_TIME
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class TagMetaDto   {
   public static final String JSON_PROPERTY_TAG_NAME = "tagName";
   @JsonProperty(JSON_PROPERTY_TAG_NAME)
@@ -69,8 +78,7 @@ public class TagMetaDto   {
    * Get tagName
    * @return tagName
    **/
-  @JsonProperty("tagName")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "tagName")
   
   public String getTagName() {
     return tagName;
@@ -89,8 +97,7 @@ public class TagMetaDto   {
    * Get description
    * @return description
    **/
-  @JsonProperty("description")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "description")
   
   public String getDescription() {
     return description;
@@ -109,8 +116,7 @@ public class TagMetaDto   {
    * Get chansize
    * @return chansize
    **/
-  @JsonProperty("chansize")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "chansize")
   
   public Integer getChansize() {
     return chansize;
@@ -129,8 +135,7 @@ public class TagMetaDto   {
    * Get colsize
    * @return colsize
    **/
-  @JsonProperty("colsize")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "colsize")
   
   public Integer getColsize() {
     return colsize;
@@ -149,8 +154,7 @@ public class TagMetaDto   {
    * Get tagInfo
    * @return tagInfo
    **/
-  @JsonProperty("tagInfo")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "tagInfo")
   
   public String getTagInfo() {
     return tagInfo;
@@ -169,8 +173,7 @@ public class TagMetaDto   {
    * Get insertionTime
    * @return insertionTime
    **/
-  @JsonProperty("insertionTime")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "insertionTime")
   
   public OffsetDateTime getInsertionTime() {
     return insertionTime;
@@ -190,19 +193,18 @@ public class TagMetaDto   {
       return false;
     }
     TagMetaDto tagMetaDto = (TagMetaDto) o;
-    return Objects.equals(this.tagName, tagMetaDto.tagName) &&
-        Objects.equals(this.description, tagMetaDto.description) &&
-        Objects.equals(this.chansize, tagMetaDto.chansize) &&
-        Objects.equals(this.colsize, tagMetaDto.colsize) &&
-        Objects.equals(this.tagInfo, tagMetaDto.tagInfo) &&
-        Objects.equals(this.insertionTime, tagMetaDto.insertionTime);
+    return Objects.equals(tagName, tagMetaDto.tagName) &&
+        Objects.equals(description, tagMetaDto.description) &&
+        Objects.equals(chansize, tagMetaDto.chansize) &&
+        Objects.equals(colsize, tagMetaDto.colsize) &&
+        Objects.equals(tagInfo, tagMetaDto.tagInfo) &&
+        Objects.equals(insertionTime, tagMetaDto.insertionTime);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(tagName, description, chansize, colsize, tagInfo, insertionTime);
   }
-
 
   @Override
   public String toString() {

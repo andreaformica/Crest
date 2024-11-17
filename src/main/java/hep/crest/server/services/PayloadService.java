@@ -28,14 +28,13 @@ import hep.crest.server.swagger.model.StoreDto;
 import hep.crest.server.swagger.model.StoreSetDto;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -72,18 +71,6 @@ public class PayloadService {
      */
     @Autowired
     private IovService iovService;
-
-    /**
-     * Repository.
-     */
-    @Autowired
-    private ITriggerDb triggerDbService;
-    /**
-     * Mapper.
-     */
-    @Autowired
-    @Qualifier("mapper")
-    private MapperFacade mapper;
     /**
      * Helper.
      */
@@ -105,6 +92,11 @@ public class PayloadService {
      */
     @Autowired
     private PayloadInfoDataRepository payloadInfoDataRepository;
+    /**
+     * Repository.
+     */
+    @Autowired
+    private ITriggerDb triggerDbService;
 
     /**
      * Mapper.
@@ -151,8 +143,9 @@ public class PayloadService {
             log.debug("The hash {} is associated to more than one iov...remove only if tag name "
                       + "is the same", hash);
             for (Iov iov : iovwithhash) {
-                if (!iov.id().tagName().equals(tag)) {
-                    log.info("Cannot remove payload hash {}: found iov in tag {}", hash, iov.id());
+                if (!iov.getId().getTagName().equals(tag)) {
+                    log.info("Cannot remove payload hash {}: found iov in tag {}", hash,
+                            iov.getId());
                     canremove = Boolean.FALSE;
                 }
             }
@@ -219,6 +212,7 @@ public class PayloadService {
         }
     }
 
+
     /**
      * @param hash   the String
      * @param source the LOB type
@@ -247,7 +241,8 @@ public class PayloadService {
     @Transactional
     public Payload getPayload(String hash) throws CdbNotFoundException {
         if (hash.startsWith("triggerdb")) {
-            return new Payload().hash(hash).objectType("triggerdb").objectName("triggerdb");
+            return new Payload().setHash(hash).setObjectType("triggerdb").setObjectName(
+                    "triggerdb");
         }
         return payloadRepository.findById(hash).orElseThrow(
                 () -> new CdbNotFoundException("Cannot find payload for hash " + hash)
@@ -275,6 +270,7 @@ public class PayloadService {
         return entity.streamerInfo();
     }
 
+
     /**
      * Load trigger data using dedicated repository.
      * @param hash
@@ -296,20 +292,20 @@ public class PayloadService {
     public Payload insertPayload(Payload entity, InputStream is, PayloadInfoData streamer)
             throws AbstractCdbServiceException {
         log.debug("Save payload {}", entity);
-        if (entity.size() == null) {
+        if (entity.getSize() == null) {
             throw new CdbBadRequestException("Cannot store payload without size being set");
         }
         // Check if exists
-        Optional<Payload> exists = payloadRepository.findById(entity.hash());
+        Optional<Payload> exists = payloadRepository.findById(entity.getHash());
         if (exists.isPresent()) {
             log.warn("Payload already exists for hash {}: send back the saved instance",
-                    entity.hash());
+                    entity.getHash());
             // Having the existing instance will allow to store IOVs.
             return exists.get();
         }
         // Store the payload dto
         final Payload saved = payloadRepository.save(entity);
-        payloadDataRepository.saveData(entity.hash(), is, entity.size());
+        payloadDataRepository.saveData(entity.getHash(), is, entity.getSize());
         payloadInfoDataRepository.save(streamer);
         log.debug("Saved payload and related entity: {}", saved);
         return saved;
@@ -344,29 +340,30 @@ public class PayloadService {
                  FileChannel tempchan = FileChannel.open(Paths.get(uploadedFile))) {
                 // We set the size of the payload here.
                 // In case this is null, the payload will not be stored.
-                entity.size((int) tempchan.size());
+                entity.setSize((int) tempchan.size());
                 Payload saved = insertPayload(entity, is, streamer);
                 log.debug("Payload saved is : {}", saved);
                 // Now insert IOV. The method will perform many verifications.
-                iov.payloadHash(saved.hash());
+                iov.setPayloadHash(saved.getHash());
                 if (tagname == null) {
-                    tagname = iov.tag().name();
+                    tagname = iov.getTag().getName();
                 }
                 log.debug("Saving iov {} in tag {}", iov, tagname);
                 Iov savedIov = iovService.storeIov(iov);
-                dto.since(savedIov.id().since().longValue()).hash(savedIov.payloadHash());
-                dto.data(saved.objectType() + "; " + saved.objectName());
+                dto.since((savedIov.getId().getSince()).longValue())
+                        .setHash(savedIov.getPayloadHash());
+                dto.data(saved.getObjectName() + "; " + saved.getObjectName());
                 dto.streamerInfo("none");
-                setdto.addResourcesItem(dto);
+                setdto.addresourcesItem(dto);
             }
             catch (final ConflictException e) {
-                String msg  = "Payload hash already exists " + entity.hash() + " "
-                              + "since " + iov.id().since() + " in tag " + tagname;
+                String msg  = "Payload hash already exists " + entity.getHash() + " "
+                              + "since " + iov.getId().getSince() + " in tag " + tagname;
                 log.warn("Payload insertion conflict: {}", msg);
                 throw new ConflictException(msg);
             }
             catch (final IOException e) {
-                log.error("Payload insertion problem for hash {}: {}", entity.hash(), e);
+                log.error("Payload insertion problem for hash {}: {}", entity.getHash(), e);
                 throw new CdbInternalException("Cannot read payload file " + uploadedFile);
             }
             finally {
@@ -390,54 +387,62 @@ public class PayloadService {
     /**
      * Save IOV and Payload in one request.
      *
-     * @param dto
-     * @param objectType
-     * @param version
-     * @param compressionType
-     * @param tag
+     * @param dto the StoreDto
+     * @param objectType the object type
+     * @param version the version
+     * @param compressionType the compression type
+     * @param tag the tag name
      *
-     * @return StoreDto
+     * @return StoreDto the store dto of inserted iov.
      * @throws AbstractCdbServiceException
+     *              if a CREST exception occurred.
+     * @throws NoSuchAlgorithmException
+     *              if an Hashing problem occurred.
+     * @throws IOException
+     *              if a IO exception occurred.
      */
     @Transactional(rollbackOn = {Exception.class})
     public StoreDto savePayloadIov(StoreDto dto, String objectType, String version,
                                    String compressionType, String tag)
-            throws AbstractCdbServiceException, NoSuchAlgorithmException {
+            throws AbstractCdbServiceException, NoSuchAlgorithmException, IOException {
         log.debug("Create iov and payload for time {}", dto.getSince());
         // Here we generate objectType and version. We should probably allow for input
         // arguments.
-        StoreDto outdto = new StoreDto();
         // Start filling the payload data.
         Payload entity = new Payload()
-                .objectType(objectType).hash("none")
-                .compressionType(compressionType).version(version);
-        entity.size(0);
+                .setObjectType(objectType).setHash("none")
+                .setCompressionType(compressionType).setVersion(version);
+        entity.setSize(0);
         PayloadInfoData sinfodata = new PayloadInfoData();
         sinfodata.streamerInfo(dto.getStreamerInfo().getBytes(StandardCharsets.UTF_8));
         // Initialize the iov entity from the DTO.
         Iov iov = new Iov();
         IovId iovId = new IovId();
-        iovId.since(BigInteger.valueOf(dto.getSince())).tagName(tag);
-        iov.id(iovId).tag(new Tag().name(tag));
+        iovId.setSince(BigInteger.valueOf(dto.getSince())).setTagName(tag);
+        iov.setId(iovId).setTag(new Tag().setName(tag));
         // Generate the hash from the payload.
         byte[] paylodContent = dto.getData().getBytes(StandardCharsets.UTF_8);
         log.debug("Use the data string, it represents the payload : length is {}",
                 paylodContent.length);
-        entity.size(paylodContent.length);
+        entity.setSize(paylodContent.length);
         final String phash = HashGenerator.sha256Hash(paylodContent);
-        iov.payloadHash(phash);
-        entity.hash(phash);
+        iov.setPayloadHash(phash);
+        entity.setHash(phash);
         sinfodata.hash(phash);
         InputStream is = new ByteArrayInputStream(paylodContent);
         // Persist the entity using JPA
         this.insertPayload(entity, is, sinfodata);
         Iov savedIov = iovService.storeIov(iov);
+        // Close stream
+        is.close();
         // Fill summary info to return.
-        outdto.since(savedIov.id().since().longValue());
-        outdto.setHash(phash);
-        outdto.data("payloadlength: " + paylodContent.length);
-        outdto.streamerInfo("none");
-        return outdto;
+        // This is a "fake" object containing only some meta information.
+        StoreDto outDto = new StoreDto();
+        outDto.since(savedIov.getId().getSince().longValue());
+        outDto.setHash(phash);
+        outDto.data("payload_length: " + paylodContent.length);
+        outDto.streamerInfo("none");
+        return outDto;
     }
 
 }

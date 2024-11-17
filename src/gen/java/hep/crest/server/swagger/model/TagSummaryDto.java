@@ -14,13 +14,23 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * TagSummaryDto
@@ -29,7 +39,7 @@ import javax.validation.Valid;
   TagSummaryDto.JSON_PROPERTY_TAGNAME,
   TagSummaryDto.JSON_PROPERTY_NIOVS
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class TagSummaryDto   {
   public static final String JSON_PROPERTY_TAGNAME = "tagname";
   @JsonProperty(JSON_PROPERTY_TAGNAME)
@@ -48,8 +58,7 @@ public class TagSummaryDto   {
    * Get tagname
    * @return tagname
    **/
-  @JsonProperty("tagname")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "tagname")
   
   public String getTagname() {
     return tagname;
@@ -68,8 +77,7 @@ public class TagSummaryDto   {
    * Get niovs
    * @return niovs
    **/
-  @JsonProperty("niovs")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "niovs")
   
   public Long getNiovs() {
     return niovs;
@@ -89,15 +97,14 @@ public class TagSummaryDto   {
       return false;
     }
     TagSummaryDto tagSummaryDto = (TagSummaryDto) o;
-    return Objects.equals(this.tagname, tagSummaryDto.tagname) &&
-        Objects.equals(this.niovs, tagSummaryDto.niovs);
+    return Objects.equals(tagname, tagSummaryDto.tagname) &&
+        Objects.equals(niovs, tagSummaryDto.niovs);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(tagname, niovs);
   }
-
 
   @Override
   public String toString() {

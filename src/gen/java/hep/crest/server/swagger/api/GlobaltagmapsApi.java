@@ -1,11 +1,15 @@
 package hep.crest.server.swagger.api;
 
-import hep.crest.server.swagger.model.*;
 import hep.crest.server.swagger.api.GlobaltagmapsApiService;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import io.swagger.annotations.ApiParam;
-
-import hep.crest.server.swagger.impl.JAXRSContext;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import hep.crest.server.swagger.model.GlobalTagMapDto;
 import hep.crest.server.swagger.model.GlobalTagMapSetDto;
@@ -19,86 +23,101 @@ import java.io.InputStream;
 
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.springframework.beans.factory.annotation.Autowired;
+import hep.crest.server.swagger.impl.JAXRSContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Request;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-
-import javax.ws.rs.*;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.*;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 @Path("/globaltagmaps")
 
 
-@io.swagger.annotations.Api(description = "the globaltagmaps API")
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+///// @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class GlobaltagmapsApi  {
+
    @Autowired
    private GlobaltagmapsApiService delegate;
    @Context
    protected Request request;
    @Context
    protected HttpHeaders headers;
+   @Context
+   protected UriInfo uriInfo;
    @Autowired
    protected JAXRSContext context;
 
-    @POST
-    
+
+
+
+    @jakarta.ws.rs.POST
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Create a GlobalTagMap in the database.", notes = "This method allows to insert a GlobalTagMap.Arguments: GlobalTagMapDto should be provided in the body as a JSON file.", response = GlobalTagMapDto.class, authorizations = {
-        @io.swagger.annotations.Authorization(value = "BearerAuth")
-    }, tags={ "globaltagmaps", })
-    @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 201, message = "successful operation", response = GlobalTagMapDto.class),
-        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
-    })
-    public Response createGlobalTagMap(@ApiParam(value = "") @Valid  GlobalTagMapDto globalTagMapDto,@Context SecurityContext securityContext,@Context UriInfo info)
+    @Operation(summary = "Create a GlobalTagMap in the database.", description = "", responses = {
+            @ApiResponse(responseCode = "201", description = "successful operation", content =
+                @Content(schema = @Schema(implementation = GlobalTagMapDto.class))),
+            @ApiResponse(responseCode = "200", description = "Generic error response", content =
+                @Content(schema = @Schema(implementation = HTTPResponse.class))),
+            },security = {
+            @SecurityRequirement(name = "OpenID", scopes={ "openid" }),
+            @SecurityRequirement(name = "BearerAuth")
+        }, tags={ "globaltagmaps", })
+    public Response createGlobalTagMap(@Parameter(description = "") @Valid  GlobalTagMapDto globalTagMapDto,@Context SecurityContext securityContext)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
-        return delegate.createGlobalTagMap(globalTagMapDto, securityContext, info);
+        context.setUriInfo(uriInfo);
+        return delegate.createGlobalTagMap(globalTagMapDto, securityContext);
     }
-    @DELETE
+
+    @jakarta.ws.rs.DELETE
     @Path("/{name}")
-    
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Delete GlobalTagMapDto lists.", notes = "This method search for mappings using the global tag name and deletes all mappings.", response = GlobalTagMapSetDto.class, authorizations = {
-        @io.swagger.annotations.Authorization(value = "BearerAuth")
-    }, tags={ "globaltagmaps", })
-    @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagMapSetDto.class),
-        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
-        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
-    })
-    public Response deleteGlobalTagMap(@ApiParam(value = "the global tag name", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "label: the generic name labelling all tags of a certain kind.", required = true, defaultValue = "none") @DefaultValue("none") @QueryParam("label") @NotNull  String label,@ApiParam(value = "tagname: the name of the tag associated.", required = true, defaultValue = "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname,@ApiParam(value = "record: the record.") @QueryParam("record")  String record,@Context SecurityContext securityContext,@Context UriInfo info)
+    @Operation(summary = "Delete GlobalTagMapDto lists.", description = "", responses = {
+            @ApiResponse(responseCode = "200", description = "successful operation", content =
+                @Content(schema = @Schema(implementation = GlobalTagMapSetDto.class))),
+            @ApiResponse(responseCode = "404", description = "Not found", content =
+                @Content(schema = @Schema(implementation = HTTPResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Generic error response", content =
+                @Content(schema = @Schema(implementation = HTTPResponse.class))),
+            },security = {
+            @SecurityRequirement(name = "OpenID", scopes={ "openid" }),
+            @SecurityRequirement(name = "BearerAuth")
+        }, tags={ "globaltagmaps", })
+    public Response deleteGlobalTagMap(@Parameter(description = "the global tag name", required = true) @PathParam("name") @NotNull  String name,@Parameter(description = "label: the generic name labelling all tags of a certain kind.", required = true, example = "none") @DefaultValue("none") @QueryParam("label") @NotNull  String label,@Parameter(description = "tagname: the name of the tag associated.", required = true, example = "none") @DefaultValue("none") @QueryParam("tagname") @NotNull  String tagname,@Parameter(description = "record: the record.") @QueryParam("record")  String record,@Context SecurityContext securityContext)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
-        return delegate.deleteGlobalTagMap(name, label, tagname, record, securityContext, info);
+        context.setUriInfo(uriInfo);
+        return delegate.deleteGlobalTagMap(name, label, tagname, record, securityContext);
     }
-    @GET
+
+    @jakarta.ws.rs.GET
     @Path("/{name}")
-    
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Find GlobalTagMapDto lists.", notes = "This method search for mappings using the global tag name.", response = GlobalTagMapSetDto.class, authorizations = {
-        @io.swagger.annotations.Authorization(value = "BearerAuth")
-    }, tags={ "globaltagmaps", })
-    @io.swagger.annotations.ApiResponses(value = {
-        @io.swagger.annotations.ApiResponse(code = 200, message = "successful operation", response = GlobalTagMapSetDto.class),
-        @io.swagger.annotations.ApiResponse(code = 404, message = "Not found", response = HTTPResponse.class),
-        @io.swagger.annotations.ApiResponse(code = 200, message = "Generic error response", response = HTTPResponse.class)
-    })
-    public Response findGlobalTagMap(@ApiParam(value = "", required = true) @PathParam("name") @NotNull  String name,@ApiParam(value = "If the mode is BackTrace then it will search for global tags containing the tag <name>" , defaultValue="Trace")@HeaderParam("X-Crest-MapMode") String xCrestMapMode,@Context SecurityContext securityContext,@Context UriInfo info)
+    @Operation(summary = "Find GlobalTagMapDto lists.", description = "", responses = {
+            @ApiResponse(responseCode = "200", description = "successful operation", content =
+                @Content(schema = @Schema(implementation = GlobalTagMapSetDto.class))),
+            @ApiResponse(responseCode = "404", description = "Not found", content =
+                @Content(schema = @Schema(implementation = HTTPResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Generic error response", content =
+                @Content(schema = @Schema(implementation = HTTPResponse.class))),
+            },security = {
+            @SecurityRequirement(name = "OpenID", scopes={ "openid" }),
+            @SecurityRequirement(name = "BearerAuth")
+        }, tags={ "globaltagmaps", })
+    public Response findGlobalTagMap(@Parameter(description = "", required = true) @PathParam("name") @NotNull  String name,@Parameter(description = "If the mode is BackTrace then it will search for global tags containing the tag <name>" , example="Trace")@HeaderParam("X-Crest-MapMode") String xCrestMapMode,@Context SecurityContext securityContext)
     throws NotFoundException {
         context.setHttpHeaders(headers);
         context.setRequest(request);
-        return delegate.findGlobalTagMap(name, xCrestMapMode, securityContext, info);
+        context.setUriInfo(uriInfo);
+        return delegate.findGlobalTagMap(name, xCrestMapMode, securityContext);
     }
 }

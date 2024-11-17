@@ -3,11 +3,11 @@ package hep.crest.server.config.filters;
 import hep.crest.server.annotations.CacheControlCdb;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.ext.Provider;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 
@@ -28,8 +28,8 @@ public class CacheControlFilter implements ContainerResponseFilter {
      * (non-Javadoc)
      * 
      * @see
-     * javax.ws.rs.container.ContainerResponseFilter#filter(javax.ws.rs.container.
-     * ContainerRequestContext, javax.ws.rs.container.ContainerResponseContext)
+     * jakarta.ws.rs.container.ContainerResponseFilter#filter(jakarta.ws.rs.container.
+     * ContainerRequestContext, jakarta.ws.rs.container.ContainerResponseContext)
      */
     @Override
     public void filter(ContainerRequestContext pRequestContext,

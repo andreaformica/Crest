@@ -14,13 +14,23 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * FolderDto
@@ -33,7 +43,7 @@ import javax.validation.Valid;
   FolderDto.JSON_PROPERTY_TAG_PATTERN,
   FolderDto.JSON_PROPERTY_GROUP_ROLE
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class FolderDto   {
   public static final String JSON_PROPERTY_NODE_FULLPATH = "nodeFullpath";
   @JsonProperty(JSON_PROPERTY_NODE_FULLPATH)
@@ -68,8 +78,7 @@ public class FolderDto   {
    * Get nodeFullpath
    * @return nodeFullpath
    **/
-  @JsonProperty("nodeFullpath")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "nodeFullpath")
   
   public String getNodeFullpath() {
     return nodeFullpath;
@@ -88,8 +97,7 @@ public class FolderDto   {
    * Get schemaName
    * @return schemaName
    **/
-  @JsonProperty("schemaName")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "schemaName")
   
   public String getSchemaName() {
     return schemaName;
@@ -108,8 +116,7 @@ public class FolderDto   {
    * Get nodeName
    * @return nodeName
    **/
-  @JsonProperty("nodeName")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "nodeName")
   
   public String getNodeName() {
     return nodeName;
@@ -128,8 +135,7 @@ public class FolderDto   {
    * Get nodeDescription
    * @return nodeDescription
    **/
-  @JsonProperty("nodeDescription")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "nodeDescription")
   
   public String getNodeDescription() {
     return nodeDescription;
@@ -148,8 +154,7 @@ public class FolderDto   {
    * Get tagPattern
    * @return tagPattern
    **/
-  @JsonProperty("tagPattern")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "tagPattern")
   
   public String getTagPattern() {
     return tagPattern;
@@ -168,8 +173,7 @@ public class FolderDto   {
    * Get groupRole
    * @return groupRole
    **/
-  @JsonProperty("groupRole")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "groupRole")
   
   public String getGroupRole() {
     return groupRole;
@@ -189,19 +193,18 @@ public class FolderDto   {
       return false;
     }
     FolderDto folderDto = (FolderDto) o;
-    return Objects.equals(this.nodeFullpath, folderDto.nodeFullpath) &&
-        Objects.equals(this.schemaName, folderDto.schemaName) &&
-        Objects.equals(this.nodeName, folderDto.nodeName) &&
-        Objects.equals(this.nodeDescription, folderDto.nodeDescription) &&
-        Objects.equals(this.tagPattern, folderDto.tagPattern) &&
-        Objects.equals(this.groupRole, folderDto.groupRole);
+    return Objects.equals(nodeFullpath, folderDto.nodeFullpath) &&
+        Objects.equals(schemaName, folderDto.schemaName) &&
+        Objects.equals(nodeName, folderDto.nodeName) &&
+        Objects.equals(nodeDescription, folderDto.nodeDescription) &&
+        Objects.equals(tagPattern, folderDto.tagPattern) &&
+        Objects.equals(groupRole, folderDto.groupRole);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(nodeFullpath, schemaName, nodeName, nodeDescription, tagPattern, groupRole);
   }
-
 
   @Override
   public String toString() {

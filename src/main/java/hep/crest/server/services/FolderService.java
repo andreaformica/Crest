@@ -3,16 +3,16 @@
  */
 package hep.crest.server.services;
 
-import hep.crest.server.exceptions.AbstractCdbServiceException;
-import hep.crest.server.exceptions.ConflictException;
 import hep.crest.server.data.pojo.CrestFolders;
 import hep.crest.server.data.repositories.CrestFoldersRepository;
+import hep.crest.server.exceptions.AbstractCdbServiceException;
+import hep.crest.server.exceptions.ConflictException;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,11 +49,11 @@ public class FolderService {
     public CrestFolders insertFolder(CrestFolders entity) throws AbstractCdbServiceException {
         log.debug("Create CrestFolder from  {}", entity);
         final Optional<CrestFolders> tmpgt = crestFoldersRepository
-                .findById(entity.nodeFullpath());
+                .findById(entity.getNodeFullpath());
         if (tmpgt.isPresent()) {
             log.debug("Cannot store folder {}  : resource already exists.. ", entity);
             throw new ConflictException(
-                    "Folder already exists for name " + entity.nodeFullpath());
+                    "Folder already exists for name " + entity.getNodeFullpath());
         }
         log.debug("Saving folder entity {}", entity);
         final CrestFolders saved = crestFoldersRepository.save(entity);

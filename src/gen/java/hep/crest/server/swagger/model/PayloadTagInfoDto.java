@@ -14,13 +14,23 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * PayloadTagInfoDto
@@ -31,7 +41,7 @@ import javax.validation.Valid;
   PayloadTagInfoDto.JSON_PROPERTY_TOTVOLUME,
   PayloadTagInfoDto.JSON_PROPERTY_AVGVOLUME
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class PayloadTagInfoDto   {
   public static final String JSON_PROPERTY_TAGNAME = "tagname";
   @JsonProperty(JSON_PROPERTY_TAGNAME)
@@ -58,8 +68,7 @@ public class PayloadTagInfoDto   {
    * Get tagname
    * @return tagname
    **/
-  @JsonProperty("tagname")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "tagname")
   
   public String getTagname() {
     return tagname;
@@ -78,8 +87,7 @@ public class PayloadTagInfoDto   {
    * Get niovs
    * @return niovs
    **/
-  @JsonProperty("niovs")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "niovs")
   
   public Integer getNiovs() {
     return niovs;
@@ -98,8 +106,7 @@ public class PayloadTagInfoDto   {
    * Get totvolume
    * @return totvolume
    **/
-  @JsonProperty("totvolume")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "totvolume")
   
   public Float getTotvolume() {
     return totvolume;
@@ -118,8 +125,7 @@ public class PayloadTagInfoDto   {
    * Get avgvolume
    * @return avgvolume
    **/
-  @JsonProperty("avgvolume")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "avgvolume")
   
   public Float getAvgvolume() {
     return avgvolume;
@@ -139,17 +145,16 @@ public class PayloadTagInfoDto   {
       return false;
     }
     PayloadTagInfoDto payloadTagInfoDto = (PayloadTagInfoDto) o;
-    return Objects.equals(this.tagname, payloadTagInfoDto.tagname) &&
-        Objects.equals(this.niovs, payloadTagInfoDto.niovs) &&
-        Objects.equals(this.totvolume, payloadTagInfoDto.totvolume) &&
-        Objects.equals(this.avgvolume, payloadTagInfoDto.avgvolume);
+    return Objects.equals(tagname, payloadTagInfoDto.tagname) &&
+        Objects.equals(niovs, payloadTagInfoDto.niovs) &&
+        Objects.equals(totvolume, payloadTagInfoDto.totvolume) &&
+        Objects.equals(avgvolume, payloadTagInfoDto.avgvolume);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(tagname, niovs, totvolume, avgvolume);
   }
-
 
   @Override
   public String toString() {

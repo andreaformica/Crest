@@ -14,17 +14,23 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import hep.crest.server.swagger.model.GenericMap;
-import hep.crest.server.swagger.model.RespPage;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * CrestBaseResponse
@@ -36,7 +42,7 @@ import javax.validation.Valid;
   CrestBaseResponse.JSON_PROPERTY_PAGE,
   CrestBaseResponse.JSON_PROPERTY_FILTER
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "format", visible = true)
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "format", visible = true)
 @JsonSubTypes({
   @JsonSubTypes.Type(value = FolderSetDto.class, name = "FolderSetDto"),
   @JsonSubTypes.Type(value = GlobalTagMapSetDto.class, name = "GlobalTagMapSetDto"),
@@ -82,8 +88,7 @@ public class CrestBaseResponse   {
    * Get size
    * @return size
    **/
-  @JsonProperty("size")
-  @ApiModelProperty(required = true, value = "")
+  @JsonProperty(value = "size")
   @NotNull 
   public Long getSize() {
     return size;
@@ -102,8 +107,7 @@ public class CrestBaseResponse   {
    * Get datatype
    * @return datatype
    **/
-  @JsonProperty("datatype")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "datatype")
   
   public String getDatatype() {
     return datatype;
@@ -122,8 +126,7 @@ public class CrestBaseResponse   {
    * Get format
    * @return format
    **/
-  @JsonProperty("format")
-  @ApiModelProperty(required = true, value = "")
+  @JsonProperty(value = "format")
   @NotNull 
   public String getFormat() {
     return format;
@@ -142,8 +145,7 @@ public class CrestBaseResponse   {
    * Get page
    * @return page
    **/
-  @JsonProperty("page")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "page")
   @Valid 
   public RespPage getPage() {
     return page;
@@ -162,8 +164,7 @@ public class CrestBaseResponse   {
    * Get filter
    * @return filter
    **/
-  @JsonProperty("filter")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "filter")
   @Valid 
   public GenericMap getFilter() {
     return filter;
@@ -183,18 +184,17 @@ public class CrestBaseResponse   {
       return false;
     }
     CrestBaseResponse crestBaseResponse = (CrestBaseResponse) o;
-    return Objects.equals(this.size, crestBaseResponse.size) &&
-        Objects.equals(this.datatype, crestBaseResponse.datatype) &&
-        Objects.equals(this.format, crestBaseResponse.format) &&
-        Objects.equals(this.page, crestBaseResponse.page) &&
-        Objects.equals(this.filter, crestBaseResponse.filter);
+    return Objects.equals(size, crestBaseResponse.size) &&
+        Objects.equals(datatype, crestBaseResponse.datatype) &&
+        Objects.equals(format, crestBaseResponse.format) &&
+        Objects.equals(page, crestBaseResponse.page) &&
+        Objects.equals(filter, crestBaseResponse.filter);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(size, datatype, format, page, filter);
   }
-
 
   @Override
   public String toString() {

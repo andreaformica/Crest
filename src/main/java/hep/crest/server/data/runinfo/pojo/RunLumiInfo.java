@@ -2,21 +2,20 @@ package hep.crest.server.data.runinfo.pojo;
 // Generated Aug 2, 2016 3:50:25 PM by Hibernate Tools 3.2.2.GA
 
 import hep.crest.server.config.DatabasePropertyConfigurator;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
-import javax.persistence.PrePersist;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -27,9 +26,8 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "RUN_LUMI_INFO", schema = DatabasePropertyConfigurator.SCHEMA_NAME)
-@Accessors(fluent = true)
-@Getter
-@Setter
+@Data
+@Accessors(chain = true)
 @NoArgsConstructor
 @ToString
 @EqualsAndHashCode

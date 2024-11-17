@@ -9,7 +9,7 @@ import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.pojo.TagMeta;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.Table;
+import jakarta.persistence.Table;
 
 /**
  * Properties for crest.

@@ -14,39 +14,43 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import hep.crest.server.swagger.model.CrestBaseResponse;
-import hep.crest.server.swagger.model.GenericMap;
-import hep.crest.server.swagger.model.GlobalTagMapDto;
-import hep.crest.server.swagger.model.RespPage;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * An GlobalTagMapSet containing GlobalTagMapDto objects.
  */
-@ApiModel(description = "An GlobalTagMapSet containing GlobalTagMapDto objects.")
+@Schema(description = "An GlobalTagMapSet containing GlobalTagMapDto objects.")
 @JsonPropertyOrder({
   GlobalTagMapSetDto.JSON_PROPERTY_RESOURCES
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class GlobalTagMapSetDto extends CrestBaseResponse  {
   public static final String JSON_PROPERTY_RESOURCES = "resources";
   @JsonProperty(JSON_PROPERTY_RESOURCES)
-  private List<GlobalTagMapDto> resources = null;
+  private List<@Valid GlobalTagMapDto> resources = new ArrayList<>();
 
-  public GlobalTagMapSetDto resources(List<GlobalTagMapDto> resources) {
+  public GlobalTagMapSetDto resources(List<@Valid GlobalTagMapDto> resources) {
     this.resources = resources;
     return this;
   }
 
-  public GlobalTagMapSetDto addResourcesItem(GlobalTagMapDto resourcesItem) {
+  public GlobalTagMapSetDto addresourcesItem(GlobalTagMapDto resourcesItem) {
     if (this.resources == null) {
       this.resources = new ArrayList<>();
     }
@@ -58,14 +62,13 @@ public class GlobalTagMapSetDto extends CrestBaseResponse  {
    * Get resources
    * @return resources
    **/
-  @JsonProperty("resources")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "resources")
   @Valid 
-  public List<GlobalTagMapDto> getResources() {
+  public List<@Valid GlobalTagMapDto> getResources() {
     return resources;
   }
 
-  public void setResources(List<GlobalTagMapDto> resources) {
+  public void setResources(List<@Valid GlobalTagMapDto> resources) {
     this.resources = resources;
   }
 
@@ -79,15 +82,13 @@ public class GlobalTagMapSetDto extends CrestBaseResponse  {
       return false;
     }
     GlobalTagMapSetDto globalTagMapSetDto = (GlobalTagMapSetDto) o;
-    return Objects.equals(this.resources, globalTagMapSetDto.resources) &&
-        super.equals(o);
+    return super.equals(o) && Objects.equals(resources, globalTagMapSetDto.resources);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(resources, super.hashCode());
+    return Objects.hash(super.hashCode(), resources);
   }
-
 
   @Override
   public String toString() {

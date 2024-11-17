@@ -2,23 +2,23 @@ package hep.crest.server.data.pojo;
 // Generated Aug 2, 2016 3:50:25 PM by Hibernate Tools 3.2.2.GA
 
 import hep.crest.server.config.DatabasePropertyConfigurator;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
+
 import lombok.experimental.Accessors;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.PrePersist;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -33,9 +33,8 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "GLOBAL_TAG", schema = DatabasePropertyConfigurator.SCHEMA_NAME)
-@Accessors(fluent = true)
-@Getter
-@Setter
+@Data
+@Accessors(chain = true)
 @NoArgsConstructor
 @ToString
 @EqualsAndHashCode
@@ -109,10 +108,10 @@ public class GlobalTag implements java.io.Serializable {
     @PrePersist
     public void prePersist() {
         // Check the insertion time.
-        if (this.insertionTime() == null) {
+        if (this.getInsertionTime() == null) {
             // Set to now.
             final Timestamp now = Timestamp.from(Instant.now());
-            this.insertionTime(now);
+            this.setInsertionTime(now);
         }
         if (this.snapshotTime == null) {
             this.snapshotTime = new Date(this.insertionTime.getTime());

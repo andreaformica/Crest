@@ -3,8 +3,10 @@ package hep.crest.server.swagger.impl;
 import hep.crest.server.annotations.ProfileAndLog;
 import hep.crest.server.caching.CachingPolicyService;
 import hep.crest.server.caching.CachingProperties;
+import hep.crest.server.config.CrestProperties;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.converters.IovMapper;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.repositories.args.IovModeEnum;
@@ -25,22 +27,20 @@ import hep.crest.server.swagger.model.RespPage;
 import hep.crest.server.swagger.model.TagSummaryDto;
 import hep.crest.server.swagger.model.TagSummarySetDto;
 import lombok.extern.slf4j.Slf4j;
-import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.core.CacheControl;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.SecurityContext;
+
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -53,8 +53,6 @@ import java.util.List;
  *
  * @author formica
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen",
-        date = "2017-09-05T16:23:23.401+02:00")
 @Component
 @Slf4j
 public class IovsApiServiceImpl extends IovsApiService {
@@ -96,8 +94,7 @@ public class IovsApiServiceImpl extends IovsApiService {
      * Mapper.
      */
     @Autowired
-    @Qualifier("mapper")
-    private MapperFacade mapper;
+    private IovMapper mapper;
 
     /**
      * The context from the request.
@@ -110,27 +107,26 @@ public class IovsApiServiceImpl extends IovsApiService {
      *
      * @see
      * hep.crest.server.swagger.api.IovsApiService#createIov(hep.crest.swagger.model
-     * .IovDto, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+     * .IovDto, jakarta.ws.rs.core.SecurityContext, jakarta.ws.rs.core.UriInfo)
      */
     @Override
-    public Response storeIovOne(IovDto body, SecurityContext securityContext, UriInfo info) {
+    public Response storeIovOne(IovDto body, SecurityContext securityContext) {
         log.info("IovRestController processing request for creating an iov");
         // Create a new IOV.
         String tagname = body.getTagName();
-        Iov entity = mapper.map(body, Iov.class);
-        entity.tag(new Tag().name(tagname));
+        Iov entity = mapper.toEntity(body);
         final Iov saved = iovService.insertIov(entity);
         // Change the modification time in the tag.
         Tag tagEntity = tagService.findOne(tagname);
-        tagEntity.modificationTime(new Date(Instant.now().toEpochMilli()));
+        tagEntity.setModificationTime(Date.from(Instant.now()));
         tagService.updateTag(tagEntity);
         // Generate response.
-        IovDto dto = mapper.map(saved, IovDto.class);
+        IovDto dto = mapper.toDto(saved);
         dto.tagName(tagname);
         List<IovDto> dtoList = new ArrayList<>();
         dtoList.add(dto);
         CrestBaseResponse resp = buildEntityResponse(dtoList, new GenericMap());
-        return Response.created(info.getRequestUri()).entity(resp).build();
+        return Response.created(context.getUriInfo().getRequestUri()).entity(resp).build();
     }
 
     /*
@@ -138,13 +134,12 @@ public class IovsApiServiceImpl extends IovsApiService {
      *
      * @see
      * hep.crest.server.swagger.api.IovsApiService#storeBatchIovMultiForm(hep.crest.
-     * swagger.model.IovSetDto, javax.ws.rs.core.SecurityContext,
-     * javax.ws.rs.core.UriInfo)
+     * swagger.model.IovSetDto, jakarta.ws.rs.core.SecurityContext,
+     * jakarta.ws.rs.core.UriInfo)
      */
     @Override
     @ProfileAndLog
-    public Response storeIovBatch(IovSetDto dto, SecurityContext securityContext,
-                                  UriInfo info) {
+    public Response storeIovBatch(IovSetDto dto, SecurityContext securityContext) {
         log.info("Upload iovs batch of size {}",
                 dto.getSize());
         // Prepare the iov list to insert and a list representing iovs really inserted.
@@ -164,21 +159,20 @@ public class IovsApiServiceImpl extends IovsApiService {
         for (final IovDto iovDto : iovlist) {
             log.debug("Create iov from dto {}", iovDto);
             // Create new iov.
-            Iov entity = mapper.map(iovDto, Iov.class);
-            entity.tag(new Tag().name(tagName));
+            Iov entity = mapper.toEntity(iovDto);
             final Iov saved = iovService.insertIov(entity);
-            IovDto saveddto = mapper.map(saved, IovDto.class);
+            IovDto saveddto = mapper.toDto(saved);
             saveddto.tagName(tagName);
             // Add to saved list.
             savedList.add(saveddto);
         }
         // Change the modification time in the tag.
-        tagEntity.modificationTime(new Date(Instant.now().toEpochMilli()));
+        tagEntity.setModificationTime(Date.from(Instant.now()));
         tagService.updateTag(tagEntity);
         // Prepare the Set for the response.
         final CrestBaseResponse saveddto = buildEntityResponse(savedList, new GenericMap());
         // Send 201.
-        return Response.created(info.getRequestUri()).entity(saveddto).build();
+        return Response.created(context.getUriInfo().getRequestUri()).entity(saveddto).build();
     }
 
     @Override
@@ -190,8 +184,7 @@ public class IovsApiServiceImpl extends IovsApiService {
                                 String hash,
                                 Integer page, Integer size, String sort,
                                 String xCrestQuery, String xCrestSince,
-                                SecurityContext securityContext,
-                                UriInfo info) {
+                                SecurityContext securityContext) {
         log.info("Search iovs list using method={}, tag={}, since={}, until={}, timeformat={}, "
                  + "page={}, size={}, "
                  + "sort={}", method,
@@ -247,9 +240,7 @@ public class IovsApiServiceImpl extends IovsApiService {
         }
         // Create filters
         GenericMap filters = new GenericMap();
-        if (tagname != null) {
-            filters.put("tagName", tagname);
-        }
+        filters.put("tagName", tagname);
         if (rsince != null) {
             filters.put("since", rsince.toString());
         }
@@ -268,13 +259,15 @@ public class IovsApiServiceImpl extends IovsApiService {
                 .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
                 .number(entitypage.getNumber());
 
-        final List<IovDto> dtolist = edh.entityToDtoList(entitypage.toList(), IovDto.class);
+        final List<IovDto> dtolist = edh.entityToDtoList(entitypage.toList(), IovDto.class,
+                IovMapper.class);
         Response.Status rstatus = Response.Status.OK;
-        // Prepare the Set.
+        final CacheControl cc = cachesvc.getIovsCacheControlForUntil(0L, CrestProperties.INFINITY);
+        // Prepare the response.
         final CrestBaseResponse saveddto = buildEntityResponse(dtolist, filters);
         saveddto.page(respPage);
         // Send a response and status 200.
-        return Response.status(rstatus).entity(saveddto).build();
+        return Response.status(rstatus).entity(saveddto).cacheControl(cc).build();
     }
 
 
@@ -283,11 +276,10 @@ public class IovsApiServiceImpl extends IovsApiService {
      *
      * @see
      * hep.crest.server.swagger.api.IovsApiService#getSizeByTag(java.lang.String,
-     * javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+     * jakarta.ws.rs.core.SecurityContext, jakarta.ws.rs.core.UriInfo)
      */
     @Override
-    public Response getSizeByTag(@NotNull String tagname, SecurityContext securityContext,
-                                 UriInfo info) {
+    public Response getSizeByTag(@NotNull String tagname, SecurityContext securityContext) {
         log.info("Get size of iovs for tag {}", tagname);
         // Get the tag summary list corresponding to the tagname pattern.
         // The method in the service sends back always a list, eventually empty.
@@ -326,7 +318,7 @@ public class IovsApiServiceImpl extends IovsApiService {
         // Get the time type to apply different group selections.
         // This are typical values representative for COOL types (NANO_SEC).
         // The groupsize can be provided in input.
-        final String timetype = tagentity.timeType();
+        final String timetype = tagentity.getTimeType();
         if (groupsize == null) {
             groupsize = iovService.getOptimalGroupSize(timetype);
         }
@@ -353,15 +345,14 @@ public class IovsApiServiceImpl extends IovsApiService {
         respdto.datatype("groups").format("IovSetDto").filter(filters);
         // In the response set the cachecontrol flag as well.
         return Response.ok().entity(respdto).cacheControl(cc)
-                .lastModified(tagentity.modificationTime()).build();
+                .lastModified(tagentity.getModificationTime()).build();
     }
 
     @Override
     public Response selectIovPayloads(@NotNull String tagname, String since, String until,
                                       String timeformat,
                                       Integer page, Integer size, String sort,
-                                      SecurityContext securityContext,
-                                      UriInfo info)
+                                      SecurityContext securityContext)
             throws NotFoundException {
 
         log.info(
@@ -420,10 +411,6 @@ public class IovsApiServiceImpl extends IovsApiService {
                 .size((long) dtolist.size());
         respdto.filter(filters);
         respdto.format("IovSetDto");
-        RespPage respPage = new RespPage().size(dtolist.size())
-                .totalElements(Long.valueOf(dtolist.size())).totalPages(1)
-                .number(0);
-        respdto.page(respPage);
         return respdto;
     }
 

@@ -14,14 +14,23 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import java.time.OffsetDateTime;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * PayloadDto
@@ -36,7 +45,7 @@ import javax.validation.Valid;
   PayloadDto.JSON_PROPERTY_SIZE,
   PayloadDto.JSON_PROPERTY_INSERTION_TIME
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class PayloadDto   {
   public static final String JSON_PROPERTY_HASH = "hash";
   @JsonProperty(JSON_PROPERTY_HASH)
@@ -79,8 +88,7 @@ public class PayloadDto   {
    * Get hash
    * @return hash
    **/
-  @JsonProperty("hash")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "hash")
   
   public String getHash() {
     return hash;
@@ -99,8 +107,7 @@ public class PayloadDto   {
    * Get version
    * @return version
    **/
-  @JsonProperty("version")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "version")
   
   public String getVersion() {
     return version;
@@ -119,8 +126,7 @@ public class PayloadDto   {
    * Get objectType
    * @return objectType
    **/
-  @JsonProperty("objectType")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "objectType")
   
   public String getObjectType() {
     return objectType;
@@ -139,8 +145,7 @@ public class PayloadDto   {
    * Get objectName
    * @return objectName
    **/
-  @JsonProperty("objectName")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "objectName")
   
   public String getObjectName() {
     return objectName;
@@ -159,8 +164,7 @@ public class PayloadDto   {
    * Get compressionType
    * @return compressionType
    **/
-  @JsonProperty("compressionType")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "compressionType")
   
   public String getCompressionType() {
     return compressionType;
@@ -179,8 +183,7 @@ public class PayloadDto   {
    * Get checkSum
    * @return checkSum
    **/
-  @JsonProperty("checkSum")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "checkSum")
   
   public String getCheckSum() {
     return checkSum;
@@ -199,8 +202,7 @@ public class PayloadDto   {
    * Get size
    * @return size
    **/
-  @JsonProperty("size")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "size")
   
   public Integer getSize() {
     return size;
@@ -219,8 +221,7 @@ public class PayloadDto   {
    * Get insertionTime
    * @return insertionTime
    **/
-  @JsonProperty("insertionTime")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "insertionTime")
   
   public OffsetDateTime getInsertionTime() {
     return insertionTime;
@@ -240,21 +241,20 @@ public class PayloadDto   {
       return false;
     }
     PayloadDto payloadDto = (PayloadDto) o;
-    return Objects.equals(this.hash, payloadDto.hash) &&
-        Objects.equals(this.version, payloadDto.version) &&
-        Objects.equals(this.objectType, payloadDto.objectType) &&
-        Objects.equals(this.objectName, payloadDto.objectName) &&
-        Objects.equals(this.compressionType, payloadDto.compressionType) &&
-        Objects.equals(this.checkSum, payloadDto.checkSum) &&
-        Objects.equals(this.size, payloadDto.size) &&
-        Objects.equals(this.insertionTime, payloadDto.insertionTime);
+    return Objects.equals(hash, payloadDto.hash) &&
+        Objects.equals(version, payloadDto.version) &&
+        Objects.equals(objectType, payloadDto.objectType) &&
+        Objects.equals(objectName, payloadDto.objectName) &&
+        Objects.equals(compressionType, payloadDto.compressionType) &&
+        Objects.equals(checkSum, payloadDto.checkSum) &&
+        Objects.equals(size, payloadDto.size) &&
+        Objects.equals(insertionTime, payloadDto.insertionTime);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(hash, version, objectType, objectName, compressionType, checkSum, size, insertionTime);
   }
-
 
   @Override
   public String toString() {

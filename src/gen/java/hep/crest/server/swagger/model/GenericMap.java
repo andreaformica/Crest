@@ -14,15 +14,23 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import java.util.HashMap;
-import java.util.Map;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * GenericMap
@@ -30,7 +38,7 @@ import javax.validation.Valid;
 @JsonPropertyOrder({
   GenericMap.JSON_PROPERTY_NAME
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class GenericMap extends HashMap<String, String>  {
   public static final String JSON_PROPERTY_NAME = "name";
   @JsonProperty(JSON_PROPERTY_NAME)
@@ -45,8 +53,7 @@ public class GenericMap extends HashMap<String, String>  {
    * Get name
    * @return name
    **/
-  @JsonProperty("name")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "name")
   
   public String getName() {
     return name;
@@ -66,15 +73,13 @@ public class GenericMap extends HashMap<String, String>  {
       return false;
     }
     GenericMap genericMap = (GenericMap) o;
-    return Objects.equals(this.name, genericMap.name) &&
-        super.equals(o);
+    return super.equals(o) && Objects.equals(name, genericMap.name);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, super.hashCode());
+    return Objects.hash(super.hashCode(), name);
   }
-
 
   @Override
   public String toString() {

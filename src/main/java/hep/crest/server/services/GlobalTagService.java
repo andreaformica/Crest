@@ -19,7 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -101,7 +101,7 @@ public class GlobalTagService {
                 globalTagRepository.findGlobalTagFetchTags(globaltagname, rec, lab).orElseThrow(
                 () -> new CdbNotFoundException("Cannot find global tag for " + globaltagname));
 
-        return entity.globalTagMaps().stream().map(GlobalTagMap::tag).collect(Collectors.toList());
+        return entity.getGlobalTagMaps().stream().map(GlobalTagMap::getTag).collect(Collectors.toList());
     }
 
     /**
@@ -112,11 +112,11 @@ public class GlobalTagService {
     @Transactional
     public GlobalTag insertGlobalTag(GlobalTag entity) throws ConflictException {
         log.debug("Create GlobalTag from {}", entity);
-        final Optional<GlobalTag> tmpgt = globalTagRepository.findById(entity.name());
+        final Optional<GlobalTag> tmpgt = globalTagRepository.findById(entity.getName());
         if (tmpgt.isPresent()) {
             log.warn("GlobalTag {} already exists.", tmpgt.get());
             throw new ConflictException(
-                    "GlobalTag already exists for name " + entity.name());
+                    "GlobalTag already exists for name " + entity.getName());
         }
         final GlobalTag saved = globalTagRepository.save(entity);
         log.debug("Saved entity {}", saved);
@@ -132,12 +132,13 @@ public class GlobalTagService {
     public GlobalTag updateGlobalTag(GlobalTag entity) throws CdbNotFoundException {
         log.debug("Update GlobalTag from {}", entity);
         final GlobalTag toupd =
-                globalTagRepository.findById(entity.name()).orElseThrow(
+                globalTagRepository.findById(entity.getName()).orElseThrow(
                         () -> new CdbNotFoundException(
-                                "GlobalTag does not exists for name " + entity.name()));
-        toupd.description(entity.description()).release(entity.release())
-                .scenario(entity.scenario()).snapshotTime(entity.snapshotTime())
-                .workflow(entity.workflow()).type(entity.type()).validity(entity.validity());
+                                "GlobalTag does not exists for name " + entity.getName()));
+        toupd.setDescription(entity.getDescription()).setRelease(entity.getRelease())
+                .setScenario(entity.getScenario()).setSnapshotTime(entity.getSnapshotTime())
+                .setWorkflow(entity.getWorkflow()).setType(entity.getType())
+                .setValidity(entity.getValidity());
         final GlobalTag saved = globalTagRepository.save(toupd);
         log.debug("Saved entity: {}", saved);
         return saved;
@@ -147,8 +148,11 @@ public class GlobalTagService {
      * @param name the String
      */
     @Transactional
-    public void removeGlobalTag(String name) {
+    public void removeGlobalTag(String name) throws CdbNotFoundException {
         log.debug("Remove global tag {}", name);
+        globalTagRepository.findByName(name).orElseThrow(
+                () -> new CdbNotFoundException("Cannot remove global tag " + name)
+        );
         globalTagRepository.deleteById(name);
         log.debug("Removed entity: {}", name);
     }

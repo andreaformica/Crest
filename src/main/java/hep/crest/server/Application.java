@@ -1,7 +1,6 @@
 package hep.crest.server;
 
 import lombok.extern.slf4j.Slf4j;
-import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -9,7 +8,6 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Profile;
 
 import java.util.Arrays;
 
@@ -17,8 +15,8 @@ import java.util.Arrays;
  * @author formica
  */
 @SpringBootApplication
-@EntityScan("hep.crest.server")
-@ComponentScan({"hep.crest.server", "plugin"})
+@EntityScan(basePackages = "hep.crest.server")
+@ComponentScan(basePackages = {"hep.crest.server", "plugin"})
 @Slf4j
 public class Application {
 
@@ -38,17 +36,6 @@ public class Application {
                 log.debug(beanName);
             }
         };
-    }
-
-    /**
-     * Resolve configuration.
-     *
-     * @return KeycloakSpringBootConfigResolver
-     */
-    @Profile({"keycloak"})
-    @Bean
-    public KeycloakSpringBootConfigResolver keycloakConfigResolver() {
-        return new KeycloakSpringBootConfigResolver();
     }
 
     /**

@@ -2,7 +2,6 @@ package hep.crest.server.converters;
 
 import hep.crest.server.exceptions.PayloadEncodingException;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.engine.jdbc.StreamUtils;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -15,6 +14,7 @@ import java.security.NoSuchAlgorithmException;
 /**
  * A helper service to handle payload.
  * The handler contains static methods to use inputstreams or byte arrays.
+ *
  * @author formica
  */
 @Slf4j
@@ -112,7 +112,12 @@ public final class PayloadHandler {
                                         String uploadedFileLocation) {
         // Save input stream to file.
         try (OutputStream out = new FileOutputStream(uploadedFileLocation)) {
-            StreamUtils.copy(uploadedInputStream, out);
+            byte[] buffer = new byte[4096]; // 4 KB buffer
+            int bytesRead;
+            // Read from the InputStream and write to the OutputStream
+            while ((bytesRead = uploadedInputStream.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
         }
         catch (final IOException e) {
             log.error("Exception in saveStreamToFile: {}", e.getMessage());

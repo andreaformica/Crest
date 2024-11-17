@@ -1,20 +1,20 @@
 package hep.crest.server.security;
 
 import hep.crest.server.config.CrestProperties;
-import org.keycloak.representations.AccessToken;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpMethod; // <-- Import this
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.context.WebApplicationContext;
-
-import javax.ws.rs.HttpMethod;
 
 /**
  * Web security configuration. This is used only with profile different from keycloak.
@@ -26,6 +26,8 @@ import javax.ws.rs.HttpMethod;
 @Profile({"!keycloak"})
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
+@Slf4j
 public class SecurityDefaultConfig {
 
     /**
@@ -34,6 +36,14 @@ public class SecurityDefaultConfig {
     @Autowired
     private CrestProperties cprops;
 
+    /**
+     * JwtDecoder. This is a fake one
+     * @return JwtDecoder
+     */
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        return NimbusJwtDecoder.withJwkSetUri("https://your-jwk-set-uri.com/.well-known/jwks.json").build();
+    }
 
     /**
      * Security filter chain.
@@ -41,45 +51,26 @@ public class SecurityDefaultConfig {
      * @return SecurityFilterChain
      * @throws Exception
      */
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        if ("active".equals(cprops.getSecurity())) {
-            http
-                    .authorizeRequests()
-                    .antMatchers(HttpMethod.GET, "/**").permitAll()
-                    .antMatchers(HttpMethod.HEAD, "/**").permitAll()
-                    .anyRequest().denyAll(); // Deny all other methods (POST, DELETE, etc.)
+        log.info("Security configuration with profile: {} ", cprops.getSecurity());
+        if ("weak".equals(cprops.getSecurity())) {
+            log.info("Allow only GET requests....");
+            http.authorizeHttpRequests(authorize -> authorize
+                    .requestMatchers(HttpMethod.GET, "/**").permitAll()  // Allow all GET requests
+                    .anyRequest().denyAll()  // Deny all other requests
+            )
+            .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+
         }
         else {
-            http.authorizeRequests().antMatchers("/**").permitAll();
+            log.info("Allow all requests....");
+            http.securityMatcher("/**").authorizeHttpRequests(
+                    authorize -> authorize.anyRequest().permitAll()  // Allow all requests
+            );
+            http.csrf(AbstractHttpConfigurer::disable);  // Disable CSRF
         }
-        http.headers().frameOptions().disable();
-        http.csrf().disable();
-
         return http.build();
-    }
-
-    /**
-     * Web security customizer.
-     * @return WebSecurityCustomizer
-     */
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().antMatchers(
-                "/static/**",
-                "/css/**",
-                "/js/**",
-                "/images/**"
-        );
-    }
-
-    @Bean
-    @Scope(scopeName = WebApplicationContext.SCOPE_REQUEST, proxyMode = ScopedProxyMode.TARGET_CLASS)
-    public AccessToken accessToken() {
-        // Provide a fake access token object.
-        AccessToken accessToken = new AccessToken();
-        accessToken.setSubject("abc");
-        accessToken.setName("Tester");
-        return accessToken;
     }
 }

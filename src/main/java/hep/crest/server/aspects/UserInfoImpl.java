@@ -1,11 +1,12 @@
 package hep.crest.server.aspects;
 
 import lombok.extern.slf4j.Slf4j;
-import org.keycloak.KeycloakPrincipal;
-import org.keycloak.KeycloakSecurityContext;
-import org.keycloak.representations.AccessToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 import java.security.Principal;
@@ -23,33 +24,39 @@ public class UserInfoImpl implements UserInfo {
 
     @Override
     public String getUserId(Authentication auth) {
-        String clientid = "TEST";
-        // Check the authentication.
+        String clientId = "TEST";
+
         if (auth == null) {
-            // No authentication is present. It will be used to reject the request.
-            log.warn(
-                    "Stop execution....for the moment we only print this message...no action is "
-                    + "taken");
+            log.warn("Stop execution... No authentication is present.");
+            return clientId;
         }
-        else {
-            // Retrieve user details.
-            final Principal user = (Principal) auth.getPrincipal();
-            if (user instanceof KeycloakPrincipal) {
-                KeycloakPrincipal<KeycloakSecurityContext> kp =
-                        (KeycloakPrincipal<KeycloakSecurityContext>) user;
-                // Use IDToken in Svom : getIdToken
-                // Use AccessToken with CERN : getAccessToken
-                // example: kp .dot. getKeycloakSecurityContext() .dot. getToken()
-                log.info("Keycloak principal: {}", kp);
-                AccessToken token = kp.getKeycloakSecurityContext().getToken();
-                log.debug("Found token : token {}!", token);
-                if (token != null) {
-                    log.debug("Got token for {}", token.getAudience()[0]);
-                    clientid = getClientId(token.getOtherClaims());
-                }
+
+        // Check if authentication is an OAuth2 token (for JWT or Opaque tokens)
+        if (auth instanceof JwtAuthenticationToken) {
+            JwtAuthenticationToken jwtAuth = (JwtAuthenticationToken) auth;
+            Jwt jwt = jwtAuth.getToken();
+            log.info("JWT Principal: {}", jwtAuth.getPrincipal());
+
+            if (jwt != null) {
+                log.debug("Found JWT token: {}", jwt.getTokenValue());
+                // Access claims or any other token data
+                Map<String, Object> claims = jwt.getClaims();
+                clientId = getClientId(claims);
             }
         }
-        return clientid;
+        else if (auth instanceof OAuth2AuthenticationToken) {
+            OAuth2AuthenticationToken oauth2Auth = (OAuth2AuthenticationToken) auth;
+            OAuth2User oauth2User = oauth2Auth.getPrincipal();
+            log.info("OAuth2 Principal: {}", oauth2User);
+
+            if (oauth2User != null) {
+                Map<String, Object> attributes = oauth2User.getAttributes();
+                log.debug("Found OAuth2 user attributes: {}", attributes);
+                clientId = getClientId(attributes);
+            }
+        }
+
+        return clientId;
     }
 
     @Override

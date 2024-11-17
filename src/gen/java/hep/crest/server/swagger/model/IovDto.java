@@ -14,14 +14,23 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import java.time.OffsetDateTime;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * IovDto
@@ -32,7 +41,7 @@ import javax.validation.Valid;
   IovDto.JSON_PROPERTY_INSERTION_TIME,
   IovDto.JSON_PROPERTY_PAYLOAD_HASH
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class IovDto   {
   public static final String JSON_PROPERTY_TAG_NAME = "tagName";
   @JsonProperty(JSON_PROPERTY_TAG_NAME)
@@ -59,8 +68,7 @@ public class IovDto   {
    * Get tagName
    * @return tagName
    **/
-  @JsonProperty("tagName")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "tagName")
   
   public String getTagName() {
     return tagName;
@@ -79,8 +87,7 @@ public class IovDto   {
    * Get since
    * @return since
    **/
-  @JsonProperty("since")
-  @ApiModelProperty(required = true, value = "")
+  @JsonProperty(value = "since")
   @NotNull 
   public Long getSince() {
     return since;
@@ -99,8 +106,7 @@ public class IovDto   {
    * Get insertionTime
    * @return insertionTime
    **/
-  @JsonProperty("insertionTime")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "insertionTime")
   
   public OffsetDateTime getInsertionTime() {
     return insertionTime;
@@ -119,8 +125,7 @@ public class IovDto   {
    * Get payloadHash
    * @return payloadHash
    **/
-  @JsonProperty("payloadHash")
-  @ApiModelProperty(required = true, value = "")
+  @JsonProperty(value = "payloadHash")
   @NotNull 
   public String getPayloadHash() {
     return payloadHash;
@@ -140,17 +145,16 @@ public class IovDto   {
       return false;
     }
     IovDto iovDto = (IovDto) o;
-    return Objects.equals(this.tagName, iovDto.tagName) &&
-        Objects.equals(this.since, iovDto.since) &&
-        Objects.equals(this.insertionTime, iovDto.insertionTime) &&
-        Objects.equals(this.payloadHash, iovDto.payloadHash);
+    return Objects.equals(tagName, iovDto.tagName) &&
+        Objects.equals(since, iovDto.since) &&
+        Objects.equals(insertionTime, iovDto.insertionTime) &&
+        Objects.equals(payloadHash, iovDto.payloadHash);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(tagName, since, insertionTime, payloadHash);
   }
-
 
   @Override
   public String toString() {

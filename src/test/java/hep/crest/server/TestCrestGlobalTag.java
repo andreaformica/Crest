@@ -21,7 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.io.IOException;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,6 +45,7 @@ public class TestCrestGlobalTag {
         GlobalTagDto dto = (GlobalTagDto) rnd.generate(GlobalTagDto.class);
         dto.name(gtname);
         dto.snapshotTime(null);
+        dto.type("N");
         log.info("Store global tag : {} ", dto);
         final ResponseEntity<GlobalTagDto> response = testRestTemplate
                 .postForEntity("/crestapi/globaltags", dto, GlobalTagDto.class);
@@ -111,9 +112,9 @@ public class TestCrestGlobalTag {
         log.info("Try to update global tag : {} ", dto);
         final GlobalTagDto body = dto;
         body.setDescription("Description has changed");
-        body.validity(1990L);
+        body.validity(BigInteger.valueOf(1990L).longValue());
         body.scenario("update");
-        body.type("new");
+        body.type("N");
         final HttpEntity<GlobalTagDto> updrequest = new HttpEntity<GlobalTagDto>(body);
 
         final ResponseEntity<String> respupd = this.testRestTemplate
@@ -139,7 +140,7 @@ public class TestCrestGlobalTag {
                 .exchange("/crestapi/admin/globaltags/NOT-THERE", HttpMethod.DELETE, null, String.class);
         {
             log.info("Remove global tag NOT-THERE ");
-            assertThat(resprmnotthere.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+            assertThat(resprmnotthere.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
 
         dto.name(null);
@@ -212,15 +213,15 @@ public class TestCrestGlobalTag {
     public void testD_globaltagsfail() {
         final ResponseEntity<String> resp = this.testRestTemplate
                 .exchange("/crestapi/globaltags?name=123", HttpMethod.GET, null, String.class);
-        assertThat(resp.getStatusCode()).isGreaterThanOrEqualTo(HttpStatus.OK);
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         final ResponseEntity<String> resp1 = this.testRestTemplate
                 .exchange("/crestapi/globaltags", HttpMethod.GET, null, String.class);
-        assertThat(resp1.getStatusCode()).isGreaterThanOrEqualTo(HttpStatus.OK);
+        assertThat(resp1.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         final ResponseEntity<String> resp2 = this.testRestTemplate.exchange(
                 "/crestapi/globaltags?sort=fff:DESC", HttpMethod.GET, null, String.class);
-        assertThat(resp2.getStatusCode()).isGreaterThan(HttpStatus.NOT_MODIFIED);
+        assertThat(resp2.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
 }

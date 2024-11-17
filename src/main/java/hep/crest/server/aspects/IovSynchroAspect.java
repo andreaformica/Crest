@@ -17,7 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.NotAuthorizedException;
+import jakarta.ws.rs.NotAuthorizedException;
 import java.math.BigInteger;
 
 /**
@@ -76,10 +76,10 @@ public class IovSynchroAspect {
         else {
             // Check the authentication.
             final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String role = entity.tag().name().split("-")[0].toLowerCase();
+            String role = entity.getTag().getName().split("-")[0].toLowerCase();
             Boolean hasrole = userinfo.isUserInRole(auth, role);
-            if (hasrole || entity.tag().name().startsWith("TEST")) {
-                log.info("User is allowed to write IOVs into tag {}", entity.tag().name());
+            if (hasrole || entity.getTag().getName().startsWith("TEST")) {
+                log.info("User is allowed to write IOVs into tag {}", entity.getTag().getName());
                 allowedOperation = true;
             }
         }
@@ -92,7 +92,7 @@ public class IovSynchroAspect {
         else if (Boolean.TRUE.equals(allowedOperation)) {
             // Synchronization aspect is enabled.
             Tag tagentity = null;
-            tagentity = tagService.findOne(entity.tag().name());
+            tagentity = tagService.findOne(entity.getTag().getName());
             // Get synchro type from tag.
             acceptTime = evaluateCondition(tagentity, entity);
         }
@@ -116,13 +116,13 @@ public class IovSynchroAspect {
      * @return Boolean : True if the Iov should be accepted for insertion. False otherwise.
      */
     protected boolean evaluateCondition(Tag tagentity, Iov entity) {
-        final String synchro = tagentity.synchronization();
+        final String synchro = tagentity.getSynchronization();
         Boolean acceptTime = Boolean.FALSE;
-        Iov latest = iovService.latest(tagentity.name());
+        Iov latest = iovService.latest(tagentity.getName());
         switch (synchro) {
             case "SV":
                 log.warn("Can only append IOVs....");
-                if (latest == null || latest.id().since().compareTo(entity.id().since()) <= 0) {
+                if (latest == null || latest.getId().getSince().compareTo(entity.getId().getSince()) <= 0) {
                     // Latest is before the new one.
                     log.info("IOV in insert has correct time respect to last IOV : {} > {}", entity, latest);
                     acceptTime = true;
@@ -135,8 +135,8 @@ public class IovSynchroAspect {
                 break;
             case "APPEND":
                 log.warn("Can append data in case the since is after the end time of the tag");
-                BigInteger endofval = tagentity.endOfValidity();
-                if (endofval  == null || endofval.compareTo(entity.id().since()) <= 0) {
+                BigInteger endofval = tagentity.getEndOfValidity();
+                if (endofval  == null || endofval.compareTo(entity.getId().getSince()) <= 0) {
                     log.info("The since is after end of validity of the Tag");
                     acceptTime = true;
                 }

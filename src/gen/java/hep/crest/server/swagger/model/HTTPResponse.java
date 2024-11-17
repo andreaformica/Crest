@@ -14,19 +14,28 @@
 package hep.crest.server.swagger.model;
 
 import java.util.Objects;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashMap;
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import java.time.OffsetDateTime;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import javax.validation.constraints.*;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 /**
  * general response object that can be used for POST and PUT methods
  */
-@ApiModel(description = "general response object that can be used for POST and PUT methods")
+@Schema(description = "general response object that can be used for POST and PUT methods")
 @JsonPropertyOrder({
   HTTPResponse.JSON_PROPERTY_TIMESTAMP,
   HTTPResponse.JSON_PROPERTY_CODE,
@@ -35,7 +44,7 @@ import javax.validation.Valid;
   HTTPResponse.JSON_PROPERTY_MESSAGE,
   HTTPResponse.JSON_PROPERTY_ID
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
 public class HTTPResponse   {
   public static final String JSON_PROPERTY_TIMESTAMP = "timestamp";
   @JsonProperty(JSON_PROPERTY_TIMESTAMP)
@@ -70,8 +79,7 @@ public class HTTPResponse   {
    * Get timestamp
    * @return timestamp
    **/
-  @JsonProperty("timestamp")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "timestamp")
   
   public OffsetDateTime getTimestamp() {
     return timestamp;
@@ -90,8 +98,7 @@ public class HTTPResponse   {
    * HTTP status code of the response
    * @return code
    **/
-  @JsonProperty("code")
-  @ApiModelProperty(required = true, value = "HTTP status code of the response")
+  @JsonProperty(value = "code")
   @NotNull 
   public Integer getCode() {
     return code;
@@ -110,8 +117,7 @@ public class HTTPResponse   {
    * Get error
    * @return error
    **/
-  @JsonProperty("error")
-  @ApiModelProperty(value = "")
+  @JsonProperty(value = "error")
   
   public String getError() {
     return error;
@@ -130,8 +136,7 @@ public class HTTPResponse   {
    * A generic string specifying the exception type.
    * @return type
    **/
-  @JsonProperty("type")
-  @ApiModelProperty(value = "A generic string specifying the exception type.")
+  @JsonProperty(value = "type")
   
   public String getType() {
     return type;
@@ -150,8 +155,7 @@ public class HTTPResponse   {
    * Get message
    * @return message
    **/
-  @JsonProperty("message")
-  @ApiModelProperty(required = true, value = "")
+  @JsonProperty(value = "message")
   @NotNull 
   public String getMessage() {
     return message;
@@ -170,8 +174,7 @@ public class HTTPResponse   {
    * path or URI of the requested or generated resource
    * @return id
    **/
-  @JsonProperty("id")
-  @ApiModelProperty(value = "path or URI of the requested or generated resource")
+  @JsonProperty(value = "id")
   
   public String getId() {
     return id;
@@ -191,19 +194,18 @@ public class HTTPResponse   {
       return false;
     }
     HTTPResponse htTPResponse = (HTTPResponse) o;
-    return Objects.equals(this.timestamp, htTPResponse.timestamp) &&
-        Objects.equals(this.code, htTPResponse.code) &&
-        Objects.equals(this.error, htTPResponse.error) &&
-        Objects.equals(this.type, htTPResponse.type) &&
-        Objects.equals(this.message, htTPResponse.message) &&
-        Objects.equals(this.id, htTPResponse.id);
+    return Objects.equals(timestamp, htTPResponse.timestamp) &&
+        Objects.equals(code, htTPResponse.code) &&
+        Objects.equals(error, htTPResponse.error) &&
+        Objects.equals(type, htTPResponse.type) &&
+        Objects.equals(message, htTPResponse.message) &&
+        Objects.equals(id, htTPResponse.id);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(timestamp, code, error, type, message, id);
   }
-
 
   @Override
   public String toString() {

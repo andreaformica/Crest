@@ -5,13 +5,12 @@ import hep.crest.server.config.DatabasePropertyConfigurator;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import org.hibernate.annotations.Type;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
 import java.sql.Blob;
 
 /**
@@ -23,7 +22,7 @@ import java.sql.Blob;
 // Define default constructors.
 @NoArgsConstructor
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 public class PayloadData {
 
     /**
@@ -38,6 +37,5 @@ public class PayloadData {
      */
     @Column(name = "DATA", nullable = false)
     @Lob
-    @Type(type = "org.hibernate.type.BlobType")
     private Blob data;
 }

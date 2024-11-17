@@ -1,7 +1,8 @@
 package hep.crest.server.swagger.impl;
 
-import hep.crest.server.data.pojo.GlobalTagMap;
 import hep.crest.server.controllers.EntityDtoHelper;
+import hep.crest.server.converters.GlobalTagMapMapper;
+import hep.crest.server.data.pojo.GlobalTagMap;
 import hep.crest.server.services.GlobalTagMapService;
 import hep.crest.server.swagger.api.GlobaltagmapsApiService;
 import hep.crest.server.swagger.model.CrestBaseResponse;
@@ -10,16 +11,14 @@ import hep.crest.server.swagger.model.GlobalTagMapDto;
 import hep.crest.server.swagger.model.GlobalTagMapSetDto;
 import hep.crest.server.swagger.model.RespPage;
 import lombok.extern.slf4j.Slf4j;
-import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.core.CacheControl;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+
 import java.util.List;
 
 /**
@@ -47,35 +46,41 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
      * Mapper.
      */
     @Autowired
-    @Qualifier("mapper")
-    private MapperFacade mapper;
+    private GlobalTagMapMapper mapper;
+
+    /**
+     * Context
+     *
+     */
+    @Autowired
+    private JAXRSContext context;
 
     /*
      * (non-Javadoc)
      * @see
      * hep.crest.server.swagger.api.GlobaltagmapsApiService#createGlobalTagMap(hep.
-     * crest.swagger.model.GlobalTagMapDto, javax.ws.rs.core.SecurityContext,
-     * javax.ws.rs.core.UriInfo)
+     * crest.swagger.model.GlobalTagMapDto, jakarta.ws.rs.core.SecurityContext,
+     * jakarta.ws.rs.core.UriInfo)
      */
     @Override
-    public Response createGlobalTagMap(GlobalTagMapDto body, SecurityContext securityContext, UriInfo info) {
+    public Response createGlobalTagMap(GlobalTagMapDto body, SecurityContext securityContext) {
         log.info("Associate tag {} to globaltag {}", body.getTagName(), body.getGlobalTagName());
         // Insert new mapping resource.
-        GlobalTagMap entity = mapper.map(body, GlobalTagMap.class);
+        GlobalTagMap entity = mapper.toEntity(body);
         final GlobalTagMap saved = globaltagmapService.insertGlobalTagMap(entity);
-        GlobalTagMapDto dto = mapper.map(saved, GlobalTagMapDto.class);
-        return Response.created(info.getRequestUri()).entity(dto).build();
+        GlobalTagMapDto dto = mapper.toDto(saved);
+        return Response.created(context.getUriInfo().getRequestUri()).entity(dto).build();
     }
 
     /*
      * (non-Javadoc)
      * @see
      * hep.crest.server.swagger.api.GlobaltagmapsApiService#findGlobalTagMap(java.
-     * lang.String, java.lang.String, javax.ws.rs.core.SecurityContext,
-     * javax.ws.rs.core.UriInfo)
+     * lang.String, java.lang.String, jakarta.ws.rs.core.SecurityContext,
+     * jakarta.ws.rs.core.UriInfo)
      */
     @Override
-    public Response findGlobalTagMap(String name, String xCrestMapMode, SecurityContext securityContext, UriInfo info) {
+    public Response findGlobalTagMap(String name, String xCrestMapMode, SecurityContext securityContext) {
         log.info("Get tags for globaltag {} ", name);
         // Prepare filters
         final GenericMap filters = new GenericMap();
@@ -103,7 +108,8 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
             // The input name is considered a Tag name.
             entitylist = globaltagmapService.getTagMapByTagName(name);
         }
-        List<GlobalTagMapDto> dtolist = edh.entityToDtoList(entitylist, GlobalTagMapDto.class);
+        List<GlobalTagMapDto> dtolist = edh.entityToDtoList(entitylist, GlobalTagMapDto.class,
+                GlobalTagMapMapper.class);
         RespPage respPage = new RespPage().size(dtolist.size())
                 .totalElements((long)dtolist.size()).totalPages(1)
                 .number(0);
@@ -118,7 +124,7 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
     @Override
     public Response deleteGlobalTagMap(String name, @NotNull String label,
                                        @NotNull String tagname, String mrecord,
-                                       SecurityContext securityContext, UriInfo info) {
+                                       SecurityContext securityContext) {
         log.info("Remove association of tag {} for globaltag {} ", tagname, name);
         // Prepare filters
         final GenericMap filters = new GenericMap();
@@ -141,7 +147,8 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
                 .totalElements((long)deletedlist.size()).totalPages(1)
                 .number(0);
         // Return the deleted list.
-        List<GlobalTagMapDto> dtolist = edh.entityToDtoList(deletedlist, GlobalTagMapDto.class);
+        List<GlobalTagMapDto> dtolist = edh.entityToDtoList(deletedlist, GlobalTagMapDto.class,
+                GlobalTagMapMapper.class);
         final CrestBaseResponse setdto = new GlobalTagMapSetDto().resources(dtolist).filter(filters)
                 .size((long) dtolist.size())
                 .page(respPage)

@@ -12,9 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+
 import java.util.List;
 
 /**
@@ -22,8 +22,6 @@ import java.util.List;
  *
  * @author formica
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-11-07T14:29"
-                                                                                                   + ":18.354+01:00")
 @Component
 @Slf4j
 public class MonitoringApiServiceImpl extends MonitoringApiService {
@@ -40,14 +38,20 @@ public class MonitoringApiServiceImpl extends MonitoringApiService {
     @Autowired
     IMonitoringRepository monitoringrepo;
 
+    /**
+     * Context
+     *
+     */
+    @Autowired
+    private JAXRSContext context;
     /*
      * (non-Javadoc)
      * @see
      * hep.crest.server.swagger.api.MonitoringApiService#listPayloadTagInfo(java.
-     * lang.String, javax.ws.rs.core.SecurityContext, javax.ws.rs.core.UriInfo)
+     * lang.String, jakarta.ws.rs.core.SecurityContext, jakarta.ws.rs.core.UriInfo)
      */
     @Override
-    public Response listPayloadTagInfo(String tagname, SecurityContext securityContext, UriInfo info)
+    public Response listPayloadTagInfo(String tagname, SecurityContext securityContext)
             throws NotFoundException {
         log.debug("Search resource list using tagname or pattern={}", tagname);
         List<PayloadTagInfoDto> dtolist = null;

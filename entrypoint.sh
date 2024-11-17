@@ -76,8 +76,12 @@ echo "Check tnsnames"
 if [ -e /etc/tnsnames.ora ]; then
    echo "Use local tnsnames version"
 else
-   echo "get tnsnames from service-oracle-tnsnames.web.cern.ch"
-   curl https://service-oracle-tnsnames.web.cern.ch/service-oracle-tnsnames/tnsnames.ora -o ${DIR}/tnsnames.ora
+   echo "get tnsnames from service-oracle-tnsnames.web.cern.ch...disabled for now"
+   if command -v curl >/dev/null 2>&1; then
+      curl https://service-oracle-tnsnames.web.cern.ch/service-oracle-tnsnames/tnsnames.ora -o ${DIR}/tnsnames.ora
+   else
+      echo "Error: curl is not installed. Cannot fetch tnsnames.ora."
+   fi
 fi
 
 ## -Dlogging.config=/data/logs/logback.xml

@@ -1,11 +1,12 @@
 package hep.crest.server.swagger.impl;
 
+import jakarta.ws.rs.core.UriInfo;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Request;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Request;
 
 /**
  * A request scoped holder object of the JAX/RS context.
@@ -40,6 +41,10 @@ public class JAXRSContext {
      * Servlet request from context.
      */
     private HttpServletRequest httpServletRequest = null;
+    /**
+     * The URI info.
+     */
+    private UriInfo uriInfo = null;
 
     /**
      * The Request to get.
@@ -87,5 +92,21 @@ public class JAXRSContext {
      */
     public void setHttpServletRequest(HttpServletRequest httpServletRequest) {
         this.httpServletRequest = httpServletRequest;
+    }
+
+    /**
+     * The URI info to get.
+     * @return UriInfo
+     */
+    public UriInfo getUriInfo() {
+        return uriInfo;
+    }
+
+    /**
+     * The URI info to set.
+     * @param uriInfo
+     */
+    public void setUriInfo(UriInfo uriInfo) {
+        this.uriInfo = uriInfo;
     }
 }
