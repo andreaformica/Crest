@@ -17,6 +17,7 @@ import hep.crest.server.swagger.model.GlobalTagSetDto;
 import hep.crest.server.swagger.model.RespPage;
 import hep.crest.server.swagger.model.TagDto;
 import hep.crest.server.swagger.model.TagSetDto;
+import jakarta.ws.rs.core.CacheControl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -127,7 +128,10 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
                 .page(respPage)
                 .datatype("globaltags")
                 .format("GlobalTagSetDto");
-        return Response.ok().entity(setdto).build();
+        // Set cache control to 5 minutes.
+        CacheControl cc = new CacheControl();
+        cc.setMaxAge(600);
+        return Response.ok().entity(setdto).cacheControl(cc).build();
     }
 
     /*

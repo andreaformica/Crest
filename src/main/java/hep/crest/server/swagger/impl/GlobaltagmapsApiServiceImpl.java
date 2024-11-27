@@ -89,7 +89,7 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
         }
         // Set cache control to 5 minutes.
         CacheControl cc = new CacheControl();
-        cc.setMaxAge(300);
+        cc.setMaxAge(600);
         Iterable<GlobalTagMap> entitylist = null;
         // If there is no header then set it to Trace mode. Implies that you search tags
         // associated with a global tag. The input name will be considered as a

@@ -183,7 +183,9 @@ public class TagsApiServiceImpl extends TagsApiService {
         final TagSetDto respdto = (TagSetDto) new TagSetDto().addresourcesItem(dto).size(1L)
                 .filter(filters).page(respPage).datatype("tags").format("TagSetDto");
         log.info("Retrieved tag {}: {}", name, dto);
-        return Response.ok().entity(respdto).build();
+        final CacheControl cc = cachesvc.getDefaultsCacheControl();
+        cc.setMaxAge(3600); // 1 hour caching for this resource.
+        return Response.ok().entity(respdto).cacheControl(cc).build();
     }
 
     /*
