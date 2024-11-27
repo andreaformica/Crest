@@ -10,6 +10,9 @@ import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.ConflictException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
@@ -28,6 +31,11 @@ public class TagMetaService {
      */
     @Autowired
     private TagMetaRepository tagmetaRepository;
+    /**
+     * Cache manager.
+     */
+    @Autowired
+    private CacheManager cacheManager;
 
     /**
      * Find TagMeta.
@@ -38,10 +46,62 @@ public class TagMetaService {
      */
     public TagMeta find(String name) {
         log.debug("Search meta info for tag {}", name);
-        return tagmetaRepository.findByTagName(name).orElseThrow(
-                () -> new CdbNotFoundException("Cannot find meta info for tag " + name)
-        );
+        try {
+            TagMeta cached = getTagMetaFromCache(name);
+            if (cached != null) {
+                return cached;
+            }
+            TagMeta entity = tagmetaRepository.findByTagName(name).orElseThrow(
+                    () -> new CdbNotFoundException("Cannot find meta info for tag " + name));
+            cacheTagMeta(entity);
+            return entity;
+        }
+        catch (CdbNotFoundException e) {
+            log.error("Tag Meta not found: {}", name);
+            cacheEviction(name);
+            throw e;
+        }
     }
+
+
+    /**
+     * Cache eviction method.
+     * @param name
+     */
+    protected void cacheEviction(String name) {
+        Cache cache = cacheManager.getCache("tagMetaCache");
+        if (cache != null) {
+            cache.evictIfPresent(name);  // Evict based on the 'name' key
+        }
+    }
+
+
+    /**
+     * Cache add method.
+     * @param tagmeta the TagMeta entity
+     */
+    protected void cacheTagMeta(TagMeta tagmeta) {
+        Cache cache = cacheManager.getCache("tagMetaCache");
+        if (cache != null && tagmeta != null) {
+            cache.put(tagmeta.getTagName(), tagmeta);  // Use tag.getName() as the key and the
+            // entity as the value
+        }
+    }
+
+    /**
+     * Get entity from cache.
+     *
+     * @param name the Tag name
+     * @return TagMeta the entity
+     */
+    protected TagMeta getTagMetaFromCache(String name) {
+        Cache cache = cacheManager.getCache("tagMetaCache");
+        if (cache != null) {
+            return cache.get(name, TagMeta.class);  // Retrieve the cached entity by key
+        }
+        return null;
+    }
+
     /**
      * Insert new tag meta data.
      *
@@ -73,6 +133,7 @@ public class TagMetaService {
      * @return TagMeta
      * @throws AbstractCdbServiceException If an exception occurred.
      */
+    @CacheEvict(value = "tagMetaCache", key = "#entity.getTagName()")
     @Transactional
     public TagMeta updateTagMeta(TagMeta entity) {
         log.debug("Update tag meta from entity {}", entity);
@@ -97,6 +158,7 @@ public class TagMetaService {
      * @param name the name
      * @throws AbstractCdbServiceException the cdb service exception
      */
+    @CacheEvict(value = "tagMetaCache", key = "#name")
     @Transactional
     public void removeTagMeta(String name) {
         log.debug("Remove tag meta info for {}", name);
