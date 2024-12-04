@@ -257,7 +257,7 @@ public class TagService {
                 List<String> hashList = iovService.removeIovList(iovList);
                 CompletableFuture<Void> future = payloadService.removePage(hashList, name);
                 futures.add(future);
-                if (futures.size() > 5) {
+                if (futures.size() >= 5) {
                     // Verify that all future task did end
                     log.debug("Wait for payloads to be removed by {} tasks", futures.size());
                     for (CompletableFuture<Void> f : futures) {
