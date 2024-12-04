@@ -139,7 +139,7 @@ public class PayloadService {
         List<Iov> iovwithhash = iovRepository.findByPayloadHash(hash);
         Integer niovs = (iovwithhash != null) ? iovwithhash.size() : 0;
         log.debug("Found list of {} IOVs for hash {}", niovs, hash);
-        if (niovs > 1) {
+        if (niovs >= 1) {
             log.debug("The hash {} is associated to more than one iov...remove only if tag name "
                       + "is the same", hash);
             for (Iov iov : iovwithhash) {
