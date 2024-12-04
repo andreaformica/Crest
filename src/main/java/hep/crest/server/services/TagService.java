@@ -314,8 +314,12 @@ public class TagService {
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     protected List<String> removeIovList(List<Iov> iovList) {
         List<String> hashList = new ArrayList<>();
+        int i = 0;
         for (Iov iov : iovList) {
-            log.debug("Delete iov {}....", iov);
+            i++;
+            if ((i % 100) == 0) {
+                log.debug("Delete iov {}....[{}]", iov, i);
+            }
             hashList.add(iov.getPayloadHash());
             iovRepository.delete(iov);
         }
