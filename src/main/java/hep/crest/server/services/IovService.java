@@ -321,4 +321,28 @@ public class IovService {
         log.debug("Saved iov entity: {}", saved);
         return saved;
     }
+
+
+    /**
+     * Remove a list of iovs, send back the hash of payloads.
+     *
+     * @param iovList the List of Iov
+     * @return List<String>
+     */
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    protected List<String> removeIovList(List<Iov> iovList) {
+        List<String> hashList = new ArrayList<>();
+        int i = 0;
+        for (Iov iov : iovList) {
+            i++;
+            if ((i % 100) == 0) {
+                log.debug("Delete iov {}....[{}]", iov, i);
+            }
+            hashList.add(iov.getPayloadHash());
+            iovRepository.delete(iov);
+        }
+        iovRepository.flush();
+        return hashList;
+    }
+
 }

@@ -45,6 +45,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -136,29 +137,64 @@ public class PayloadService {
             throw new CdbNotFoundException("Cannot find payload for hash " + hash);
         }
         Boolean canremove = Boolean.TRUE;
+        Boolean isdelayed = Boolean.TRUE;
         List<Iov> iovwithhash = iovRepository.findByPayloadHash(hash);
         Integer niovs = (iovwithhash != null) ? iovwithhash.size() : 0;
-        log.debug("Found list of {} IOVs for hash {}", niovs, hash);
+        log.trace("Found list of {} IOVs for hash {}", niovs, hash);
         if (niovs >= 1) {
-            log.debug("The hash {} is associated to more than one iov...remove only if tag name "
+            log.trace("The hash {} is associated to more than one iov...remove only if tag name "
                       + "is the same", hash);
             canremove = Boolean.FALSE;
+            for (Iov iov : iovwithhash) {
+                if (!tag.equalsIgnoreCase(iov.getId().getTagName())) {
+                    isdelayed = Boolean.FALSE;
+                    break;
+                }
+            }
         }
         // Before removing this payload we should still check that all IOVs for the tag were
         // removed, or we get an exception...
         // In the statement above we are flagging to FALSE the canremove so that we avoid
         // to delete the payload in case an IOV is found.
         if (Boolean.TRUE.equals(canremove)) {
-            log.info("Remove payload for hash {} in tag {}", hash, tag);
+            log.trace("Remove payload for hash {} in tag {}", hash, tag);
             payloadRepository.deleteById(hash);
             payloadDataRepository.deleteData(hash);
             payloadDataRepository.deleteById(hash);
             payloadInfoDataRepository.deleteById(hash);
+            return "removed";
+        }
+        if (isdelayed) {
             return hash;
         }
-        return "skip";
+        return "ignore";
     }
 
+    /**
+     * Remove Payloads in a separate transaction.
+     *
+     * @param hashList
+     * @param tagname
+     * @return List of String
+     */
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    public List<String> removePage(List<String> hashList, String tagname) {
+        List<String> toberemoved = new ArrayList<>();
+        int i = 0;
+        for (String hash : hashList) {
+            i++;
+            if ((i % 100) == 0) {
+                log.debug("Delete payload {}....{}/{}", hash, i, hashList.size());
+            }
+            if (exists(hash)) {
+                String tbrhash = removePayload(tagname, hash);
+                if (hash.equals(tbrhash)) {
+                    toberemoved.add(tbrhash);
+                }
+            }
+        }
+        return toberemoved;
+    }
 
     /**
      * @param hash  the String

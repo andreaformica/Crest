@@ -246,13 +246,18 @@ public class TagService {
             int pageSize = 1000; // Batch size for deletion
             Pageable pageable = PageRequest.of(0, pageSize);
             Page<Iov> iovsPage;
+            int pageIndex = 0;
+            List<String> delayedPayload = new ArrayList<>();
             do {
+                log.debug("Processing iov page of size {} : {}", pageSize, pageIndex);
                 // Fetch the current page of IOVs
                 iovsPage = iovRepository.findByIdTagName(name, pageable);
                 // Process the current batch of IOVs
                 List<Iov> iovList = iovsPage.getContent();
-                List<String> hashList = removeIovList(iovList);
-                removePage(hashList, name);
+                List<String> hashList = iovService.removeIovList(iovList);
+                List<String> delayed = payloadService.removePage(hashList, name);
+                log.debug("List of payload still to be removed has size {}", delayed.size());
+                pageIndex++;
                 // Continue using the same page (page 0), as removed items won't appear again
             } while (!iovsPage.isEmpty()); // Break if there are no more IOVs to process
 
@@ -263,44 +268,6 @@ public class TagService {
             log.error("Tag removal exception: {}", name);
             Objects.requireNonNull(cacheManager.getCache("tagCache")).evict(name);
             throw e;
-        }
-    }
-
-    /**
-     * Read the iovs to delete.
-     *
-     * @param tagName
-     * @param batchSize
-     * @return List of Iov
-     */
-    protected List<Iov> collectIovsForDeletion(String tagName, int batchSize) {
-        Pageable pageable = PageRequest.of(0, batchSize);
-        Page<Iov> iovsPage = iovRepository.findByIdTagName(tagName, pageable);
-
-        List<Iov> iovsToDelete = new ArrayList<>();
-        while (iovsPage.hasContent()) {
-            iovsToDelete.addAll(iovsPage.getContent());
-        }
-        return iovsToDelete;
-    }
-
-    /**
-     * Remove Payloads in a separate transaction.
-     *
-     * @param hashList
-     * @param tagname
-     */
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
-    protected void removePage(List<String> hashList, String tagname) {
-        int i = 0;
-        for (String hash : hashList) {
-            i++;
-            if ((i % 100) == 0) {
-                log.debug("Delete payload {}....{}/{}", hash, i, hashList.size());
-            }
-            if (payloadService.exists(hash)) {
-                payloadService.removePayload(tagname, hash);
-            }
         }
     }
 
@@ -328,27 +295,5 @@ public class TagService {
             Objects.requireNonNull(cacheManager.getCache("tagCache")).evict(name);
             throw e;
         }
-    }
-
-    /**
-     * Remove a list of iovs, send back the hash of payloads.
-     *
-     * @param iovList the List of Iov
-     * @return List<String>
-     */
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
-    protected List<String> removeIovList(List<Iov> iovList) {
-        List<String> hashList = new ArrayList<>();
-        int i = 0;
-        for (Iov iov : iovList) {
-            i++;
-            if ((i % 100) == 0) {
-                log.debug("Delete iov {}....[{}]", iov, i);
-            }
-            hashList.add(iov.getPayloadHash());
-            iovRepository.delete(iov);
-        }
-        iovRepository.flush();
-        return hashList;
     }
 }
