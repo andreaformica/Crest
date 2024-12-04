@@ -252,20 +252,7 @@ public class TagService {
                     preq = prh.createPageRequest(pageIndex, 5000, sort); // Create PageRequest
                     // for the current page
                     iovspage = iovRepository.findByIdTagName(name, preq); // Fetch current page
-                    List<Iov> iovlist = iovspage.getContent();
-
-                    log.info("Processing page {} with {} IOVs...", pageIndex + 1, iovlist.size());
-                    List<String> hashList = this.removeIovList(iovlist);
-                    int i = 0;
-                    for (String hash : hashList) {
-                        i++;
-                        if ((i % 100) == 0) {
-                            log.debug("Delete payload {}....{}/{}", hash, i, hashList.size());
-                        }
-                        if (payloadService.exists(hash)) {
-                            payloadService.removePayload(name, hash);
-                        }
-                    }
+                    this.removePage(iovspage, pageIndex, name);
                     pageIndex++;
                 } while (!iovspage.isLast()); // Continue until the last page
             }
@@ -276,6 +263,30 @@ public class TagService {
             log.error("Tag removal exception: {}", name);
             Objects.requireNonNull(cacheManager.getCache("tagCache")).evict(name);
             throw e;
+        }
+    }
+
+    /**
+     * Remove IOVs in a separate transaction.
+     *
+     * @param iovspage
+     * @param pageIndex
+     * @param tagname
+     */
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    protected void removePage(Page<Iov> iovspage, int pageIndex, String tagname) {
+        List<Iov> iovlist = iovspage.getContent();
+        log.info("Processing page {} with {} IOVs...", pageIndex + 1, iovlist.size());
+        List<String> hashList = this.removeIovList(iovlist);
+        int i = 0;
+        for (String hash : hashList) {
+            i++;
+            if ((i % 100) == 0) {
+                log.debug("Delete payload {}....{}/{}", hash, i, hashList.size());
+            }
+            if (payloadService.exists(hash)) {
+                payloadService.removePayload(tagname, hash);
+            }
         }
     }
 
