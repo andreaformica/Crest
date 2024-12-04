@@ -257,14 +257,16 @@ public class TagService {
                 List<String> hashList = iovService.removeIovList(iovList);
                 CompletableFuture<Void> future = payloadService.removePage(hashList, name);
                 futures.add(future);
+                if (futures.size() > 5) {
+                    // Verify that all future task did end
+                    log.debug("Wait for payloads to be removed by {} tasks", futures.size());
+                    for (CompletableFuture<Void> f : futures) {
+                        f.join();  // This blocks until the task completes
+                    }
+                }
                 pageIndex++;
                 // Continue using the same page (page 0), as removed items won't appear again
             } while (!iovsPage.isEmpty()); // Break if there are no more IOVs to process
-            // Verify that all future task did end
-            log.debug("Wait for payloads to be removed by {} tasks", futures.size());
-            for (CompletableFuture<Void> future : futures) {
-                future.join();  // This blocks until the task completes
-            }
             // Payload are now removed
             log.debug("Payloads have been removed");
             tagRepository.deleteById(name);
