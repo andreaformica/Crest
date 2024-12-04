@@ -16,6 +16,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
@@ -24,6 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 import java.util.Locale;
+import java.util.concurrent.Executor;
 
 /**
  * Services configuration.
@@ -78,4 +80,20 @@ public class ServicesConfig {
         slr.setDefaultLocale(Locale.US);
         return slr;
     }
+
+    /**
+     * Configure the Executor.
+     * @return Executor
+     */
+    @Bean
+    public Executor asyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);  // The core number of threads
+        executor.setMaxPoolSize(50);   // The maximum number of threads
+        executor.setQueueCapacity(1000); // The queue size before new threads are created
+        executor.setThreadNamePrefix("async-");
+        executor.initialize();
+        return executor;
+    }
+
 }

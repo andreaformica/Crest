@@ -69,7 +69,7 @@ public class PayloadDataRepositoryImpl implements PayloadDataRepositoryCustom {
     @Override
     @Transactional
     public void deleteData(String id) throws CdbSQLException {
-        log.warn("Method does not do anything except for postgres....");
+        log.trace("Method does not do anything except for postgres....");
         final Session session = (Session) entityManager.getDelegate();
         final SessionFactoryImpl sessionFactory = (SessionFactoryImpl) session.getSessionFactory();
         final Dialect dialect = sessionFactory.getJdbcServices().getDialect();

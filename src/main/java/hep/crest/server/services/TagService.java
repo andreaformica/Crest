@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author rsipos
@@ -241,13 +242,12 @@ public class TagService {
             }
             // Start removing IOVs
             log.debug("Removing tag {}", remTag);
-            long niovs = iovGroupsCustom.getSize(name);
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
             // Verify the IOV content size
-            int pageSize = 1000; // Batch size for deletion
+            int pageSize = 2000; // Batch size for deletion
             Pageable pageable = PageRequest.of(0, pageSize);
             Page<Iov> iovsPage;
             int pageIndex = 0;
-            List<String> delayedPayload = new ArrayList<>();
             do {
                 log.debug("Processing iov page of size {} : {}", pageSize, pageIndex);
                 // Fetch the current page of IOVs
@@ -255,12 +255,18 @@ public class TagService {
                 // Process the current batch of IOVs
                 List<Iov> iovList = iovsPage.getContent();
                 List<String> hashList = iovService.removeIovList(iovList);
-                List<String> delayed = payloadService.removePage(hashList, name);
-                log.debug("List of payload still to be removed has size {}", delayed.size());
+                CompletableFuture<Void> future = payloadService.removePage(hashList, name);
+                futures.add(future);
                 pageIndex++;
                 // Continue using the same page (page 0), as removed items won't appear again
             } while (!iovsPage.isEmpty()); // Break if there are no more IOVs to process
-
+            // Verify that all future task did end
+            log.debug("Wait for payloads to be removed by {} tasks", futures.size());
+            for (CompletableFuture<Void> future : futures) {
+                future.join();  // This blocks until the task completes
+            }
+            // Payload are now removed
+            log.debug("Payloads have been removed");
             tagRepository.deleteById(name);
             log.debug("Removed entity: {}", name);
         }

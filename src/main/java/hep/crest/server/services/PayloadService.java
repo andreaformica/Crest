@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
@@ -49,6 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author aformic
@@ -178,7 +180,8 @@ public class PayloadService {
      * @return List of String
      */
     @Transactional(Transactional.TxType.REQUIRES_NEW)
-    public List<String> removePage(List<String> hashList, String tagname) {
+    @Async
+    public CompletableFuture<Void> removePage(List<String> hashList, String tagname) {
         List<String> toberemoved = new ArrayList<>();
         int i = 0;
         for (String hash : hashList) {
@@ -193,7 +196,7 @@ public class PayloadService {
                 }
             }
         }
-        return toberemoved;
+        return CompletableFuture.completedFuture(null);
     }
 
     /**
