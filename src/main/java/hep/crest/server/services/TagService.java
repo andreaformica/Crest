@@ -256,7 +256,7 @@ public class TagService {
 
                     log.info("Processing page {} with {} IOVs...", pageIndex + 1, iovlist.size());
                     List<String> hashList = this.removeIovList(iovlist);
-                    int i=0;
+                    int i = 0;
                     for (String hash : hashList) {
                         i++;
                         if ((i % 100) == 0) {
