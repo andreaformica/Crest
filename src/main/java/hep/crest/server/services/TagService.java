@@ -21,6 +21,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -29,12 +30,10 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * @author rsipos
@@ -244,21 +243,19 @@ public class TagService {
             log.debug("Removing tag {}", remTag);
             long niovs = iovGroupsCustom.getSize(name);
             // Verify the IOV content size
-            if (niovs > 0) {
-                try (Stream<Iov> iovStream = iovRepository.streamByTagName(name)) {
-                    iovStream.forEach(iov -> {
-                        log.info("Processing IOV: {}", iov);
+            int pageSize = 1000; // Batch size for deletion
+            Pageable pageable = PageRequest.of(0, pageSize);
+            Page<Iov> iovsPage;
+            do {
+                // Fetch the current page of IOVs
+                iovsPage = iovRepository.findByIdTagName(name, pageable);
+                // Process the current batch of IOVs
+                List<Iov> iovList = iovsPage.getContent();
+                List<String> hashList = removeIovList(iovList);
+                removePage(hashList, name);
+                // Continue using the same page (page 0), as removed items won't appear again
+            } while (!iovsPage.isEmpty()); // Break if there are no more IOVs to process
 
-                        // Remove payloads associated with the IOV
-                        List<String> hashList = this.removeIovList(Collections.singletonList(iov));
-                        for (String hash : hashList) {
-                            if (payloadService.exists(hash)) {
-                                String rem = payloadService.removePayload(name, hash);
-                            }
-                        }
-                    });
-                }
-            }
             tagRepository.deleteById(name);
             log.debug("Removed entity: {}", name);
         }
@@ -267,6 +264,24 @@ public class TagService {
             Objects.requireNonNull(cacheManager.getCache("tagCache")).evict(name);
             throw e;
         }
+    }
+
+    /**
+     * Read the iovs to delete.
+     *
+     * @param tagName
+     * @param batchSize
+     * @return List of Iov
+     */
+    protected List<Iov> collectIovsForDeletion(String tagName, int batchSize) {
+        Pageable pageable = PageRequest.of(0, batchSize);
+        Page<Iov> iovsPage = iovRepository.findByIdTagName(tagName, pageable);
+
+        List<Iov> iovsToDelete = new ArrayList<>();
+        while (iovsPage.hasContent()) {
+            iovsToDelete.addAll(iovsPage.getContent());
+        }
+        return iovsToDelete;
     }
 
     /**
@@ -333,6 +348,7 @@ public class TagService {
             hashList.add(iov.getPayloadHash());
             iovRepository.delete(iov);
         }
+        iovRepository.flush();
         return hashList;
     }
 }

@@ -142,19 +142,14 @@ public class PayloadService {
         if (niovs >= 1) {
             log.debug("The hash {} is associated to more than one iov...remove only if tag name "
                       + "is the same", hash);
-            for (Iov iov : iovwithhash) {
-                if (!iov.getId().getTagName().equals(tag)) {
-                    canremove = Boolean.FALSE;
-                    break;
-                }
-            }
+            canremove = Boolean.FALSE;
         }
         // Before removing this payload we should still check that all IOVs for the tag were
         // removed, or we get an exception...
+        // In the statement above we are flagging to FALSE the canremove so that we avoid
+        // to delete the payload in case an IOV is found.
         if (Boolean.TRUE.equals(canremove)) {
             log.info("Remove payload for hash {} in tag {}", hash, tag);
-            int ndel = iovRepository.deleteByTagNameAndHash(tag, hash);
-            log.debug("Removed {} IOVs in this tag associated with hash {}", ndel, hash);
             payloadRepository.deleteById(hash);
             payloadDataRepository.deleteData(hash);
             payloadDataRepository.deleteById(hash);
