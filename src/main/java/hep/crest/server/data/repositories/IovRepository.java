@@ -14,10 +14,12 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Repository for IOVs.
@@ -39,6 +41,16 @@ public interface IovRepository
      * @return List of Iovs
      */
     Page<Iov> findByIdTagName(@Param("name") String name, Pageable preq);
+
+    /**
+     * Retrieve IOVs as a stream. Useful to process large amount of data.
+     *
+     * @param tagName
+     * @return Stream of Iov
+     */
+    @Query("SELECT i FROM Iov i WHERE i.id.tagName = :tagName")
+    @Transactional(readOnly = true)
+    Stream<Iov> streamByTagName(@Param("tagName") String tagName);
 
     /**
      * Retrieve all iovs for a given hash. Used when deleting.

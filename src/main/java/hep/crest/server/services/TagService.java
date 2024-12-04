@@ -29,10 +29,12 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * @author rsipos
@@ -243,21 +245,19 @@ public class TagService {
             long niovs = iovGroupsCustom.getSize(name);
             // Verify the IOV content size
             if (niovs > 0) {
-                String sort = "id.since:ASC,id.insertionTime:DESC";
-                Pageable preq;
-                Page<Iov> iovspage;
-                int pageIndex = 0;
-                do {
-                    preq = prh.createPageRequest(pageIndex, 5000, sort); // Create PageRequest
-                    // for the current page
-                    iovspage = iovRepository.findByIdTagName(name, preq); // Fetch current page
-                    List<Iov> iovlist = iovspage.getContent();
-                    log.info("Processing page {} with {} IOVs...", pageIndex + 1, iovlist.size());
-                    List<String> hashList = this.removeIovList(iovlist);
-                    log.info("Removed iovs page, now clean up payload list {}", hashList.size());
-                    this.removePage(hashList, name);
-                    pageIndex++;
-                } while (!iovspage.isLast()); // Continue until the last page
+                try (Stream<Iov> iovStream = iovRepository.streamByTagName(name)) {
+                    iovStream.forEach(iov -> {
+                        log.info("Processing IOV: {}", iov);
+
+                        // Remove payloads associated with the IOV
+                        List<String> hashList = this.removeIovList(Collections.singletonList(iov));
+                        for (String hash : hashList) {
+                            if (payloadService.exists(hash)) {
+                                String rem = payloadService.removePayload(name, hash);
+                            }
+                        }
+                    });
+                }
             }
             tagRepository.deleteById(name);
             log.debug("Removed entity: {}", name);
