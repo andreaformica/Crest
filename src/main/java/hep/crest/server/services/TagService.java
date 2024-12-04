@@ -244,15 +244,18 @@ public class TagService {
             // Verify the IOV content size
             if (niovs > 0) {
                 String sort = "id.since:ASC,id.insertionTime:DESC";
-                Pageable preq = prh.createPageRequest(0, 10000, sort);
+                Pageable preq;
                 Page<Iov> iovspage;
                 int pageIndex = 0;
-
                 do {
                     preq = prh.createPageRequest(pageIndex, 5000, sort); // Create PageRequest
                     // for the current page
                     iovspage = iovRepository.findByIdTagName(name, preq); // Fetch current page
-                    this.removePage(iovspage, pageIndex, name);
+                    List<Iov> iovlist = iovspage.getContent();
+                    log.info("Processing page {} with {} IOVs...", pageIndex + 1, iovlist.size());
+                    List<String> hashList = this.removeIovList(iovlist);
+                    log.info("Removed iovs page, now clean up payload list {}", hashList.size());
+                    this.removePage(hashList, name);
                     pageIndex++;
                 } while (!iovspage.isLast()); // Continue until the last page
             }
@@ -267,17 +270,13 @@ public class TagService {
     }
 
     /**
-     * Remove IOVs in a separate transaction.
+     * Remove Payloads in a separate transaction.
      *
-     * @param iovspage
-     * @param pageIndex
+     * @param hashList
      * @param tagname
      */
     @Transactional(Transactional.TxType.REQUIRES_NEW)
-    protected void removePage(Page<Iov> iovspage, int pageIndex, String tagname) {
-        List<Iov> iovlist = iovspage.getContent();
-        log.info("Processing page {} with {} IOVs...", pageIndex + 1, iovlist.size());
-        List<String> hashList = this.removeIovList(iovlist);
+    protected void removePage(List<String> hashList, String tagname) {
         int i = 0;
         for (String hash : hashList) {
             i++;
