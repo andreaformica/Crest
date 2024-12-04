@@ -238,22 +238,27 @@ public class TagService {
             if (opt.isPresent()) {
                 tagMetaService.removeTagMeta(name);
             }
-
+            // Start removing IOVs
             log.debug("Removing tag {}", remTag);
             long niovs = iovGroupsCustom.getSize(name);
+            // Verify the IOV content size
             if (niovs > 0) {
                 String sort = "id.since:ASC,id.insertionTime:DESC";
-                Pageable preq = prh.createPageRequest(0, 1000, sort);
-                Page<Iov> iovspage = iovRepository.findByIdTagName(name, preq);
-                for (int ip = 0; ip < iovspage.getTotalPages(); ip++) {
+                Pageable preq = prh.createPageRequest(0, 10000, sort);
+                Page<Iov> iovspage;
+                int pageIndex = 0;
+
+                do {
+                    preq = prh.createPageRequest(pageIndex, 5000, sort); // Create PageRequest
+                    // for the current page
+                    iovspage = iovRepository.findByIdTagName(name, preq); // Fetch current page
                     List<Iov> iovlist = iovspage.getContent();
-                    log.info("Delete {} payloads associated to iovs....", niovs);
+
+                    log.info("Processing page {} with {} IOVs...", pageIndex + 1, iovlist.size());
                     List<String> hashList = this.removeIovList(iovlist);
+
                     for (String hash : hashList) {
                         log.debug("Delete payload {}....", hash);
-                        // Delete iov payloads one by one because we need to check the payload
-                        // It could belong as well to another tag, in that case we cannot remove it
-                        // but we can remove the iov.
                         if (payloadService.exists(hash)) {
                             String rem = payloadService.removePayload(name, hash);
                             if (!rem.equals(hash)) {
@@ -261,7 +266,8 @@ public class TagService {
                             }
                         }
                     }
-                }
+                    pageIndex++;
+                } while (!iovspage.isLast()); // Continue until the last page
             }
             tagRepository.deleteById(name);
             log.debug("Removed entity: {}", name);
