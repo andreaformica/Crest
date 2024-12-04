@@ -263,6 +263,8 @@ public class TagService {
                     for (CompletableFuture<Void> f : futures) {
                         f.join();  // This blocks until the task completes
                     }
+                    log.debug("Payload removal finished for {} tasks", futures.size());
+                    futures.clear();
                 }
                 pageIndex++;
                 // Continue using the same page (page 0), as removed items won't appear again
