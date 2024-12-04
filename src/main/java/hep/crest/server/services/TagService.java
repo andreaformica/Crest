@@ -256,14 +256,14 @@ public class TagService {
 
                     log.info("Processing page {} with {} IOVs...", pageIndex + 1, iovlist.size());
                     List<String> hashList = this.removeIovList(iovlist);
-
+                    int i=0;
                     for (String hash : hashList) {
-                        log.debug("Delete payload {}....", hash);
+                        i++;
+                        if ((i % 100) == 0) {
+                            log.debug("Delete payload {}....{}/{}", hash, i, hashList.size());
+                        }
                         if (payloadService.exists(hash)) {
-                            String rem = payloadService.removePayload(name, hash);
-                            if (!rem.equals(hash)) {
-                                log.warn("Skip removal of payload for hash {}", hash);
-                            }
+                            payloadService.removePayload(name, hash);
                         }
                     }
                     pageIndex++;

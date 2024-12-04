@@ -144,9 +144,8 @@ public class PayloadService {
                       + "is the same", hash);
             for (Iov iov : iovwithhash) {
                 if (!iov.getId().getTagName().equals(tag)) {
-                    log.info("Cannot remove payload hash {}: found iov in tag {}", hash,
-                            iov.getId());
                     canremove = Boolean.FALSE;
+                    break;
                 }
             }
         }
