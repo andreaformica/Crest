@@ -149,8 +149,12 @@ public class PayloadService {
                 }
             }
         }
+        // Before removing this payload we should still check that all IOVs for the tag were
+        // removed, or we get an exception...
         if (Boolean.TRUE.equals(canremove)) {
             log.info("Remove payload for hash {} in tag {}", hash, tag);
+            int ndel = iovRepository.deleteByTagNameAndHash(tag, hash);
+            log.debug("Removed {} IOVs in this tag associated with hash {}", ndel, hash);
             payloadRepository.deleteById(hash);
             payloadDataRepository.deleteData(hash);
             payloadDataRepository.deleteById(hash);

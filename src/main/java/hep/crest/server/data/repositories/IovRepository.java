@@ -9,6 +9,7 @@ import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
@@ -51,6 +52,11 @@ public interface IovRepository
     @Query("SELECT i FROM Iov i WHERE i.id.tagName = :tagName")
     @Transactional(readOnly = true)
     Stream<Iov> streamByTagName(@Param("tagName") String tagName);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Iov i WHERE i.id.tagName = :tagName AND i.payloadHash = :hash")
+    int deleteByTagNameAndHash(@Param("tagName") String tagName, @Param("hash") String hash);
 
     /**
      * Retrieve all iovs for a given hash. Used when deleting.
