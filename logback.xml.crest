@@ -48,6 +48,7 @@
 	<logger name="org.springframework" level="info" />
 	<logger name="org.glassfish" level="info" />
 	<logger name="io.swagger" level="warn" />
+	<logger name="io.lettuce" level="warn" />
 <!-- remove this to enable json logging
 	<logger name="com.zaxxer.hikari" level="ALL" additivity="false">
 		<appender-ref ref="HIKARI" />

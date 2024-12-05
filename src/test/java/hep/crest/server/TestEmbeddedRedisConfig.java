@@ -10,10 +10,10 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
-@Slf4j
-@TestConfiguration
 @Profile({"testredis"})
 @IfProfileValue(name = "spring.profiles.active", value = "testredis")
+@Slf4j
+@TestConfiguration
 public class TestEmbeddedRedisConfig {
 
 
