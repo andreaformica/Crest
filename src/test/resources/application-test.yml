@@ -17,8 +17,8 @@ server:
   connection-timeout: 60s
 spring:
   data.redis:
-    host: localhost
-    port: 6380
+    host: redis
+    port: 6379
   security:
       strategy: MODE_INHERITABLETHREADLOCAL
   jersey:
