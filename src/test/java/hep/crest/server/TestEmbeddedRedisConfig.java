@@ -9,7 +9,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
 @TestConfiguration
-@Profile({"test"})
+@Profile({"test-local"})
 public class TestEmbeddedRedisConfig {
 
 
