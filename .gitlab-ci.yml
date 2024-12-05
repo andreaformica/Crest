@@ -28,8 +28,8 @@ package_cern_application:
   services:
     - redis:latest
   variables:
-    crest.redis.host: redis
-    crest.redis.port: 6379
+    REDIS_HOST: redis
+    REDIS_PORT: 6379
   script:
    - ./gradlew clean build
   allow_failure: false
