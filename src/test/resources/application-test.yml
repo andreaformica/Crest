@@ -16,6 +16,9 @@ server:
   servlet.path: /
   connection-timeout: 60s
 spring:
+  data.redis:
+    host: localhost
+    port: 6380
   security:
       strategy: MODE_INHERITABLETHREADLOCAL
   jersey:

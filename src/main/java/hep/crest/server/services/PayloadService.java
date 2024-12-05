@@ -46,10 +46,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -101,6 +101,11 @@ public class PayloadService {
     @Autowired
     private ITriggerDb triggerDbService;
 
+    /**
+     * Redis service.
+     */
+    @Autowired
+    private RedisPayloadBuffer redisPayloadBuffer;
     /**
      * Mapper.
      */
@@ -173,26 +178,42 @@ public class PayloadService {
     }
 
     /**
-     * Remove Payloads in a separate transaction.
+     * Put in Redis a list of HASH keys to be removed.
      *
-     * @param hashList
+     * @param hashlist
      * @param tagname
-     * @return List of String
      */
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    public void storeRemovableHashList(List<String> hashlist, String tagname) {
+       for (String hash : hashlist) {
+          redisPayloadBuffer.addToBuffer(hash, tagname);
+       }
+       log.debug("Stored list of {} hashes to be removed in tag {}", hashlist.size(), tagname);
+    }
+
+    /**
+     * Remove Payloads in a separate transaction. The keys are stored in Redis.
+     *
+     * @param tagname
+     * @return Future
+     */
+    @Transactional
     @Async
-    public CompletableFuture<Void> removePage(List<String> hashList, String tagname) {
-        List<String> toberemoved = new ArrayList<>();
+    public CompletableFuture<Void> removeRedisBuffer(String tagname) {
+        Set<String> toberemoved = redisPayloadBuffer.getAllHashes();
         int i = 0;
-        for (String hash : hashList) {
+        for (String hash : toberemoved) {
             i++;
             if ((i % 100) == 0) {
-                log.debug("Delete payload {}....{}/{}", hash, i, hashList.size());
+                log.debug("Delete payload {}....{}/{}", hash, i, toberemoved.size());
             }
             if (exists(hash)) {
                 String tbrhash = removePayload(tagname, hash);
                 if (hash.equals(tbrhash)) {
-                    toberemoved.add(tbrhash);
+                    log.debug("Payload {} is still associated to other tags", hash);
+                }
+                else {
+                    log.debug("Payload {} removed", hash);
+                    redisPayloadBuffer.removeHash(hash);
                 }
             }
         }
