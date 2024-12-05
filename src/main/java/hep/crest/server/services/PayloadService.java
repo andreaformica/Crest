@@ -49,7 +49,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -199,24 +198,22 @@ public class PayloadService {
     @Transactional
     @Async
     public CompletableFuture<Void> removeRedisBuffer(String tagname) {
-        Set<String> toberemoved = redisPayloadBuffer.getAllHashes();
-        int i = 0;
-        for (String hash : toberemoved) {
-            i++;
-            if ((i % 100) == 0) {
-                log.debug("Delete payload {}....{}/{}", hash, i, toberemoved.size());
-            }
-            if (exists(hash)) {
-                String tbrhash = removePayload(tagname, hash);
-                if (hash.equals(tbrhash)) {
-                    log.debug("Payload {} is still associated to other tags", hash);
-                }
-                else {
-                    log.debug("Payload {} removed", hash);
-                    redisPayloadBuffer.removeHash(hash);
-                }
-            }
-        }
+
+        redisPayloadBuffer.streamHashesByTagName(tagname)
+                .forEach(hash -> {
+                    // Perform deletion logic here
+                    if (exists(hash)) {
+                        String tbrhash = removePayload(tagname, hash);
+                        if (hash.equals(tbrhash)) {
+                            log.debug("Payload {} is still associated to other tags", hash);
+                        }
+                        else {
+                            log.debug("Payload {} removed for tag {}", hash, tagname);
+                            redisPayloadBuffer.removeFromBuffer(hash, tagname);
+                        }
+                    }
+                });
+
         return CompletableFuture.completedFuture(null);
     }
 
