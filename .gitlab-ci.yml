@@ -25,6 +25,11 @@ package_cern_application:
   stage: package_application
   environment: cern
   image: eclipse-temurin:23-alpine
+  services:
+    - redis:latest
+  variables:
+    crest.redis.host: redis
+    crest.redis.port: 6379
   script:
    - ./gradlew clean build
   allow_failure: false
