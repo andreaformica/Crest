@@ -84,4 +84,10 @@ public class PayloadDataRepositoryImpl implements PayloadDataRepositoryCustom {
             log.debug("Postgres deletion : {}", reslist.get(0));
         }
     }
+
+    @Override
+    @Transactional
+    public void flush() {
+        entityManager.flush();
+    }
 }

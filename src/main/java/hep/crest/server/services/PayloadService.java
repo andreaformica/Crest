@@ -50,6 +50,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 /**
  * @author aformic
@@ -133,27 +135,26 @@ public class PayloadService {
     /**
      * @param tag  the String tag name
      * @param hash the String payload hash
+     * @param flushtransaction the boolean flag
      * @return String
      * @throws AbstractCdbServiceException If an Exception occurred
      */
     @Transactional
-    public String removePayload(String tag, String hash) throws AbstractCdbServiceException {
+    public String removePayload(String tag, String hash, boolean flushtransaction) throws AbstractCdbServiceException {
         final Optional<Payload> opt = payloadRepository.findById(hash);
         if (opt.isEmpty()) {
             throw new CdbNotFoundException("Cannot find payload for hash " + hash);
         }
         Boolean canremove = Boolean.TRUE;
-        Boolean isdelayed = Boolean.TRUE;
         List<Iov> iovwithhash = iovRepository.findByPayloadHash(hash);
         Integer niovs = (iovwithhash != null) ? iovwithhash.size() : 0;
         log.trace("Found list of {} IOVs for hash {}", niovs, hash);
         if (niovs >= 1) {
             log.trace("The hash {} is associated to more than one iov...remove only if tag name "
                       + "is the same", hash);
-            canremove = Boolean.FALSE;
             for (Iov iov : iovwithhash) {
                 if (!tag.equalsIgnoreCase(iov.getId().getTagName())) {
-                    isdelayed = Boolean.FALSE;
+                    canremove = Boolean.FALSE;
                     break;
                 }
             }
@@ -168,12 +169,21 @@ public class PayloadService {
             payloadDataRepository.deleteData(hash);
             payloadDataRepository.deleteById(hash);
             payloadInfoDataRepository.deleteById(hash);
+            if (flushtransaction) {
+                flush();
+            }
             return "removed";
         }
-        if (isdelayed) {
-            return hash;
-        }
-        return "ignore";
+        return hash;
+    }
+
+    /**
+     * Flush the transaction.
+     */
+    protected void flush() {
+        payloadRepository.flush();
+        payloadDataRepository.flush();
+        payloadInfoDataRepository.flush();
     }
 
     /**
@@ -198,22 +208,30 @@ public class PayloadService {
     @Transactional
     @Async
     public CompletableFuture<Void> removeRedisBuffer(String tagname) {
-
-        redisPayloadBuffer.streamHashesByTagName(tagname)
-                .forEach(hash -> {
-                    // Perform deletion logic here
-                    if (exists(hash)) {
-                        String tbrhash = removePayload(tagname, hash);
-                        if (hash.equals(tbrhash)) {
-                            log.debug("Payload {} is still associated to other tags", hash);
-                        }
-                        else {
-                            log.debug("Payload {} removed for tag {}", hash, tagname);
-                            redisPayloadBuffer.removeFromBuffer(hash, tagname);
-                        }
+        AtomicInteger counter = new AtomicInteger();
+        final Boolean[] flush = {Boolean.FALSE};
+        // Use try-with-resources to close the stream.
+        try (Stream<String> hashStream = redisPayloadBuffer.streamHashesByTagName(tagname)) {
+            hashStream.forEach(hash -> {
+                // Perform deletion logic here
+                if (exists(hash)) {
+                    String tbrhash = removePayload(tagname, hash, flush[0]);
+                    flush[0] = Boolean.FALSE;
+                    if (hash.equals(tbrhash)) {
+                        log.debug("Payload {} is still associated to other tags", hash);
                     }
-                });
-
+                    else {
+                        log.debug("Payload {} removed for tag {}", hash, tagname);
+                    }
+                    redisPayloadBuffer.removeFromBuffer(hash, tagname);
+                    counter.getAndIncrement();
+                    if (counter.get() % 100 == 0) {
+                        log.debug("Removed {} payloads for tag {}", counter, tagname);
+                        flush[0] = Boolean.TRUE;
+                    }
+                }
+            });
+        }
         return CompletableFuture.completedFuture(null);
     }
 

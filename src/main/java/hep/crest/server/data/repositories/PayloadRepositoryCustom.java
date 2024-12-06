@@ -27,4 +27,9 @@ public interface PayloadRepositoryCustom {
      */
     Page<Payload> findPayloadsList(@Param("args") PayloadQueryArgs args, Pageable preq) throws CdbNotFoundException;
 
+    /**
+     * Flush the transaction.
+     */
+    void flush();
+
 }
