@@ -40,7 +40,6 @@ import java.util.concurrent.Executor;
 @ComponentScan("hep.crest.server")
 @EnableAspectJAutoProxy
 @EnableAsync
-@EnableCaching
 public class ServicesConfig {
 
     /**
