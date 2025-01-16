@@ -1,10 +1,10 @@
 package hep.crest.server.config;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
@@ -12,17 +12,23 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 public class CacheConfig {
 
+
     /**
-     * The cache manager.
+     * Cache manager.
+     * @return CacheManager
      */
-    @Autowired
-    private CacheManager cacheManager;
+    @Bean
+    public CacheManager cacheManager() {
+        CacheManager cacheManager = new ConcurrentMapCacheManager();
+        clearCachesOnStartup(cacheManager);
+        return cacheManager;
+    }
 
     /**
      * Clear all caches on startup.
+     * @param cacheManager
      */
-    @PostConstruct
-    public void clearCachesOnStartup() {
+    public void clearCachesOnStartup(CacheManager cacheManager) {
         log.info("Clearing all caches on startup...");
         cacheManager.getCacheNames().forEach(cacheName -> {
             Cache cache = cacheManager.getCache(cacheName);
