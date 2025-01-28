@@ -10,7 +10,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import hep.crest.server.serializers.CustomTimeDeserializer;
 import hep.crest.server.serializers.CustomTimeSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -38,7 +37,6 @@ import java.util.concurrent.Executor;
 @ComponentScan("hep.crest.server")
 @EnableAspectJAutoProxy
 @EnableAsync
-@EnableCaching
 public class ServicesConfig {
 
     /**

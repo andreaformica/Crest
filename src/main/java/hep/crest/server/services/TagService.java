@@ -102,6 +102,7 @@ public class TagService {
         try {
             Tag cached = getTagFromCache(name);
             if (cached != null) {
+                log.debug("Tag found in cache: {}", cached);
                 return cached;
             }
             Tag entity = tagRepository.findById(name).orElseThrow(() -> new CdbNotFoundException(
@@ -164,7 +165,7 @@ public class TagService {
     public Page<Tag> selectTagList(TagQueryArgs args, Pageable preq) {
         Page<Tag> entitylist = null;
         if (preq == null) {
-            String sort = "id.since:ASC,id.insertionTime:DESC";
+            String sort = "name:ASC";
             preq = prh.createPageRequest(0, 1000, sort);
         }
         entitylist = tagRepository.findTagList(args, preq);
