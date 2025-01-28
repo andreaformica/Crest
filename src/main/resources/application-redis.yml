@@ -9,9 +9,9 @@ server:
     port: 8080
     connection-timeout: 120s
 spring:
-    data.redis:
-      host: ${crest.redis.host}
-      port: ${crest.redis.port}
+    redis:
+      host: localhost
+      port: 6389
     security:
       strategy: MODE_INHERITABLETHREADLOCAL
     jersey:

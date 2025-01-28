@@ -256,24 +256,18 @@ public class TagService {
                 // Process the current batch of IOVs
                 List<Iov> iovList = iovsPage.getContent();
                 List<String> hashList = iovService.removeIovList(iovList);
-                CompletableFuture<Void> future = payloadService.removePage(hashList, name);
-                futures.add(future);
-                if (futures.size() >= 5) {
-                    // Verify that all future task did end
-                    log.debug("Wait for payloads to be removed by {} tasks", futures.size());
-                    for (CompletableFuture<Void> f : futures) {
-                        f.join();  // This blocks until the task completes
-                    }
-                    log.debug("Payload removal finished for {} tasks", futures.size());
-                    futures.clear();
-                }
+                // Store the hash list for payload removal in Redis
+                payloadService.storeRemovableHashList(hashList, name);
                 pageIndex++;
                 // Continue using the same page (page 0), as removed items won't appear again
             } while (!iovsPage.isEmpty()); // Break if there are no more IOVs to process
             // Payload are now removed
-            log.debug("Payloads have been removed");
+            log.debug("Payloads have been scheduled for removal");
             tagRepository.deleteById(name);
             log.debug("Removed entity: {}", name);
+            // Launch async task to remove payloads
+            CompletableFuture<Void> future = payloadService.removeRedisBuffer(name);
+            // Do not wait for the future to complete
         }
         catch (AbstractCdbServiceException e) {
             log.error("Tag removal exception: {}", name);

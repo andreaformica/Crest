@@ -20,6 +20,8 @@ import org.springframework.data.jpa.repository.support.Querydsl;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 /**
@@ -78,4 +80,9 @@ public class PayloadRepositoryImpl implements PayloadRepositoryCustom {
         return new PageImpl<>(rows, preq, totalElements);
     }
 
+    @Override
+    @Transactional
+    public void flush() {
+        entityManager.flush();
+    }
 }
