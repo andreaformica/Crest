@@ -43,6 +43,10 @@ The prototype uses [Spring framework](https://spring.io) and the REST services a
 The prototype runs as a microservice using `spring-boot`. By default, it uses an embedded [undertow](http://undertow.io) servlet container,
 but others like [tomcat](https://tomcat.apache.org) or [jetty](https://www.eclipse.org/jetty/) can be easily used.
 
+This version of the server is compatible with Java 23 and Spring 3.3.4.
+In addition it introduces a new dependency on an external `redis` server for payload removal purposes.
+The removal is asynchronous and is triggered by the server when a tag is removed. All associated payloads will 
+referenced in `redis` and will be removed by a separate process.
 
 ## Installation
 Download the project from gitlab (example below is using `https`):
