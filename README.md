@@ -43,6 +43,7 @@ The prototype uses [Spring framework](https://spring.io) and the REST services a
 The prototype runs as a microservice using `spring-boot`. By default, it uses an embedded [undertow](http://undertow.io) servlet container,
 but others like [tomcat](https://tomcat.apache.org) or [jetty](https://www.eclipse.org/jetty/) can be easily used.
 
+This version 6.0 is compatible with Java 23 and Spring 3.3.4.
 
 ## Installation
 Download the project from gitlab (example below is using `https`):
@@ -52,7 +53,7 @@ git clone https://gitlab.cern.ch/crest-db/crest.git
 This will create a directory `crest` in the location where you run the git command.
 
 ## Build instructions
-You need to have java >= 11 installed on your machine.
+You need to have java >= 21 installed on your machine.
 If you have also [gradle](https://gradle.org) (version 7) you can build the project
 using the following command from the root project directory (`crest`):
 ```
@@ -65,7 +66,7 @@ In case gradle is not installed on your machine, you can run the wrapper deliver
 ```
 If you want to select a specific JVM when you run gradle you can use a command like this:
 ```
-gradle clean build -Dorg.gradle.java.home=/path_to_jvm/11.0/
+gradle clean build -Dorg.gradle.java.home=/path_to_jvm/21.0/
 ```
 Be careful to checkout the correct branch.
 
