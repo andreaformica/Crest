@@ -164,6 +164,7 @@ public class PageRequestHelper {
                 case RUN:
                     log.trace("Use run...{}", val);
                     tepoch = BigInteger.valueOf(Long.parseLong(val));
+                    tepoch = tepoch.shiftLeft(COOLIOV_RUN_MASK);
                     iscoolformat = Boolean.TRUE;
                     break;
                 case RUN_LUMI:
