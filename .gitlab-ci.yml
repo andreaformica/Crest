@@ -24,7 +24,7 @@ stages:
 package_cern_application:
   stage: package_application
   environment: cern
-  image: registry.cern.ch/crest/eclipse-temurin:23-alpine
+  image: eclipse-temurin:23-alpine
   script:
    - ./gradlew clean build
   allow_failure: false
