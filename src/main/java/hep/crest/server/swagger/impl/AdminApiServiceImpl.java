@@ -4,6 +4,7 @@ import hep.crest.server.converters.GlobalTagMapper;
 import hep.crest.server.data.pojo.GlobalTag;
 import hep.crest.server.data.pojo.GlobalTagMap;
 import hep.crest.server.exceptions.CdbSQLException;
+import hep.crest.server.exceptions.ConflictException;
 import hep.crest.server.services.GlobalTagMapService;
 import hep.crest.server.services.GlobalTagService;
 import hep.crest.server.services.TagService;
@@ -78,7 +79,7 @@ public class AdminApiServiceImpl extends AdminApiService {
             // Some global tags are associated to this tag. We cannot proceed to remove it.
             // Send an error message.
             log.error("Cannot remove tag {}, found association with global tags.", name);
-            throw new CdbSQLException("Cannot remove tag "
+            throw new ConflictException("Cannot remove tag "
                     + name
                     + ": clean up associations with global tags");
         }
