@@ -1,5 +1,5 @@
 # CrestDB
-FROM registry.cern.ch/crest/eclipse-temurin:23-alpine
+FROM registry.cern.ch/docker.io/eclipse-temurin:23-alpine
 LABEL maintainer="Andrea Formica"
 
 ENV USR=crestsvc
