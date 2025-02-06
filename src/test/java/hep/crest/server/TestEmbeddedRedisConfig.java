@@ -25,7 +25,8 @@ public class TestEmbeddedRedisConfig {
      * The redis container.
      */
     private static final GenericContainer<?> redis =
-            new GenericContainer<>(DockerImageName.parse("redis:latest")).withExposedPorts(6380);
+            new GenericContainer<>(DockerImageName.parse("redis:latest"))
+                    .withExposedPorts(6379);
 
     @PostConstruct
     public void startRedis() {
