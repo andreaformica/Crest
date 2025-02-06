@@ -44,11 +44,16 @@ public class ToolsTest {
 
         BigInteger t4 = prh.getTimeFromArg("1234", ArgTimeUnit.RUN,
                 ArgTimeUnit.COOL, null);
-        assertThat(t4).isEqualTo(new BigInteger("1234"));
+        BigInteger res = BigInteger.valueOf(1234);
+        res = res.shiftLeft(32);
+        assertThat(t4).isEqualTo(res);
 
         BigInteger t5 = prh.getTimeFromArg("100-200", ArgTimeUnit.RUN_LUMI,
                 ArgTimeUnit.COOL, null);
-        assertThat(t5).isGreaterThan(new BigInteger("100"));
+        BigInteger res2 = BigInteger.valueOf(100);
+        res2 = res2.shiftLeft(32);
+        res2 = res2.or(BigInteger.valueOf(200));
+        assertThat(t5).isEqualTo(res2);
 
         BigInteger cr = prh.getCoolRunLumi(100L, 200L);
         assertThat(cr).isEqualTo(t5);
