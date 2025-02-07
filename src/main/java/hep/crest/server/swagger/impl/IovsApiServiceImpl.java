@@ -281,6 +281,11 @@ public class IovsApiServiceImpl extends IovsApiService {
     @Override
     public Response getSizeByTag(@NotNull String tagname, SecurityContext securityContext) {
         log.info("Get size of iovs for tag {}", tagname);
+        // Check if the tagname is a pattern or a real tag.
+        if (!tagname.contains("%")) {
+            tagService.findOne(tagname);
+        }
+        // The tag string is a pattern or an existing tag.
         // Get the tag summary list corresponding to the tagname pattern.
         // The method in the service sends back always a list, eventually empty.
         final List<TagSummaryDto> entitylist = iovService.getTagSummaryInfo(tagname);
