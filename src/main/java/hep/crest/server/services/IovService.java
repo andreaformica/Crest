@@ -15,7 +15,6 @@ import hep.crest.server.data.repositories.TagRepository;
 import hep.crest.server.data.repositories.args.IovQueryArgs;
 import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbNotFoundException;
-import hep.crest.server.exceptions.ConflictException;
 import hep.crest.server.repositories.monitoring.IMonitoringRepository;
 import hep.crest.server.swagger.model.CrestBaseResponse;
 import hep.crest.server.swagger.model.IovDto;
@@ -32,6 +31,7 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -243,9 +243,10 @@ public class IovService {
         // Check if iov exists
         Iov s = this.existsIov(t.getName(), entity.getId().getSince(), entity.getPayloadHash());
         if (s != null) {
-            log.warn("Iov already exists [tag,since,hash], skip insertion: {}", entity);
-            throw new ConflictException("Iov already exists...insertion process stops: "
-                                        + s.getId() + " hash " + s.getPayloadHash());
+            log.warn("Iov already exists [tag,since,hash], update insertion time for: {}", entity);
+            final Timestamp now = Timestamp.from(Instant.now());
+            s.getId().setInsertionTime(now);
+            entity = s;
         }
         // Check if payload exists. Cannot store IOV without payload.
         if (!entity.getPayloadHash().startsWith("triggerdb")
