@@ -62,7 +62,7 @@ public class Tag implements java.io.Serializable {
      * The synchronization.
      */
     @Column(name = "SYNCHRONIZATION", nullable = false, length = 20)
-    private String synchronization;
+    private String synchronization = TagSynchroEnum.NONE.type();
     /**
      * The description.
      */

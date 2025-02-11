@@ -6,6 +6,7 @@ package hep.crest.server.aspects;
 import hep.crest.server.config.CrestProperties;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Tag;
+import hep.crest.server.data.pojo.TagSynchroEnum;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.TagService;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import jakarta.ws.rs.NotAuthorizedException;
+
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -26,7 +28,6 @@ import java.time.Instant;
  * This class is an aspect: to see where it is called you should look to the annotation.
  *
  * @author formica
- *
  */
 @Aspect
 @Component
@@ -57,10 +58,9 @@ public class IovSynchroAspect {
 
     /**
      * Check synchronization.
-     * @param pjp
-     *            the joinpoint
-     * @param entity
-     *            the Tag
+     *
+     * @param pjp    the joinpoint
+     * @param entity the Tag
      * @return Object
      * @throws Throwable If an Exception occurred
      */
@@ -107,8 +107,8 @@ public class IovSynchroAspect {
             retVal = pjp.proceed();
         }
         else {
-            log.warn("Not authorized, either you cannot write in this tag or synchro type is wrong: auth={} "
-                     + "synchro={}", allowedOperation, acceptTime);
+            log.warn("Not authorized, either you cannot write in this tag or synchro type is "
+                    + "wrong: auth={} synchro={}", allowedOperation, acceptTime);
             throw new NotAuthorizedException("You cannot write iov {}", entity);
         }
         return retVal;
@@ -119,38 +119,49 @@ public class IovSynchroAspect {
      * For the moment we always accept insertions. This shall change.
      *
      * @param tagentity the tag
-     * @param entity the iov
+     * @param entity    the iov
      * @return Boolean : True if the Iov should be accepted for insertion. False otherwise.
      */
     protected boolean evaluateCondition(Tag tagentity, Iov entity) {
         final String synchro = tagentity.getSynchronization();
         Boolean acceptTime = Boolean.FALSE;
         Iov latest = iovService.latest(tagentity.getName());
-        switch (synchro) {
-            case "SV":
+        //
+        switch (TagSynchroEnum.valueOf(synchro)) {
+            case SV:
                 log.warn("Can only append IOVs....");
-                if (latest == null || latest.getId().getSince().compareTo(entity.getId().getSince()) <= 0) {
+                if (latest == null
+                        || latest.getId().getSince().compareTo(entity.getId().getSince()) <= 0) {
                     // Latest is before the new one.
-                    log.info("IOV in insert has correct time respect to last IOV : {} > {}", entity, latest);
+                    log.info("IOV in insert has correct time respect to last IOV : {} > {}",
+                            entity, latest);
                     acceptTime = true;
                 }
                 else {
                     // Latest is after the new one.
-                    log.warn("IOV in insert has WRONG time respect to last IOV : {} < {}", entity, latest);
+                    log.warn("IOV in insert has WRONG time respect to last IOV : {} < {}",
+                            entity, latest);
                     acceptTime = false;
                 }
                 break;
-            case "APPEND":
+            case UPDATE:
                 log.warn("Can append data in case the since is after the end time of the tag");
                 BigInteger endofval = tagentity.getEndOfValidity();
-                if (endofval  == null || endofval.compareTo(entity.getId().getSince()) <= 0) {
+                if (endofval == null || endofval.compareTo(entity.getId().getSince()) <= 0) {
                     log.info("The since is after end of validity of the Tag");
                     acceptTime = true;
                 }
                 break;
+            case NONE:
+                log.warn("Can insert data in any case because it is an open tag");
+                acceptTime = true;
+                break;
             default:
                 // Nothing here, synchro type is not implemented.
-                log.debug("Synchro type not found....Insertion is accepted by default");
+                // We should throw an exception here.
+                // For the time being we accept the insertion.
+                log.warn("Synchro type not found....Insertion is not allowed by default [FIXME]");
+                log.warn("We allow insertion during development....");
                 acceptTime = true;
                 break;
         }
@@ -159,6 +170,7 @@ public class IovSynchroAspect {
 
     /**
      * Method to override the Iov. If the iov exists, the insertion time is updated.
+     *
      * @param entity the iov
      * @return
      */
