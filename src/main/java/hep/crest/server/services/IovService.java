@@ -15,7 +15,6 @@ import hep.crest.server.data.repositories.TagRepository;
 import hep.crest.server.data.repositories.args.IovQueryArgs;
 import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbNotFoundException;
-import hep.crest.server.exceptions.ConflictException;
 import hep.crest.server.repositories.monitoring.IMonitoringRepository;
 import hep.crest.server.swagger.model.CrestBaseResponse;
 import hep.crest.server.swagger.model.IovDto;
@@ -232,32 +231,20 @@ public class IovService {
      */
     @Transactional(rollbackOn = {AbstractCdbServiceException.class})
     public Iov insertIov(Iov entity) throws AbstractCdbServiceException {
-        log.debug("Create iov from {}", entity);
+        log.debug("Create iov only [iov={}]", entity);
         final String tagname = entity.getTag().getName();
-        // The IOV is not yet stored. Verify that the tag exists before inserting it.
-        final Optional<Tag> tg = tagRepository.findById(tagname);
-        if (!tg.isPresent()) {
-            throw new CdbNotFoundException("Tag " + tagname + " not found: cannot insert IOV.");
-        }
-        final Tag t = tg.get();
-        // Check if iov exists
-        Iov s = this.existsIov(t.getName(), entity.getId().getSince(), entity.getPayloadHash());
-        if (s != null) {
-            log.warn("Iov already exists [tag,since,hash], skip insertion: {}", entity);
-            throw new ConflictException("Iov already exists...insertion process stops: "
-                                        + s.getId() + " hash " + s.getPayloadHash());
-        }
+        final Tag t = checkTag(tagname);
         // Check if payload exists. Cannot store IOV without payload.
         if (!entity.getPayloadHash().startsWith("triggerdb")
-                & !payloadRepository.findById(entity.getPayloadHash()).isPresent()) {
+                & payloadRepository.findById(entity.getPayloadHash()).isEmpty()) {
             log.warn("Payload not found for hash: {}", entity.getPayloadHash());
             throw new CdbNotFoundException("Payload not found: " + entity.getPayloadHash());
         }
-        // Check if payload exists. Cannot store IOV without payload.
+        // Save iov in the given tag.
         log.debug("Storing iov entity {} in tag {}", entity, t);
         entity.setTag(t);
         final Iov saved = iovRepository.save(entity);
-        log.debug("Saved iov entity: {}", saved);
+        log.trace("Saved iov entity: {}", saved);
         return saved;
     }
 
@@ -292,6 +279,16 @@ public class IovService {
     }
 
     /**
+     * Update the insertion time of the IOV.
+     * @param entity
+     */
+    public void updateIov(Iov entity) {
+        int nupd = iovRepository.updateIov(entity.getTag().getName(), entity.getId().getSince(),
+                entity.getPayloadHash(), entity.getId().getInsertionTime());
+        log.debug("Updated iov entity: {} with result {}", entity, nupd);
+    }
+
+    /**
      * Non-transactional iov storage.
      * Used to avoid updating tag as done in IovService.
      * This method is called internally by the transactional method saveAll.
@@ -301,27 +298,32 @@ public class IovService {
      * @return Iov
      */
     public Iov storeIov(Iov entity) {
-        log.debug("Create iov from {}", entity);
+        log.debug("Create iov + payload [iov= {}]", entity);
         final String tagname = entity.getTag().getName();
         // The IOV is not yet stored. Verify that the tag exists before inserting it.
-        final Optional<Tag> tg = tagRepository.findById(tagname);
-        if (!tg.isPresent()) {
-            throw new CdbNotFoundException("Tag " + tagname + " not found: cannot insert IOV.");
-        }
-        Tag t = tg.get();
-        Iov s = this.existsIov(t.getName(), entity.getId().getSince(), entity.getPayloadHash());
-        if (s != null) {
-            log.warn("Iov already exists [tag,since,hash], skip insertion: {}", entity);
-            return s;
-        }
+        Tag t = checkTag(tagname);
         entity.setTag(t);
         entity.getId().setTagName(t.getName());
         log.debug("Storing iov entity {} in tag {}", entity, t);
         final Iov saved = iovRepository.save(entity);
-        log.debug("Saved iov entity: {}", saved);
+        log.trace("Saved iov entity: {}", saved);
         return saved;
     }
 
+    /**
+     * Check the tag before inserting the iov.
+     *
+     * @param tagname
+     * @return Tag
+     */
+    protected Tag checkTag(String tagname) {
+        // The IOV is not yet stored. Verify that the tag exists before inserting it.
+        final Optional<Tag> tg = tagRepository.findById(tagname);
+        if (tg.isEmpty()) {
+            throw new CdbNotFoundException("Tag " + tagname + " not found: cannot insert IOV.");
+        }
+        return tg.get();
+    }
 
     /**
      * Remove a list of iovs, send back the hash of payloads.

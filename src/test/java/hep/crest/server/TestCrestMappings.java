@@ -120,6 +120,5 @@ public class TestCrestMappings {
         final String url = "/crestapi/globaltagmaps/" + mapDto.getGlobalTagName()+"?record=some-rec";
         log.info("Removing mapping {}", url);
         this.testRestTemplate.delete(url);
-
     }
 }

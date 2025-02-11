@@ -53,10 +53,32 @@ public interface IovRepository
     @Transactional(readOnly = true)
     Stream<Iov> streamByTagName(@Param("tagName") String tagName);
 
+    /**
+     *
+     * @param tagName
+     * @param hash
+     * @return int
+     */
     @Modifying
     @Transactional
     @Query("DELETE FROM Iov i WHERE i.id.tagName = :tagName AND i.payloadHash = :hash")
     int deleteByTagNameAndHash(@Param("tagName") String tagName, @Param("hash") String hash);
+
+    /**
+     * Update the insertion time.
+     * @param tagName
+     * @param since
+     * @param hash
+     * @param instime
+     * @return int
+     */
+    @Modifying
+    @Transactional
+    @Query("UPDATE Iov i set i.id.insertionTime = :instime WHERE i.id.tagName = :tagName AND "
+            + "i.payloadHash = :hash AND i.id.since = :since")
+    int updateIov(@Param("tagName") String tagName,
+                  @Param("since") BigInteger since, @Param("hash") String hash,
+                  @Param("instime") Date instime);
 
     /**
      * Retrieve all iovs for a given hash. Used when deleting.
