@@ -102,9 +102,9 @@ public class IovSynchroAspect {
         // and if the user is allowed to write.
         if (acceptTime && allowedOperation) {
             // Check if iov exists: if so just update the insertion time.
-            overrideIov(entity);
+            Iov s = overrideIov(entity);
             // Proceed if allowed.
-            retVal = pjp.proceed();
+            retVal = pjp.proceed(new Object[] {s});
         }
         else {
             log.warn("Not authorized, either you cannot write in this tag or synchro type is "
@@ -172,17 +172,19 @@ public class IovSynchroAspect {
      * Method to override the Iov. If the iov exists, the insertion time is updated.
      *
      * @param entity the iov
-     * @return
+     * @return Iov
      */
-    protected void overrideIov(Iov entity) {
+    protected Iov overrideIov(Iov entity) {
         // Check if iov exists
         Iov s = iovService.existsIov(
                 entity.getTag().getName(), entity.getId().getSince(), entity.getPayloadHash());
         if (s != null) {
             log.warn("Iov already exists [tag,since,hash], update insertion time for: {}", entity);
             final Timestamp now = Timestamp.from(Instant.now());
+            s.getId().setInsertionTime(now);
+            iovService.updateIov(s);
             entity = s;
-            entity.getId().setInsertionTime(now);
         }
+        return entity;
     }
 }

@@ -279,6 +279,16 @@ public class IovService {
     }
 
     /**
+     * Update the insertion time of the IOV.
+     * @param entity
+     */
+    public void updateIov(Iov entity) {
+        int nupd = iovRepository.updateIov(entity.getTag().getName(), entity.getId().getSince(),
+                entity.getPayloadHash(), entity.getId().getInsertionTime());
+        log.debug("Updated iov entity: {} with result {}", entity, nupd);
+    }
+
+    /**
      * Non-transactional iov storage.
      * Used to avoid updating tag as done in IovService.
      * This method is called internally by the transactional method saveAll.
