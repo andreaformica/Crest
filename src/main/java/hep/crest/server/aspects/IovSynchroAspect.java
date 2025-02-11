@@ -19,6 +19,8 @@ import org.springframework.stereotype.Component;
 
 import jakarta.ws.rs.NotAuthorizedException;
 import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.time.Instant;
 
 /**
  * This class is an aspect: to see where it is called you should look to the annotation.
@@ -96,7 +98,12 @@ public class IovSynchroAspect {
             // Get synchro type from tag.
             acceptTime = evaluateCondition(tagentity, entity);
         }
+        // Proceed if the time is compatible with the tag definition,
+        // and if the user is allowed to write.
         if (acceptTime && allowedOperation) {
+            // Check if iov exists: if so just update the insertion time.
+            overrideIov(entity);
+            // Proceed if allowed.
             retVal = pjp.proceed();
         }
         else {
@@ -148,5 +155,22 @@ public class IovSynchroAspect {
                 break;
         }
         return acceptTime;
+    }
+
+    /**
+     * Method to override the Iov. If the iov exists, the insertion time is updated.
+     * @param entity the iov
+     * @return
+     */
+    protected void overrideIov(Iov entity) {
+        // Check if iov exists
+        Iov s = iovService.existsIov(
+                entity.getTag().getName(), entity.getId().getSince(), entity.getPayloadHash());
+        if (s != null) {
+            log.warn("Iov already exists [tag,since,hash], update insertion time for: {}", entity);
+            final Timestamp now = Timestamp.from(Instant.now());
+            entity = s;
+            entity.getId().setInsertionTime(now);
+        }
     }
 }
