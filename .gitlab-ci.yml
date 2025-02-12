@@ -26,7 +26,7 @@ package_cern_application:
   environment: cern
   image: registry.cern.ch/docker.io/eclipse-temurin:23-alpine
   services:
-    - redis:latest
+    - registry.cern.ch/docker.io/redis:latest
   variables:
     REDIS_HOST: redis
     REDIS_PORT: 6379
