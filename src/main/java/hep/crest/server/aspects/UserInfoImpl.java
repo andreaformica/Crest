@@ -32,8 +32,7 @@ public class UserInfoImpl implements UserInfo {
         }
 
         // Check if authentication is an OAuth2 token (for JWT or Opaque tokens)
-        if (auth instanceof JwtAuthenticationToken) {
-            JwtAuthenticationToken jwtAuth = (JwtAuthenticationToken) auth;
+        if (auth instanceof JwtAuthenticationToken jwtAuth) {
             Jwt jwt = jwtAuth.getToken();
             log.info("JWT Principal: {}", jwtAuth.getPrincipal());
 
@@ -44,8 +43,7 @@ public class UserInfoImpl implements UserInfo {
                 clientId = getClientId(claims);
             }
         }
-        else if (auth instanceof OAuth2AuthenticationToken) {
-            OAuth2AuthenticationToken oauth2Auth = (OAuth2AuthenticationToken) auth;
+        else if (auth instanceof OAuth2AuthenticationToken oauth2Auth) {
             OAuth2User oauth2User = oauth2Auth.getPrincipal();
             log.info("OAuth2 Principal: {}", oauth2User);
 
@@ -68,19 +66,18 @@ public class UserInfoImpl implements UserInfo {
         if (user != null) {
             // Search if tagname is in list of roles.
             String crestrole = "ROLE_crest-" + role;
-            if (isRole(crestrole, roles)) {
+            if (Boolean.TRUE.equals(isRole(crestrole, roles))) {
                 return Boolean.TRUE;
             }
-            if (isRole("ROLE_crest-admin", roles)) {
+            if (Boolean.TRUE.equals(isRole("ROLE_crest-admin", roles))) {
                 return Boolean.TRUE;
             }
-            if (isRole("ROLE_crest-developers", roles)) {
+            if (Boolean.TRUE.equals(isRole("ROLE_crest-developers", roles))) {
                 return Boolean.TRUE;
             }
         }
         // Seems that the user is not in the role.
-        roles.stream()
-                .forEach(s -> log.debug("Selected role is {}", s.getAuthority()));
+        roles.forEach(s -> log.debug("Selected role is {}", s.getAuthority()));
         return Boolean.FALSE;
     }
 

@@ -5,6 +5,7 @@ plugins {
 	id("org.openapi.generator") version "7.8.0"
 	id 'jacoco'
 	id 'checkstyle'
+	id "org.sonarqube" version "6.0.1.5171"
 }
 
 group = 'hep.crest'
@@ -58,6 +59,34 @@ tasks.withType(Checkstyle) {
 	reports {
 		xml.required = false
 		html.required = true
+	}
+}
+
+jacocoTestReport {
+
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: [
+					"src/gen/**",
+					"hep/crest/server/data/**/Q*.*",
+					"hep/crest/server/swagger/api/*",
+					"hep/crest/server/swagger/model/*"
+			])
+		}))
+	}
+	reports {
+		xml.required = true
+		csv.required = false
+		html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+	}
+}
+
+
+sonar {
+	properties {
+		property "sonar.projectKey", "andreaformica_Crest"
+		property "sonar.organization", "andreaformica"
+		property "sonar.host.url", "https://sonarcloud.io"
 	}
 }
 
