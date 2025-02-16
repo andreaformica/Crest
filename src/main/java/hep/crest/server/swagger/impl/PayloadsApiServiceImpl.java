@@ -17,9 +17,6 @@ import hep.crest.server.data.pojo.Payload;
 import hep.crest.server.data.pojo.PayloadData;
 import hep.crest.server.data.pojo.PayloadInfoData;
 import hep.crest.server.data.pojo.Tag;
-import hep.crest.server.data.repositories.PayloadDataRepository;
-import hep.crest.server.data.repositories.PayloadInfoDataRepository;
-import hep.crest.server.data.repositories.PayloadRepository;
 import hep.crest.server.data.repositories.args.PayloadQueryArgs;
 import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbBadRequestException;
@@ -100,76 +97,72 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
     /**
      * Service.
      */
-    @Autowired
     private PayloadService payloadService;
-    /**
-     * Repository.
-     */
-    @Autowired
-    private PayloadRepository payloadRepository;
-    /**
-     * Repository.
-     */
-    @Autowired
-    private PayloadDataRepository payloadDataRepository;
-    /**
-     * Repository.
-     */
-    @Autowired
-    private PayloadInfoDataRepository payloadInfoDataRepository;
     /**
      * Service.
      */
-    @Autowired
     private IovService iovService;
     /**
      * Service.
      */
-    @Autowired
     private TagService tagService;
     /**
      * Service.
      */
-    @Autowired
     private JsonStreamProcessor jsonStreamProcessor;
     /**
      * Service.
      */
-    @Autowired
     private CachingPolicyService cachesvc;
     /**
      * Properties.
      */
-    @Autowired
     private CrestProperties cprops;
     /**
      * Mapper.
      */
-    @Inject
     private ObjectMapper jacksonMapper;
 
     /**
      * Helper.
      */
-    @Autowired
     private EntityDtoHelper edh;
     /**
      * Helper.
      */
-    @Autowired
     private PageRequestHelper prh;
 
     /**
      * Mapper.
      */
-    @Autowired
     private PayloadMapper mapper;
 
     /**
-     * Context.
+     * Ctor with injected services.
+     * @param payloadService the payload service
+     * @param tagService the tag service
+     * @param cachingPolicyService caching service
+     * @param jsonStreamProcessor the json stream processor
+     * @param crestProperties the crest properties
+     * @param entityDtoHelper the entity dto helper
      */
-    @Autowired
-    private JAXRSContext context;
+    public PayloadsApiServiceImpl(PayloadService payloadService,
+                                  TagService tagService,
+                                  CachingPolicyService cachingPolicyService,
+                                  JsonStreamProcessor jsonStreamProcessor,
+                                  CrestProperties crestProperties,
+                                  EntityDtoHelper entityDtoHelper) {
+        this.payloadService = payloadService;
+        this.iovService = payloadService.getIovService();
+        this.jacksonMapper = payloadService.getJsonMapper();
+        this.mapper = payloadService.getPayloadMapper();
+        this.tagService = tagService;
+        this.cachesvc = cachingPolicyService;
+        this.cprops = crestProperties;
+        this.edh = entityDtoHelper;
+        this.prh = iovService.getPrh();
+        this.jsonStreamProcessor = jsonStreamProcessor;
+    }
 
     @Override
     public Response listPayloads(String hash, String objectType, Integer minsize,

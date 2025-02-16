@@ -42,26 +42,36 @@ public class RuninfoApiServiceImpl extends RuninfoApiService {
     /**
      * Helper.
      */
-    @Autowired
     private PageRequestHelper prh;
     /**
      * Helper.
      */
-    @Autowired
     EntityDtoHelper edh;
-
     /**
      * Service.
      */
-    @Autowired
     private RunInfoService runinfoService;
 
     /**
      * Context.
      */
-    @Autowired
     private JAXRSContext context;
 
+    /**
+     * Ctor with injected service.
+     * @param runInfoService the service.
+     * @param prh the PageRequestHelper
+     * @param edh the EntityDtoHelper
+     * @param context the context.
+     */
+    @Autowired
+    public RuninfoApiServiceImpl(RunInfoService runInfoService, PageRequestHelper prh,
+                                 EntityDtoHelper edh, JAXRSContext context) {
+        this.runinfoService = runInfoService;
+        this.prh = prh;
+        this.edh = edh;
+        this.context = context;
+    }
     /*
      * (non-Javadoc)
      *

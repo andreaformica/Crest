@@ -6,9 +6,11 @@ package hep.crest.server.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.converters.HashGenerator;
+import hep.crest.server.converters.PayloadMapper;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.IovId;
 import hep.crest.server.data.pojo.Payload;
+import hep.crest.server.data.pojo.PayloadData;
 import hep.crest.server.data.pojo.PayloadInfoData;
 import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.repositories.IovRepository;
@@ -26,6 +28,7 @@ import hep.crest.server.repositories.triggerdb.UrlComponents;
 import hep.crest.server.swagger.model.StoreDto;
 import hep.crest.server.swagger.model.StoreSetDto;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -57,6 +60,7 @@ import java.util.stream.Stream;
  */
 @Service
 @Slf4j
+@Getter
 public class PayloadService {
 
     /**
@@ -96,6 +100,10 @@ public class PayloadService {
      * Mapper.
      */
     private ObjectMapper jsonMapper;
+    /**
+     * Mapper.
+     */
+    private PayloadMapper payloadMapper;
 
     /**
      * Ctor with injection.
@@ -105,6 +113,7 @@ public class PayloadService {
      * @param payloadInfoDataRepository
      * @param triggerDbService
      * @param jsonMapper
+     * @param payloadMapper
      */
     @Autowired
     public PayloadService(IovService iovService,
@@ -112,7 +121,8 @@ public class PayloadService {
                           PayloadDataRepository payloadDataRepository,
                           PayloadInfoDataRepository payloadInfoDataRepository,
                           ITriggerDb triggerDbService,
-                          @Qualifier("jacksonMapper") ObjectMapper jsonMapper) {
+                          @Qualifier("jacksonMapper") ObjectMapper jsonMapper,
+                          PayloadMapper payloadMapper) {
         this.iovService = iovService;
         this.iovRepository = iovService.getIovRepository();
         this.prh = iovService.getPrh();
@@ -121,6 +131,7 @@ public class PayloadService {
         this.payloadInfoDataRepository = payloadInfoDataRepository;
         this.triggerDbService = triggerDbService;
         this.jsonMapper = jsonMapper;
+        this.payloadMapper = payloadMapper;
     }
 
 
@@ -375,6 +386,7 @@ public class PayloadService {
     public Payload insertPayload(Payload entity, InputStream is, PayloadInfoData streamer)
             throws AbstractCdbServiceException {
         log.debug("Save payload {}", entity);
+        Payload saved = null;
         if (entity.getSize() == null) {
             throw new CdbBadRequestException("Cannot store payload without size being set");
         }
@@ -384,12 +396,31 @@ public class PayloadService {
             log.warn("Payload already exists for hash {}: send back the saved instance",
                     entity.getHash());
             // Having the existing instance will allow to store IOVs.
-            return exists.get();
+            saved = exists.get();
         }
-        // Store the payload dto
-        final Payload saved = payloadRepository.save(entity);
-        payloadDataRepository.saveData(entity.getHash(), is, entity.getSize());
-        payloadInfoDataRepository.save(streamer);
+        else {
+            // Store the payload dto
+            log.info("Save payload for hash {}", entity.getHash());
+            saved = payloadRepository.save(entity);
+        }
+        Optional<PayloadInfoData> existsinfo = payloadInfoDataRepository.findById(entity.getHash());
+        if (existsinfo.isPresent()) {
+            log.warn("Payload info already exists for hash {}", entity.getHash());
+        }
+        else {
+            // Store the streamer info
+            log.info("Save streamer info for hash {}", entity.getHash());
+            payloadInfoDataRepository.save(streamer);
+        }
+        Optional<PayloadData> existsdata = payloadDataRepository.findById(entity.getHash());
+        if (existsdata.isPresent()) {
+            log.warn("Payload data already exists for hash {}", entity.getHash());
+        }
+        else {
+            // Store the payload data
+            log.info("Save payload data for hash {}", entity.getHash());
+            payloadDataRepository.saveData(entity.getHash(), is, entity.getSize());
+        }
         log.debug("Saved payload and related entity: {}", saved);
         return saved;
     }

@@ -4,6 +4,7 @@
 package hep.crest.server.services;
 
 import hep.crest.server.annotations.ProfileAndLog;
+import hep.crest.server.caching.CachingPolicyService;
 import hep.crest.server.caching.CachingProperties;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.data.pojo.Iov;
@@ -37,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author formica
@@ -63,7 +63,7 @@ public class IovService {
     /**
      * Repository.
      */
-    private IovGroupsCustom iovgroupsrepo;
+    private IovGroupsCustom iovGroupsCustom;
 
     /**
      * Repository.
@@ -79,29 +79,34 @@ public class IovService {
      * Properties.
      */
     private CachingProperties cprops;
+    /**
+     * Caching policy service.
+     */
+    private CachingPolicyService cachingPolicyService;
 
     /**
      * Ctor with injection.
      * @param iovRepository
      * @param tagRepository
      * @param iMonitoringRepository
-     * @param iovgroupsrepo
+     * @param iovGroupsCustom
      * @param payloadRepository
      * @param prh
-     * @param cprops
+     * @param cps
      */
     @Autowired
     public IovService(IovRepository iovRepository, TagRepository tagRepository,
-                      IMonitoringRepository iMonitoringRepository, IovGroupsCustom iovgroupsrepo,
+                      IMonitoringRepository iMonitoringRepository, IovGroupsCustom iovGroupsCustom,
                       PayloadRepository payloadRepository, PageRequestHelper prh,
-                      CachingProperties cprops) {
+                      CachingPolicyService cps) {
         this.iovRepository = iovRepository;
         this.tagRepository = tagRepository;
         this.iMonitoringRepository = iMonitoringRepository;
-        this.iovgroupsrepo = iovgroupsrepo;
+        this.iovGroupsCustom = iovGroupsCustom;
         this.payloadRepository = payloadRepository;
         this.prh = prh;
-        this.cprops = cprops;
+        this.cachingPolicyService = cps;
+        this.cprops = cps.getCprops();
     }
 
     /**
@@ -113,7 +118,7 @@ public class IovService {
     public List<BigInteger> selectGroupsByTagNameAndSnapshotTime(String tagname, Date snapshot,
                                                                  Long groupsize) {
         log.debug("Search for iovs groups by tag name {} and snapshot time {}", tagname, snapshot);
-        List<BigInteger> minsincelist = iovgroupsrepo.selectSnapshotGroups(tagname, snapshot,
+        List<BigInteger> minsincelist = iovGroupsCustom.selectSnapshotGroups(tagname, snapshot,
                 groupsize);
         if (minsincelist == null) {
             minsincelist = new ArrayList<>();
@@ -134,7 +139,7 @@ public class IovService {
                 snapshot, groupsize);
         final List<IovDto> iovlist =
                 minsincelist.stream().map(s -> new IovDto().since(s.longValue()).tagName(tagname))
-                        .collect(Collectors.toList());
+                        .toList();
         return new IovSetDto().resources(iovlist).size((long) iovlist.size());
     }
 
@@ -188,7 +193,7 @@ public class IovService {
      */
     public Long getSizeByTag(String tagname) {
         log.debug("Count number of iovs by tag name {}", tagname);
-        return iovgroupsrepo.getSize(tagname);
+        return iovGroupsCustom.getSize(tagname);
     }
 
     /**
@@ -198,7 +203,7 @@ public class IovService {
      */
     public Long getSizeByTagAndSnapshot(String tagname, Date snapshot) {
         log.debug("Count number of iovs by tag name {} and snapshot {}", tagname, snapshot);
-        return iovgroupsrepo.getSizeBySnapshot(tagname, snapshot);
+        return iovGroupsCustom.getSizeBySnapshot(tagname, snapshot);
     }
 
     /**
@@ -255,7 +260,7 @@ public class IovService {
         final Tag t = checkTag(tagname);
         // Check if payload exists. Cannot store IOV without payload.
         if (!entity.getPayloadHash().startsWith("triggerdb")
-                & payloadRepository.findById(entity.getPayloadHash()).isEmpty()) {
+                && payloadRepository.findById(entity.getPayloadHash()).isEmpty()) {
             log.warn("Payload not found for hash: {}", entity.getPayloadHash());
             throw new CdbNotFoundException("Payload not found: " + entity.getPayloadHash());
         }

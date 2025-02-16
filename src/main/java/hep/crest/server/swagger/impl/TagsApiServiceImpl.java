@@ -34,10 +34,8 @@ import jakarta.ws.rs.core.SecurityContext;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.ResourceBundle;
 
 /**
  * Rest endpoint for tag management.
@@ -48,50 +46,63 @@ import java.util.ResourceBundle;
 @Slf4j
 public class TagsApiServiceImpl extends TagsApiService {
     /**
-     * Resource bundle.
-     */
-    private final ResourceBundle bundle = ResourceBundle.getBundle("messages", new Locale("US"));
-    /**
      * Helper.
      */
-    @Autowired
     EntityDtoHelper edh;
     /**
      * Helper.
      */
-    @Autowired
     private PageRequestHelper prh;
     /**
      * Service.
      */
-    @Autowired
     private CachingPolicyService cachesvc;
     /**
      * Service.
      */
-    @Autowired
     private TagService tagService;
     /**
      * Service.
      */
-    @Autowired
     private TagMetaService tagMetaService;
     /**
      * Mapper.
      */
-    @Autowired
     private TagMapper tagmapper;
     /**
      * Mapper.
      */
-    @Autowired
     private TagMetaMapper tagmetamapper;
 
     /**
      * Context
      */
-    @Autowired
     private JAXRSContext context;
+
+    /**
+     * Ctor with injected service.
+     * @param tagService the service.
+     * @param tagmapper the mapper.
+     * @param tagmetamapper the meta mapper.
+     * @param edh the entity dto helper.
+     * @param cachesvc the caching service.
+     * @param context the context.
+     */
+    @Autowired
+    public TagsApiServiceImpl(TagService tagService, TagMapper tagmapper,
+                              TagMetaMapper tagmetamapper, EntityDtoHelper edh,
+                              CachingPolicyService cachesvc,
+                              JAXRSContext context) {
+        this.tagService = tagService;
+        this.tagMetaService = tagService.getTagMetaService();
+        this.tagmapper = tagmapper;
+        this.tagmetamapper = tagmetamapper;
+        this.prh = tagService.getPrh();
+        this.edh = edh;
+        this.cachesvc = cachesvc;
+        this.context = context;
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -129,28 +140,29 @@ public class TagsApiServiceImpl extends TagsApiService {
         if (body == null) {
             throw new CdbBadRequestException("Cannot update tag with null body");
         }
-        // Loop over map body keys.
-        for (final String key : body.keySet()) {
-            if ("description".equals(key)) {
+        // Loop over map body entries.
+        for (final Map.Entry<String, String> entry : body.entrySet()) {
+            String key = entry.getKey();
+            if ("description".equals(entry.getKey())) {
                 // Update description.
-                entity.setDescription(body.get(key));
+                entity.setDescription(entry.getValue());
             }
-            else if (key == "timeType") {
-                entity.setTimeType(body.get(key));
+            else if (Objects.equals(key, "timeType")) {
+                entity.setTimeType(entry.getValue());
             }
-            else if (key == "lastValidatedTime") {
-                final BigInteger val = new BigInteger(body.get(key));
+            else if (Objects.equals(key, "lastValidatedTime")) {
+                final BigInteger val = new BigInteger(entry.getValue());
                 entity.setLastValidatedTime(val);
             }
-            else if (key == "endOfValidity") {
-                final BigInteger val = new BigInteger(body.get(key));
+            else if (Objects.equals(key, "endOfValidity")) {
+                final BigInteger val = new BigInteger(entry.getValue());
                 entity.setEndOfValidity(val);
             }
-            else if (key == "synchronization") {
-                entity.setSynchronization(body.get(key));
+            else if (Objects.equals(key, "synchronization")) {
+                entity.setSynchronization(entry.getValue());
             }
-            else if (key == "payloadSpec") {
-                entity.setObjectType(body.get(key));
+            else if (Objects.equals(key, "payloadSpec")) {
+                entity.setObjectType(entry.getValue());
             }
             else {
                 log.warn("Ignored key {} in updateTag: field does not exists", key);
@@ -229,9 +241,7 @@ public class TagsApiServiceImpl extends TagsApiService {
                 .format("TagSetDto");
         // Create filters
         GenericMap filters = new GenericMap();
-        if (name != null) {
-            filters.put("name", name);
-        }
+        filters.put("name", name);
         if (objectType != null) {
             filters.put("objectType", objectType);
         }

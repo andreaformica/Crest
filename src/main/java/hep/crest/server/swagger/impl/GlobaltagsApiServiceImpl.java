@@ -29,8 +29,6 @@ import jakarta.ws.rs.core.SecurityContext;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
 
 /**
  * Rest endpoint to manage global tags. It is used for creation or search of
@@ -44,37 +42,47 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
     /**
      * Helper.
      */
-    @Autowired
     private PageRequestHelper prh;
 
     /**
      * Helper.
      */
-    @Autowired
     private EntityDtoHelper edh;
 
     /**
      * Service.
      */
-    @Autowired
     private GlobalTagService globaltagService;
 
     /**
      * Mapper.
      */
-    @Autowired
     private GlobalTagMapper mapper;
 
     /**
      * Context
      */
-    @Autowired
     private JAXRSContext context;
 
     /**
-     * Resource bundle.
+     * Ctor with injected service.
+     *
+     * @param globaltagService the global tag service.
+     * @param prh              the PageRequestHelper
+     * @param edh              the EntityDtoHelper
+     * @param mapper           the global tag mapper.
+     * @param context          the context.
      */
-    private final ResourceBundle bundle = ResourceBundle.getBundle("messages", new Locale("US"));
+    @Autowired
+    public GlobaltagsApiServiceImpl(GlobalTagService globaltagService, PageRequestHelper prh,
+                                    EntityDtoHelper edh, GlobalTagMapper mapper,
+                                    JAXRSContext context) {
+        this.globaltagService = globaltagService;
+        this.prh = prh;
+        this.edh = edh;
+        this.mapper = mapper;
+        this.context = context;
+    }
 
     /*
      * (non-Javadoc)

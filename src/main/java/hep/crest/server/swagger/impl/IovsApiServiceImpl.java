@@ -2,7 +2,6 @@ package hep.crest.server.swagger.impl;
 
 import hep.crest.server.annotations.ProfileAndLog;
 import hep.crest.server.caching.CachingPolicyService;
-import hep.crest.server.caching.CachingProperties;
 import hep.crest.server.config.CrestProperties;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
@@ -59,48 +58,58 @@ public class IovsApiServiceImpl extends IovsApiService {
     /**
      * Helper.
      */
-    @Autowired
     private PageRequestHelper prh;
     /**
      * Helper.
      */
-    @Autowired
     EntityDtoHelper edh;
 
     /**
      * Service.
      */
-    @Autowired
     private CachingPolicyService cachesvc;
 
     /**
      * Service.
      */
-    @Autowired
     private IovService iovService;
 
     /**
      * Service.
      */
-    @Autowired
     private TagService tagService;
-
-    /**
-     * Properties.
-     */
-    @Autowired
-    private CachingProperties cprops;
     /**
      * Mapper.
      */
-    @Autowired
     private IovMapper mapper;
 
     /**
      * The context from the request.
      */
-    @Autowired
     private JAXRSContext context;
+
+    /**
+     * Ctor with injected service.
+     *
+     * @param iovService the iov service.
+     * @param tagService the tag service.
+     * @param prh        the PageRequestHelper
+     * @param edh        the EntityDtoHelper
+     * @param mapper     the iov mapper.
+     * @param context    the context.
+     */
+    @Autowired
+    public IovsApiServiceImpl(IovService iovService, TagService tagService,
+                              PageRequestHelper prh, EntityDtoHelper edh,
+                              IovMapper mapper, JAXRSContext context) {
+        this.iovService = iovService;
+        this.tagService = tagService;
+        this.cachesvc = iovService.getCachingPolicyService();
+        this.prh = prh;
+        this.edh = edh;
+        this.mapper = mapper;
+        this.context = context;
+    }
 
     /*
      * (non-Javadoc)
