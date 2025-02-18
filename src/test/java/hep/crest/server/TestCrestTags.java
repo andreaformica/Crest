@@ -1,16 +1,27 @@
 package hep.crest.server;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hep.crest.server.converters.HashGenerator;
+import hep.crest.server.data.pojo.Iov;
+import hep.crest.server.data.pojo.Tag;
+import hep.crest.server.data.pojo.TagMeta;
 import hep.crest.server.data.pojo.TagSynchroEnum;
+import hep.crest.server.services.IovService;
+import hep.crest.server.services.TagMetaService;
+import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.model.GenericMap;
 import hep.crest.server.swagger.model.GlobalTagDto;
 import hep.crest.server.swagger.model.GlobalTagMapDto;
+import hep.crest.server.swagger.model.IovDto;
 import hep.crest.server.swagger.model.IovSetDto;
 import hep.crest.server.swagger.model.StoreDto;
 import hep.crest.server.swagger.model.StoreSetDto;
 import hep.crest.server.swagger.model.TagDto;
+import hep.crest.server.swagger.model.TagMetaDto;
 import hep.crest.server.swagger.model.TagSetDto;
+import hep.crest.server.swagger.model.TagSummarySetDto;
 import hep.crest.server.utils.RandomGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -31,6 +42,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -41,6 +56,13 @@ public class TestCrestTags {
 
     @Autowired
     private TestRestTemplate testRestTemplate;
+
+    @Autowired
+    private IovService iovService;
+    @Autowired
+    private TagMetaService tagMetaService;
+    @Autowired
+    private TagService tagService;
 
     @Autowired
     @Qualifier("jacksonMapper")
@@ -62,8 +84,49 @@ public class TestCrestTags {
                 .postForEntity("/crestapi/tags", dto, String.class);
         log.info("Received response: {}", responseconflict);
         assertThat(responseconflict.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+    }
+
+    public void testTagMeta(String tname) {
+        TagMetaDto dto = (TagMetaDto) rnd.generate(TagMetaDto.class);
+        dto.tagName(tname);
+        dto.tagInfo("some info on the payload content");
+        log.info("Store tag meta : {} ", dto);
+        final ResponseEntity<TagMetaDto> response = testRestTemplate
+                .postForEntity("/crestapi/tags/" + tname + "/meta", dto, TagMetaDto.class);
+        log.info("Received response: {}", response);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        // Now get the meta
+        TagMeta meta = tagMetaService.find(tname);
+        assertThat(meta).isNotNull();
+        // Update tag meta
+        meta.setChansize(1000);
+        meta.setColsize(2);
+        TagMeta updmeta = tagMetaService.updateTagMeta(meta);
+        assertThat(updmeta).isNotNull();
+        TagMeta mne = new TagMeta();
+        mne.setTagName("notexists");
+        try {
+            TagMeta notexists = tagMetaService.updateTagMeta(mne);
+        }
+        catch (Exception e) {
+            log.info("Caught exception: ", e);
+        }
+        try {
+            tagMetaService.removeTagMeta("notexists");
+        }
+        catch (Exception e) {
+            log.info("Caught exception: ", e);
+        }
+        try {
+            TagMeta notfound = tagMetaService.find("notfound");
+        }
+        catch (Exception e) {
+            log.info("Caught exception: ", e);
+        }
 
     }
+
 
     public void initializeGtag(String gtname) {
         GlobalTagDto dto = (GlobalTagDto) rnd.generate(GlobalTagDto.class);
@@ -83,6 +146,7 @@ public class TestCrestTags {
         String tagname = "A-CRESTTAG-50";
         initializeGtag("A-TEST-GT-50");
         initializeTag(tagname);
+        testTagMeta(tagname);
         GlobalTagMapDto mapDto = new GlobalTagMapDto();
         mapDto.tagName(tagname)
                 .globalTagName("A-TEST-GT-50").record("some-rec").label("TEST-5");
@@ -237,6 +301,7 @@ public class TestCrestTags {
                 response3.getBody().getResources().forEach(iov -> {
                     log.info("Found iov: {}", iov);
                 });
+                copyIovs(tagname, storeSetDto);
             }
         }
         catch (JsonProcessingException e) {
@@ -244,6 +309,95 @@ public class TestCrestTags {
         }
     }
 
+
+    public void copyIovs(String tagname, StoreSetDto storeSetDto) {
+        IovSetDto iovSetDto = new IovSetDto();
+        List<IovDto> iovDtoList = new ArrayList<>();
+        try {
+            for (StoreDto storeDto : storeSetDto.getResources()) {
+                IovDto iovDto = new IovDto();
+                String hash = HashGenerator.sha256Hash(storeDto.getData().getBytes());
+                iovDto.payloadHash(hash);
+                iovDto.since(storeDto.getSince());
+                iovDto.setTagName("COPY-TAG");
+                iovDtoList.add(iovDto);
+            }
+            iovSetDto.resources(iovDtoList);
+            iovSetDto.format("IovSetDto");
+            iovSetDto.size((long)iovDtoList.size());
+            // Now store the list of iovs in a new tag
+            initializeTag("COPY-TAG");
+            String url = "/crestapi/iovs";
+            final ResponseEntity<String> response2 = testRestTemplate.exchange(
+                    url, HttpMethod.POST, new HttpEntity<>(iovSetDto), String.class);
+            log.info("Created iovs for tag COPY-TAG ");
+            assertThat(response2.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            // Add one iov only
+            IovDto iovDto = iovSetDto.getResources().get(0);
+            iovDto.setTagName("COPY-TAG");
+            iovDto.setSince(2000000L);
+            // Store it
+            String url2 = "/crestapi/iovs";
+            final ResponseEntity<String> response3 = testRestTemplate.exchange(
+                    url2, HttpMethod.PUT, new HttpEntity<>(iovDto), String.class);
+            assertThat(response3.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+            // Now get size by tag
+            String urltag = "/crestapi/iovs/size?tagname=COPY-TAG";
+            final ResponseEntity<String> resptags = this.testRestTemplate
+                    .exchange(urltag, HttpMethod.GET, null,
+                            String.class);
+            {
+                log.info("Retrieved iovs size " + resptags.getBody());
+                assertThat(resptags.getStatusCode()).isEqualTo(HttpStatus.OK);
+                assertThat(resptags.getBody()).isNotNull();
+                TagSummarySetDto responseBody = (TagSummarySetDto) mapper.readValue(
+                        resptags.getBody(), TagSummarySetDto.class);
+                assertThat(responseBody.getResources().size()).isEqualTo(1);
+            }
+
+            String urlrange = "/crestapi/iovs?tagname=COPY-TAG&since=9900&until=1000000&snapshot=10"
+                    + "&method=AT";
+            final ResponseEntity<IovSetDto> resprange = this.testRestTemplate
+                    .exchange(urlrange, HttpMethod.GET, null,
+                            IovSetDto.class);
+            {
+                log.info("Retrieved iovs snapshot 10 AT 9900" + resprange.getBody());
+                assertThat(resprange.getStatusCode()).isEqualTo(HttpStatus.OK);
+            }
+
+            // Select groups
+            String urlgroup = "/crestapi/iovs?tagname=COPY-TAG&since=0&until=1000000"
+                    + "&method=GROUPS";
+            final ResponseEntity<String> respgroup = this.testRestTemplate
+                    .exchange(urlgroup, HttpMethod.GET, null,
+                            String.class);
+            {
+                log.info("Retrieved iovs snapshot 10 GROUPS " + respgroup.getBody());
+                assertThat(respgroup.getStatusCode()).isEqualTo(HttpStatus.OK);
+            }
+
+            // Select iovs and payloads meta
+            String urlmeta = "/crestapi/iovs/infos?tagname=COPY-TAG&since=0&until=10000000";
+            final ResponseEntity<String> respmeta = this.testRestTemplate
+                    .exchange(urlmeta, HttpMethod.GET, null,
+                            String.class);
+            {
+                log.info("Retrieved iovs payloads " + respmeta.getBody());
+                assertThat(respmeta.getStatusCode()).isEqualTo(HttpStatus.OK);
+            }
+
+        }
+        catch (NoSuchAlgorithmException e) {
+            log.error("Error in processing json: ", e);
+        }
+        catch (JsonMappingException e) {
+            throw new RuntimeException(e);
+        }
+        catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public void checkIovs(String tagname) {
         String url = "/crestapi/iovs?tagname=" + tagname + "&snapshot=0" + "&since=0"
@@ -267,6 +421,10 @@ public class TestCrestTags {
         assertThat(iovs2).isNotNull();
         assertThat(iovs2.getResources()).isNotNull();
         assertThat(iovs2.getResources().size()).isEqualTo(0);
+
+        Iov last = iovService.latest(tagname);
+        assertThat(last).isNotNull();
+        assertThat(last.getPayloadHash()).isNotNull();
     }
 
     public void checkPayload(String hash) {
@@ -321,6 +479,22 @@ public class TestCrestTags {
         ResponseEntity<String> resp4 = testRestTemplate
                 .exchange(url, HttpMethod.GET, null, String.class);
         assertThat(resp4.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+
+        try {
+            tagService.removeTag("notfound");
+        }
+        catch (Exception e) {
+            log.info("Caught exception: ", e);
+        }
+        try {
+            Tag tag = new Tag();
+            tag.setName("notfound");
+            tag.setDescription("This is a test tag for testing the tag service");
+            tagService.updateTag(tag);
+        }
+        catch (Exception e) {
+            log.info("Caught exception: ", e);
+        }
     }
 
     public void checkPayloadInfo(String tagname) {
@@ -405,12 +579,50 @@ public class TestCrestTags {
 
         // Send the request
         //
-        return testRestTemplate.exchange(
+        testRestTemplate.exchange(
                 "/crestapi/payloads", // Replace with the actual URL
                 HttpMethod.POST,
                 requestEntity,
                 String.class
         );
+
+        // Prepare the multipart request with an external data file
+        byte[] dataf = mapper.writeValueAsBytes("This is my file with data");
+        // Add the StoreSetDto as a file part
+        ByteArrayResource fileresource = new ByteArrayResource(data) {
+            @Override
+            public String getFilename() {
+                return "data.txt"; // Filename for the file part
+            }
+        };
+        StoreSetDto storesetDto2 = new StoreSetDto();
+        StoreDto sdto = new StoreDto();
+        sdto.data("file://data.txt");
+        sdto.since(999L);
+        sdto.streamerInfo("A_FAKE_STREAMER_INFO");
+        storesetDto2.addresourcesItem(sdto);
+        MultiValueMap<String, Object> body2 = new LinkedMultiValueMap<>();
+        body2.add("storeset", storesetDto2);
+        body2.add("files", fileresource);
+        // Add other form parameters
+        body2.add("tag", tag);
+
+        // Set headers for multipart/form-data
+        HttpHeaders headers2 = new HttpHeaders();
+        headers2.setContentType(MediaType.MULTIPART_FORM_DATA);
+        headers2.set("X-Crest-PayloadFormat", "FILE");
+        // Create the request entity
+        HttpEntity<MultiValueMap<String, Object>> requestEntity2 = new HttpEntity<>(body2,
+                headers2);
+        // Send the request
+        //
+        return testRestTemplate.exchange(
+                "/crestapi/payloads", // Replace with the actual URL
+                HttpMethod.POST,
+                requestEntity2,
+                String.class
+        );
+
     }
 
 }
