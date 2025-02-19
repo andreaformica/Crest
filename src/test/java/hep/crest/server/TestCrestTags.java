@@ -51,7 +51,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("testredis")
+@ActiveProfiles("test")
 @ContextConfiguration
 @Slf4j
 public class TestCrestTags {
