@@ -1,5 +1,6 @@
 package hep.crest.server;
 
+import hep.crest.server.config.CrestTableNames;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.converters.CustomMapper;
 import hep.crest.server.converters.DateFormatterHandler;
@@ -22,6 +23,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -95,6 +97,15 @@ public class ToolsTest {
         String s = cm.byteArrayToString(b);
         assertThat(s).isEqualTo("test");
 
+        OffsetDateTime nullodt = cm.asOffsetDateTime(null);
+        assertThat(nullodt).isNull();
+        Timestamp nullts = cm.asTimestamp(null);
+        assertThat(nullts).isNull();
+        Date nulld = cm.toDate(null);
+        assertThat(nulld).isNull();
+        BigInteger nullbi = cm.bigDecimalToBigInt(null);
+        assertThat(nullbi).isNull();
+
         DateFormatterHandler dfh = new DateFormatterHandler();
         String timestr = "2011-12-03T10:15:30+01:00";
         Timestamp tsf = dfh.format(timestr);
@@ -104,6 +115,11 @@ public class ToolsTest {
         dfh.setDatePATTERN("yyyy-MM-dd'T'HH:mm:ss");
         DateTimeFormatter dtf = dfh.getLocformatter();
         assertThat(dtf).isNotNull();
+
+        dfh.setDatePATTERN("ISO_LOCAL_DATE_TIME");
+        DateTimeFormatter dtf2 = dfh.getLocformatter();
+        assertThat(dtf2).isNotNull();
+
 
         String payload = "test";
         InputStream is = new ByteArrayInputStream(payload.getBytes());
@@ -158,6 +174,14 @@ public class ToolsTest {
         Long cooltime3 =
                 RunIovConverter.getTime(time1);
         assertThat(cooltime3).isEqualTo(1739640284000L);
+
+        CrestTableNames ctn = new CrestTableNames();
+        assertThat(ctn.getIovTableName()).isEqualTo("IOV");
+        assertThat(ctn.getTagMetaTableName()).isEqualTo("TAG_META");
+        assertThat(ctn.getTagTableName()).isEqualTo("TAG");
+        assertThat(ctn.getPayloadDataTableName()).isEqualTo("PAYLOAD_DATA");
+        assertThat(ctn.getPayloadTableName()).isEqualTo("PAYLOAD");
+        assertThat(ctn.getPayloadInfoDataTableName()).isEqualTo("PAYLOAD_STREAMER_DATA");
     }
 
 }
