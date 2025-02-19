@@ -51,8 +51,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-@Profile("testredis") // Use a specific profile if needed
-@IfProfileValue(name = "spring.profiles.active", value = "testredis")
+@ActiveProfiles("testredis")
 @ContextConfiguration
 @Slf4j
 public class TestCrestTags {
