@@ -1,6 +1,8 @@
-# CREST (Conditions REST service)
+![Java CI with Gradle](https://github.com/HSF/Crest/workflows/Java%20CI%20with%20Gradle/badge.svg?event=push)
+
 #### Author: A.Formica, R.Sipos
-##### Date of last development period: 2025/02/20
+#### Contributors: M.Mineev, E.Alexandrov (client tools)
+##### Date of last development period: 2019/01/13
 ##### Recent additions: new api methods for uploads of iov+payload, a web-ui in vuejs.
 ```
    Copyright (C) 2016  A.Formica, R.Sipos
@@ -41,6 +43,10 @@ The prototype uses [Spring framework](https://spring.io) and the REST services a
 The prototype runs as a microservice using `spring-boot`. By default, it uses an embedded [undertow](http://undertow.io) servlet container,
 but others like [tomcat](https://tomcat.apache.org) or [jetty](https://www.eclipse.org/jetty/) can be easily used.
 
+This version of the server is compatible with Java 23 and Spring 3.3.4.
+In addition it introduces a new dependency on an external `redis` server for payload removal purposes.
+The removal is asynchronous and is triggered by the server when a tag is removed. All associated payloads will
+referenced in `redis` and will be removed by a separate process.
 
 ## Installation
 Download the project from gitlab (example below is using `https`):
@@ -50,8 +56,8 @@ git clone https://gitlab.cern.ch/crest-db/crest.git
 This will create a directory `crest` in the location where you run the git command.
 
 ## Build instructions
-You need to have java >= 21 installed on your machine.
-If you have also [gradle](https://gradle.org) (version >=8) you can build the project
+You need to have java >= 11 installed on your machine.
+If you have also [gradle](https://gradle.org) (version 7) you can build the project
 using the following command from the root project directory (`crest`):
 ```
 gradle clean build
@@ -63,17 +69,39 @@ In case gradle is not installed on your machine, you can run the wrapper deliver
 ```
 If you want to select a specific JVM when you run gradle you can use a command like this:
 ```
-gradle clean build -Dorg.gradle.java.home=/path to jvm/21.0/
+gradle clean build -Dorg.gradle.java.home=/path_to_jvm/21.0/
 ```
 Be careful to checkout the correct branch.
 
-| DESCRIPTOR | BRANCH | COMMENT |
-| First attempt to clean up API from older versions | v3.0 | - |
+| DESCRIPTOR | BRANCH | API | Java Version
+| First attempt to clean up API from older versions | v3.0 | api-v3.0 | java 11
+| API used in 2024 HLT tests | v4.x | api-v4.0 | java 11
+| TriggerDB access | release-5.x | api-v5.0 | java 11
+| New Java and Spring versions | release-6.x | api-v5.0 | java 23
 
-| v4.0 API | v4.x | used in HLT test until 2025-02-20 | 
-| v5.0 API | release-6.0.0 | introduce triggerdb access, small change respect previous version |
-| v5.0 API | release-6.0.0-redis | use external redis to buffer payload clean up in async mode |
+There are 2 flavors for release-6.x, one with redis and one without. The one with redis is the used
+in production to handle payload removal.
 
+### CAVEAT: Java>=17
+The last version of CREST server is compatible with Spring 3.3.4 and Java 23.
+The mapping from POJO to DTOs is now implemented with MapStrut project.
+Be careful that if you do not have java 23 available you can still compile but you need
+the following change in the `build.gradle` file:
+```declarative
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(23)
+	}
+}
+```
+should be replaced by :
+```declarative
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+```
 ## Run the server
 The server will use by default an embedded `undertow` web server.
 
