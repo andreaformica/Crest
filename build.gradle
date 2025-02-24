@@ -187,6 +187,17 @@ task buildCrestPythonClient(type: org.openapitools.generator.gradle.plugin.tasks
 
 }
 
+task buildCrestMarkdownDoc(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask){
+	generatorName = "markdown"
+	inputSpec = "$swaggerBundleDirectory/crestApi_all.yml".toString()
+	outputDir = "$rootDir/mddocs".toString()
+	packageName = "hep.crest.client"
+	configOptions = [
+			packageVersion: "5.0.0",
+			projectName: "hep-crest-client"]
+
+}
+
 dependencies {
 	compileOnly 'org.projectlombok:lombok:1.18.34'
 	annotationProcessor 'org.projectlombok:lombok:1.18.34'

@@ -7,7 +7,7 @@ info:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 servers:
-  - url: 'https://crest-undertow.web.cern.ch/api'
+  - url: 'http://crest-j23.cern.ch/api-v5.0'
 security:
   - BearerAuth: []
   - OpenID:
