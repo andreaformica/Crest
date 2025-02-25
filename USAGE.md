@@ -70,6 +70,5 @@ The user gets the global tag with the following command:
 curl -X GET "http://localhost:8080/globaltags/myglobaltag" -H "accept: application/json"
 ```
 A user can copy a payload from another tag to a new tag with the following command:
-
-1. get the iov corresponding to the payload from the old tag.
-2. insert the iov in the new tag, after changing eventually the start time (since).
+- get the iov corresponding to the payload from the old tag. 
+- insert the iov in the new tag, after changing eventually the start time (since).
