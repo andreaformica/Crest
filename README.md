@@ -44,9 +44,10 @@ The prototype runs as a microservice using `spring-boot`. By default, it uses an
 but others like [tomcat](https://tomcat.apache.org) or [jetty](https://www.eclipse.org/jetty/) can be easily used.
 
 This version of the server is compatible with Java 23 and Spring 3.3.4.
-In addition it introduces a new dependency on an external `redis` server for payload removal purposes.
-The removal is asynchronous and is triggered by the server when a tag is removed. All associated payloads will
-referenced in `redis` and will be removed by a separate process.
+In addition it introduces a new (optional) dependency on an external `redis` server for payload removal purposes.
+The removal is asynchronous and is triggered by the server when a tag is removed. 
+All associated payloads will be referenced in `redis` (or a memory cache) and will be removed by a separate process.
+This is done to avoid blocking the server when removing large payloads. The option is enabled by using the `redis` spring profile.
 
 ## Installation
 Download the project from gitlab (example below is using `https`):
@@ -85,7 +86,7 @@ in production to handle payload removal.
 ### CAVEAT: Java>=17
 The last version of CREST server is compatible with Spring 3.3.4 and Java 23.
 The mapping from POJO to DTOs is now implemented with MapStrut project.
-Be careful that if you do not have java 23 available you can still compile but you need
+Be careful that if you do not have java 23 available you can still compile but you need 
 the following change in the `build.gradle` file:
 ```declarative
 java {

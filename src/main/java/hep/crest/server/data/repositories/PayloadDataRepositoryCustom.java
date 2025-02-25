@@ -38,5 +38,9 @@ public interface PayloadDataRepositoryCustom {
      * @throws CdbSQLException
      */
     void deleteData(String id) throws CdbSQLException;
+    /**
+     * Flush the transaction.
+     */
+    void flush();
 
 }

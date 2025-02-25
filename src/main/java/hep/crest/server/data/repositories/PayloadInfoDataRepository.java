@@ -4,7 +4,7 @@
 package hep.crest.server.data.repositories;
 
 import hep.crest.server.data.pojo.PayloadInfoData;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -15,6 +15,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface PayloadInfoDataRepository
-        extends CrudRepository<PayloadInfoData, String> {
+        extends JpaRepository<PayloadInfoData, String> {
 
 }

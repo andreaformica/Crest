@@ -42,6 +42,7 @@ configurations {
 }
 configurations.all {
 	exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+	exclude group: 'org.slf4j', module: 'slf4j-simple'
 }
 
 checkstyleMain {
@@ -215,6 +216,7 @@ dependencies {
 	// Spring Boot
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	// implementation 'org.springframework.boot:spring-boot-starter-data-rest'
 // Exclude default Tomcat
 	implementation('org.springframework.boot:spring-boot-starter-web') {
@@ -240,6 +242,7 @@ dependencies {
 	implementation 'org.hibernate:hibernate-core:6.5.3.Final' // Adjust to your Hibernate version
 	implementation 'org.hibernate:hibernate-jpamodelgen:6.5.3.Final' // For JPA model generation, if needed
 
+
 	// Swagger
 	implementation group: 'io.swagger.core.v3', name: 'swagger-annotations', version: '2.2.7'
 	implementation group: 'io.swagger.core.v3', name: 'swagger-models', version: '2.2.7'
@@ -253,6 +256,8 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testRuntimeOnly 'com.h2database:h2'  // Add H2 database dependency
 	testImplementation 'org.projectlombok:lombok:1.18.34'
+	testImplementation "org.testcontainers:testcontainers:1.20.4"
+	testImplementation 'com.redis:testcontainers-redis:2.2.2'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
 }
 

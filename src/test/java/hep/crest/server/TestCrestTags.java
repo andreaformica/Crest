@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -37,6 +38,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.util.LinkedMultiValueMap;
@@ -463,6 +465,7 @@ public class TestCrestTags {
     }
 
     public void removeTag(String tagname, String globaltagname) {
+        log.info("======== removeTag {} {}", tagname, globaltagname);
         String url = "/crestapi/admin/tags/" + tagname;
         ResponseEntity<String> resp = testRestTemplate
                 .exchange(url, HttpMethod.DELETE, null, String.class);

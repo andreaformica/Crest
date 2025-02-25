@@ -11,5 +11,10 @@ public interface ITriggerDb {
      */
     InputStream getTriggerDBData(UrlComponents components);
 
+    /**
+     * Parse the URL.
+     * @param url
+     * @return UrlComponents
+     */
     UrlComponents parseUrl(String url);
 }

@@ -10,6 +10,7 @@
 
 ## Introduction
 The main concepts behind *CREST* are the following:
+
  * Tags: defined by a name, a payload type and time type. The time type indicates what is used in IoV.
  * IoV: defined by a tag, a start time and payload hash (sha256 in general). The start time indicates the beginning of the validity of the payload.
  * Payload: defined by a hash (sha256 in general) and a content. The content is a binary blob.
@@ -17,24 +18,34 @@ The main concepts behind *CREST* are the following:
  * Global Tag Map: a collection of Tags to Global Tag mappings. The mapping is defined by a tag name, a record and a label.
 
 ## Tagging
+Here are the main operations related to tagging:
+
  * create a tag: `POST /tags`
  * get a tag: `GET /tags/{name}`
  * get all tags: `GET /tags` (paginated), use several parameters to filter the results.
 
 ## IoV
+Here are the main operations related to IoV:
+
  * create an iov: `POST /iovs`, a list of iovs can be created at once.
  * get all iovs: `GET /iovs` (paginated), use several parameters to filter the results.
 
 ## Payload
+Here are the main operations related to payloads:
+
  * create a payload: `POST /payloads`
  * get a payload: `GET /payloads/{hash}`
 
 ## Global Tag
+Here are the main operations related to global tags:
+
  * create a global tag: `POST /globaltags`
  * get a global tag: `GET /globaltags/{name}`
  * get all global tags: `GET /globaltags` (paginated), use several parameters to filter the results.
 
 ## Global Tag Map
+Here are the main operations related to global tag maps:
+
  * create a global tag map: `POST /globaltagmaps`
 
 ## Examples
@@ -60,5 +71,6 @@ The user gets the global tag with the following command:
 curl -X GET "http://localhost:8080/globaltags/myglobaltag" -H "accept: application/json"
 ```
 A user can copy a payload from another tag to a new tag with the following command:
+
 1. get the iov corresponding to the payload from the old tag.
 2. insert the iov in the new tag, after changing eventually the start time (since).

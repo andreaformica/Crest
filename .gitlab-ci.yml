@@ -1,6 +1,6 @@
 variables:
     IMAGE: crest21-service
-    VERSION: '6.0'
+    VERSION: '6.0-redis'
     GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
 # Make the gradle wrapper executable. This essentially downloads a copy of
@@ -25,6 +25,11 @@ package_cern_application:
   stage: package_application
   environment: cern
   image: registry.cern.ch/docker.io/eclipse-temurin:23-alpine
+  services:
+    - registry.cern.ch/docker.io/redis:latest
+  variables:
+    REDIS_HOST: redis
+    REDIS_PORT: 6379
   script:
    - ./gradlew clean build
   allow_failure: false
