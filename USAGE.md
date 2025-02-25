@@ -10,12 +10,11 @@
 
 ## Introduction
 The main concepts behind *CREST* are the following:
-
- * Tags: defined by a name, a payload type and time type. The time type indicates what is used in IoV.
- * IoV: defined by a tag, a start time and payload hash (sha256 in general). The start time indicates the beginning of the validity of the payload.
- * Payload: defined by a hash (sha256 in general) and a content. The content is a binary blob.
- * Global Tag: a container of Tags, defined by a name.
- * Global Tag Map: a collection of Tags to Global Tag mappings. The mapping is defined by a tag name, a record and a label.
+- Tags: defined by a name, a payload type and time type. The time type indicates what is used in IoV. 
+- IoV: defined by a tag, a start time and payload hash (sha256 in general). The start time indicates the beginning of the validity of the payload. 
+- Payload: defined by a hash (sha256 in general) and a content. The content is a binary blob. 
+- Global Tag: a container of Tags, defined by a name. 
+- Global Tag Map: a collection of Tags to Global Tag mappings. The mapping is defined by a tag name, a record and a label.
 
 ## Tagging
 Here are the main operations related to tagging:
