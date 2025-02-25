@@ -92,10 +92,10 @@ public class PayloadService {
      */
     private ITriggerDb triggerDbService;
     /**
-     * Redis service.
+     * Cache or Redis service.
      */
     @Autowired
-    private RedisPayloadBuffer redisPayloadBuffer;
+    private IPayloadBuffer cachePayloadBuffer;
     /**
      * Mapper.
      */
@@ -215,7 +215,7 @@ public class PayloadService {
      */
     public void storeRemovableHashList(List<String> hashlist, String tagname) {
        for (String hash : hashlist) {
-          redisPayloadBuffer.addToBuffer(hash, tagname);
+           cachePayloadBuffer.addToBuffer(hash, tagname);
        }
        log.debug("Stored list of {} hashes to be removed in tag {}", hashlist.size(), tagname);
     }
@@ -228,11 +228,11 @@ public class PayloadService {
      */
     @Transactional
     @Async
-    public CompletableFuture<Void> removeRedisBuffer(String tagname) {
+    public CompletableFuture<Void> removeCacheBuffer(String tagname) {
         AtomicInteger counter = new AtomicInteger();
         final Boolean[] flush = {Boolean.FALSE};
         // Use try-with-resources to close the stream.
-        try (Stream<String> hashStream = redisPayloadBuffer.streamHashesByTagName(tagname)) {
+        try (Stream<String> hashStream = cachePayloadBuffer.streamHashesByTagName(tagname)) {
             hashStream.forEach(hash -> {
                 // Perform deletion logic here
                 if (exists(hash)) {
@@ -244,7 +244,7 @@ public class PayloadService {
                     else {
                         log.debug("Payload {} removed for tag {}", hash, tagname);
                     }
-                    redisPayloadBuffer.removeFromBuffer(hash, tagname);
+                    cachePayloadBuffer.removeFromBuffer(hash, tagname);
                     counter.getAndIncrement();
                     if (counter.get() % 100 == 0) {
                         log.debug("Removed {} payloads for tag {}", counter, tagname);

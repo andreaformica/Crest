@@ -282,7 +282,7 @@ public class TagService {
             tagRepository.deleteById(name);
             log.debug("Removed entity: {}", name);
             // Launch async task to remove payloads
-            CompletableFuture<Void> future = payloadService.removeRedisBuffer(name);
+            CompletableFuture<Void> future = payloadService.removeCacheBuffer(name);
             // Do not wait for the future to complete
         }
         catch (AbstractCdbServiceException e) {
