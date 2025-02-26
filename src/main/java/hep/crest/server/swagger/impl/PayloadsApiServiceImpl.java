@@ -141,6 +141,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      * Ctor with injected services.
      * @param payloadService the payload service
      * @param tagService the tag service
+     * @param mapper the mapper
      * @param cachingPolicyService caching service
      * @param jsonStreamProcessor the json stream processor
      * @param crestProperties the crest properties
@@ -148,6 +149,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      */
     public PayloadsApiServiceImpl(PayloadService payloadService,
                                   TagService tagService,
+                                  PayloadMapper mapper,
                                   CachingPolicyService cachingPolicyService,
                                   JsonStreamProcessor jsonStreamProcessor,
                                   CrestProperties crestProperties,
@@ -155,7 +157,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         this.payloadService = payloadService;
         this.iovService = payloadService.getIovService();
         this.jacksonMapper = payloadService.getJsonMapper();
-        this.mapper = payloadService.getPayloadMapper();
+        this.mapper = mapper;
         this.tagService = tagService;
         this.cachesvc = cachingPolicyService;
         this.cprops = crestProperties;

@@ -6,7 +6,6 @@ package hep.crest.server.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.converters.HashGenerator;
-import hep.crest.server.converters.PayloadMapper;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.IovId;
 import hep.crest.server.data.pojo.Payload;
@@ -100,10 +99,6 @@ public class PayloadService {
      * Mapper.
      */
     private ObjectMapper jsonMapper;
-    /**
-     * Mapper.
-     */
-    private PayloadMapper payloadMapper;
 
     /**
      * Ctor with injection.
@@ -113,7 +108,7 @@ public class PayloadService {
      * @param payloadInfoDataRepository
      * @param triggerDbService
      * @param jsonMapper
-     * @param payloadMapper
+     * @param cachePayloadBuffer
      */
     @Autowired
     public PayloadService(IovService iovService,
@@ -122,7 +117,7 @@ public class PayloadService {
                           PayloadInfoDataRepository payloadInfoDataRepository,
                           ITriggerDb triggerDbService,
                           @Qualifier("jacksonMapper") ObjectMapper jsonMapper,
-                          PayloadMapper payloadMapper) {
+                          IPayloadBuffer cachePayloadBuffer) {
         this.iovService = iovService;
         this.iovRepository = iovService.getIovRepository();
         this.prh = iovService.getPrh();
@@ -131,7 +126,7 @@ public class PayloadService {
         this.payloadInfoDataRepository = payloadInfoDataRepository;
         this.triggerDbService = triggerDbService;
         this.jsonMapper = jsonMapper;
-        this.payloadMapper = payloadMapper;
+        this.cachePayloadBuffer = cachePayloadBuffer;
     }
 
 
