@@ -1,6 +1,7 @@
 #### Author: A.Formica
 # Table of Contents
 1. [Introduction](#introduction)
+2. [Deployment](#deployment)
 2. [Tagging](#tagging)
 3. [IoV](#iov)
 4. [Payload](#payload)
@@ -15,6 +16,20 @@ The main concepts behind *CREST* are the following:
 - Payload: defined by a hash (sha256 in general) and a content. The content is a binary blob. 
 - Global Tag: a container of Tags, defined by a name. 
 - Global Tag Map: a collection of Tags to Global Tag mappings. The mapping is defined by a tag name, a record and a label.
+
+## Deployment
+The list of available servers is the following:
+
+| Server | URL                      | Description                                  |
+| ------ |--------------------------|----------------------------------------------|
+| Development | http://crest-j23.cern.ch:8080 | Development server, use ATLAS_PHYS_COND_01 @ INT8R |
+| Production  | https://crest.cern.ch    | Production read only server, use ATLAS_PHYS_COND @ INT8R |
+| Production  | http://crest-03.cern.ch:9090 | Production read/write server, use ATLAS_PHYS_COND @ INT8R |
+| Test        | http://atlaf-alma9-01.cern.ch:8080     | Test server, use ATLAS_PHYS_COND_01 @ INT8R  |
+
+There are haproxy in P1 to access the production servers. The haproxy is configured to use the following servers:
+- _atlashap02-atcn:8081_ : access the read-write server crest-03.cern.ch
+- _atlashap01-atcn:8080_ : access the read-only server crest.cern.ch
 
 ## Tagging
 Here are the main operations related to tagging:
