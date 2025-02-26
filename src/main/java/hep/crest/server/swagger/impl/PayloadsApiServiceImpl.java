@@ -384,7 +384,8 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                     objectType, version, compressionType, tag);
             inputsource.getInputStream().close();
         }
-        catch (RuntimeException | IOException e) {
+        catch (CdbInternalException | IOException e) {
+            log.error("Runtime exception processing stream to store iovs and payloads....");
             throw new CdbInternalException("Cannot deserialize data", e);
         }
         // Change the end time in the tag.

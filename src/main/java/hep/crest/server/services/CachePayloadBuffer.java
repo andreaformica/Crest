@@ -3,6 +3,7 @@ package hep.crest.server.services;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -41,9 +42,9 @@ public class CachePayloadBuffer implements IPayloadBuffer {
     public Set<String> getHashesByTagName(String tagName) {
         Cache cache = cacheManager.getCache(CACHE_NAME);
         if (cache != null) {
-            return (Set<String>) cache.get(tagName, Set.class);
+            return cache.get(tagName, Set.class);
         }
-        return null;
+        return new HashSet<>();
     }
 
     @Override

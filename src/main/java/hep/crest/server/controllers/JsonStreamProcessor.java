@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hep.crest.server.exceptions.CdbInternalException;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.PayloadService;
 import hep.crest.server.swagger.model.StoreDto;
@@ -94,7 +95,7 @@ public class JsonStreamProcessor {
             setDto.datatype("payloads");
         }
         catch (IOException | NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new CdbInternalException(e);
         }
         return setDto;
     }
