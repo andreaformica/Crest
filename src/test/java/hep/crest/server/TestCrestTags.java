@@ -463,6 +463,7 @@ public class TestCrestTags {
     }
 
     public void removeTag(String tagname, String globaltagname) {
+        log.info("======== removeTag {} {}", tagname, globaltagname);
         String url = "/crestapi/admin/tags/" + tagname;
         ResponseEntity<String> resp = testRestTemplate
                 .exchange(url, HttpMethod.DELETE, null, String.class);

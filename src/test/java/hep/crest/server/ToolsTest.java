@@ -28,7 +28,7 @@ import java.util.Date;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("default")
+@ActiveProfiles("test")
 @Slf4j
 public class ToolsTest {
 
