@@ -29,14 +29,6 @@ spring:
       hikari:
         connection-test-query: SELECT 1
         maximum-pool-size: 2
-    trigger:
-      jdbcUrl: jdbc:h2:/tmp/triggdbh2web;DB_CLOSE_ON_EXIT=FALSE
-      driverClassName: org.h2.Driver
-      username: root
-      password: root
-      hikari:
-        connection-test-query: SELECT 1
-        maximum-pool-size: 2
   jpa:
       properties:
         hibernate.dialect: org.hibernate.dialect.H2Dialect
