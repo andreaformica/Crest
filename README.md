@@ -1,4 +1,7 @@
-![Java CI with Gradle](https://github.com/HSF/Crest/workflows/Java%20CI%20with%20Gradle/badge.svg?event=push)
+# CREST - Conditions RESTful API
+
+[![pipeline status](https://gitlab.cern.ch/crest-db/crest/badges/master/pipeline.svg)](https://gitlab.cern.ch/crest-db/crest/-/commits/master)
+[![coverage report](https://gitlab.cern.ch/crest-db/crest/badges/master/coverage.svg)](https://gitlab.cern.ch/crest-db/crest/-/commits/master)
 
 #### Author: A.Formica, R.Sipos
 #### Contributors: M.Mineev, E.Alexandrov (client tools)
@@ -20,6 +23,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ```
+
 # Table of Contents
 1. [Description](#description)
 2. [Installation](#installation)
@@ -44,10 +48,6 @@ The prototype runs as a microservice using `spring-boot`. By default, it uses an
 but others like [tomcat](https://tomcat.apache.org) or [jetty](https://www.eclipse.org/jetty/) can be easily used.
 
 This version of the server is compatible with Java 23 and Spring 3.3.4.
-In addition it introduces a new (optional) dependency on an external `redis` server for payload removal purposes.
-The removal is asynchronous and is triggered by the server when a tag is removed. 
-All associated payloads will be referenced in `redis` (or a memory cache) and will be removed by a separate process.
-This is done to avoid blocking the server when removing large payloads. The option is enabled by using the `redis` spring profile.
 
 ## Installation
 Download the project from gitlab (example below is using `https`):
@@ -57,7 +57,7 @@ git clone https://gitlab.cern.ch/crest-db/crest.git
 This will create a directory `crest` in the location where you run the git command.
 
 ## Build instructions
-You need to have java >= 11 installed on your machine.
+You need to have java >= 21 installed on your machine.
 If you have also [gradle](https://gradle.org) (version 7) you can build the project
 using the following command from the root project directory (`crest`):
 ```
@@ -116,6 +116,34 @@ The set of default properties to run the server is defined in `config/applicatio
 It is essential to set appropriate parameters in this file. An example
 is provided to start up a default profile with local h2 database.
 
+### Configuration
+The configuration file is located in `./config/application.properties`. It should be customized to your needs.
+There are 2 plugins which can be used in the server:
+- `triggerdb`: activating this profile allows to access the trigger DB (connection parameters should be provided in the `application.properties` file).
+- `redis`: activating this profile allows to use a redis server for payload removal.
+
+#### TriggerDB
+The trigger DB is a separate database which is used to store the trigger configuration.
+The database is accessible via appropriate patterns like the following:
+```
+<server>/api-v5.0/payloads/data?hash=triggerdb://CONF_DATA_RUN3/MGS/3347
+```
+In order to activate the trigger DB you need to set the following properties in the `application.properties` file:
+```
+crest.triggerdb.url=jdbc:oracle:thin:@ATONR_ADG
+crest.triggerdb.user=ATLAS_FRONTIER_READER
+crest.triggerdb.password=xxxx
+```
+#### Redis
+The new (optional) dependency on an external `redis` server is used for payload removal purposes.
+The removal is asynchronous and is triggered by the server when a tag is removed.
+All associated payloads will be referenced in `redis` (or a memory cache) and will be removed by a separate process.
+This is done to avoid blocking the server when removing large payloads. The option is enabled by using the `redis` spring profile.
+The following properties should be set in the `application.properties` file:
+```
+crest.redis.host=localhost
+crest.redis.port=6379
+```
 #### Oracle
 ```
 spring.profiles.active=oracle
@@ -124,11 +152,11 @@ crest.api.name=/crestapi
 crest.web.static=/tmp/data/web
 crest.dump.dir=/tmp/data/dump
 crest.log.dir=/tmp/data/dump
-crest.db.password=somepassword
-crest.db.user=ATLAS_PHYS_COND_01_W
 crest.port=8090
 crest.db.url=jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=cman1-atlas.cern.ch)(PORT=10500))(LOAD_BALANCE=on)(ENABLE=BROKEN)(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=int8r.cern.ch)))
 crest.db.schema=ATLAS_PHYS_COND_01
+crest.db.password=somepassword
+crest.db.user=ATLAS_PHYS_COND_01_W
 ```
 #### Postgres
 ```
