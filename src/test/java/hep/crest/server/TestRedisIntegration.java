@@ -7,8 +7,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.test.context.ActiveProfiles;
 
-@Profile("testredis") // Use a specific profile if needed
+@ActiveProfiles("testredis") // Use a specific profile if needed
 @IfProfileValue(name = "spring.profiles.active", value = "testredis")
 @SpringBootTest
 public class TestRedisIntegration {
