@@ -6,7 +6,6 @@ package hep.crest.server.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.converters.HashGenerator;
-import hep.crest.server.converters.PayloadMapper;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.IovId;
 import hep.crest.server.data.pojo.Payload;
@@ -48,11 +47,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 /**
  * @author aformic
@@ -91,13 +91,14 @@ public class PayloadService {
      */
     private ITriggerDb triggerDbService;
     /**
-     * Mapper.
+     * Cache or Redis service.
      */
-    private ObjectMapper jsonMapper;
+    @Autowired
+    private IPayloadBuffer cachePayloadBuffer;
     /**
      * Mapper.
      */
-    private PayloadMapper payloadMapper;
+    private ObjectMapper jsonMapper;
 
     /**
      * Ctor with injection.
@@ -107,7 +108,7 @@ public class PayloadService {
      * @param payloadInfoDataRepository
      * @param triggerDbService
      * @param jsonMapper
-     * @param payloadMapper
+     * @param cachePayloadBuffer
      */
     @Autowired
     public PayloadService(IovService iovService,
@@ -116,7 +117,7 @@ public class PayloadService {
                           PayloadInfoDataRepository payloadInfoDataRepository,
                           ITriggerDb triggerDbService,
                           @Qualifier("jacksonMapper") ObjectMapper jsonMapper,
-                          PayloadMapper payloadMapper) {
+                          IPayloadBuffer cachePayloadBuffer) {
         this.iovService = iovService;
         this.iovRepository = iovService.getIovRepository();
         this.prh = iovService.getPrh();
@@ -125,7 +126,7 @@ public class PayloadService {
         this.payloadInfoDataRepository = payloadInfoDataRepository;
         this.triggerDbService = triggerDbService;
         this.jsonMapper = jsonMapper;
-        this.payloadMapper = payloadMapper;
+        this.cachePayloadBuffer = cachePayloadBuffer;
     }
 
 
@@ -150,27 +151,26 @@ public class PayloadService {
     /**
      * @param tag  the String tag name
      * @param hash the String payload hash
+     * @param flushtransaction the boolean flag
      * @return String
      * @throws AbstractCdbServiceException If an Exception occurred
      */
     @Transactional
-    public String removePayload(String tag, String hash) throws AbstractCdbServiceException {
+    public String removePayload(String tag, String hash, boolean flushtransaction) throws AbstractCdbServiceException {
         final Optional<Payload> opt = payloadRepository.findById(hash);
         if (opt.isEmpty()) {
             throw new CdbNotFoundException("Cannot find payload for hash " + hash);
         }
         Boolean canremove = Boolean.TRUE;
-        Boolean isdelayed = Boolean.TRUE;
         List<Iov> iovwithhash = iovRepository.findByPayloadHash(hash);
         Integer niovs = (iovwithhash != null) ? iovwithhash.size() : 0;
         log.trace("Found list of {} IOVs for hash {}", niovs, hash);
         if (niovs >= 1) {
             log.trace("The hash {} is associated to more than one iov...remove only if tag name "
                       + "is the same", hash);
-            canremove = Boolean.FALSE;
             for (Iov iov : iovwithhash) {
                 if (!tag.equalsIgnoreCase(iov.getId().getTagName())) {
-                    isdelayed = Boolean.FALSE;
+                    canremove = Boolean.FALSE;
                     break;
                 }
             }
@@ -185,37 +185,68 @@ public class PayloadService {
             payloadDataRepository.deleteData(hash);
             payloadDataRepository.deleteById(hash);
             payloadInfoDataRepository.deleteById(hash);
+            if (flushtransaction) {
+                flush();
+            }
             return "removed";
         }
-        if (isdelayed) {
-            return hash;
-        }
-        return "ignore";
+        return hash;
     }
 
     /**
-     * Remove Payloads in a separate transaction.
-     *
-     * @param hashList
-     * @param tagname
-     * @return List of String
+     * Flush the transaction.
      */
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    protected void flush() {
+        payloadRepository.flush();
+        payloadDataRepository.flush();
+        payloadInfoDataRepository.flush();
+    }
+
+    /**
+     * Put in Redis a list of HASH keys to be removed.
+     *
+     * @param hashlist
+     * @param tagname
+     */
+    public void storeRemovableHashList(List<String> hashlist, String tagname) {
+       for (String hash : hashlist) {
+           cachePayloadBuffer.addToBuffer(hash, tagname);
+       }
+       log.debug("Stored list of {} hashes to be removed in tag {}", hashlist.size(), tagname);
+    }
+
+    /**
+     * Remove Payloads in a separate transaction. The keys are stored in Redis.
+     *
+     * @param tagname
+     * @return Future
+     */
+    @Transactional
     @Async
-    public CompletableFuture<Void> removePage(List<String> hashList, String tagname) {
-        List<String> toberemoved = new ArrayList<>();
-        int i = 0;
-        for (String hash : hashList) {
-            i++;
-            if ((i % 100) == 0) {
-                log.debug("Delete payload {}....{}/{}", hash, i, hashList.size());
-            }
-            if (exists(hash)) {
-                String tbrhash = removePayload(tagname, hash);
-                if (hash.equals(tbrhash)) {
-                    toberemoved.add(tbrhash);
+    public CompletableFuture<Void> removeCacheBuffer(String tagname) {
+        AtomicInteger counter = new AtomicInteger();
+        final Boolean[] flush = {Boolean.FALSE};
+        // Use try-with-resources to close the stream.
+        try (Stream<String> hashStream = cachePayloadBuffer.streamHashesByTagName(tagname)) {
+            hashStream.forEach(hash -> {
+                // Perform deletion logic here
+                if (exists(hash)) {
+                    String tbrhash = removePayload(tagname, hash, flush[0]);
+                    flush[0] = Boolean.FALSE;
+                    if (hash.equals(tbrhash)) {
+                        log.debug("Payload {} is still associated to other tags", hash);
+                    }
+                    else {
+                        log.debug("Payload {} removed for tag {}", hash, tagname);
+                    }
+                    cachePayloadBuffer.removeFromBuffer(hash, tagname);
+                    counter.getAndIncrement();
+                    if (counter.get() % 100 == 0) {
+                        log.debug("Removed {} payloads for tag {}", counter, tagname);
+                        flush[0] = Boolean.TRUE;
+                    }
                 }
-            }
+            });
         }
         return CompletableFuture.completedFuture(null);
     }

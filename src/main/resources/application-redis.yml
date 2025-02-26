@@ -1,0 +1,12 @@
+# ===============================
+# = PROFILES /
+#             server
+#             ...
+# ===============================
+# Defaults
+spring:
+    data.redis:
+      host: ${crest.redis.host}
+      port: ${crest.redis.port}
+
+

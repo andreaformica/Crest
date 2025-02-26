@@ -96,8 +96,10 @@ public class IovService {
      */
     @Autowired
     public IovService(IovRepository iovRepository, TagRepository tagRepository,
-                      IMonitoringRepository iMonitoringRepository, IovGroupsCustom iovGroupsCustom,
-                      PayloadRepository payloadRepository, PageRequestHelper prh,
+                      IMonitoringRepository iMonitoringRepository,
+                      IovGroupsCustom iovGroupsCustom,
+                      PayloadRepository payloadRepository,
+                      PageRequestHelper prh,
                       CachingPolicyService cps) {
         this.iovRepository = iovRepository;
         this.tagRepository = tagRepository;

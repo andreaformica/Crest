@@ -3,7 +3,7 @@ package hep.crest.server.config;
 import hep.crest.server.data.repositories.IovGroupsCustom;
 import hep.crest.server.data.repositories.IovGroupsImpl;
 import hep.crest.server.repositories.triggerdb.ITriggerDb;
-import hep.crest.server.repositories.triggerdb.TriggerDb;
+import hep.crest.server.repositories.triggerdb.NoTriggerDb;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -49,17 +50,6 @@ public class RepositoryConfig {
     @Bean(name = "dataSource")
     @ConfigurationProperties(prefix = "spring.datasource.main")
     public DataSource dataSource() {
-        return DataSourceBuilder.create().build();
-    }
-
-    /**
-     * Create a DataSource for trigger DB.
-     *
-     * @return DataSource
-     */
-    @Bean(name = "triggerDataSource")
-    @ConfigurationProperties(prefix = "spring.datasource.trigger")
-    public DataSource triggerDataSource() {
         return DataSourceBuilder.create().build();
     }
 
@@ -125,16 +115,15 @@ public class RepositoryConfig {
         return bean;
     }
 
-
     /**
-     * Create a repository for trigger DB data.
+     * Create a repository to handle request to trigger DB that should fail.
      *
-     * @param triggerDataSource
      * @return ITriggerDb
      */
     @Bean
-    public ITriggerDb triggerDbRepository(@Qualifier("triggerDataSource") DataSource triggerDataSource) {
-        return new TriggerDb(triggerDataSource);
+    @Profile("!triggerdb")
+    public ITriggerDb triggerDbRepository() {
+        return new NoTriggerDb();
     }
 
 }

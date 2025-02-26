@@ -99,7 +99,8 @@ public class IovRepositoryImpl implements IovRepositoryCustom {
             log.warn("Adding where condition on MAX of since");
             JPQLQuery<Iov> subquery = new JPAQuery<>(entityManager);
             where.and(QIov.iov.id.since.eq(
-                    subquery.select(QIov.iov.id.since.max()).from(QIov.iov).where(subwhere).fetchOne()));
+                    subquery.select(QIov.iov.id.since.max())
+                            .from(QIov.iov).where(subwhere).fetchOne()));
         }
         else if (queryArgs.mode().equals(IovModeEnum.RANGES)) {
             /**
@@ -108,7 +109,8 @@ public class IovRepositoryImpl implements IovRepositoryCustom {
             log.warn("Adding where condition on MAX of since");
             JPQLQuery<Iov> subquery = new JPAQuery<>(entityManager);
             where.and(QIov.iov.id.since.goe(
-                    subquery.select(QIov.iov.id.since.max()).from(QIov.iov).where(subwhere).fetchOne()));
+                    subquery.select(QIov.iov.id.since.max())
+                            .from(QIov.iov).where(subwhere).fetchOne()));
 
         }
         // Build the query.
