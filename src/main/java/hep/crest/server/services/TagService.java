@@ -30,12 +30,10 @@ import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @author rsipos
@@ -84,6 +82,10 @@ public class TagService {
      * Cache manager.
      */
     private CacheManager cacheManager;
+    /**
+     * Constant for the cache name.
+     */
+    public static final String TAG_CACHE = "tagCache";
 
     /**
      * Ctors with injected services.
@@ -235,7 +237,7 @@ public class TagService {
         }
         catch (CdbNotFoundException e) {
             log.error("updateTag error for : {}", entity.getName());
-            Objects.requireNonNull(cacheManager.getCache("tagCache")).evict(entity.getName());
+            Objects.requireNonNull(cacheManager.getCache(TAG_CACHE)).evict(entity.getName());
             throw e;
         }
     }
@@ -244,7 +246,7 @@ public class TagService {
      * @param name the String
      * @throws AbstractCdbServiceException If an Exception occurred
      */
-    @CacheEvict(value = "tagCache", key = "#name")
+    @CacheEvict(value = TAG_CACHE, key = "#name")
     @Transactional
     public void removeTag(String name) throws AbstractCdbServiceException {
         log.debug("Remove tag {} after checking if IOVs are present", name);
@@ -259,7 +261,6 @@ public class TagService {
             }
             // Start removing IOVs
             log.debug("Removing tag {}", remTag);
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
             // Verify the IOV content size
             int pageSize = 2000; // Batch size for deletion
             Pageable pageable = PageRequest.of(0, pageSize);
@@ -282,12 +283,12 @@ public class TagService {
             tagRepository.deleteById(name);
             log.debug("Removed entity: {}", name);
             // Launch async task to remove payloads
-            CompletableFuture<Void> future = payloadService.removeCacheBuffer(name);
+            payloadService.removeCacheBuffer(name);
             // Do not wait for the future to complete
         }
         catch (AbstractCdbServiceException e) {
             log.error("Tag removal exception: {}", name);
-            Objects.requireNonNull(cacheManager.getCache("tagCache")).evict(name);
+            Objects.requireNonNull(cacheManager.getCache(TAG_CACHE)).evict(name);
             throw e;
         }
     }
@@ -298,7 +299,7 @@ public class TagService {
      * @param endtime
      * @throws AbstractCdbServiceException
      */
-    @CacheEvict(value = "tagCache", key = "#name")
+    @CacheEvict(value = TAG_CACHE, key = "#name")
     public void updateModificationTime(String name, BigDecimal endtime) {
         // Change the end time in the tag.
         try {
@@ -313,7 +314,7 @@ public class TagService {
         }
         catch (CdbNotFoundException e) {
             log.error("updateModificationTime error for tag: {}", name);
-            Objects.requireNonNull(cacheManager.getCache("tagCache")).evict(name);
+            Objects.requireNonNull(cacheManager.getCache(TAG_CACHE)).evict(name);
             throw e;
         }
     }

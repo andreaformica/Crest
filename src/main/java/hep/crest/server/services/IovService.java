@@ -226,8 +226,7 @@ public class IovService {
      */
     public Iov existsIov(String tagname, BigInteger since, String hash) {
         log.debug("Verify if the same IOV is already stored with the same hash....");
-        final Iov tmpiov = iovRepository.exists(tagname, since, hash);
-        return tmpiov;
+        return iovRepository.exists(tagname, since, hash);
     }
 
     /**

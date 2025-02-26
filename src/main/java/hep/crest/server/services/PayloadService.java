@@ -93,12 +93,15 @@ public class PayloadService {
     /**
      * Cache or Redis service.
      */
-    @Autowired
     private IPayloadBuffer cachePayloadBuffer;
     /**
      * Mapper.
      */
     private ObjectMapper jsonMapper;
+    /**
+     * Constant for triggerdb.
+     */
+    private static final String TRIGGERDB = "triggerdb";
 
     /**
      * Ctor with injection.
@@ -230,7 +233,7 @@ public class PayloadService {
         try (Stream<String> hashStream = cachePayloadBuffer.streamHashesByTagName(tagname)) {
             hashStream.forEach(hash -> {
                 // Perform deletion logic here
-                if (exists(hash)) {
+                if (Boolean.TRUE.equals(exists(hash))) {
                     String tbrhash = removePayload(tagname, hash, flush[0]);
                     flush[0] = Boolean.FALSE;
                     if (hash.equals(tbrhash)) {
@@ -315,7 +318,7 @@ public class PayloadService {
             case "STREAMER":
                 byte[] si = getPayloadStreamerInfo(hash);
                 return new LobStream(hash, new ByteArrayInputStream(si));
-            case "triggerdb":
+            case TRIGGERDB:
                 return new LobStream(hash, getTriggerData(hash));
             default:
                 throw new CdbBadRequestException("Cannot process Lob data for source " + source);
@@ -329,9 +332,9 @@ public class PayloadService {
      */
     @Transactional
     public Payload getPayload(String hash) throws CdbNotFoundException {
-        if (hash.startsWith("triggerdb")) {
-            return new Payload().setHash(hash).setObjectType("triggerdb").setObjectName(
-                    "triggerdb");
+        if (hash.startsWith(TRIGGERDB)) {
+            return new Payload().setHash(hash).setObjectType(TRIGGERDB).setObjectName(
+                    TRIGGERDB);
         }
         return payloadRepository.findById(hash).orElseThrow(
                 () -> new CdbNotFoundException("Cannot find payload for hash " + hash)
