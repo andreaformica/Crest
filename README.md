@@ -74,14 +74,12 @@ gradle clean build -Dorg.gradle.java.home=/path_to_jvm/21.0/
 ```
 Be careful to checkout the correct branch.
 
-| DESCRIPTOR | BRANCH | API | Java Version
-| First attempt to clean up API from older versions | v3.0 | api-v3.0 | java 11
-| API used in 2024 HLT tests | v4.x | api-v4.0 | java 11
-| TriggerDB access | release-5.x | api-v5.0 | java 11
-| New Java and Spring versions | release-6.x | api-v5.0 | java 23
-
-There are 2 flavors for release-6.x, one with redis and one without. The one with redis is the used
-in production to handle payload removal.
+| DESCRIPTOR | BRANCH | API | Java Version |
+-------------|--------|-----|--------------|
+| First attempt to clean up API from older versions | v3.0 | api-v3.0 | java 11 |
+| API used in 2024 HLT tests | v4.x | api-v4.0 | java 11 | 
+| TriggerDB access | release-5.x | api-v5.0 | java 11 |
+| New Java and Spring versions | release-6.x | api-v5.0 | java 23 |
 
 ### CAVEAT: Java>=17
 The last version of CREST server is compatible with Spring 3.3.4 and Java 23.
