@@ -3,6 +3,7 @@ package hep.crest.server.swagger.impl;
 import hep.crest.server.converters.GlobalTagMapper;
 import hep.crest.server.data.pojo.GlobalTag;
 import hep.crest.server.data.pojo.GlobalTagMap;
+import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.exceptions.CdbSQLException;
 import hep.crest.server.exceptions.ConflictException;
 import hep.crest.server.services.GlobalTagMapService;
@@ -99,6 +100,7 @@ public class AdminApiServiceImpl extends AdminApiService {
         // We remove the tag. Here we could also test for locking status of the tag or similar.
         try {
             tagService.removeTag(name);
+            log.info("Tag {} removed.", name);
             return Response.ok().build();
         }
         catch (JDBCException e) {

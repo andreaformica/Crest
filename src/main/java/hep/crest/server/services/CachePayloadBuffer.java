@@ -1,5 +1,6 @@
 package hep.crest.server.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 
@@ -10,6 +11,7 @@ import java.util.stream.Stream;
 /**
  * Class to implement a payload buffer for Redis.
  */
+@Slf4j
 public class CachePayloadBuffer implements IPayloadBuffer {
 
     /**
@@ -34,7 +36,13 @@ public class CachePayloadBuffer implements IPayloadBuffer {
     public void addToBuffer(String hash, String tagName) {
         Cache cache = cacheManager.getCache(CACHE_NAME);
         if (cache != null) {
-            cache.put(tagName, hash);
+            log.debug("Add hash {} to buffer for tag {}", hash, tagName);
+            Set<String> hashes = getHashesByTagName(tagName);
+            if (hashes == null) {
+                hashes = new HashSet<>();
+            }
+            hashes.add(hash);
+            cache.put(tagName, hashes);
         }
     }
 
@@ -51,7 +59,15 @@ public class CachePayloadBuffer implements IPayloadBuffer {
     public void removeFromBuffer(String hash, String tagName) {
         Cache cache = cacheManager.getCache(CACHE_NAME);
         if (cache != null) {
-            cache.evict(tagName);
+            Set<String> hashes = getHashesByTagName(tagName);
+            if (hashes != null) {
+                log.debug("Remove hash {} from buffer for tag {}", hash, tagName);
+                hashes.remove(hash);
+                cache.put(tagName, hashes);
+                if (hashes.isEmpty()) {
+                    cache.evict(tagName);
+                }
+            }
         }
     }
 

@@ -233,6 +233,7 @@ public class PayloadService {
         try (Stream<String> hashStream = cachePayloadBuffer.streamHashesByTagName(tagname)) {
             hashStream.forEach(hash -> {
                 // Perform deletion logic here
+                log.debug("Remove payload {} for tag {}", hash, tagname);
                 if (Boolean.TRUE.equals(exists(hash))) {
                     String tbrhash = removePayload(tagname, hash, flush[0]);
                     flush[0] = Boolean.FALSE;

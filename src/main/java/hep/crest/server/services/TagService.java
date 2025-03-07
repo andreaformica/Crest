@@ -251,23 +251,21 @@ public class TagService {
     public void removeTag(String name) throws AbstractCdbServiceException {
         log.debug("Remove tag {} after checking if IOVs are present", name);
         try {
-            Tag remTag = tagRepository.findById(name).orElseThrow(
-                    () -> new CdbNotFoundException("Tag does not exists for name " + name));
             // Remove meta information associated with the tag.
-            log.debug("Removing meta info on tag {}", remTag);
+            log.debug("Removing meta info on tag {}", name);
             Optional<TagMeta> opt = tagMetaRepository.findByTagName(name);
             if (opt.isPresent()) {
                 tagMetaService.removeTagMeta(name);
             }
             // Start removing IOVs
-            log.debug("Removing tag {}", remTag);
+            log.debug("Removing tag {}", name);
             // Verify the IOV content size
             int pageSize = 2000; // Batch size for deletion
             Pageable pageable = PageRequest.of(0, pageSize);
             Page<Iov> iovsPage;
             int pageIndex = 0;
             do {
-                log.debug("Processing iov page of size {} : {}", pageSize, pageIndex);
+                log.debug("Processing iov page of size {} : page index {}", pageSize, pageIndex);
                 // Fetch the current page of IOVs
                 iovsPage = iovRepository.findByIdTagName(name, pageable);
                 // Process the current batch of IOVs
@@ -280,10 +278,11 @@ public class TagService {
             } while (!iovsPage.isEmpty()); // Break if there are no more IOVs to process
             // Payload are now removed
             log.debug("Payloads have been scheduled for removal");
-            tagRepository.deleteById(name);
-            log.debug("Removed entity: {}", name);
             // Launch async task to remove payloads
             payloadService.removeCacheBuffer(name);
+            // Remove the tag
+            tagRepository.deleteById(name);
+            log.debug("Removed entity: {}", name);
             // Do not wait for the future to complete
         }
         catch (AbstractCdbServiceException e) {
