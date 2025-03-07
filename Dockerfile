@@ -36,7 +36,7 @@ COPY ./entrypoint.sh /home/${USR}
 COPY ./logback.xml.crest /home/${USR}/logback.xml
 ## This is not needed in swarm deployment, only for local testing.
 COPY ./javaopts.properties /home/${USR}
-#COPY ./create-properties.sh /home/${USR}
+COPY ./config/application.properties /home/${USR}/config/application.properties
 
 RUN chown -R $USR:$CREST_GID /home/${USR}
 
