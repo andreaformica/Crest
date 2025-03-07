@@ -638,6 +638,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 mediaType = MediaType.APPLICATION_SVG_XML_TYPE;
                 break;
             case "json":
+            case "triggerdb":
                 mediaType = MediaType.APPLICATION_JSON_TYPE;
                 break;
             case "xml":
