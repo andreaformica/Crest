@@ -42,5 +42,8 @@ public interface GlobalTagMapMapper extends GenericMapper<GlobalTagMapDto, Globa
     @Mapping(target = "id.tagRecord", source = "record")
     @Mapping(target = "id.label", source = "label")
     @Mapping(target = "tag", expression = "java(new Tag().setName(source.getTagName()))")
+    @Mapping(target = "globalTag",
+            expression = "java(new hep.crest.server.data.pojo.GlobalTag().setName("
+                + "source.getGlobalTagName()))")
     GlobalTagMap toEntity(GlobalTagMapDto source);
 }

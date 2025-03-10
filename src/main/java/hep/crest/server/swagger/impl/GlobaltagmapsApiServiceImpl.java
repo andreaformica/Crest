@@ -2,6 +2,7 @@ package hep.crest.server.swagger.impl;
 
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.converters.GlobalTagMapMapper;
+import hep.crest.server.data.pojo.GlobalTag;
 import hep.crest.server.data.pojo.GlobalTagMap;
 import hep.crest.server.services.GlobalTagMapService;
 import hep.crest.server.swagger.api.GlobaltagmapsApiService;
@@ -150,7 +151,7 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
         if (mrecord != null) {
             filters.put("record", mrecord);
         }
-        Iterable<GlobalTagMap> entitylist = null;
+        List<GlobalTagMap> entitylist = null;
         // If there is no header then set it to Trace mode. Implies that you search tags
         // associated with a global tag. The input name will be considered as a
         // GlobalTag name.

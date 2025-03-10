@@ -23,4 +23,5 @@ public abstract class GlobaltagsApiService {
     public abstract Response findGlobalTag(String name,SecurityContext securityContext) throws NotFoundException;
     public abstract Response findGlobalTagFetchTags(String name,String record,String label,SecurityContext securityContext) throws NotFoundException;
     public abstract Response listGlobalTags(String name,String workflow,String scenario,String release,Long validity,String description,Integer page,Integer size,String sort,SecurityContext securityContext) throws NotFoundException;
+    public abstract Response setGlobalTagLock(String name,String status,SecurityContext securityContext) throws NotFoundException;
 }

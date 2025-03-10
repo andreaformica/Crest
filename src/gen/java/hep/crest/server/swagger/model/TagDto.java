@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.validation.constraints.*;
 import jakarta.validation.Valid;
 
@@ -40,6 +41,7 @@ import jakarta.validation.Valid;
   TagDto.JSON_PROPERTY_TIME_TYPE,
   TagDto.JSON_PROPERTY_PAYLOAD_SPEC,
   TagDto.JSON_PROPERTY_SYNCHRONIZATION,
+  TagDto.JSON_PROPERTY_STATUS,
   TagDto.JSON_PROPERTY_DESCRIPTION,
   TagDto.JSON_PROPERTY_LAST_VALIDATED_TIME,
   TagDto.JSON_PROPERTY_END_OF_VALIDITY,
@@ -60,9 +62,77 @@ public class TagDto   {
   @JsonProperty(JSON_PROPERTY_PAYLOAD_SPEC)
   private String payloadSpec;
 
+  /**
+   * Gets or Sets synchronization
+   */
+  public enum SynchronizationEnum {
+    ALL("ALL"),
+    
+    SV("SV"),
+    
+    UPD("UPD");
+
+    private String value;
+
+    SynchronizationEnum(String value) {
+      this.value = value;
+    }
+
+    @Override
+    @JsonValue
+    public String toString() {
+      return String.valueOf(value);
+    }
+
+    @JsonCreator
+    public static SynchronizationEnum fromValue(String value) {
+      for (SynchronizationEnum b : SynchronizationEnum.values()) {
+        if (b.value.equals(value)) {
+          return b;
+        }
+      }
+      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+    }
+  }
+
   public static final String JSON_PROPERTY_SYNCHRONIZATION = "synchronization";
   @JsonProperty(JSON_PROPERTY_SYNCHRONIZATION)
-  private String synchronization;
+  private SynchronizationEnum synchronization;
+
+  /**
+   * Gets or Sets status
+   */
+  public enum StatusEnum {
+    LOCKED("LOCKED"),
+    
+    UNLOCKED("UNLOCKED");
+
+    private String value;
+
+    StatusEnum(String value) {
+      this.value = value;
+    }
+
+    @Override
+    @JsonValue
+    public String toString() {
+      return String.valueOf(value);
+    }
+
+    @JsonCreator
+    public static StatusEnum fromValue(String value) {
+      for (StatusEnum b : StatusEnum.values()) {
+        if (b.value.equals(value)) {
+          return b;
+        }
+      }
+      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+    }
+  }
+
+  public static final String JSON_PROPERTY_STATUS = "status";
+  @JsonProperty(JSON_PROPERTY_STATUS)
+  private StatusEnum status;
 
   public static final String JSON_PROPERTY_DESCRIPTION = "description";
   @JsonProperty(JSON_PROPERTY_DESCRIPTION)
@@ -141,7 +211,7 @@ public class TagDto   {
     this.payloadSpec = payloadSpec;
   }
 
-  public TagDto synchronization(String synchronization) {
+  public TagDto synchronization(SynchronizationEnum synchronization) {
     this.synchronization = synchronization;
     return this;
   }
@@ -152,12 +222,31 @@ public class TagDto   {
    **/
   @JsonProperty(value = "synchronization")
   
-  public String getSynchronization() {
+  public SynchronizationEnum getSynchronization() {
     return synchronization;
   }
 
-  public void setSynchronization(String synchronization) {
+  public void setSynchronization(SynchronizationEnum synchronization) {
     this.synchronization = synchronization;
+  }
+
+  public TagDto status(StatusEnum status) {
+    this.status = status;
+    return this;
+  }
+
+  /**
+   * Get status
+   * @return status
+   **/
+  @JsonProperty(value = "status")
+  
+  public StatusEnum getStatus() {
+    return status;
+  }
+
+  public void setStatus(StatusEnum status) {
+    this.status = status;
   }
 
   public TagDto description(String description) {
@@ -269,6 +358,7 @@ public class TagDto   {
         Objects.equals(timeType, tagDto.timeType) &&
         Objects.equals(payloadSpec, tagDto.payloadSpec) &&
         Objects.equals(synchronization, tagDto.synchronization) &&
+        Objects.equals(status, tagDto.status) &&
         Objects.equals(description, tagDto.description) &&
         Objects.equals(lastValidatedTime, tagDto.lastValidatedTime) &&
         Objects.equals(endOfValidity, tagDto.endOfValidity) &&
@@ -278,7 +368,7 @@ public class TagDto   {
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, timeType, payloadSpec, synchronization, description, lastValidatedTime, endOfValidity, insertionTime, modificationTime);
+    return Objects.hash(name, timeType, payloadSpec, synchronization, status, description, lastValidatedTime, endOfValidity, insertionTime, modificationTime);
   }
 
   @Override
@@ -290,6 +380,7 @@ public class TagDto   {
     sb.append("    timeType: ").append(toIndentedString(timeType)).append("\n");
     sb.append("    payloadSpec: ").append(toIndentedString(payloadSpec)).append("\n");
     sb.append("    synchronization: ").append(toIndentedString(synchronization)).append("\n");
+    sb.append("    status: ").append(toIndentedString(status)).append("\n");
     sb.append("    description: ").append(toIndentedString(description)).append("\n");
     sb.append("    lastValidatedTime: ").append(toIndentedString(lastValidatedTime)).append("\n");
     sb.append("    endOfValidity: ").append(toIndentedString(endOfValidity)).append("\n");

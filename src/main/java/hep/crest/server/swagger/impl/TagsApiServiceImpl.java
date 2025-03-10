@@ -200,6 +200,24 @@ public class TagsApiServiceImpl extends TagsApiService {
         return Response.ok().entity(respdto).cacheControl(cc).build();
     }
 
+    @Override
+    public Response setTagLock(String name, String status, SecurityContext securityContext)
+            throws NotFoundException {
+        log.info("Set tag lock for {} to {}", name, status);
+        // Search tag.
+        final Tag entity = tagService.findOne(name);
+        // Update lock status.
+        Tag saved = tagService.lockTag(name, status);
+        // Verify if entity was modified
+        if (saved.equals(entity)) {
+            log.warn("Tag {} was not modified.", name);
+            return Response.notModified().build();
+        }
+        TagDto dto = tagmapper.toDto(saved);
+        log.info("Updated tag lock status {}: {}", name, dto);
+        return Response.ok().entity(dto).build();
+    }
+
     /*
      * (non-Javadoc)
      *

@@ -54,4 +54,15 @@ public interface GlobalTagMapRepository
             + "JOIN FETCH p.tag t WHERE t.name = (:tag)")
     List<GlobalTagMap> findByTagName(@Param("tag") String tag);
 
+
+    /**
+     * @param tag the String
+     * @param type the char indicating the type of global tag (L,N,T).
+     * @return List<GlobalTagMap>
+     */
+    @Query("SELECT distinct p FROM GlobalTagMap p JOIN FETCH p.globalTag g "
+            + "JOIN FETCH p.tag t WHERE t.name = (:tag) and g.type = (:type)")
+    List<GlobalTagMap> findByTagNameAndGlobalTagType(@Param("tag") String tag,
+                                                     @Param("type") char type);
+
 }

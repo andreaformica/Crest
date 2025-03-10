@@ -6,6 +6,7 @@ package hep.crest.server.services;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.data.pojo.GlobalTag;
 import hep.crest.server.data.pojo.GlobalTagMap;
+import hep.crest.server.data.pojo.GlobalTagTypeEnum;
 import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.repositories.GlobalTagRepository;
 import hep.crest.server.data.repositories.args.GtagQueryArgs;
@@ -38,15 +39,23 @@ public class GlobalTagService {
      * Helper.
      */
     private PageRequestHelper prh;
+    /**
+     * Service.
+     */
+    private GlobalTagMapService globalTagMapService;
 
     /**
      * Ctor with injection.
      * @param globalTagRepository
+     * @param globalTagMapService
      * @param prh
      */
     @Autowired
-    public GlobalTagService(GlobalTagRepository globalTagRepository, PageRequestHelper prh) {
+    public GlobalTagService(GlobalTagRepository globalTagRepository,
+                            GlobalTagMapService globalTagMapService,
+                            PageRequestHelper prh) {
         this.globalTagRepository = globalTagRepository;
+        this.globalTagMapService = globalTagMapService;
         this.prh = prh;
     }
 
@@ -137,18 +146,21 @@ public class GlobalTagService {
      * @throws AbstractCdbServiceException If object was not found
      */
     @Transactional
-    public GlobalTag updateGlobalTag(GlobalTag entity) throws CdbNotFoundException {
+    public GlobalTag updateGlobalTag(GlobalTag entity) throws AbstractCdbServiceException {
         log.debug("Update GlobalTag from {}", entity);
         final GlobalTag toupd =
                 globalTagRepository.findById(entity.getName()).orElseThrow(
                         () -> new CdbNotFoundException(
                                 "GlobalTag does not exists for name " + entity.getName()));
+        char type = entity.getType();
+        GlobalTagTypeEnum.fromCode(type);
         toupd.setDescription(entity.getDescription()).setRelease(entity.getRelease())
                 .setScenario(entity.getScenario()).setSnapshotTime(entity.getSnapshotTime())
-                .setWorkflow(entity.getWorkflow()).setType(entity.getType())
+                .setWorkflow(entity.getWorkflow()).setType(type)
                 .setValidity(entity.getValidity());
         final GlobalTag saved = globalTagRepository.save(toupd);
         log.debug("Saved entity: {}", saved);
+
         return saved;
     }
 
@@ -158,10 +170,33 @@ public class GlobalTagService {
     @Transactional
     public void removeGlobalTag(String name) throws CdbNotFoundException {
         log.debug("Remove global tag {}", name);
-        globalTagRepository.findByName(name).orElseThrow(
+        GlobalTag globalTag = globalTagRepository.findByName(name).orElseThrow(
                 () -> new CdbNotFoundException("Cannot remove global tag " + name)
         );
+        if (globalTag.getType() == GlobalTagTypeEnum.LOCKED.getCode()) {
+            throw new ConflictException("Cannot remove locked global tag " + name);
+        }
+        // Check if mappings are present
+        List<GlobalTagMap> maps = globalTagMapService.getTagMap(name);
+        if (!maps.isEmpty()) {
+            log.error("Cannot remove global tag {}, found association with tags.", name);
+            throw new ConflictException("Cannot remove global tag "
+                    + name
+                    + ": clean up associations with tags");
+        }
         globalTagRepository.deleteById(name);
         log.debug("Removed entity: {}", name);
+    }
+
+    @Transactional
+    public GlobalTag lockGlobalTag(String name, String status) {
+        GlobalTag entity = globalTagRepository.findByName(name).orElseThrow(
+                () -> new CdbNotFoundException("Cannot find global tag " + name));
+        char inputState = status.charAt(0);
+        GlobalTagTypeEnum typeEnum = GlobalTagTypeEnum.fromCode(inputState);
+        entity.setType(typeEnum.getCode());
+        GlobalTag saved = globalTagRepository.save(entity);
+        globalTagMapService.updateAssociatedTagsType(saved);
+        return saved;
     }
 }

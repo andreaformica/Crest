@@ -169,6 +169,28 @@ public class TagsApi  {
     }
 
     @jakarta.ws.rs.PUT
+    @Path("/{name}/lock")
+    @Produces({ "application/json" })
+    @Operation(summary = "Update a TagDto by name", description = "", responses = {
+            @ApiResponse(responseCode = "200", description = "successful operation", content =
+                @Content(schema = @Schema(implementation = TagDto.class))),
+            @ApiResponse(responseCode = "404", description = "Not found", content =
+                @Content(schema = @Schema(implementation = HTTPResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Generic error response", content =
+                @Content(schema = @Schema(implementation = HTTPResponse.class))),
+            },security = {
+            @SecurityRequirement(name = "OpenID", scopes={ "openid" }),
+            @SecurityRequirement(name = "BearerAuth")
+        }, tags={ "tags", })
+    public Response setTagLock(@Parameter(description = "", required = true) @PathParam("name") @NotNull  String name,@Parameter(description = "status:  UNLOCKED, LOCKED", example = "UNLOCKED") @DefaultValue("UNLOCKED") @QueryParam("status")  String status,@Context SecurityContext securityContext)
+    throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
+        context.setUriInfo(uriInfo);
+        return delegate.setTagLock(name, status, securityContext);
+    }
+
+    @jakarta.ws.rs.PUT
     @Path("/{name}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })

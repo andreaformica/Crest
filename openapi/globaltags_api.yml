@@ -20,6 +20,8 @@ paths:
     $ref: 'crestdb_globaltagsapi.yml#/paths/~1globaltags~1{name}'
   /globaltags/{name}/tags:
     $ref: 'crestdb_globaltagsapi.yml#/paths/~1globaltags~1{name}~1tags'
+  /globaltags/{name}/lock:
+    $ref: 'crestdb_globaltagsapi.yml#/paths/~1globaltags~1{name}~1lock'
 
 components:
   securitySchemes:

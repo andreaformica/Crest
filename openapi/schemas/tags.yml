@@ -19,6 +19,15 @@ components:
           type: string
         synchronization:
           type: string
+          enum:
+            - ALL
+            - SV
+            - UPD
+        status:
+          type: string
+          enum:
+            - LOCKED
+            - UNLOCKED
         description:
           type: string
         lastValidatedTime:

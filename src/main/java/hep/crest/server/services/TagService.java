@@ -4,9 +4,11 @@
 package hep.crest.server.services;
 
 import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.data.pojo.GlobalTagMap;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.pojo.TagMeta;
+import hep.crest.server.data.repositories.GlobalTagMapRepository;
 import hep.crest.server.data.repositories.IovGroupsCustom;
 import hep.crest.server.data.repositories.IovRepository;
 import hep.crest.server.data.repositories.TagMetaRepository;
@@ -15,6 +17,7 @@ import hep.crest.server.data.repositories.args.TagQueryArgs;
 import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.ConflictException;
+import hep.crest.server.swagger.model.TagDto;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +30,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
@@ -83,22 +87,28 @@ public class TagService {
      */
     private CacheManager cacheManager;
     /**
+     * Repository.
+     */
+    private GlobalTagMapRepository globalTagMapRepository;
+    /**
      * Constant for the cache name.
      */
     public static final String TAG_CACHE = "tagCache";
 
     /**
      * Ctors with injected services.
+     *
      * @param tagRepository
      * @param cacheManager
      * @param iovService
      * @param payloadService
      * @param tagMetaService
-     *
+     * @param globalTagMapRepository
      */
     @Autowired
     TagService(TagRepository tagRepository, CacheManager cacheManager, IovService iovService,
-            PayloadService payloadService, TagMetaService tagMetaService) {
+               PayloadService payloadService, TagMetaService tagMetaService,
+               GlobalTagMapRepository globalTagMapRepository) {
         this.tagRepository = tagRepository;
         this.cacheManager = cacheManager;
         this.iovService = iovService;
@@ -108,6 +118,7 @@ public class TagService {
         this.payloadService = payloadService;
         this.tagMetaService = tagMetaService;
         this.tagMetaRepository = tagMetaService.getTagmetaRepository();
+        this.globalTagMapRepository = globalTagMapRepository;
     }
 
     /**
@@ -137,6 +148,7 @@ public class TagService {
 
     /**
      * Cache eviction method.
+     *
      * @param name
      */
     protected void cacheEviction(String name) {
@@ -149,12 +161,14 @@ public class TagService {
 
     /**
      * Cache add method.
+     *
      * @param tag the Tag entity
      */
     protected void cacheTag(Tag tag) {
         Cache cache = cacheManager.getCache("tagCache");
         if (cache != null && tag != null) {
-            cache.put(tag.getName(), tag);  // Use tag.getName() as the key and the entity as the value
+            cache.put(tag.getName(), tag);  // Use tag.getName() as the key and the entity as the
+            // value
         }
     }
 
@@ -226,11 +240,17 @@ public class TagService {
             final Tag toupd = tagRepository.findById(entity.getName()).orElseThrow(
                     () -> new CdbNotFoundException(
                             "Tag does not exists for name " + entity.getName()));
+            String status = entity.getStatus();
+            // Try to convert the status to the enum. If it fails, it will throw an exception.
+            TagDto.StatusEnum.fromValue(status);
+            // Update the tag.
             toupd.setDescription(entity.getDescription()).setObjectType(entity.getObjectType())
                     .setSynchronization(entity.getSynchronization())
                     .setEndOfValidity(entity.getEndOfValidity())
                     .setLastValidatedTime(entity.getLastValidatedTime())
+                    .setStatus(entity.getStatus())
                     .setTimeType(entity.getTimeType());
+            // Save the tag adn update the modification time.
             final Tag saved = tagRepository.save(toupd);
             log.debug("Updated entity: {}", saved);
             return saved;
@@ -239,6 +259,10 @@ public class TagService {
             log.error("updateTag error for : {}", entity.getName());
             Objects.requireNonNull(cacheManager.getCache(TAG_CACHE)).evict(entity.getName());
             throw e;
+        }
+        catch (IllegalArgumentException e) {
+            log.error("updateTag error for : {}", entity.getName());
+            throw new ConflictException("Status " + entity.getStatus() + " is not allowed");
         }
     }
 
@@ -294,6 +318,7 @@ public class TagService {
 
     /**
      * Update the end of validity of a tag.
+     *
      * @param name
      * @param endtime
      * @throws AbstractCdbServiceException
@@ -316,5 +341,47 @@ public class TagService {
             Objects.requireNonNull(cacheManager.getCache(TAG_CACHE)).evict(name);
             throw e;
         }
+    }
+
+
+    /**
+     * Lock a tag.
+     *
+     * @param name
+     * @param status
+     * @return Tag
+     * @throws AbstractCdbServiceException
+     */
+    @CacheEvict(value = TAG_CACHE, key = "#name")
+    @Transactional
+    public Tag lockTag(String name, String status) throws AbstractCdbServiceException {
+        Tag entity = tagRepository.findById(name).orElseThrow(
+                () -> new CdbNotFoundException("Cannot find tag " + name));
+        log.info("Change locking for tag {} to status {}", entity, status);
+        if (entity.getStatus().equals(status)) {
+            log.info("Tag {} is already is status {} : no modifications are done", name, status);
+            return entity;
+        }
+        // Check if the tag is associated to a global tag which is locked
+        List<GlobalTagMap> globalTags = globalTagMapRepository.findByTagNameAndGlobalTagType(name,
+                'L');
+        if (!globalTags.isEmpty()) {
+            throw new ConflictException("Cannot modify lock tag " + name + ": found association "
+                    + "with locked global tags");
+        }
+        // Change the status if it is correctly set.
+        TagDto.StatusEnum statusEnum = TagDto.StatusEnum.fromValue(status);
+        entity.setStatus(statusEnum.toString());
+        // When a tag is locked, the synchronization is set to SV in case it was ALL.
+        if (statusEnum.equals(TagDto.StatusEnum.LOCKED)) {
+            String synchro = entity.getSynchronization();
+            if (synchro == null || synchro.equals(TagDto.SynchronizationEnum.ALL.toString())) {
+                log.info("Tag {} is locked and synchronization has been modified to {}", name,
+                        TagDto.SynchronizationEnum.ALL);
+                entity.setSynchronization(TagDto.SynchronizationEnum.SV.toString());
+            }
+        }
+        // Save the entity.
+        return tagRepository.save(entity);
     }
 }

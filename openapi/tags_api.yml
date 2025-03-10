@@ -18,6 +18,8 @@ paths:
     $ref: 'crestdb_tagsapi.yml#/paths/~1tags'
   /tags/{name}:
     $ref: 'crestdb_tagsapi.yml#/paths/~1tags~1{name}'
+  /tags/{name}/lock:
+    $ref: 'crestdb_tagsapi.yml#/paths/~1tags~1{name}~1lock'
   /tags/{name}/meta:
     $ref: 'crestdb_tagsapi.yml#/paths/~1tags~1{name}~1meta'
 

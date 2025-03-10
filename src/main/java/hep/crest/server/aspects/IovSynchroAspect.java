@@ -6,9 +6,9 @@ package hep.crest.server.aspects;
 import hep.crest.server.config.CrestProperties;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Tag;
-import hep.crest.server.data.pojo.TagSynchroEnum;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.TagService;
+import hep.crest.server.swagger.model.TagDto;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -140,7 +140,7 @@ public class IovSynchroAspect {
         Boolean acceptTime = Boolean.FALSE;
         Iov latest = iovService.latest(tagentity.getName());
         //
-        switch (TagSynchroEnum.valueOf(synchro)) {
+        switch (TagDto.SynchronizationEnum.valueOf(synchro)) {
             case SV:
                 log.warn("Can only append IOVs....");
                 if (latest == null
@@ -157,7 +157,7 @@ public class IovSynchroAspect {
                     acceptTime = false;
                 }
                 break;
-            case UPDATE:
+            case UPD:
                 log.warn("Can append data in case the since is after the end time of the tag");
                 BigInteger endofval = tagentity.getEndOfValidity();
                 if (endofval == null || endofval.compareTo(entity.getId().getSince()) <= 0) {
@@ -165,7 +165,7 @@ public class IovSynchroAspect {
                     acceptTime = true;
                 }
                 break;
-            case NONE:
+            case ALL:
                 log.warn("Can insert data in any case because it is an open tag");
                 acceptTime = true;
                 break;

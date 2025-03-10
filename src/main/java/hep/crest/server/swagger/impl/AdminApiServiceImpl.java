@@ -3,6 +3,7 @@ package hep.crest.server.swagger.impl;
 import hep.crest.server.converters.GlobalTagMapper;
 import hep.crest.server.data.pojo.GlobalTag;
 import hep.crest.server.data.pojo.GlobalTagMap;
+import hep.crest.server.data.pojo.GlobalTagTypeEnum;
 import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.exceptions.CdbSQLException;
 import hep.crest.server.exceptions.ConflictException;
@@ -118,7 +119,10 @@ public class AdminApiServiceImpl extends AdminApiService {
     public Response updateGlobalTag(String name, GlobalTagDto body, SecurityContext securityContext) {
         log.info("AdminRestController processing request for updating global tag {} using {}", name, body);
         // Update the global tag identified by name. Set the type to N (normal).
-        final char type = body.getType() != null ? body.getType().charAt(0) : 'N';
+        String te = body.getType();
+        GlobalTagTypeEnum typeEnum = (te != null) ?
+                GlobalTagTypeEnum.fromCode(te.toString().charAt(0)) : GlobalTagTypeEnum.NONE;
+        final char type = typeEnum.getCode();
 
         // Find the global tag corresponding to input name.
         final GlobalTag entity = globalTagService.findOne(name);

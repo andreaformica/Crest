@@ -241,4 +241,15 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
         setdto.filter(filters);
         return Response.status(rstatus).entity(setdto).build();
     }
+
+    @Override
+    public Response setGlobalTagLock(String name, String status, SecurityContext securityContext)
+            throws NotFoundException {
+        log.info("Lock global tag {} with status {}", name, status);
+        // Lock a global tag.
+        final GlobalTag entity = globaltagService.lockGlobalTag(name, status);
+        final GlobalTagDto dto = mapper.toDto(entity);
+        // Send the created status.
+        return Response.ok().entity(dto).build();
+    }
 }
