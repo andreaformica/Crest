@@ -64,7 +64,7 @@ public class StoreSetDto extends CrestBaseResponse  {
    * @return resources
    **/
   @JsonProperty(value = "resources")
-  @Valid 
+  @NotNull @Valid 
   public List<@Valid StoreDto> getResources() {
     return resources;
   }

@@ -20,10 +20,13 @@ components:
           format: date-time
     TagMetaSetDto:
       description: An Set containing TagMetaDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/TagMetaDto'
       allOf:
         - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/TagMetaDto'

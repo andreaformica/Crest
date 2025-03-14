@@ -64,7 +64,7 @@ public class GlobalTagMapSetDto extends CrestBaseResponse  {
    * @return resources
    **/
   @JsonProperty(value = "resources")
-  @Valid 
+  @NotNull @Valid 
   public List<@Valid GlobalTagMapDto> getResources() {
     return resources;
   }

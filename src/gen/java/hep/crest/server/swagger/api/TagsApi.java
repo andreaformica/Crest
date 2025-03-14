@@ -64,7 +64,7 @@ public class TagsApi  {
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
     @Operation(summary = "Create a Tag in the database.", description = "", responses = {
-            @ApiResponse(responseCode = "200", description = "successful operation", content =
+            @ApiResponse(responseCode = "201", description = "successful operation", content =
                 @Content(schema = @Schema(implementation = TagDto.class))),
             @ApiResponse(responseCode = "200", description = "Generic error response", content =
                 @Content(schema = @Schema(implementation = HTTPResponse.class))),

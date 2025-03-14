@@ -64,7 +64,7 @@ public class TagSummarySetDto extends CrestBaseResponse  {
    * @return resources
    **/
   @JsonProperty(value = "resources")
-  @Valid 
+  @NotNull @Valid 
   public List<@Valid TagSummaryDto> getResources() {
     return resources;
   }

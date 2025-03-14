@@ -64,7 +64,7 @@ public class FolderSetDto extends CrestBaseResponse  {
    * @return resources
    **/
   @JsonProperty(value = "resources")
-  @Valid 
+  @NotNull @Valid 
   public List<@Valid FolderDto> getResources() {
     return resources;
   }

@@ -108,57 +108,11 @@ task openApiBundle {
 	// with e.g: npm install -g @apidevtools/swagger-cli
 	inputs.files(fileTree(dir: swaggerSpecDirectory, include: '**/*.yml'))
 	outputs.file("$swaggerBundleDirectory/crestAtlasApi_all.yml".toString())
-	outputs.file("$swaggerBundleDirectory/admin_api.yml".toString())
-	outputs.file("$swaggerBundleDirectory/globaltags_api.yml".toString())
-	outputs.file("$swaggerBundleDirectory/tags_api.yml".toString())
-/// not for CMS
-	outputs.file("$swaggerBundleDirectory/tagsmeta_api.yml".toString())
-	outputs.file("$swaggerBundleDirectory/globaltagmaps_api.yml".toString())
-	outputs.file("$swaggerBundleDirectory/iovs_api.yml".toString())
-	outputs.file("$swaggerBundleDirectory/payloads_api.yml".toString())
-	outputs.file("$swaggerBundleDirectory/monitoring_api.yml".toString())
-	outputs.file("$swaggerBundleDirectory/runinfo_api.yml".toString())
 
 	doLast {
 		exec {
 			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/crestApi_all.yml".toString(), "$swaggerSpecDirectory/crestAtlasApi_all.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/admin_api.yml".toString(), "$swaggerSpecDirectory/admin_api.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/globaltags_api.yml".toString(), "$swaggerSpecDirectory/globaltags_api.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/tags_api.yml".toString(), "$swaggerSpecDirectory/tags_api.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/tagsmeta_api.yml".toString(), "$swaggerSpecDirectory/tagsmeta_api.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/globaltagmaps_api.yml".toString(), "$swaggerSpecDirectory/globaltagmaps_api.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/iovs_api.yml".toString(), "$swaggerSpecDirectory/iovs_api.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/payloads_api.yml".toString(), "$swaggerSpecDirectory/payloads_api.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/runinfo_api.yml".toString(), "$swaggerSpecDirectory/runinfo_api.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/monitoring_api.yml".toString(), "$swaggerSpecDirectory/monitoring_api.yml".toString()
+			commandLine 'redocly', 'bundle', '-o', "$swaggerBundleDirectory/crestApi_all.yml".toString(), "$swaggerSpecDirectory/crestAtlasApi_all.yml".toString()
 		}
 	}
 }
@@ -183,7 +137,7 @@ task buildCrestPythonClient(type: org.openapitools.generator.gradle.plugin.tasks
 	outputDir = "$rootDir/pycrest".toString()
 	packageName = "hep.crest.client"
 	configOptions = [
-			packageVersion: "5.0.0",
+			packageVersion: "6.1.0",
 			projectName: "hep-crest-client"]
 
 }

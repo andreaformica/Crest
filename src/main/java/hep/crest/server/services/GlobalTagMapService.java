@@ -211,7 +211,7 @@ public class GlobalTagMapService {
                 Tag tag = map.getTag();
                 tag.setStatus(TagDto.StatusEnum.LOCKED.toString());
                 String sync = tag.getSynchronization();
-                if (sync == null || sync.isEmpty() || sync.equals("none")) {
+                if (sync == null || sync.isEmpty() || sync.equals("ALL")) {
                     log.warn("Tag {} is locked, setting synchronization to append-only",
                             tag.getName());
                     tag.setSynchronization(TagDto.SynchronizationEnum.SV.toString());

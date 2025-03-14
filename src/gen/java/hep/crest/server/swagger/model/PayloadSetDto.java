@@ -64,7 +64,7 @@ public class PayloadSetDto extends CrestBaseResponse  {
    * @return resources
    **/
   @JsonProperty(value = "resources")
-  @Valid 
+  @NotNull @Valid 
   public List<@Valid PayloadDto> getResources() {
     return resources;
   }

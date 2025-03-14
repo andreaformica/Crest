@@ -64,7 +64,7 @@ public class TagMetaSetDto extends CrestBaseResponse  {
    * @return resources
    **/
   @JsonProperty(value = "resources")
-  @Valid 
+  @NotNull @Valid 
   public List<@Valid TagMetaDto> getResources() {
     return resources;
   }

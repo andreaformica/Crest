@@ -105,7 +105,7 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
         final GlobalTag entity = mapper.toEntity(body);
         final GlobalTag saved = globaltagService.insertGlobalTag(entity);
         final GlobalTagDto dto = mapper.toDto(saved);
-        // Send the created status.
+        // Send the created status. Code 201.
         return Response.created(context.getUriInfo().getRequestUri()).entity(dto).build();
     }
 

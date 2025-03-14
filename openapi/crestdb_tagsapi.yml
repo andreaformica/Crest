@@ -96,7 +96,7 @@ paths:
             schema:
               $ref: '#/components/schemas/TagDto'
       responses:
-        '200':
+        '201':
           description: successful operation
           content:
             application/json:

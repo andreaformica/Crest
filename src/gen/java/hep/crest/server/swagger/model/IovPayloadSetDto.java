@@ -64,7 +64,7 @@ public class IovPayloadSetDto extends CrestBaseResponse  {
    * @return resources
    **/
   @JsonProperty(value = "resources")
-  @Valid 
+  @NotNull @Valid 
   public List<@Valid IovPayloadDto> getResources() {
     return resources;
   }

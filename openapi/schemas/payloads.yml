@@ -35,19 +35,25 @@ components:
           type: string
     PayloadSetDto:
       description: An Set containing PayloadDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-           $ref: '#/components/schemas/PayloadDto'
       allOf:
         - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/PayloadDto'
     StoreSetDto:
       description: An Set containing StoreDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-           $ref: '#/components/schemas/StoreDto'
       allOf:
         - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/StoreDto'
