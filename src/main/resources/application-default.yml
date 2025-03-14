@@ -15,7 +15,7 @@ spring:
     security:
       strategy: MODE_INHERITABLETHREADLOCAL
     jersey:
-      application-path: ${crest.apiname}
+      application-path: ${crest.api.name}
       servlet:
         load-on-startup: 1
       multipart:
