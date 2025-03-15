@@ -463,6 +463,7 @@ public class PayloadService {
                 }
                 log.debug("Saving iov {} in tag {}", iov, tagname);
                 Iov savedIov = iovService.storeIov(iov);
+                log.debug("Saved iov is : {}", savedIov);
                 dto.since((savedIov.getId().getSince()).longValue())
                         .setHash(savedIov.getPayloadHash());
                 dto.data(saved.getObjectName() + "; " + saved.getObjectName());
@@ -478,6 +479,10 @@ public class PayloadService {
             catch (final IOException e) {
                 log.error("Payload insertion problem for hash {}: {}", entity.getHash(), e);
                 throw new CdbInternalException("Cannot read payload file " + uploadedFile);
+            }
+            catch (final RuntimeException e) {
+                log.error("Payload insertion problem for hash {}: {}", entity.getHash(), e);
+                throw new CdbInternalException("Runtime exception for " + uploadedFile);
             }
             finally {
                 try {

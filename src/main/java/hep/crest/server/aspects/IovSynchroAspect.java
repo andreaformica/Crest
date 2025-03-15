@@ -100,7 +100,7 @@ public class IovSynchroAspect {
         }
         Boolean acceptTime = false;
         // Get synchro property
-        if ("none".equals(cprops.getSynchro())) {
+        if (TagDto.SynchronizationEnum.ALL.toString().equals(cprops.getSynchro())) {
             log.warn("synchronization checks are disabled in this configuration....");
             acceptTime = true;
         }
@@ -108,6 +108,7 @@ public class IovSynchroAspect {
             // Synchronization aspect is enabled.
             Tag tagentity = null;
             tagentity = tagService.findOne(entity.getTag().getName());
+            log.debug("Tag found: {}", tagentity);
             // Get synchro type from tag.
             acceptTime = evaluateCondition(tagentity, entity);
         }
@@ -116,6 +117,7 @@ public class IovSynchroAspect {
         if (acceptTime && allowedOperation) {
             // Check if iov exists: if so just update the insertion time.
             Iov s = overrideIov(entity);
+            log.info("Proceeding with insertion of iov: {}", s);
             // Proceed if allowed.
             retVal = pjp.proceed(new Object[] {s});
         }
@@ -139,12 +141,19 @@ public class IovSynchroAspect {
         final String synchro = tagentity.getSynchronization();
         Boolean acceptTime = Boolean.FALSE;
         Iov latest = iovService.latest(tagentity.getName());
+        if (latest == null) {
+            log.debug("No iov found for tag {}", tagentity.getName());
+            return Boolean.TRUE;
+        }
+        log.debug("Evaluate condition for tag {} with synchro type {} and latest iov {}",
+                tagentity.getName(), synchro, latest);
         //
         switch (TagDto.SynchronizationEnum.valueOf(synchro)) {
             case SV:
+                log.warn("This logic is not fully implemented. For the moment allows to append "
+                    + "IOV. In future it should check the time [now] or the run [now]");
                 log.warn("Can only append IOVs....");
-                if (latest == null
-                        || latest.getId().getSince().compareTo(entity.getId().getSince()) <= 0) {
+                if (latest.getId().getSince().compareTo(entity.getId().getSince()) <= 0) {
                     // Latest is before the new one.
                     log.info("IOV in insert has correct time respect to last IOV : {} > {}",
                             entity, latest);
@@ -158,7 +167,9 @@ public class IovSynchroAspect {
                 }
                 break;
             case UPD:
-                log.warn("Can append data in case the since is after the end time of the tag");
+                log.warn("The logic for UPD synchro is not implemented yet....");
+                log.warn("It will require access to external services to check the last run.");
+                log.warn("For now: append data in case the since is after the end time of the tag");
                 BigInteger endofval = tagentity.getEndOfValidity();
                 if (endofval == null || endofval.compareTo(entity.getId().getSince()) <= 0) {
                     log.info("The since is after end of validity of the Tag");

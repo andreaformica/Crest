@@ -287,6 +287,7 @@ public class TestCrestTags {
         sdto1.since(10000L);
         sdto1.streamerInfo("ANOTHER_BATCH_FAKE_STREAMER_INFO");
         storeSetDto.addresourcesItem(sdto1);
+        storeSetDto.size(2L);
         // Store the payloads into the tag
         try {
             final ResponseEntity<String> response2 = uploadPayload(tagname, storeSetDto, "ascii", "none",
