@@ -30,6 +30,19 @@ convert_certificate () {
   fi
 }
 
+verify_files() {
+  echo "Checking for files: should be the one provided by the helm chart"
+  if [ -e config/application.properties ] ; then
+    cat config/application.properties
+  fi
+  if [ -e /run/secrets/crest-phys-cond ] ; then
+    echo "crest.db.password=$(cat /run/secrets/crest-phys-cond)"
+  fi
+  if [ -e /run/secrets/crest-trigger-cond ] ; then
+    echo "crest.triggerdb.password=$(cat /run/secrets/crest-trigger-cond)"
+  fi
+}
+
 print_application_properties () {
   if [ -e config/application.properties ] ; then
     cat config/application.properties
@@ -105,6 +118,7 @@ fi
 
 echo "Initialization..."
 convert_certificate
+verify_files
 print_application_properties
 
 app_properties=${SPRING_TMPDIR}/application.properties
