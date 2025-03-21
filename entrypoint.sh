@@ -41,6 +41,14 @@ verify_files() {
   if [ -e /run/secrets/crest-trigger-cond ] ; then
     echo "crest.triggerdb.password=$(cat /run/secrets/crest-trigger-cond)"
   fi
+  if [ -e ./tnsnames.ora ]; then
+    echo "Use local tnsnames : "
+    cat ./tnsnames.ora
+  fi
+  if [ -e /etc/tnsnames.ora ]; then
+    echo "Use tnsnames from etc: "
+    cat ./tnsnames.ora
+  fi
 }
 
 print_application_properties () {
