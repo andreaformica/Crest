@@ -94,7 +94,7 @@ fi
 cd $DIR
 ## Check if tnsnames is available
 echo "Check tnsnames"
-if [ -e /etc/tnsnames.ora ]; then
+if [ -e /etc/tnsnames.ora || -e ./tnsnames.ora ]; then
    echo "Use local tnsnames version"
 else
    echo "get tnsnames from service-oracle-tnsnames.web.cern.ch...disabled for now"
