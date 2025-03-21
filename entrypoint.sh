@@ -47,7 +47,7 @@ verify_files() {
   fi
   if [ -e /etc/tnsnames.ora ]; then
     echo "Use tnsnames from etc: "
-    cat ./tnsnames.ora
+    head ./tnsnames.ora
   fi
 }
 
@@ -94,7 +94,7 @@ fi
 cd $DIR
 ## Check if tnsnames is available
 echo "Check tnsnames"
-if [ -e /etc/tnsnames.ora || -e ./tnsnames.ora ]; then
+if [ -e /etc/tnsnames.ora ] || [ -e ./tnsnames.ora ]; then
    echo "Use local tnsnames version"
 else
    echo "get tnsnames from service-oracle-tnsnames.web.cern.ch...disabled for now"
@@ -112,7 +112,11 @@ echo "use opt : "
 cat $joptfile
 if [ -e $joptfile ]; then
    export JAVA_OPTS=
-   while read line; do JAVA_OPTS="$JAVA_OPTS -D$line"; done < $joptfile
+   while read line; do
+    if [ x"$line" != x"" ]; then
+      JAVA_OPTS="$JAVA_OPTS -D$line";
+    fi
+   done < $joptfile
 fi
 ## Set the directory with the JAR file
 if [ -e ${DIR}/crest.jar ]; then
