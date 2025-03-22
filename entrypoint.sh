@@ -141,10 +141,10 @@ app_properties=${SPRING_TMPDIR}/application.properties
 mkfifo -m 600 "${app_properties}"
 print_application_properties >> ${app_properties} &
 
-echo "$USER is starting server with JAVA_OPTS : $JAVA_OPTS from user directory $PWD, config from $SPRING_TMPDIR"
+echo "$USER is starting server with JAVA_OPTS : $JAVA_OPTS \n - execution directory $PWD \n - config from $SPRING_TMPDIR"
 
 if [ x"$1" = x"" ]; then
-    echo "execute command ${prj_dir}/crest.jar"
+    echo "execute command ${prj_dir}/crest.jar iwth previous java options"
     exec java $JAVA_OPTS -jar ${prj_dir}/crest.jar --spring.config.location=optional:classpath:/,optional:classpath:/config/,file:${app_properties} 2>>/tmp/err.log
 else
     sh -c "$@"
