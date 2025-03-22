@@ -32,26 +32,18 @@ convert_certificate () {
 
 verify_files() {
   echo "Checking for files: should be the one provided by the helm chart"
+  ls -altr
   if [ -e config/application.properties ] ; then
-    cat config/application.properties
-  fi
-  if [ -e /run/secrets/crest-phys-cond ] ; then
-    echo "crest.db.password=$(cat /run/secrets/crest-phys-cond)"
-  fi
-  if [ -e /run/secrets/crest-trigger-cond ] ; then
-    echo "crest.triggerdb.password=$(cat /run/secrets/crest-trigger-cond)"
+    echo "Use $PWD/config/application.properties"
   fi
   if [ -e ./logback.xml ]; then
-    echo "Use logback : "
-    cat ./logback.xml
+    echo "Use logback from : $PWD"
   fi
   if [ -e ./tnsnames.ora ]; then
-    echo "Use local tnsnames : "
-    cat ./tnsnames.ora
+    echo "Use local tnsnames : $PWD/tnsnames.ora"
   fi
   if [ -e /etc/tnsnames.ora ]; then
-    echo "Use tnsnames from etc: "
-    head ./tnsnames.ora
+    echo "Use tnsnames from etc : /etc/tnsnames.ora"
   fi
 }
 
