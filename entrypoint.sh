@@ -41,6 +41,10 @@ verify_files() {
   if [ -e /run/secrets/crest-trigger-cond ] ; then
     echo "crest.triggerdb.password=$(cat /run/secrets/crest-trigger-cond)"
   fi
+  if [ -e ./logback.xml ]; then
+    echo "Use logback : "
+    cat ./logback.xml
+  fi
   if [ -e ./tnsnames.ora ]; then
     echo "Use local tnsnames : "
     cat ./tnsnames.ora
