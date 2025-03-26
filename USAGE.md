@@ -20,14 +20,14 @@ The main concepts behind *CREST* are the following:
 ## Deployment
 The list of available servers is the following:
 
-| Server | URL                      | APID                                        | Description                                        |
-| ------ |--------------------------|---------------------------------------------|----------------------------------------------------|
-| Development | http://crest-j23.cern.ch:8080 | api-v5.0                                    | Development server, use ATLAS_PHYS_COND_01 @ INT8R |
-| Production  | https://crest.cern.ch    | api-v4.0                                    | Production read only server, use ATLAS_PHYS_COND @ INT8R    |
-| Production  | http://crest-03.cern.ch:9090 | api-v5.0                                    | Production read/write server, use ATLAS_PHYS_COND @ INT8R |
-| Production  | http://crest-04.cern.ch | api-v5.0                                    | Production read/write server, use ATLAS_PHYS_COND @ INT8R |
-| Test        | http://atlaf-alma9-01.cern.ch:8080 | api-v6.0    | Test server, use ATLAS_PHYS_COND_01 @ INT8R |
-| Test        | https://atlaf-alma9-01.cern.ch | api-v6.0    | Test server, use ATLAS_PHYS_COND_01 @ INT8R |
+| Server | URL                      | APID     | Description                                        |
+| ------ |--------------------------|----------|----------------------------------------------------|
+| Development | http://crest-j23.cern.ch:8080 | api-v5.0 | Development server, use ATLAS_PHYS_COND_01 @ INT8R |
+| Production  | https://crest.cern.ch    | api-v5.0 | Production read only server, use ATLAS_PHYS_COND @ INT8R    |
+| Production  | http://crest-03.cern.ch:9090 | api-v5.0 | Production read/write server, use ATLAS_PHYS_COND @ INT8R |
+| Production  | http://crest-04.cern.ch | api-v5.0 | Production read/write server, use ATLAS_PHYS_COND @ INT8R |
+| Test        | http://atlaf-alma9-01.cern.ch:8080 | api-v6.0 | Test server, use ATLAS_PHYS_COND_01 @ INT8R |
+| Test        | https://atlaf-alma9-01.cern.ch | api-v6.0 | Test server, use ATLAS_PHYS_COND_01 @ INT8R |
 
 There are haproxy in P1 to access the production servers. The haproxy is configured to use the following servers:
 - _atlashap02-atcn:8081_ : access the read-write server crest-03.cern.ch
