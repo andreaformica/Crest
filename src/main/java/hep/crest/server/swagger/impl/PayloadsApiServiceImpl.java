@@ -377,9 +377,10 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         }
         // Now you can process the JSON data as needed.
         StoreSetDto outdto = null;
-        try {
-            BufferedInputStream bufferedInputStream =
-                    new BufferedInputStream(inputsource.getInputStream());
+        try (BufferedInputStream bufferedInputStream =
+                     new BufferedInputStream(inputsource.getInputStream())) {
+            //BufferedInputStream bufferedInputStream =
+            //        new BufferedInputStream(inputsource.getInputStream());
             outdto = jsonStreamProcessor.processJsonStream(bufferedInputStream,
                     objectType, version, compressionType, tag);
             inputsource.getInputStream().close();

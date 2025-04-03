@@ -477,11 +477,11 @@ public class PayloadService {
                 throw new ConflictException(msg);
             }
             catch (final IOException e) {
-                log.error("Payload insertion problem for hash {}: {}", entity.getHash(), e);
+                log.error("Payload insertion IO problem for hash {}: {}", entity.getHash(), e);
                 throw new CdbInternalException("Cannot read payload file " + uploadedFile);
             }
             catch (final RuntimeException e) {
-                log.error("Payload insertion problem for hash {}: {}", entity.getHash(), e);
+                log.error("Payload insertion RT problem for hash {}: {}", entity.getHash(), e);
                 throw new CdbInternalException("Runtime exception for " + uploadedFile);
             }
             finally {
