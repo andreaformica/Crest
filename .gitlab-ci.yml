@@ -61,5 +61,5 @@ deploy:
     - oc login $SERVER --token=$DEPLOY_TOKEN
     - oc project $PROJECT
     - oc import-image $APP_NAME --all
-    - sleep 10 && oc rollout status deploymentconfig/$APP_NAME
+    - sleep 10 && oc rollout status deployment/$APP_NAME
 
