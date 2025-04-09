@@ -223,6 +223,9 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             final PayloadDto dto = mapper.toDto(entity);
             return Response.status(Response.Status.OK).entity(dto).build();
         }
+        else if ("STREAMER".equalsIgnoreCase(format)) {
+            log.info("Download streamer info for hash {}", hash);
+        }
         // Get the media type. It utilizes the objectType field.
         final MediaType mediaType = getMediaType(ptype);
 
