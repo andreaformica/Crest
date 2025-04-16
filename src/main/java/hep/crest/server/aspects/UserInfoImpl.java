@@ -9,7 +9,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
-import java.security.Principal;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -70,9 +69,9 @@ public class UserInfoImpl implements UserInfo {
         String crestrole = "ROLE_crest-" + role;
 
         // Check roles without Principal casting
-        if (isRole(crestrole, roles) ||
-                isRole("ROLE_crest-admin", roles) ||
-                isRole("ROLE_crest-developers", roles)) {
+        if (isRole(crestrole, roles)
+                || isRole("ROLE_crest-admin", roles)
+                || isRole("ROLE_crest-developers", roles)) {
             return Boolean.TRUE;
         }
 
