@@ -65,7 +65,7 @@ public class UserInfoImpl implements UserInfo {
             log.warn("No authentication present");
             return false;
         }
-
+        log.info("Authentication: {}", auth.getPrincipal());
         Collection<? extends GrantedAuthority> roles = auth.getAuthorities();
         String crestrole = "ROLE_crest-" + role;
 
