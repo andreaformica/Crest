@@ -59,25 +59,24 @@ public class UserInfoImpl implements UserInfo {
 
     @Override
     public Boolean isUserInRole(Authentication auth, String role) {
-        final Principal user = (Principal) auth.getPrincipal();
-        log.info("Verify the role for user : {} ",
-                user == null ? "none" : user);
-        Collection<? extends GrantedAuthority> roles = auth.getAuthorities();
-        if (user != null) {
-            // Search if tagname is in list of roles.
-            String crestrole = "ROLE_crest-" + role;
-            if (Boolean.TRUE.equals(isRole(crestrole, roles))) {
-                return Boolean.TRUE;
-            }
-            if (Boolean.TRUE.equals(isRole("ROLE_crest-admin", roles))) {
-                return Boolean.TRUE;
-            }
-            if (Boolean.TRUE.equals(isRole("ROLE_crest-developers", roles))) {
-                return Boolean.TRUE;
-            }
+
+        // Remove Principal casting - use Authentication directly
+        if (auth == null) {
+            log.warn("No authentication present");
+            return false;
         }
-        // Seems that the user is not in the role.
-        roles.forEach(s -> log.debug("Selected role is {}", s.getAuthority()));
+
+        Collection<? extends GrantedAuthority> roles = auth.getAuthorities();
+        String crestrole = "ROLE_crest-" + role;
+
+        // Check roles without Principal casting
+        if (isRole(crestrole, roles) ||
+                isRole("ROLE_crest-admin", roles) ||
+                isRole("ROLE_crest-developers", roles)) {
+            return Boolean.TRUE;
+        }
+
+        roles.forEach(r -> log.debug("Available role: {}", r.getAuthority()));
         return Boolean.FALSE;
     }
 
