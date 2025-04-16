@@ -233,7 +233,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        '201':
           description: successful operation
           content:
             application/json:

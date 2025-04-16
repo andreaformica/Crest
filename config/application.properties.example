@@ -1,6 +1,6 @@
 spring.profiles.active=default
 user.timezone=GMT
-crest.api.name=/api
+crest.api.name=/api-v6.0
 crest.web.static=/tmp/data/web
 crest.dump.dir=/tmp/data/dump
 crest.log.dir=/tmp/data/dump

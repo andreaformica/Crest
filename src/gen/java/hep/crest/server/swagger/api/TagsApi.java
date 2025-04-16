@@ -85,7 +85,7 @@ public class TagsApi  {
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
     @Operation(summary = "Create a TagMeta in the database.", description = "", responses = {
-            @ApiResponse(responseCode = "200", description = "successful operation", content =
+            @ApiResponse(responseCode = "201", description = "successful operation", content =
                 @Content(schema = @Schema(implementation = TagMetaDto.class))),
             @ApiResponse(responseCode = "404", description = "Not found", content =
                 @Content(schema = @Schema(implementation = HTTPResponse.class))),

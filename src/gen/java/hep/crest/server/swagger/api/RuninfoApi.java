@@ -60,7 +60,7 @@ public class RuninfoApi  {
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
     @Operation(summary = "Create an entry for run information.", description = "", responses = {
-            @ApiResponse(responseCode = "200", description = "successful operation", content =
+            @ApiResponse(responseCode = "201", description = "successful operation", content =
                 @Content(schema = @Schema(implementation = RunLumiSetDto.class))),
             },security = {
             @SecurityRequirement(name = "OpenID", scopes={ "openid" }),

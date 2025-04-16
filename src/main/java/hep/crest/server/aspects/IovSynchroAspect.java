@@ -4,8 +4,10 @@
 package hep.crest.server.aspects;
 
 import hep.crest.server.config.CrestProperties;
+import hep.crest.server.data.pojo.CrestRoles;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Tag;
+import hep.crest.server.data.repositories.CrestRolesRepository;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.model.TagDto;
@@ -23,6 +25,7 @@ import jakarta.ws.rs.NotAuthorizedException;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * This class is an aspect: to see where it is called you should look to the annotation.
@@ -51,6 +54,10 @@ public class IovSynchroAspect {
      * Service.
      */
     private IovService iovService;
+    /**
+     * The crest roles.
+     */
+    private CrestRolesRepository rolesRepository;
 
     /**
      * Ctor using injection.
@@ -58,15 +65,17 @@ public class IovSynchroAspect {
      * @param userinfo
      * @param tagService
      * @param iovService
-     *
+     * @param rolesRepository
      */
     @Autowired
     IovSynchroAspect(CrestProperties cprops, UserInfo userinfo,
-                            TagService tagService, IovService iovService) {
+                            TagService tagService, IovService iovService,
+                     CrestRolesRepository rolesRepository) {
         this.cprops = cprops;
         this.userinfo = userinfo;
         this.tagService = tagService;
         this.iovService = iovService;
+        this.rolesRepository = rolesRepository;
     }
 
     /**
@@ -91,9 +100,20 @@ public class IovSynchroAspect {
         else {
             // Check the authentication.
             final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String role = entity.getTag().getName().split("-")[0].toLowerCase();
-            Boolean hasrole = userinfo.isUserInRole(auth, role);
-            if (hasrole.equals(Boolean.TRUE) || entity.getTag().getName().startsWith("TEST")) {
+            List<CrestRoles> roles =
+                    rolesRepository.findMatchingTagPatterns(entity.getTag().getName());
+            // Loop over CrestRoles and check if the user has the role corresponding to the
+            // role/tagPattern. If at least one role is found then proceed.
+            boolean hasRole = Boolean.FALSE;
+            for (CrestRoles crestRole : roles) {
+                String role = crestRole.getRole();
+                if (userinfo.isUserInRole(auth, role)) {
+                    log.debug("User has role {} for tag {}", role, entity);
+                    hasRole = Boolean.TRUE;
+                    break;
+                }
+            }
+            if (hasRole || entity.getTag().getName().startsWith("TEST")) {
                 log.info("User is allowed to write IOVs into tag {}", entity.getTag().getName());
                 allowedOperation = true;
             }
