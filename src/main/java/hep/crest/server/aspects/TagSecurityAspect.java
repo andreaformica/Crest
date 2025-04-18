@@ -81,10 +81,12 @@ public class TagSecurityAspect {
             final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             String clientid = userinfo.getUserId(auth);
             List<CrestRoles> roles = rolesRepository.findMatchingTagPatterns(entity.getName());
+            log.debug("Roles found for tag {}: {}", entity, roles);
             // Loop over CrestRoles and check if the user has the role corresponding to the
             // role/tagPattern. If at least one role is found then proceed.
             boolean hasRole = Boolean.FALSE;
             for (CrestRoles crestRole : roles) {
+                log.info("Role matching {} for tag {}", crestRole.getRole(), entity);
                 String role = crestRole.getRole();
                 if (userinfo.isUserInRole(auth, role)) {
                     log.debug("User {} has role {} for tag {}", clientid, role, entity);

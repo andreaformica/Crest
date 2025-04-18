@@ -6,7 +6,7 @@
 # schemaname : ATLAS_PHYS_COND or none
 # security options: reco (no POST allowed), weak (no authentication needed), active (GET and POST requires roles)
 server:
-    port: 8080
+    port: ${crest.server.port}
     connection-timeout: 120s
 spring:
     security:
@@ -49,7 +49,7 @@ info:
 crest:
   dumpdir: /tmp
   schemaname: none
-  security: none
+  security: ${crest.server.security}
   synchro: none
   webstaticdir: /tmp
   dbfile: /tmp/crestdbh2

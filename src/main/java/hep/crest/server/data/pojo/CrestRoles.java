@@ -1,6 +1,8 @@
 package hep.crest.server.data.pojo;
 
 import hep.crest.server.config.DatabasePropertyConfigurator;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.SequenceGenerator;
 import lombok.Data;
 
 import jakarta.persistence.Column;
@@ -24,6 +26,10 @@ public class CrestRoles {
     @Id
     @EqualsAndHashCode.Exclude
     @Column(name = "CREST_ROLE_ID", unique = true, nullable = false)
+    @SequenceGenerator(name = "rol_seq", sequenceName =
+            DatabasePropertyConfigurator.SCHEMA_NAME + ".CREST_ROLES_SEQ",
+            allocationSize = 1)
+    @GeneratedValue(generator = "rol_seq")
     private Long id;
     /**
      * The role name.
