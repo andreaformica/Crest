@@ -1,6 +1,6 @@
 variables:
     IMAGE: crest21-service
-    VERSION: '6.1'
+    VERSION: '6.2'
     GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
 # Make the gradle wrapper executable. This essentially downloads a copy of
