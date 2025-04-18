@@ -10,7 +10,7 @@ spring:
           authorities-claim-name: realm_access.roles
 
 keycloak:
-  client-id: crest-client
+  client-id: ${crest.keycloak.client}
   client-secret: ${crest.keycloak.secret}
   auth-server-url: ${crest.keycloak.url}
   realm: ${crest.keycloak.realm}
