@@ -14,11 +14,15 @@ include:
   - project : 'ci-tools/container-image-ci-templates'
     file : 'kaniko-image.gitlab-ci.yml'
     ref: master
+  - project : 'dcorre/ci-templates'
+    file : 'helm/helm.yml'
+    ref: main
 
 stages:
  - package_application
- - build_docker_image
+ #- build
  - sonar_application
+ - push
  - redeploy
 
 package_cern_application:
@@ -37,17 +41,33 @@ package_cern_application:
    paths:
    - ./build/libs/crest.jar
 
+# Can be used to test packaging helm chart, before merging to master for instance
+#build_helm:
+#  extends: .deploy_helm
+#  stage: build
+#  variables:
+#    REGISTRY_CHART_PATH: registry.cern.ch/crest/charts
+
+
 build_container_job:
   rules:
     - if: $DO_DOCKER_IMAGE == "yes" && $CI_PIPELINE_SOURCE != 'merge_request_event' && $SITE == "cern"
   environment: cern
-  stage: build_docker_image
+  stage: push
   extends: .build_kaniko
   variables:
     REGISTRY_IMAGE_PATH : "registry.cern.ch/crest/$IMAGE:$VERSION"
     CONTEXT_DIR: ""
     PUSH_IMAGE: "true"
     DOCKER_FILE_NAME: "Dockerfile"
+
+
+push_helm:
+  extends: .deploy_helm
+  stage: push
+  variables:
+    REGISTRY_CHART_PATH: registry.cern.ch/crest/charts
+    PUSH_CHART: "true"
 
 
 deploy:
