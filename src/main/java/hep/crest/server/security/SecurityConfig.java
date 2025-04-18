@@ -91,7 +91,7 @@ public class SecurityConfig {
 
             Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
             Map<String, Object> clientAccess = (Map<String, Object>)
-                    resourceAccess.get("crest-client");
+                    resourceAccess.get("crest-server");
             List<String> clientRoles = clientAccess != null ? (List<String>)
                     clientAccess.get("roles") : Collections.emptyList();
 
