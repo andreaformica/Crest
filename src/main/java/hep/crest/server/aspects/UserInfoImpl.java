@@ -33,6 +33,7 @@ public class UserInfoImpl implements UserInfo {
 
         // Expected format: "crest-{resourceType}" (e.g., "crest-tag")
         String requiredRole = "crest-" + resourceType.toLowerCase();
+        log.debug("Checking role: {}", requiredRole);
         // Print the authorities for debugging
         auth.getAuthorities().forEach(r -> log.debug("Available role: {}", r.getAuthority()));
 
