@@ -100,25 +100,29 @@ public class IovSynchroAspect {
         else {
             // Check the authentication.
             final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            List<CrestRoles> roles =
-                    rolesRepository.findMatchingTagPatterns(entity.getTag().getName());
+            String clientid = userinfo.getUserId(auth);
+            String uppercaseTag = entity.getTag().getName().toUpperCase();
+            List<CrestRoles> roles = rolesRepository.findMatchingTagPatterns(uppercaseTag);
+            log.debug("Roles found for tag {} [match={}]: {}", entity, uppercaseTag, roles);
             // Loop over CrestRoles and check if the user has the role corresponding to the
             // role/tagPattern. If at least one role is found then proceed.
             boolean hasRole = Boolean.FALSE;
             for (CrestRoles crestRole : roles) {
+                log.info("Role matching {} for tag {}", crestRole.getRole(), entity);
                 String role = crestRole.getRole();
                 if (userinfo.isUserInRole(auth, role)) {
-                    log.debug("User has role {} for tag {}", role, entity);
+                    log.debug("User {} has role {} for tag {}", clientid, role, entity);
                     hasRole = Boolean.TRUE;
                     break;
                 }
             }
+            // Check if the user has the role for the tag.
             if (hasRole || entity.getTag().getName().startsWith("TEST")) {
                 log.info("User is allowed to write IOVs into tag {}", entity.getTag().getName());
                 allowedOperation = true;
             }
         }
-        Boolean acceptTime = false;
+        boolean acceptTime = false;
         // Get synchro property
         if (TagDto.SynchronizationEnum.ALL.toString().equals(cprops.getSynchro())) {
             log.warn("synchronization checks are disabled in this configuration....");
