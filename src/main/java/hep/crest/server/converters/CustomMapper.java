@@ -152,6 +152,9 @@ public class CustomMapper {
      */
     @Named("stringToStatusEnum")
     public TagDto.StatusEnum stringToStatusEnum(String status) {
+        if (status == null) {
+            return TagDto.StatusEnum.UNLOCKED;
+        }
         return TagDto.StatusEnum.fromValue(status);
     }
 
@@ -172,6 +175,9 @@ public class CustomMapper {
      */
     @Named("stringToSynchroEnum")
     public TagDto.SynchronizationEnum stringToSynchroEnum(String synchro) {
+        if (synchro == null) {
+            return TagDto.SynchronizationEnum.ALL;
+        }
         return TagDto.SynchronizationEnum.fromValue(synchro);
     }
 

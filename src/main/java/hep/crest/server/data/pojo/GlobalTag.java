@@ -87,7 +87,7 @@ public class GlobalTag implements java.io.Serializable {
      * The workflow.
      */
     @Column(name = "WORKFLOW", nullable = false, length = 100)
-    private String workflow;
+    private String workflow = GlobalTagWorkflowEnum.TEST.toString();
     /**
      * The type.
      */

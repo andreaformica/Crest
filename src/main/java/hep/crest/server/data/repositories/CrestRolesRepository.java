@@ -16,7 +16,7 @@ import java.util.List;
  *
  */
 @Repository
-public interface CrestRolesRepository extends CrudRepository<CrestRoles, String> {
+public interface CrestRolesRepository extends CrudRepository<CrestRoles, Long> {
     /**
      * @param role
      *            the String

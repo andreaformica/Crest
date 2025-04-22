@@ -246,6 +246,7 @@ public class TagsApiServiceImpl extends TagsApiService {
         // Launch query
         // Search for global tags using where conditions.
         final Page<Tag> entitypage = tagService.selectTagList(args, preq);
+        log.debug("Found {} tags", entitypage.getTotalElements());
         RespPage respPage = new RespPage().size(entitypage.getSize())
                 .totalElements(entitypage.getTotalElements()).totalPages(entitypage.getTotalPages())
                 .number(entitypage.getNumber());
