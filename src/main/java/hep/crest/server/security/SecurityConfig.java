@@ -60,8 +60,8 @@ public class SecurityConfig {
             http.csrf(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(auth ->
                             auth.requestMatchers(HttpMethod.GET, "/**").permitAll()
-                                    .requestMatchers("/admin/**").hasRole("ADMIN")
-                                    .requestMatchers("/folders/**").hasRole("ADMIN")
+                                    .requestMatchers("/admin/**").hasRole("crest-admin")
+                                    .requestMatchers("/folders/**").hasRole("crest-admin")
                                     .anyRequest().authenticated()
                     )
                     .oauth2ResourceServer(oauth2 -> oauth2
