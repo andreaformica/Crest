@@ -60,8 +60,12 @@ public class SecurityConfig {
             http.csrf(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(auth ->
                             auth.requestMatchers(HttpMethod.GET, "/**").permitAll()
+                                    .requestMatchers(HttpMethod.DELETE).hasRole("crest-admin")
                                     .requestMatchers("/admin/**").hasRole("crest-admin")
                                     .requestMatchers("/folders/**").hasRole("crest-admin")
+                                    .requestMatchers("/globaltags/**").hasRole("crest-experts")
+                                    .requestMatchers("/globaltagmaps/**").hasRole("crest-experts")
+                                    .requestMatchers("/runinfo/**").hasRole("crest-trigger")
                                     .anyRequest().authenticated()
                     )
                     .oauth2ResourceServer(oauth2 -> oauth2
