@@ -52,29 +52,30 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Order(1)  // Higher priority than default (which is usually Order(100))
+    @Order(1)
+        // Higher priority than default (which is usually Order(100))
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        if ("active".equals(cprops.getSecurity())) {
+        if ("active" .equals(cprops.getSecurity())) {
             log.info("Security is active for this server....");
             http.csrf(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(auth ->
-                            auth
-                                .requestMatchers("/admin/**").hasRole("crest-admin")
-                                .requestMatchers("/folders/**").hasRole("crest-admin")
-                                .requestMatchers("/globaltags/**").hasRole("crest-experts")
-                                .requestMatchers("/globaltagmaps/**").hasRole("crest-experts")
-                                .requestMatchers("/runinfo/**").hasRole("crest-trigger")
-                                .requestMatchers("/tags/**").hasRole("crest-experts")
-                                .requestMatchers("/iovs/**").hasRole("crest-experts")
-                                .requestMatchers("/payloads/**").hasRole("crest-experts")
-                                .requestMatchers(HttpMethod.GET, "/**").permitAll()                                    .anyRequest().authenticated()
+                            auth.requestMatchers("/admin/**").hasRole("crest-admin")
+                            .requestMatchers("/folders/**").hasRole("crest-admin")
+                            .requestMatchers("/globaltags/**").hasRole("crest-experts")
+                            .requestMatchers("/globaltagmaps/**").hasRole("crest-experts")
+                            .requestMatchers("/runinfo/**").hasRole("crest-trigger")
+                            .requestMatchers("/tags/**").hasRole("crest-experts")
+                            .requestMatchers("/iovs/**").hasRole("crest-experts")
+                            .requestMatchers("/payloads/**").hasRole("crest-experts")
+                            .requestMatchers(HttpMethod.GET, "/**").permitAll()
+                            .anyRequest().authenticated()
                     )
                     .oauth2ResourceServer(oauth2 -> oauth2
                             .jwt(jwt ->
                                     jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
         }
-        else if ("none".equals(cprops.getSecurity())) {
+        else if ("none" .equals(cprops.getSecurity())) {
             log.info("No security enabled for this server....");
             http.securityMatcher("/**")
                     .authorizeHttpRequests(authorize -> authorize.anyRequest()
