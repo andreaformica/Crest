@@ -59,14 +59,16 @@ public class SecurityConfig {
             log.info("Security is active for this server....");
             http.csrf(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(auth ->
-                            auth.requestMatchers(HttpMethod.GET, "/**").permitAll()
-                                    .requestMatchers(HttpMethod.DELETE).hasRole("crest-admin")
-                                    .requestMatchers("/admin/**").hasRole("crest-admin")
-                                    .requestMatchers("/folders/**").hasRole("crest-admin")
-                                    .requestMatchers("/globaltags/**").hasRole("crest-experts")
-                                    .requestMatchers("/globaltagmaps/**").hasRole("crest-experts")
-                                    .requestMatchers("/runinfo/**").hasRole("crest-trigger")
-                                    .anyRequest().authenticated()
+                            auth
+                                .requestMatchers("/admin/**").hasRole("crest-admin")
+                                .requestMatchers("/folders/**").hasRole("crest-admin")
+                                .requestMatchers("/globaltags/**").hasRole("crest-experts")
+                                .requestMatchers("/globaltagmaps/**").hasRole("crest-experts")
+                                .requestMatchers("/runinfo/**").hasRole("crest-trigger")
+                                .requestMatchers("/tags/**").hasRole("crest-experts")
+                                .requestMatchers("/iovs/**").hasRole("crest-experts")
+                                .requestMatchers("/payloads/**").hasRole("crest-experts")
+                                .requestMatchers(HttpMethod.GET, "/**").permitAll()                                    .anyRequest().authenticated()
                     )
                     .oauth2ResourceServer(oauth2 -> oauth2
                             .jwt(jwt ->
