@@ -12,6 +12,7 @@ import hep.crest.server.services.GlobalTagService;
 import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.api.AdminApiService;
 import hep.crest.server.swagger.model.GlobalTagDto;
+import hep.crest.server.swagger.model.TagDto;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.JDBCException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,7 +88,14 @@ public class AdminApiServiceImpl extends AdminApiService {
         log.info("AdminRestController processing request for removing tag {}", name);
         // Remove the tag with name.
         // Verify that the tag is present. In case not, this method will throw an exception.
-        tagService.findOne(name);
+        Tag tag = tagService.findOne(name);
+        if (tag.getStatus().equals(TagDto.StatusEnum.LOCKED.toString())) {
+            // The tag is locked. We cannot remove it.
+            log.error("Cannot remove tag {}, it is locked.", name);
+            throw new ConflictException("Cannot remove tag "
+                    + name
+                    + ": it is locked");
+        }
         // Get the list of global tags that are associated to this tag.
         Iterable<GlobalTagMap> associatedGlobalTags = globalTagMapService.getTagMapByTagName(name);
         if (associatedGlobalTags.iterator().hasNext()) {

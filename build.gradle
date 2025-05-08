@@ -223,8 +223,8 @@ tasks.named('test') {
 sourceSets {
 	main {
 		java {
-			srcDirs = ['src/main/java', 'src/gen/java']
-			// srcDirs = ['src/main/java', 'src/gen/java', 'plugins/nats/java']
+			// srcDirs = ['src/main/java', 'src/gen/java']
+			srcDirs = ['src/main/java', 'src/gen/java', 'plugins/timeseries/java']
 		}
 	}
 	// println main.output.classesDir
