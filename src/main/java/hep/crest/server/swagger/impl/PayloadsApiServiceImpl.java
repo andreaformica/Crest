@@ -369,6 +369,9 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         // Add object type.
         if (objectType == null) {
             objectType = "lob";
+            if (tagentity.getObjectType().equalsIgnoreCase("crest-json-timeserie")) {
+                objectType = "crest-json-timeserie";
+            }
         }
         // Add version.
         if (version == null) {
@@ -382,8 +385,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         StoreSetDto outdto = null;
         try (BufferedInputStream bufferedInputStream =
                      new BufferedInputStream(inputsource.getInputStream())) {
-            //BufferedInputStream bufferedInputStream =
-            //        new BufferedInputStream(inputsource.getInputStream());
+
             outdto = jsonStreamProcessor.processJsonStream(bufferedInputStream,
                     objectType, version, compressionType, tag);
             inputsource.getInputStream().close();
