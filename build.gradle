@@ -224,7 +224,7 @@ sourceSets {
 	main {
 		java {
 			// srcDirs = ['src/main/java', 'src/gen/java']
-			srcDirs = ['src/main/java', 'src/gen/java', 'plugins/timeseries/java']
+			srcDirs = ['src/main/java', 'src/gen/java', 'plugins/timeseries/java', 'plugins/tzero/java']
 		}
 	}
 	// println main.output.classesDir
