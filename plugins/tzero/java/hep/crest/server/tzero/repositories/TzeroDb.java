@@ -2,10 +2,12 @@ package hep.crest.server.tzero.repositories;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 import java.util.List;
 
+@Component
 @Slf4j
 public class TzeroDb implements ITzeroDb {
 

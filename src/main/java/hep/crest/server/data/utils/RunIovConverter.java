@@ -7,14 +7,12 @@ import java.util.Date;
 
 /**
  * @author formica
- *
  */
 public final class RunIovConverter {
 
     /**
      * Use this to convert from and to COOL nanoseconds. For example: new
      * Date().getTime() * TO_NANOSECONDS
-     *
      */
     public static final long TO_NANOSECONDS = 1000000L;
 
@@ -59,6 +57,11 @@ public final class RunIovConverter {
      * Convert time in milliseconds to COOL time in nanoseconds.
      */
     public static final BigDecimal TO_NANOSECOND = new BigDecimal(1000000L);
+    /**
+     * Length of calibration loop in nanoseconds.
+     */
+    public static final BigInteger CALIBRATION_LOOP_LENGTH =
+            BigInteger.valueOf(36 * 60 * 60 * 1000000000L);
 
     /**
      * Default ctor as private.
@@ -67,8 +70,7 @@ public final class RunIovConverter {
     }
 
     /**
-     * @param atime
-     *            The COOL time.
+     * @param atime The COOL time.
      * @return The run number.
      */
     public static Long getRun(final BigInteger atime) {
@@ -83,8 +85,7 @@ public final class RunIovConverter {
     }
 
     /**
-     * @param atime
-     *            The time in long.
+     * @param atime The time in long.
      * @return The run number.
      */
     public static Long getRun(final Long atime) {
@@ -96,8 +97,7 @@ public final class RunIovConverter {
     }
 
     /**
-     * @param arun
-     *            The run number
+     * @param arun The run number
      * @return The COOL time.
      */
     public static BigDecimal getCoolRun(final String arun) {
@@ -113,8 +113,7 @@ public final class RunIovConverter {
     }
 
     /**
-     * @param atime
-     *            The Cool time.
+     * @param atime The Cool time.
      * @return The lumi block.
      */
     public static Long getLumi(final BigInteger atime) {
@@ -129,10 +128,8 @@ public final class RunIovConverter {
     }
 
     /**
-     * @param atime
-     *            The COOL time in long format.
+     * @param atime The COOL time in long format.
      * @return The lumi block.
-     * 
      */
     public static Long getLumi(final Long atime) {
         if (atime == null) {
@@ -143,10 +140,8 @@ public final class RunIovConverter {
     }
 
     /**
-     * @param arun
-     *            The run number as a String.
-     * @param lb
-     *            The lumi block as a String.
+     * @param arun The run number as a String.
+     * @param lb   The lumi block as a String.
      * @return The COOL time.
      */
     public static BigDecimal getCoolRunLumi(final String arun, final String lb) {
@@ -167,10 +162,8 @@ public final class RunIovConverter {
     }
 
     /**
-     * @param arun
-     *            The run in long.
-     * @param lb
-     *            The lb in long.
+     * @param arun The run in long.
+     * @param lb   The lb in long.
      * @return The COOL time.
      */
     public static BigDecimal getCoolRunLumi(final Long arun, final Long lb) {
@@ -196,8 +189,7 @@ public final class RunIovConverter {
     }
 
     /**
-     * @param atime
-     *            The COOL time as biginteger.
+     * @param atime The COOL time as biginteger.
      * @return The time as Long, in milliseconds.
      */
     public static Long getTime(final BigInteger atime) {
@@ -212,10 +204,8 @@ public final class RunIovConverter {
     }
 
     /**
-     * @param time
-     *            The time in milliseconds.
-     * @param iovBase
-     *            The String determining the format.
+     * @param time    The time in milliseconds.
+     * @param iovBase The String determining the format.
      * @return A String with the COOL iov interpreted.
      */
     public static String getCoolTimeString(final Long time, final String iovBase) {
@@ -237,10 +227,8 @@ public final class RunIovConverter {
     }
 
     /**
-     * @param time
-     *            The time in millisec.
-     * @param iovBase
-     *            The COOL folder type.
+     * @param time    The time in millisec.
+     * @param iovBase The COOL folder type.
      * @return A String with the COOL iov.
      */
     public static String getCoolTimeRunLumiString(final Long time, final String iovBase) {
@@ -320,10 +308,8 @@ public final class RunIovConverter {
     }
 
     /**
-     * @param runortime
-     *            the Long
-     * @param iovBase
-     *            the String
+     * @param runortime the Long
+     * @param iovBase   the String
      * @return The cool time in nanoseconds.
      */
     public static BigDecimal getCoolTime(final Long runortime, final String iovBase) {

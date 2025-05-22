@@ -16,7 +16,8 @@ import java.util.Arrays;
  */
 @SpringBootApplication
 @EntityScan(basePackages = "hep.crest.server")
-@ComponentScan(basePackages = {"hep.crest.server", "hep.crest.server.timeseries"})
+@ComponentScan(basePackages = {"hep.crest.server", "hep.crest.server.timeseries",
+        "hep.crest.server.tzero"})
 @Slf4j
 public class Application {
 
