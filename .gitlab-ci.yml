@@ -14,7 +14,7 @@ include:
   - project : 'ci-tools/container-image-ci-templates'
     file : 'kaniko-image.gitlab-ci.yml'
     ref: master
-  - project : 'dcorre/ci-templates'
+  - project : 'atlas-devops/ci-templates'
     file : 'helm/helm.yml'
     ref: main
 
