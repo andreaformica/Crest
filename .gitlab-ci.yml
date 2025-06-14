@@ -23,7 +23,6 @@ stages:
  #- build
  - sonar_application
  - push
- - redeploy
 
 package_cern_application:
   stage: package_application
@@ -68,18 +67,4 @@ push_helm:
   variables:
     REGISTRY_CHART_PATH: registry.cern.ch/crest/charts
     PUSH_CHART: "true"
-
-
-deploy:
-  stage: redeploy
-  image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
-  variables:
-    SERVER: https://api.paas.okd.cern.ch
-    PROJECT: crest-undertow   # name of your Openshift project
-    APP_NAME: crest  # name of the ImageStream/DeploymentConfig objects created by oc new-app
-  script:
-    - oc login $SERVER --token=$DEPLOY_TOKEN
-    - oc project $PROJECT
-    - oc import-image $APP_NAME --all
-    - sleep 10 && oc rollout status deployment/$APP_NAME
 
