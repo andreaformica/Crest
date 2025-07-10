@@ -369,9 +369,9 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         // Add object type.
         if (objectType == null) {
             objectType = "lob";
-            if (tagentity.getObjectType().equalsIgnoreCase("crest-json-timeserie")) {
-                objectType = "crest-json-timeserie";
-            }
+        }
+        if (tagentity.getObjectType().equalsIgnoreCase("crest-json-timeserie")) {
+            objectType = "crest-json-timeserie";
         }
         // Add version.
         if (version == null) {

@@ -40,7 +40,7 @@ spring:
         hibernate.dialect: org.hibernate.dialect.H2Dialect
         hibernate.jdbc.fetch_size: 100
         hibernate.hbm2ddl.auto: update
-        hibernate.show_sql: false
+        hibernate.show_sql: true
 info:
   app:
     name: Crest Application
