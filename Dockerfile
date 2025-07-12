@@ -22,7 +22,7 @@ RUN addgroup -g $GROUP_ID crest && \
     # Create all required directories in one RUN
     mkdir -p ${crest_dir} ${config_dir} \
              ${data_dir}/web ${data_dir}/dump ${data_dir}/logs && \
-    chown -R $USR:$CREST_GID $HOME
+    chown -R $USR:$GROUP_ID $HOME
 
 # ===== Application Setup =====
 # Add jar and entrypoint in separate layers (better caching)
@@ -31,7 +31,7 @@ COPY entrypoint.sh $HOME/
 
 # ===== Permissions & Runtime Config =====
 RUN chmod +x $HOME/entrypoint.sh && \
-    chown $USR:$CREST_GID $HOME/entrypoint.sh
+    chown $USR:$GROUP_ID $HOME/entrypoint.sh
 
 ### we export only 1 directories....
 VOLUME "${data_dir}"
