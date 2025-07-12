@@ -2,10 +2,11 @@
 FROM registry.cern.ch/docker.io/eclipse-temurin:23-alpine
 LABEL maintainer="Andrea Formica"
 
+ARG USER_ID=208
+ARG GROUP_ID=208
 
 # ===== Environment Variables =====
 ENV USR=crestsvc \
-    CREST_GID=208 \
     TZ=GMT
 
 # Predefine paths (easier to modify)
@@ -16,8 +17,8 @@ ENV HOME=/home/${USR} \
 
 # ===== User & Group Setup =====
 # Create group and user in a single layer
-RUN addgroup -g $CREST_GID crest && \
-    adduser -u $CREST_GID -G crest -h $HOME -D $USR && \
+RUN addgroup -g $GROUP_ID crest && \
+    adduser -u $USER_ID -G crest -h $HOME -D $USR && \
     # Create all required directories in one RUN
     mkdir -p ${crest_dir} ${config_dir} \
              ${data_dir}/web ${data_dir}/dump ${data_dir}/logs && \
