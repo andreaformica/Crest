@@ -125,8 +125,13 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
         }
         List<GlobalTagMapDto> dtolist = edh.entityToDtoList(entitylist, GlobalTagMapDto.class,
                 GlobalTagMapMapper.class);
+        // If the list is empty, return an empty set.
+        int totalpages = 1;
+        if (dtolist.isEmpty()) {
+            totalpages = 0;
+        }
         RespPage respPage = new RespPage().size(dtolist.size())
-                .totalElements((long)dtolist.size()).totalPages(1)
+                .totalElements((long)dtolist.size()).totalPages(totalpages)
                 .number(0);
         final CrestBaseResponse setdto = new GlobalTagMapSetDto().resources(dtolist).filter(filters)
                 .size((long) dtolist.size())
