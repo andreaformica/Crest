@@ -1,5 +1,6 @@
 package hep.crest.server.services;
 
+import hep.crest.server.config.CacheConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -18,10 +19,6 @@ public class CachePayloadBuffer implements IPayloadBuffer {
      * The memory cache.
      */
     private CacheManager cacheManager;
-    /**
-     * The cache name.
-     */
-    private static final String CACHE_NAME = "tagPayloadCache"; // Unique cache name
 
     /**
      * The constructor.
@@ -34,7 +31,7 @@ public class CachePayloadBuffer implements IPayloadBuffer {
 
     @Override
     public void addToBuffer(String hash, String tagName) {
-        Cache cache = cacheManager.getCache(CACHE_NAME);
+        Cache cache = cacheManager.getCache(CacheConfig.TAG_PAYLOAD_CACHE);
         if (cache != null) {
             log.debug("Add hash {} to buffer for tag {}", hash, tagName);
             Set<String> hashes = getHashesByTagName(tagName);
@@ -48,7 +45,7 @@ public class CachePayloadBuffer implements IPayloadBuffer {
 
     @Override
     public Set<String> getHashesByTagName(String tagName) {
-        Cache cache = cacheManager.getCache(CACHE_NAME);
+        Cache cache = cacheManager.getCache(CacheConfig.TAG_PAYLOAD_CACHE);
         if (cache != null) {
             return cache.get(tagName, Set.class);
         }
@@ -57,7 +54,7 @@ public class CachePayloadBuffer implements IPayloadBuffer {
 
     @Override
     public void removeFromBuffer(String hash, String tagName) {
-        Cache cache = cacheManager.getCache(CACHE_NAME);
+        Cache cache = cacheManager.getCache(CacheConfig.TAG_PAYLOAD_CACHE);
         if (cache != null) {
             Set<String> hashes = getHashesByTagName(tagName);
             if (hashes != null) {

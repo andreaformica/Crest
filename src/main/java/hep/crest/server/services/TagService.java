@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import hep.crest.server.config.CacheConfig;
+
 /**
  * @author rsipos
  */
@@ -90,10 +92,7 @@ public class TagService {
      * Repository.
      */
     private GlobalTagMapRepository globalTagMapRepository;
-    /**
-     * Constant for the cache name.
-     */
-    public static final String TAG_CACHE = "tagCache";
+
 
     /**
      * Ctors with injected services.
@@ -152,7 +151,7 @@ public class TagService {
      * @param name
      */
     protected void cacheEviction(String name) {
-        Cache cache = cacheManager.getCache("tagCache");
+        Cache cache = cacheManager.getCache(CacheConfig.TAG_CACHE);
         if (cache != null) {
             cache.evictIfPresent(name);  // Evict based on the 'name' key
         }
@@ -165,7 +164,7 @@ public class TagService {
      * @param tag the Tag entity
      */
     protected void cacheTag(Tag tag) {
-        Cache cache = cacheManager.getCache("tagCache");
+        Cache cache = cacheManager.getCache(CacheConfig.TAG_CACHE);
         if (cache != null && tag != null) {
             cache.put(tag.getName(), tag);  // Use tag.getName() as the key and the entity as the
             // value
@@ -179,7 +178,7 @@ public class TagService {
      * @return Tag the entity
      */
     protected Tag getTagFromCache(String name) {
-        Cache cache = cacheManager.getCache("tagCache");
+        Cache cache = cacheManager.getCache(CacheConfig.TAG_CACHE);
         if (cache != null) {
             return cache.get(name, Tag.class);  // Retrieve the cached entity by key
         }
@@ -232,7 +231,7 @@ public class TagService {
      * @return TagDto of the updated entity.
      * @throws AbstractCdbServiceException If an Exception occurred
      */
-    @CacheEvict(value = "tagCache", key = "#entity.getName()")
+    @CacheEvict(value = CacheConfig.TAG_CACHE, key = "#entity.getName()")
     @Transactional
     public Tag updateTag(Tag entity) throws AbstractCdbServiceException {
         log.debug("Update tag from dto {}", entity);
@@ -257,7 +256,7 @@ public class TagService {
         }
         catch (CdbNotFoundException e) {
             log.error("updateTag error for : {}", entity.getName());
-            Objects.requireNonNull(cacheManager.getCache(TAG_CACHE)).evict(entity.getName());
+            Objects.requireNonNull(cacheManager.getCache(CacheConfig.TAG_CACHE)).evict(entity.getName());
             throw e;
         }
         catch (IllegalArgumentException e) {
@@ -270,7 +269,7 @@ public class TagService {
      * @param name the String
      * @throws AbstractCdbServiceException If an Exception occurred
      */
-    @CacheEvict(value = TAG_CACHE, key = "#name")
+    @CacheEvict(value = CacheConfig.TAG_CACHE, key = "#name")
     @Transactional
     public void removeTag(String name) throws AbstractCdbServiceException {
         log.debug("Remove tag {} after checking if IOVs are present", name);
@@ -311,7 +310,7 @@ public class TagService {
         }
         catch (AbstractCdbServiceException e) {
             log.error("Tag removal exception: {}", name);
-            Objects.requireNonNull(cacheManager.getCache(TAG_CACHE)).evict(name);
+            Objects.requireNonNull(cacheManager.getCache(CacheConfig.TAG_CACHE)).evict(name);
             throw e;
         }
     }
@@ -323,7 +322,7 @@ public class TagService {
      * @param endtime
      * @throws AbstractCdbServiceException
      */
-    @CacheEvict(value = TAG_CACHE, key = "#name")
+    @CacheEvict(value = CacheConfig.TAG_CACHE, key = "#name")
     public void updateModificationTime(String name, BigDecimal endtime) {
         // Change the end time in the tag.
         try {
@@ -338,7 +337,7 @@ public class TagService {
         }
         catch (CdbNotFoundException e) {
             log.error("updateModificationTime error for tag: {}", name);
-            Objects.requireNonNull(cacheManager.getCache(TAG_CACHE)).evict(name);
+            Objects.requireNonNull(cacheManager.getCache(CacheConfig.TAG_CACHE)).evict(name);
             throw e;
         }
     }
@@ -352,7 +351,7 @@ public class TagService {
      * @return Tag
      * @throws AbstractCdbServiceException
      */
-    @CacheEvict(value = TAG_CACHE, key = "#name")
+    @CacheEvict(value = CacheConfig.TAG_CACHE, key = "#name")
     @Transactional
     public Tag lockTag(String name, String status) throws AbstractCdbServiceException {
         Tag entity = tagRepository.findById(name).orElseThrow(

@@ -8,6 +8,7 @@ import hep.crest.server.data.repositories.TagMetaRepository;
 import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.ConflictException;
+import hep.crest.server.config.CacheConfig;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +37,6 @@ public class TagMetaService {
      * Cache manager.
      */
     private CacheManager cacheManager;
-    /**
-     * Constant for the cache name.
-     */
-    public static final String TAG_META_CACHE = "tagMetaCache";
 
     /**
      * Ctor with injected repository.
@@ -84,7 +81,7 @@ public class TagMetaService {
      * @param name
      */
     protected void cacheEviction(String name) {
-        Cache cache = cacheManager.getCache(TAG_META_CACHE);
+        Cache cache = cacheManager.getCache(CacheConfig.TAG_META_CACHE);
         if (cache != null) {
             cache.evictIfPresent(name);  // Evict based on the 'name' key
         }
@@ -96,7 +93,7 @@ public class TagMetaService {
      * @param tagmeta the TagMeta entity
      */
     protected void cacheTagMeta(TagMeta tagmeta) {
-        Cache cache = cacheManager.getCache(TAG_META_CACHE);
+        Cache cache = cacheManager.getCache(CacheConfig.TAG_META_CACHE);
         if (cache != null && tagmeta != null) {
             cache.put(tagmeta.getTagName(), tagmeta);  // Use tag.getName() as the key and the
             // entity as the value
@@ -110,7 +107,7 @@ public class TagMetaService {
      * @return TagMeta the entity
      */
     protected TagMeta getTagMetaFromCache(String name) {
-        Cache cache = cacheManager.getCache(TAG_META_CACHE);
+        Cache cache = cacheManager.getCache(CacheConfig.TAG_META_CACHE);
         if (cache != null) {
             return cache.get(name, TagMeta.class);  // Retrieve the cached entity by key
         }
@@ -148,7 +145,7 @@ public class TagMetaService {
      * @return TagMeta
      * @throws AbstractCdbServiceException If an exception occurred.
      */
-    @CacheEvict(value = TAG_META_CACHE, key = "#entity.getTagName()")
+    @CacheEvict(value = CacheConfig.TAG_META_CACHE, key = "#entity.getTagName()")
     @Transactional
     public TagMeta updateTagMeta(TagMeta entity) {
         log.debug("Update tag meta from entity {}", entity);
@@ -173,7 +170,7 @@ public class TagMetaService {
      * @param name the name
      * @throws AbstractCdbServiceException the cdb service exception
      */
-    @CacheEvict(value = TAG_META_CACHE, key = "#name")
+    @CacheEvict(value = CacheConfig.TAG_META_CACHE, key = "#name")
     @Transactional
     public void removeTagMeta(String name) {
         log.debug("Remove tag meta info for {}", name);
