@@ -38,8 +38,14 @@ public class TriggerDb implements ITriggerDb {
      */
     private static final Map<String, String> SCHEMA_MAP = Map.of(
             "CONF_DATA_RUN3", "ATLAS_CONF_TRIGGER_RUN3",
-            "CONF_MC_RUN3", "ATLAS_CONF_TRIGGER_MC_RUN3",
-            "CONF_REPR_RUN3", "ATLAS_CONF_TRIGGER_REPR_RUN3"
+            "CONF_MC_RUN3", "ATLAS_CONF_TRIGGER_RUN3_MC",
+            "CONF_REPR_RUN3", "ATLAS_CONF_TRIGGER_RUN3_REPR",
+            "CONF_DATA_RUN4", "ATLAS_CONF_TRIGGER_RUN4",
+            "CONF_MC_RUN4", "ATLAS_CONF_TRIGGER_RUN4_MC",
+            "CONF_REPR_RUN4", "ATLAS_CONF_TRIGGER_RUN4_REPR",
+            "CONF_DATA_RUN2", "ATLAS_CONF_TRIGGER_RUN2",
+            "COND_DEV_LS3", "ATLAS_CONF_TRIGGER_LS3_DEV",
+            "COND_DEV_L0", "ATLAS_CONF_TRIGGER_LS3_L0"
     );
 
     /**
