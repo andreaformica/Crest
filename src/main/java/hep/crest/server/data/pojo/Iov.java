@@ -44,8 +44,8 @@ public class Iov implements java.io.Serializable {
      * a since with a new payload the old one is still accessible via this time.
      */
     @EmbeddedId
-    @AttributeOverride(name = "tagName",
-            column = @Column(name = "TAG_NAME", nullable = false, length = 100))
+    @AttributeOverride(name = "tagId",
+            column = @Column(name = "TAG_NAME", nullable = false))
     @AttributeOverride(name = "since",
             column = @Column(name = "SINCE", nullable = false, precision = 38, scale = 0))
     @AttributeOverride(name = "insertionTime",
@@ -56,7 +56,7 @@ public class Iov implements java.io.Serializable {
      * We exclude this field in equals and hashcode generated methods.
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "TAG_NAME", nullable = false, insertable = false, updatable = false)
+    @JoinColumn(name = "TAG_ID", nullable = false, insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Tag tag;
@@ -77,5 +77,14 @@ public class Iov implements java.io.Serializable {
             final Timestamp now = Timestamp.from(Instant.now());
             this.id.setInsertionTime(now);
         }
+    }
+
+    /**
+     * Gets the tag name.
+     *
+     * @return the tag name
+     */
+    public String getTagName() {
+        return (tag != null) ? tag.getName() : null;
     }
 }

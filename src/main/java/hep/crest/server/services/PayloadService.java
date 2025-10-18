@@ -168,11 +168,12 @@ public class PayloadService {
         List<Iov> iovwithhash = iovRepository.findByPayloadHash(hash);
         Integer niovs = (iovwithhash != null) ? iovwithhash.size() : 0;
         log.trace("Found list of {} IOVs for hash {}", niovs, hash);
+        Tag tagEntity = iovService.checkTag(tag);
         if (niovs >= 1) {
             log.trace("The hash {} is associated to more than one iov...remove only if tag name "
                       + "is the same", hash);
             for (Iov iov : iovwithhash) {
-                if (!tag.equalsIgnoreCase(iov.getId().getTagName())) {
+                if (tagEntity.getTagId().equals(iov.getId().getTagId())) {
                     canremove = Boolean.FALSE;
                     break;
                 }
@@ -509,7 +510,7 @@ public class PayloadService {
      * @param objectType the object type
      * @param version the version
      * @param compressionType the compression type
-     * @param tag the tag name
+     * @param tag the tag
      *
      * @return StoreDto the store dto of inserted iov.
      * @throws AbstractCdbServiceException
@@ -521,7 +522,7 @@ public class PayloadService {
      */
     @Transactional(rollbackOn = {Exception.class})
     public StoreDto savePayloadIov(StoreDto dto, String objectType, String version,
-                                   String compressionType, String tag)
+                                   String compressionType, Tag tag)
             throws AbstractCdbServiceException, NoSuchAlgorithmException, IOException {
         log.debug("Create iov and payload for time {}", dto.getSince());
         // Validate required fields
@@ -543,8 +544,8 @@ public class PayloadService {
         // Initialize the iov entity from the DTO.
         Iov iov = new Iov();
         IovId iovId = new IovId();
-        iovId.setSince(BigInteger.valueOf(dto.getSince())).setTagName(tag);
-        iov.setId(iovId).setTag(new Tag().setName(tag));
+        iovId.setSince(BigInteger.valueOf(dto.getSince())).setTagId(tag.getTagId());
+        iov.setId(iovId).setTag(tag);
         // Generate the hash from the payload.
         byte[] paylodContent = dto.getData().getBytes(StandardCharsets.UTF_8);
         log.debug("Use the data string, it represents the payload : length is {}",

@@ -103,7 +103,7 @@ public class GlobalTagMapService {
             throw new CdbNotFoundException("GlobalTag does not exists for name " + gtname);
         }
         String tagname = entity.getTag().getName();
-        final Optional<Tag> tg = tagRepository.findById(tagname);
+        final Optional<Tag> tg = tagRepository.findByName(tagname);
         if (!tg.isPresent()) {
             log.warn("Tag {} does not exists.", tagname);
             throw new CdbNotFoundException("Tag does not exists for name " + tagname);
@@ -239,7 +239,7 @@ public class GlobalTagMapService {
     public Tag updateTagStatus(String tagname, String status) throws AbstractCdbServiceException {
         log.debug("Update Tag status for {} to {}", tagname, status);
         List<GlobalTagMap> tagMaps = this.getTagMapByTagName(tagname);
-        Tag tag = tagRepository.findById(tagname).orElseThrow(
+        Tag tag = tagRepository.findByName(tagname).orElseThrow(
                 () -> new CdbNotFoundException("Tag does not exists for name " + tagname));
         for (GlobalTagMap map : tagMaps) {
             char gtypechar = map.getGlobalTag().getType();

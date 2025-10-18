@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author formica
@@ -17,8 +18,8 @@ import java.util.List;
  */
 @Repository
 public interface TagRepository
-        extends PagingAndSortingRepository<Tag, String>,
-        CrudRepository<Tag, String>, TagRepositoryCustom {
+        extends PagingAndSortingRepository<Tag, Long>,
+        CrudRepository<Tag, Long>, TagRepositoryCustom {
 
     /**
      * @param name
@@ -26,4 +27,11 @@ public interface TagRepository
      * @return List<Tag>
      */
     List<Tag> findByNameLike(@Param("name") String name);
+
+    /**
+     * @param name
+     *            the String
+     * @return Optional Tag
+     */
+    Optional<Tag> findByName(@Param("name") String name);
 }

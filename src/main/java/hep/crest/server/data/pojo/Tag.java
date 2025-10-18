@@ -8,10 +8,13 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -45,9 +48,19 @@ public class Tag implements java.io.Serializable {
      */
     private static final long serialVersionUID = -7205518190608667851L;
     /**
-     * The tag name.
+     * The tagId as a generated value.
+     * We use it as primary key, as the name can be changed.
      */
     @Id
+    @SequenceGenerator(name = "tag_seq", sequenceName =
+            DatabasePropertyConfigurator.SCHEMA_NAME + ".TAG_SEQUENCE",
+            allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tag_seq")
+    @Column(name = "TAG_ID", unique = true, nullable = false)
+    private Long tagId;
+    /**
+     * The tag name.
+     */
     @Column(name = "NAME", unique = true, nullable = false, length = 255)
     @NoWildcards(message = "Tag name can only contain alphanumeric characters, hyphens, and underscores")
     private String name;

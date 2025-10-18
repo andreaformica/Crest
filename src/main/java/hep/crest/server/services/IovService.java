@@ -211,7 +211,8 @@ public class IovService {
     public Iov latest(String tagname) {
         String sort = "id.since:DESC,id.insertionTime:DESC";
         Pageable preq = prh.createPageRequest(0, 1, sort);
-        Page<Iov> lastiovlist = iovRepository.findByIdTagName(tagname, preq);
+        Tag tag = checkTag(tagname);
+        Page<Iov> lastiovlist = iovRepository.findByIdTagId(tag.getTagId(), preq);
         if (lastiovlist == null || lastiovlist.getTotalElements() == 0) {
             return null;
         }
@@ -232,11 +233,12 @@ public class IovService {
      */
     public Iov existsIov(String tagname, BigInteger since, String hash) {
         log.debug("Verify if the same IOV is already stored with the same hash....");
-        return iovRepository.exists(tagname, since, hash);
+        Tag tag = checkTag(tagname);
+        return iovRepository.exists(tag.getTagId(), since, hash);
     }
 
     /**
-     * @param entity the IovDto
+     * @param entity the Iov
      * @return Iov
      * @throws AbstractCdbServiceException     If an Exception occurred
      * @throws DataIntegrityViolationException If an sql exception occurred.
@@ -295,7 +297,7 @@ public class IovService {
      * @param entity
      */
     public void updateIov(Iov entity) {
-        int nupd = iovRepository.updateIov(entity.getTag().getName(), entity.getId().getSince(),
+        int nupd = iovRepository.updateIov(entity.getTag().getTagId(), entity.getId().getSince(),
                 entity.getPayloadHash(), entity.getId().getInsertionTime());
         log.debug("Updated iov entity: {} with result {}", entity, nupd);
     }
@@ -315,7 +317,7 @@ public class IovService {
         // The IOV is not yet stored. Verify that the tag exists before inserting it.
         Tag t = checkTag(tagname);
         entity.setTag(t);
-        entity.getId().setTagName(t.getName());
+        entity.getId().setTagId(t.getTagId());
         log.debug("Storing iov entity {} in tag {}", entity, t);
         final Iov saved = iovRepository.save(entity);
         log.trace("Saved iov entity: {}", saved);
@@ -328,9 +330,9 @@ public class IovService {
      * @param tagname
      * @return Tag
      */
-    protected Tag checkTag(String tagname) {
+    public Tag checkTag(String tagname) {
         // The IOV is not yet stored. Verify that the tag exists before inserting it.
-        final Optional<Tag> tg = tagRepository.findById(tagname);
+        final Optional<Tag> tg = tagRepository.findByName(tagname);
         if (tg.isEmpty()) {
             throw new CdbNotFoundException("Tag " + tagname + " not found: cannot insert IOV.");
         }

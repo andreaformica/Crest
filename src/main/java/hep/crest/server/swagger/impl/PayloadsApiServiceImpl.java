@@ -465,10 +465,11 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             entity.setCompressionType(compressionType);
             entity.setSize(0);
             // Initialize the iov entity from the DTO.
+            Tag tagentity = iovService.checkTag(tag);
             Iov iov = new Iov();
             IovId iovId = new IovId();
-            iovId.setSince(BigInteger.valueOf(piovDto.getSince())).setTagName(tag);
-            iov.setId(iovId).setTag(new Tag().setName(tag));
+            iovId.setSince(BigInteger.valueOf(piovDto.getSince())).setTagId(tagentity.getTagId());
+            iov.setId(iovId).setTag(tagentity);
             // Initialize the payload entity from the DTO.
             StorableData data;
             if (filesbodyparts == null) {

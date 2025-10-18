@@ -69,9 +69,10 @@ public class DataGenerator {
     }
 
     public static Iov generateIov(String hash, String tagname, BigInteger since) {
+        Tag tag = new Tag().setName(tagname);
+        tag.setTagId(9998L);
         final IovId id =
-                new IovId().setTagName(tagname).setSince(since).setInsertionTime(new Date());
-        final Tag tag = new Tag().setName(tagname);
+                new IovId().setTagId(tag.getTagId()).setSince(since).setInsertionTime(new Date());
         final Iov entity = new Iov().setId(id).setTag(tag).setPayloadHash(hash);
         return entity;
     }

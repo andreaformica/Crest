@@ -136,7 +136,7 @@ public class TagService {
                 log.debug("Tag found in cache: {}", cached);
                 return cached;
             }
-            Tag entity = tagRepository.findById(name).orElseThrow(() -> new CdbNotFoundException(
+            Tag entity = tagRepository.findByName(name).orElseThrow(() -> new CdbNotFoundException(
                     "Tag not found: " + name));
             cacheTag(entity);
             return entity;
@@ -216,7 +216,7 @@ public class TagService {
     @Transactional
     public Tag insertTag(@Valid Tag entity) throws ConflictException {
         log.debug("Create Tag from {}", entity);
-        final Optional<Tag> tmpt = tagRepository.findById(entity.getName());
+        final Optional<Tag> tmpt = tagRepository.findByName(entity.getName());
         if (tmpt.isPresent()) {
             log.warn("Tag {} already exists.", tmpt.get());
             throw new ConflictException(
@@ -239,7 +239,7 @@ public class TagService {
     public Tag updateTag(@Valid Tag entity) throws AbstractCdbServiceException {
         log.debug("Update tag from dto {}", entity);
         try {
-            final Tag toupd = tagRepository.findById(entity.getName()).orElseThrow(
+            final Tag toupd = tagRepository.findByName(entity.getName()).orElseThrow(
                     () -> new CdbNotFoundException(
                             "Tag does not exists for name " + entity.getName()));
             String status = entity.getStatus();
@@ -283,6 +283,11 @@ public class TagService {
             if (opt.isPresent()) {
                 tagMetaService.removeTagMeta(name);
             }
+            // Check if the tag exists
+            Tag tagEntity = tagRepository.findByName(name).orElseThrow(
+                    () -> new CdbNotFoundException("Tag does not exists for name " + name));
+            Long tagId = tagEntity.getTagId();
+            // Check if the tag is associated to a global tag
             // Start removing IOVs
             log.debug("Removing tag {}", name);
             // Verify the IOV content size
@@ -293,7 +298,7 @@ public class TagService {
             do {
                 log.debug("Processing iov page of size {} : page index {}", pageSize, pageIndex);
                 // Fetch the current page of IOVs
-                iovsPage = iovRepository.findByIdTagName(name, pageable);
+                iovsPage = iovRepository.findByIdTagId(tagEntity.getTagId(), pageable);
                 // Process the current batch of IOVs
                 List<Iov> iovList = iovsPage.getContent();
                 List<String> hashList = iovService.removeIovList(iovList);
@@ -307,7 +312,7 @@ public class TagService {
             // Launch async task to remove payloads
             payloadService.removeCacheBuffer(name);
             // Remove the tag
-            tagRepository.deleteById(name);
+            tagRepository.deleteById(tagEntity.getTagId());
             log.debug("Removed entity: {}", name);
             // Do not wait for the future to complete
         }
@@ -329,7 +334,7 @@ public class TagService {
     public void updateModificationTime(String name, BigDecimal endtime) {
         // Change the end time in the tag.
         try {
-            Tag tagEntity = tagRepository.findById(name).orElseThrow(
+            Tag tagEntity = tagRepository.findByName(name).orElseThrow(
                     () -> new CdbNotFoundException("Tag does not exists for name " + name));
             tagEntity.setEndOfValidity(
                     (endtime != null) ? endtime.toBigInteger() : BigInteger.ZERO);
@@ -357,7 +362,7 @@ public class TagService {
     @CacheEvict(value = CacheConfig.TAG_CACHE, key = "#name")
     @Transactional
     public Tag lockTag(String name, String status) throws AbstractCdbServiceException {
-        Tag entity = tagRepository.findById(name).orElseThrow(
+        Tag entity = tagRepository.findByName(name).orElseThrow(
                 () -> new CdbNotFoundException("Cannot find tag " + name));
         log.info("Change locking for tag {} to status {}", entity, status);
         if (entity.getStatus().equals(status)) {

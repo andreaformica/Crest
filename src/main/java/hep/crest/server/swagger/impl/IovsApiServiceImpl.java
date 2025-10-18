@@ -5,6 +5,7 @@ import hep.crest.server.caching.CachingPolicyService;
 import hep.crest.server.config.CrestProperties;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.converters.CustomIovMapper;
 import hep.crest.server.converters.IovMapper;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Tag;
@@ -82,6 +83,10 @@ public class IovsApiServiceImpl extends IovsApiService {
      * Mapper.
      */
     private IovMapper mapper;
+    /**
+     * Custom mapper.
+     */
+    private CustomIovMapper customMapper;
 
     /**
      * The context from the request.
@@ -96,12 +101,14 @@ public class IovsApiServiceImpl extends IovsApiService {
      * @param prh        the PageRequestHelper
      * @param edh        the EntityDtoHelper
      * @param mapper     the iov mapper.
+     * @param customMapper the custom mapper.
      * @param context    the context.
      */
     @Autowired
     public IovsApiServiceImpl(IovService iovService, TagService tagService,
                               PageRequestHelper prh, EntityDtoHelper edh,
-                              IovMapper mapper, JAXRSContext context) {
+                              IovMapper mapper, CustomIovMapper customMapper,
+                              JAXRSContext context) {
         this.iovService = iovService;
         this.tagService = tagService;
         this.cachesvc = iovService.getCachingPolicyService();
@@ -123,7 +130,7 @@ public class IovsApiServiceImpl extends IovsApiService {
         log.info("IovRestController processing request for creating an iov");
         // Create a new IOV.
         String tagname = body.getTagName();
-        Iov entity = mapper.toEntity(body);
+        Iov entity = customMapper.createIovFromDto(body);
         final Iov saved = iovService.insertIov(entity);
         // Change the modification time in the tag.
         Tag tagEntity = tagService.findOne(tagname);
@@ -168,7 +175,8 @@ public class IovsApiServiceImpl extends IovsApiService {
         for (final IovDto iovDto : iovlist) {
             log.debug("Create iov from dto {}", iovDto);
             // Create new iov.
-            Iov entity = mapper.toEntity(iovDto);
+            Iov entity = customMapper.createIovFromDto(iovDto);
+            // Insert the iov.
             final Iov saved = iovService.insertIov(entity);
             IovDto saveddto = mapper.toDto(saved);
             saveddto.tagName(tagName);

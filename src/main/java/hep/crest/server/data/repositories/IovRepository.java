@@ -37,36 +37,36 @@ public interface IovRepository
     /**
      * Retrieve all iovs for a tag. Used when deleting.
      *
-     * @param name
+     * @param tagId
      * @param preq the Page request
      * @return List of Iovs
      */
-    Page<Iov> findByIdTagName(@Param("name") String name, Pageable preq);
+    Page<Iov> findByIdTagId(@Param("tagId") Long tagId, Pageable preq);
 
     /**
      * Retrieve IOVs as a stream. Useful to process large amount of data.
      *
-     * @param tagName
+     * @param tagId
      * @return Stream of Iov
      */
-    @Query("SELECT i FROM Iov i WHERE i.id.tagName = :tagName")
+    @Query("SELECT i FROM Iov i WHERE i.id.tagId = :tagId")
     @Transactional(readOnly = true)
-    Stream<Iov> streamByTagName(@Param("tagName") String tagName);
+    Stream<Iov> streamByTagId(@Param("tagId") Long tagId);
 
     /**
      *
-     * @param tagName
+     * @param tagId
      * @param hash
      * @return int
      */
     @Modifying
     @Transactional
-    @Query("DELETE FROM Iov i WHERE i.id.tagName = :tagName AND i.payloadHash = :hash")
-    int deleteByTagNameAndHash(@Param("tagName") String tagName, @Param("hash") String hash);
+    @Query("DELETE FROM Iov i WHERE i.id.tagId = :tagId AND i.payloadHash = :hash")
+    int deleteByTagIdAndHash(@Param("tagId") Long tagId, @Param("hash") String hash);
 
     /**
      * Update the insertion time.
-     * @param tagName
+     * @param tagId
      * @param since
      * @param hash
      * @param instime
@@ -74,9 +74,9 @@ public interface IovRepository
      */
     @Modifying
     @Transactional
-    @Query("UPDATE Iov i set i.id.insertionTime = :instime WHERE i.id.tagName = :tagName AND "
+    @Query("UPDATE Iov i set i.id.insertionTime = :instime WHERE i.id.tagId = :tagId AND "
             + "i.payloadHash = :hash AND i.id.since = :since")
-    int updateIov(@Param("tagName") String tagName,
+    int updateIov(@Param("tagId") Long tagId,
                   @Param("since") BigInteger since, @Param("hash") String hash,
                   @Param("instime") Date instime);
 
@@ -90,7 +90,7 @@ public interface IovRepository
 
     /**
      * Check existence of IOV by unique fields.
-     * @param name     the String
+     * @param tagId     the String
      * @param since    the BigDecimal
      * @param hash the Hash
      * @return Iov
@@ -98,8 +98,9 @@ public interface IovRepository
      *             If an Exception occurred
      */
     @Query("SELECT distinct p FROM Iov p "
-           + "WHERE p.id.tagName = (:name) AND p.id.since = (:since) AND p.payloadHash = (:hash)")
-    Iov exists(@Param("name") String name, @Param("since") BigInteger since, @Param("hash") String hash)
+           + "WHERE p.id.tagId = (:tagId) AND p.id.since = (:since) AND p.payloadHash = (:hash)")
+    Iov exists(@Param("tagId") Long tagId, @Param("since") BigInteger since,
+               @Param("hash") String hash)
             throws CdbNotFoundException;
 
     /**

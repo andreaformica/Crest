@@ -63,7 +63,7 @@ public class RepositoryTests {
         assertThat(savedmeta).isNotNull();
         assertThat(savedmeta.getTagName()).isEqualTo(savedtag.getName());
         final IovId id =
-                new IovId().setTagName(savedtag.getName()).setSince(BigInteger.valueOf(999L))
+                new IovId().setTagId(savedtag.getTagId()).setSince(BigInteger.valueOf(999L))
                         .setInsertionTime(new Date());
         final Iov miov = (Iov) rndgen.generate(Iov.class);
         miov.setId(id);
