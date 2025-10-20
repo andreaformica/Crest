@@ -73,7 +73,7 @@ public class TestCrestTags {
     public void initializeTag(String gtname) {
         TagDto dto = (TagDto) rnd.generate(TagDto.class);
         dto.name(gtname);
-        dto.synchronization(TagSynchroEnum.NONE.type());
+        dto.synchronization(TagDto.SynchronizationEnum.ALL);
         log.info("Store tag : {} ", dto);
         final ResponseEntity<TagDto> response = testRestTemplate
                 .postForEntity("/crestapi/tags", dto, TagDto.class);
