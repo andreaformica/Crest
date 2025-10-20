@@ -7,7 +7,6 @@ import hep.crest.server.converters.HashGenerator;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.pojo.TagMeta;
-import hep.crest.server.data.pojo.TagSynchroEnum;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.TagMetaService;
 import hep.crest.server.services.TagService;
@@ -74,6 +73,7 @@ public class TestCrestTags {
         TagDto dto = (TagDto) rnd.generate(TagDto.class);
         dto.name(gtname);
         dto.synchronization(TagDto.SynchronizationEnum.ALL);
+        dto.status(TagDto.StatusEnum.UNLOCKED);
         log.info("Store tag : {} ", dto);
         final ResponseEntity<TagDto> response = testRestTemplate
                 .postForEntity("/crestapi/tags", dto, TagDto.class);
@@ -441,7 +441,7 @@ public class TestCrestTags {
     public void updateTag(String tagname) {
         String url = "/crestapi/tags/" + tagname;
         GenericMap dto = new GenericMap();
-        dto.put("synchronization", TagSynchroEnum.NONE.type());
+        dto.put("synchronization", TagDto.SynchronizationEnum.SV.toString());
         dto.put("description", "A new description");
         dto.put("payloadSpec", "ascii2");
         testRestTemplate.put(url, dto);
@@ -455,7 +455,7 @@ public class TestCrestTags {
 
         url = "/crestapi/tags/notfound";
         dto = new GenericMap();
-        dto.put("synchronization", TagSynchroEnum.NONE.type());
+        dto.put("synchronization", TagDto.SynchronizationEnum.SV.toString());
         dto.put("description", "A new description");
         dto.put("payloadSpec", "ascii2");
         testRestTemplate.put(url, dto);

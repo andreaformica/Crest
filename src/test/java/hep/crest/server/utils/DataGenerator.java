@@ -50,6 +50,7 @@ public class DataGenerator {
                 .setLastValidatedTime(BigInteger.valueOf(-1L))
                 .setObjectType("type")
                 .setSynchronization("synchro")
+                .setStatus("UNLOCKED")
                 .setTimeType(ttype);
         return entity;
     }

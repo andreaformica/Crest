@@ -1,23 +1,11 @@
 package hep.crest.server;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.server.converters.RunLumiMapper;
-import hep.crest.server.converters.TagMapper;
-import hep.crest.server.data.pojo.TagSynchroEnum;
 import hep.crest.server.data.runinfo.pojo.RunLumiId;
 import hep.crest.server.data.runinfo.pojo.RunLumiInfo;
-import hep.crest.server.swagger.model.GenericMap;
-import hep.crest.server.swagger.model.GlobalTagDto;
-import hep.crest.server.swagger.model.GlobalTagMapDto;
-import hep.crest.server.swagger.model.IovSetDto;
-import hep.crest.server.swagger.model.RespPage;
 import hep.crest.server.swagger.model.RunLumiInfoDto;
 import hep.crest.server.swagger.model.RunLumiSetDto;
-import hep.crest.server.swagger.model.StoreDto;
-import hep.crest.server.swagger.model.StoreSetDto;
-import hep.crest.server.swagger.model.TagDto;
-import hep.crest.server.swagger.model.TagSetDto;
 import hep.crest.server.utils.RandomGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -26,19 +14,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
