@@ -4,7 +4,9 @@
 package hep.crest.server.services;
 
 import hep.crest.server.data.pojo.CrestFolders;
+import hep.crest.server.data.pojo.CrestRoles;
 import hep.crest.server.data.repositories.CrestFoldersRepository;
+import hep.crest.server.data.repositories.CrestRolesRepository;
 import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.ConflictException;
 import jakarta.transaction.Transactional;
@@ -20,7 +22,6 @@ import java.util.Optional;
  * implementation.
  *
  * @author formica
- * @author rsipos
  *
  */
 @Service
@@ -33,12 +34,20 @@ public class FolderService {
     private CrestFoldersRepository crestFoldersRepository;
 
     /**
+     * Repository.
+     */
+    private CrestRolesRepository crestRolesRepository;
+
+    /**
      * Ctor with injection.
      * @param crestFoldersRepository
+     * @param crestRolesRepository
      */
     @Autowired
-    public FolderService(CrestFoldersRepository crestFoldersRepository) {
+    public FolderService(CrestFoldersRepository crestFoldersRepository,
+            CrestRolesRepository crestRolesRepository) {
         this.crestFoldersRepository = crestFoldersRepository;
+        this.crestRolesRepository = crestRolesRepository;
     }
 
     /**
@@ -58,9 +67,13 @@ public class FolderService {
             throw new ConflictException(
                     "Folder already exists for name " + entity.getNodeFullpath());
         }
+        CrestRoles role = new CrestRoles();
+        role.setRole(entity.getGroupRole());
+        role.setTagPattern(entity.getTagPattern());
         log.debug("Saving folder entity {}", entity);
         final CrestFolders saved = crestFoldersRepository.save(entity);
-        log.trace("Saved entity: {}", saved);
+        crestRolesRepository.save(role);
+        log.trace("Saved entity for folder and role: {}", saved);
         return saved;
     }
 

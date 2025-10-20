@@ -5,9 +5,9 @@ info:
   description: OpenApi3 for CREST Server
   license:
     name: Apache 2.0
-    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
 servers:
-  - url: 'https://crest-undertow.web.cern.ch/api'
+  - url: https://crest-undertow.web.cern.ch/api
 security:
   - BearerAuth: []
   - OpenID:
@@ -23,7 +23,7 @@ tags:
   - name: payloads
   - name: runinfo
 paths:
-  '/admin/globaltags/{name}':
+  /admin/globaltags/{name}:
     put:
       tags:
         - admin
@@ -67,7 +67,7 @@ paths:
           $ref: '#/components/responses/404'
         default:
           $ref: '#/components/responses/genericError'
-  '/admin/tags/{name}':
+  /admin/tags/{name}:
     delete:
       tags:
         - admin
@@ -115,7 +115,7 @@ paths:
       parameters:
         - name: schema
           in: query
-          description: 'the schema pattern {none}'
+          description: the schema pattern {none}
           required: false
           schema:
             type: string
@@ -148,7 +148,7 @@ paths:
                 $ref: '#/components/schemas/GlobalTagMapDto'
         default:
           $ref: '#/components/responses/genericError'
-  '/globaltagmaps/{name}':
+  /globaltagmaps/{name}:
     get:
       tags:
         - globaltagmaps
@@ -235,39 +235,39 @@ paths:
       parameters:
         - name: name
           in: query
-          description: 'the global tag name search pattern {none}'
+          description: the global tag name search pattern {none}
           required: false
           schema:
             type: string
             default: all
         - name: workflow
           in: query
-          description: 'the global tag workflow search pattern {none}'
+          description: the global tag workflow search pattern {none}
           required: false
           schema:
             type: string
         - name: scenario
           in: query
-          description: 'the global tag scenario search pattern {none}'
+          description: the global tag scenario search pattern {none}
           required: false
           schema:
             type: string
         - name: release
           in: query
-          description: 'the global tag release search pattern {none}'
+          description: the global tag release search pattern {none}
           required: false
           schema:
             type: string
         - name: validity
           in: query
-          description: 'the global tag validity low limit {x>=validity}'
+          description: the global tag validity low limit {x>=validity}
           required: false
           schema:
             type: integer
             format: int64
         - name: description
           in: query
-          description: 'the global tag description search pattern {none}'
+          description: the global tag description search pattern {none}
           required: false
           schema:
             type: string
@@ -293,7 +293,7 @@ paths:
           required: false
           schema:
             type: string
-            default: 'name:ASC'
+            default: name:ASC
       responses:
         '200':
           description: successful operation
@@ -333,7 +333,7 @@ paths:
                 $ref: '#/components/schemas/GlobalTagDto'
         default:
           $ref: '#/components/responses/genericError'
-  '/globaltags/{name}':
+  /globaltags/{name}:
     get:
       tags:
         - globaltags
@@ -357,7 +357,7 @@ paths:
           $ref: '#/components/responses/404'
         default:
           $ref: '#/components/responses/genericError'
-  '/globaltags/{name}/tags':
+  /globaltags/{name}/tags:
     get:
       tags:
         - globaltags
@@ -395,6 +395,37 @@ paths:
           $ref: '#/components/responses/404'
         default:
           $ref: '#/components/responses/genericError'
+  /globaltags/{name}/lock:
+    put:
+      tags:
+        - globaltags
+      summary: Lock a global tag (or unlock it).
+      description: This method allows to lock or unlock a global tag
+      operationId: setGlobalTagLock
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: 'status:  L, T, N (lock, test, none)'
+          required: false
+          schema:
+            type: string
+            default: 'N'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalTagDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
   /tags:
     get:
       tags:
@@ -408,26 +439,26 @@ paths:
       parameters:
         - name: name
           in: query
-          description: 'the tag name search pattern {all}'
+          description: the tag name search pattern {all}
           required: false
           schema:
             type: string
             default: all
         - name: timeType
           in: query
-          description: 'the tag timeType {none}'
+          description: the tag timeType {none}
           required: false
           schema:
             type: string
         - name: objectType
           in: query
-          description: 'the tag objectType search pattern {none}'
+          description: the tag objectType search pattern {none}
           required: false
           schema:
             type: string
         - name: description
           in: query
-          description: 'the global tag description search pattern {none}'
+          description: the global tag description search pattern {none}
           required: false
           schema:
             type: string
@@ -453,7 +484,7 @@ paths:
           required: false
           schema:
             type: string
-            default: 'name:ASC'
+            default: name:ASC
       responses:
         '200':
           description: successful operation
@@ -477,7 +508,7 @@ paths:
             schema:
               $ref: '#/components/schemas/TagDto'
       responses:
-        '200':
+        '201':
           description: successful operation
           content:
             application/json:
@@ -485,7 +516,7 @@ paths:
                 $ref: '#/components/schemas/TagDto'
         default:
           $ref: '#/components/responses/genericError'
-  '/tags/{name}':
+  /tags/{name}:
     get:
       tags:
         - tags
@@ -539,7 +570,38 @@ paths:
           $ref: '#/components/responses/404'
         default:
           $ref: '#/components/responses/genericError'
-  '/tags/{name}/meta':
+  /tags/{name}/lock:
+    put:
+      tags:
+        - tags
+      summary: Update a TagDto by name
+      description: This method will unlock or lock a tag with the given name.
+      operationId: setTagLock
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: 'status:  UNLOCKED, LOCKED'
+          required: false
+          schema:
+            type: string
+            default: UNLOCKED
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagDto'
+        '404':
+          $ref: '#/components/responses/404'
+        default:
+          $ref: '#/components/responses/genericError'
+  /tags/{name}/meta:
     get:
       tags:
         - tags
@@ -583,7 +645,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        '201':
           description: successful operation
           content:
             application/json:
@@ -665,14 +727,14 @@ paths:
             format: int64
         - name: since
           in: query
-          description: 'the since time as a string {0}'
+          description: the since time as a string {0}
           required: false
           schema:
             type: string
             default: 0
         - name: until
           in: query
-          description: 'the until time as a string {INF}'
+          description: the until time as a string {INF}
           required: false
           schema:
             type: string
@@ -710,7 +772,7 @@ paths:
             type: string
         - name: page
           in: query
-          description: 'the page number {0}'
+          description: the page number {0}
           required: false
           schema:
             type: integer
@@ -718,7 +780,7 @@ paths:
             format: int32
         - name: size
           in: query
-          description: 'the page size {10000}'
+          description: the page size {10000}
           required: false
           schema:
             type: integer
@@ -726,11 +788,11 @@ paths:
             format: int32
         - name: sort
           in: query
-          description: 'the sort pattern {id.since:ASC}'
+          description: the sort pattern {id.since:ASC}
           required: false
           schema:
             type: string
-            default: 'id.since:ASC'
+            default: id.since:ASC
         - name: X-Crest-Query
           in: header
           description: |
@@ -772,7 +834,7 @@ paths:
     post:
       tags:
         - iovs
-      summary: 'Create IOVs in the database, associated to a tag name.'
+      summary: Create IOVs in the database, associated to a tag name.
       description: |
         Insert a list of Iovs using an IovSetDto in the request body. It is mandatory
         to provide an existing tag in input. The referenced payloads should already exists in the DB.
@@ -794,7 +856,7 @@ paths:
     put:
       tags:
         - iovs
-      summary: 'Create a single IOV in the database, associated to a tag name.'
+      summary: Create a single IOV in the database, associated to a tag name.
       description: |
         Insert an Iov using an IovDto in the request body. It is mandatory
         to provide an existing tag in input. The referenced payloads should already exists in the DB.
@@ -837,14 +899,14 @@ paths:
             default: none
         - name: since
           in: query
-          description: 'the since time as a string {0}'
+          description: the since time as a string {0}
           required: false
           schema:
             type: string
             default: 0
         - name: until
           in: query
-          description: 'the until time as a string {INF}'
+          description: the until time as a string {INF}
           required: false
           schema:
             type: string
@@ -860,7 +922,7 @@ paths:
             default: number
         - name: page
           in: query
-          description: 'the page number {0}'
+          description: the page number {0}
           required: false
           schema:
             type: integer
@@ -868,7 +930,7 @@ paths:
             format: int32
         - name: size
           in: query
-          description: 'the page size {10000}'
+          description: the page size {10000}
           required: false
           schema:
             type: integer
@@ -876,11 +938,11 @@ paths:
             format: int32
         - name: sort
           in: query
-          description: 'the sort pattern {id.since:ASC}'
+          description: the sort pattern {id.since:ASC}
           required: false
           schema:
             type: string
-            default: 'id.since:ASC'
+            default: id.since:ASC
       responses:
         '200':
           description: successful operation
@@ -903,7 +965,7 @@ paths:
       parameters:
         - name: tagname
           in: query
-          description: 'the tag name, can be a pattern like MDT%'
+          description: the tag name, can be a pattern like MDT%
           required: true
           schema:
             type: string
@@ -923,7 +985,7 @@ paths:
     post:
       tags:
         - payloads
-      summary: 'Create Payloads in the database, associated to a given iov since list and tag name.'
+      summary: Create Payloads in the database, associated to a given iov since list and tag name.
       description: |
         This method allows to insert list of Payloads and IOVs.
         Payload can be contained in the HASH of the IOV (in case it is a small JSON)
@@ -1002,7 +1064,7 @@ paths:
       parameters:
         - name: hash
           in: query
-          description: 'the hash to search {none}'
+          description: the hash to search {none}
           required: false
           schema:
             type: string
@@ -1041,7 +1103,7 @@ paths:
           required: false
           schema:
             type: string
-            default: 'insertionTime:DESC'
+            default: insertionTime:DESC
       responses:
         '200':
           description: successful operation
@@ -1082,7 +1144,7 @@ paths:
                   description: The version
                   type: string
                 endtime:
-                  description: 'The tag end time, represent a number.'
+                  description: The tag end time, represent a number.
                   type: string
               required:
                 - storeset
@@ -1217,7 +1279,7 @@ paths:
             schema:
               $ref: '#/components/schemas/RunLumiSetDto'
       responses:
-        '200':
+        '201':
           description: successful operation
           content:
             application/json:
@@ -1227,7 +1289,7 @@ paths:
       tags:
         - runinfo
       summary: Update an entry for run information.
-      description: 'Run informations go into a separate table. To update an entry, the run number and the lumi section must be provided.'
+      description: Run informations go into a separate table. To update an entry, the run number and the lumi section must be provided.
       operationId: updateRunInfo
       requestBody:
         content:
@@ -1306,7 +1368,7 @@ paths:
           required: false
           schema:
             type: string
-            default: 'id.runNumber:ASC'
+            default: id.runNumber:ASC
       responses:
         '200':
           description: successful operation
@@ -1321,7 +1383,7 @@ components:
       scheme: bearer
     OpenID:
       type: openIdConnect
-      openIdConnectUrl: 'https://auth.cern.ch/auth/realms/cern/.well-known/openid-configuration'
+      openIdConnectUrl: https://auth.cern.ch/auth/realms/cern/.well-known/openid-configuration
   requestBodies:
     GenericMapBody:
       description: A JSON object containing generic map used for updates
@@ -1433,6 +1495,15 @@ components:
           type: string
         synchronization:
           type: string
+          enum:
+            - ALL
+            - SV
+            - UPD
+        status:
+          type: string
+          enum:
+            - LOCKED
+            - UNLOCKED
         description:
           type: string
         lastValidatedTime:
@@ -1449,22 +1520,28 @@ components:
           format: date-time
     TagSetDto:
       description: An Set containing TagDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/TagDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/TagDto'
     TagMetaSetDto:
       description: An Set containing TagMetaDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/TagMetaDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/TagMetaDto'
     TagMetaDto:
       type: object
       properties:
@@ -1530,22 +1607,28 @@ components:
           type: string
     FolderSetDto:
       description: An FolderSet containing FolderDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/FolderDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/FolderDto'
     GlobalTagMapSetDto:
       description: An GlobalTagMapSet containing GlobalTagMapDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/GlobalTagMapDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/GlobalTagMapDto'
     GlobalTagMapDto:
       type: object
       properties:
@@ -1559,13 +1642,16 @@ components:
           type: string
     GlobalTagSetDto:
       description: An GlobalTagSet containing GlobalTagDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/GlobalTagDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/GlobalTagDto'
     IovDto:
       type: object
       required:
@@ -1584,22 +1670,28 @@ components:
           type: string
     IovSetDto:
       description: An Set containing IovDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/IovDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/IovDto'
     IovPayloadSetDto:
       description: An Set containing IovPayloadDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/IovPayloadDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/IovPayloadDto'
     IovPayloadDto:
       type: object
       properties:
@@ -1623,13 +1715,16 @@ components:
           type: string
     PayloadSetDto:
       description: An Set containing PayloadDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/PayloadDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/PayloadDto'
     PayloadDto:
       type: object
       properties:
@@ -1665,22 +1760,28 @@ components:
           type: string
     StoreSetDto:
       description: An Set containing StoreDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/StoreDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/StoreDto'
     PayloadTagInfoSetDto:
       description: An PayloadTagInfoSet containing PayloadTagInfoDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/PayloadTagInfoDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/PayloadTagInfoDto'
     PayloadTagInfoDto:
       type: object
       properties:
@@ -1696,13 +1797,16 @@ components:
           format: float
     TagSummarySetDto:
       description: An Set containing TagSummaryDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/TagSummaryDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/TagSummaryDto'
     TagSummaryDto:
       type: object
       properties:
@@ -1713,13 +1817,16 @@ components:
           format: int64
     RunLumiSetDto:
       description: An RunLumiSet containing RunLumiInfoDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/RunLumiInfoDto'
       allOf:
         - $ref: '#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/RunLumiInfoDto'
     RunLumiInfoDto:
       type: object
       properties:

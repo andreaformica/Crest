@@ -233,6 +233,7 @@ public class PayloadService {
         try (Stream<String> hashStream = cachePayloadBuffer.streamHashesByTagName(tagname)) {
             hashStream.forEach(hash -> {
                 // Perform deletion logic here
+                log.debug("Remove payload {} for tag {}", hash, tagname);
                 if (Boolean.TRUE.equals(exists(hash))) {
                     String tbrhash = removePayload(tagname, hash, flush[0]);
                     flush[0] = Boolean.FALSE;
@@ -462,6 +463,7 @@ public class PayloadService {
                 }
                 log.debug("Saving iov {} in tag {}", iov, tagname);
                 Iov savedIov = iovService.storeIov(iov);
+                log.debug("Saved iov is : {}", savedIov);
                 dto.since((savedIov.getId().getSince()).longValue())
                         .setHash(savedIov.getPayloadHash());
                 dto.data(saved.getObjectName() + "; " + saved.getObjectName());
@@ -475,8 +477,12 @@ public class PayloadService {
                 throw new ConflictException(msg);
             }
             catch (final IOException e) {
-                log.error("Payload insertion problem for hash {}: {}", entity.getHash(), e);
+                log.error("Payload insertion IO problem for hash {}: {}", entity.getHash(), e);
                 throw new CdbInternalException("Cannot read payload file " + uploadedFile);
+            }
+            catch (final RuntimeException e) {
+                log.error("Payload insertion RT problem for hash {}: {}", entity.getHash(), e);
+                throw new CdbInternalException("Runtime exception for " + uploadedFile);
             }
             finally {
                 try {

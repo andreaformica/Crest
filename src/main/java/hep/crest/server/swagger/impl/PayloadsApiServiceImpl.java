@@ -223,6 +223,9 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             final PayloadDto dto = mapper.toDto(entity);
             return Response.status(Response.Status.OK).entity(dto).build();
         }
+        else if ("STREAMER".equalsIgnoreCase(format)) {
+            log.info("Download streamer info for hash {}", hash);
+        }
         // Get the media type. It utilizes the objectType field.
         final MediaType mediaType = getMediaType(ptype);
 
@@ -367,6 +370,9 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         if (objectType == null) {
             objectType = "lob";
         }
+        if (tagentity.getObjectType().equalsIgnoreCase("crest-json-timeserie")) {
+            objectType = "crest-json-timeserie";
+        }
         // Add version.
         if (version == null) {
             version = "default";
@@ -377,9 +383,9 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         }
         // Now you can process the JSON data as needed.
         StoreSetDto outdto = null;
-        try {
-            BufferedInputStream bufferedInputStream =
-                    new BufferedInputStream(inputsource.getInputStream());
+        try (BufferedInputStream bufferedInputStream =
+                     new BufferedInputStream(inputsource.getInputStream())) {
+
             outdto = jsonStreamProcessor.processJsonStream(bufferedInputStream,
                     objectType, version, compressionType, tag);
             inputsource.getInputStream().close();
@@ -638,6 +644,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 mediaType = MediaType.APPLICATION_SVG_XML_TYPE;
                 break;
             case "json":
+            case "triggerdb":
                 mediaType = MediaType.APPLICATION_JSON_TYPE;
                 break;
             case "xml":

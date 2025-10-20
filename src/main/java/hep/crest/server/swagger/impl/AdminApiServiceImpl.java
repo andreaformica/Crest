@@ -3,6 +3,8 @@ package hep.crest.server.swagger.impl;
 import hep.crest.server.converters.GlobalTagMapper;
 import hep.crest.server.data.pojo.GlobalTag;
 import hep.crest.server.data.pojo.GlobalTagMap;
+import hep.crest.server.data.pojo.GlobalTagTypeEnum;
+import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.exceptions.CdbSQLException;
 import hep.crest.server.exceptions.ConflictException;
 import hep.crest.server.services.GlobalTagMapService;
@@ -10,6 +12,7 @@ import hep.crest.server.services.GlobalTagService;
 import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.api.AdminApiService;
 import hep.crest.server.swagger.model.GlobalTagDto;
+import hep.crest.server.swagger.model.TagDto;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.JDBCException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,7 +88,14 @@ public class AdminApiServiceImpl extends AdminApiService {
         log.info("AdminRestController processing request for removing tag {}", name);
         // Remove the tag with name.
         // Verify that the tag is present. In case not, this method will throw an exception.
-        tagService.findOne(name);
+        Tag tag = tagService.findOne(name);
+        if (tag.getStatus().equals(TagDto.StatusEnum.LOCKED.toString())) {
+            // The tag is locked. We cannot remove it.
+            log.error("Cannot remove tag {}, it is locked.", name);
+            throw new ConflictException("Cannot remove tag "
+                    + name
+                    + ": it is locked");
+        }
         // Get the list of global tags that are associated to this tag.
         Iterable<GlobalTagMap> associatedGlobalTags = globalTagMapService.getTagMapByTagName(name);
         if (associatedGlobalTags.iterator().hasNext()) {
@@ -99,6 +109,7 @@ public class AdminApiServiceImpl extends AdminApiService {
         // We remove the tag. Here we could also test for locking status of the tag or similar.
         try {
             tagService.removeTag(name);
+            log.info("Tag {} removed.", name);
             return Response.ok().build();
         }
         catch (JDBCException e) {
@@ -116,7 +127,10 @@ public class AdminApiServiceImpl extends AdminApiService {
     public Response updateGlobalTag(String name, GlobalTagDto body, SecurityContext securityContext) {
         log.info("AdminRestController processing request for updating global tag {} using {}", name, body);
         // Update the global tag identified by name. Set the type to N (normal).
-        final char type = body.getType() != null ? body.getType().charAt(0) : 'N';
+        String te = body.getType();
+        GlobalTagTypeEnum typeEnum = (te != null) ?
+                GlobalTagTypeEnum.fromCode(te.toString().charAt(0)) : GlobalTagTypeEnum.NONE;
+        final char type = typeEnum.getCode();
 
         // Find the global tag corresponding to input name.
         final GlobalTag entity = globalTagService.findOne(name);

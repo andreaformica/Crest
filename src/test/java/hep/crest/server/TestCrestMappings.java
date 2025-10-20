@@ -40,6 +40,8 @@ public class TestCrestMappings {
     public void initializeTag(String gtname) {
         TagDto dto = (TagDto) rnd.generate(TagDto.class);
         dto.name(gtname);
+        dto.status(TagDto.StatusEnum.UNLOCKED);
+        dto.synchronization(TagDto.SynchronizationEnum.ALL);
         log.info("Store tag : {} ", dto);
         final ResponseEntity<TagDto> response = testRestTemplate
                 .postForEntity("/crestapi/tags", dto, TagDto.class);
@@ -63,11 +65,12 @@ public class TestCrestMappings {
     public void testTagMappingsRest() {
         log.info("=======> testTagMappingsRest ");
         String tagname = "A-CRESTMAPPINGS-41";
-        initializeGtag("A-TEST-GT-40");
+        String gtagname = "A-TEST-GT-40";
+        initializeGtag(gtagname);
         initializeTag(tagname);
         GlobalTagMapDto mapDto = new GlobalTagMapDto();
         mapDto.tagName(tagname)
-                .globalTagName("A-TEST-GT-40").record("some-rec").label("TEST-4");
+                .globalTagName(gtagname).record("some-rec").label("TEST-4");
         log.info("Store global tag to tag mapping : {} ", mapDto);
         final ResponseEntity<GlobalTagMapDto> response = testRestTemplate
                 .postForEntity("/crestapi/globaltagmaps", mapDto, GlobalTagMapDto.class);
@@ -80,7 +83,8 @@ public class TestCrestMappings {
             assertThat(respb.getTagName()).isEqualTo(tagname);
         }
         GlobalTagMapDto mapNfDto = new GlobalTagMapDto();
-        mapNfDto.tagName("A-CRESTMAPPINGS-51").globalTagName("A-TEST-GT-40").record("some-rec-2").label("TEST-NF-4");
+        mapNfDto.tagName("A-CRESTMAPPINGS-51").globalTagName(gtagname).record("some-rec-2")
+                .label("TEST-NF-4");
         final ResponseEntity<String> responsenotfound = testRestTemplate
                 .postForEntity("/crestapi/globaltagmaps", mapNfDto, String.class);
         {
@@ -97,7 +101,7 @@ public class TestCrestMappings {
         }
         // Find mappings via gt tag  name
         final ResponseEntity<String> resptrace = testRestTemplate
-                .exchange("/crestapi/globaltagmaps/A-TEST-GT-40" , HttpMethod.GET,
+                .exchange("/crestapi/globaltagmaps/" + gtagname , HttpMethod.GET,
                         null, String.class);
         {
             log.info("Find global tag -> tag mappings {} ", resptrace.getBody());
@@ -115,10 +119,63 @@ public class TestCrestMappings {
             log.info("Find tag -> global tag mappings {} ", respbktrace.getBody());
             assertThat(respbktrace.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
-
+        // Lock the global tag
+        String urllock = "/crestapi/globaltags/" + gtagname +"/lock?status=L";
+        final ResponseEntity<String> lockgtresp = testRestTemplate
+                .exchange(urllock, HttpMethod.PUT, null,
+                        String.class);
+        {
+            log.info("Locked global tag response {} ", lockgtresp.getBody());
+            assertThat(lockgtresp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
         log.info("Delete mapping...{}", mapDto);
-        final String url = "/crestapi/globaltagmaps/" + mapDto.getGlobalTagName()+"?record=some-rec";
+        String url = "/crestapi/globaltagmaps/" + mapDto.getGlobalTagName()
+                +"?record=some-rec&label="+mapDto.getLabel();
         log.info("Removing mapping {}", url);
-        this.testRestTemplate.delete(url);
+        final ResponseEntity<String> deleteresp = testRestTemplate.exchange(url, HttpMethod.DELETE,
+                null, String.class);
+        {
+            log.info("Deleted global tag to tag mapping {} ", deleteresp.getBody());
+            assertThat(deleteresp.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        }
+        //
+        // UnLock the tag
+        urllock = "/crestapi/tags/" + tagname +"/lock?status=UNLOCKED";
+        final ResponseEntity<String> unlocktgresp = testRestTemplate
+                .exchange(urllock, HttpMethod.PUT, null,
+                        String.class);
+        {
+            log.info("Unlocked tag response {} ", unlocktgresp.getBody());
+            assertThat(unlocktgresp.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        }
+
+        // UnLock the global tag
+        urllock = "/crestapi/globaltags/" + gtagname +"/lock?status=N";
+        final ResponseEntity<String> unlockgtresp = testRestTemplate
+                .exchange(urllock, HttpMethod.PUT, null,
+                        String.class);
+        {
+            log.info("Unlocked global tag response {} ", unlockgtresp.getBody());
+            assertThat(unlockgtresp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
+        // UnLock the tag after unlocking the global tag
+        urllock = "/crestapi/tags/" + tagname +"/lock?status=UNLOCKED";
+        final ResponseEntity<String> unlocktgrespok = testRestTemplate
+                .exchange(urllock, HttpMethod.PUT, null,
+                        String.class);
+        {
+            log.info("Unlocked tag response {} ", unlocktgrespok.getBody());
+            assertThat(unlocktgrespok.getStatusCode()).isEqualTo(HttpStatus.NOT_MODIFIED);
+        }
+
+        log.info("Now delete mapping should succeed...{}", mapDto);
+        url = "/crestapi/globaltagmaps/" + mapDto.getGlobalTagName();
+        final ResponseEntity<String> deleteokresp = testRestTemplate.exchange(url,
+                HttpMethod.DELETE,
+                null, String.class);
+        {
+            log.info("Deleted global tag to tag mapping {} ", deleteokresp.getBody());
+            assertThat(deleteokresp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
     }
 }

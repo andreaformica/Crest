@@ -142,4 +142,26 @@ public class GlobaltagsApi  {
         context.setUriInfo(uriInfo);
         return delegate.listGlobalTags(name, workflow, scenario, release, validity, description, page, size, sort, securityContext);
     }
+
+    @jakarta.ws.rs.PUT
+    @Path("/{name}/lock")
+    @Produces({ "application/json" })
+    @Operation(summary = "Lock a global tag (or unlock it).", description = "", responses = {
+            @ApiResponse(responseCode = "200", description = "successful operation", content =
+                @Content(schema = @Schema(implementation = GlobalTagDto.class))),
+            @ApiResponse(responseCode = "404", description = "Not found", content =
+                @Content(schema = @Schema(implementation = HTTPResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Generic error response", content =
+                @Content(schema = @Schema(implementation = HTTPResponse.class))),
+            },security = {
+            @SecurityRequirement(name = "OpenID", scopes={ "openid" }),
+            @SecurityRequirement(name = "BearerAuth")
+        }, tags={ "globaltags", })
+    public Response setGlobalTagLock(@Parameter(description = "", required = true) @PathParam("name") @NotNull  String name,@Parameter(description = "status:  L, T, N (lock, test, none)", example = "N") @DefaultValue("N") @QueryParam("status")  String status,@Context SecurityContext securityContext)
+    throws NotFoundException {
+        context.setHttpHeaders(headers);
+        context.setRequest(request);
+        context.setUriInfo(uriInfo);
+        return delegate.setGlobalTagLock(name, status, securityContext);
+    }
 }

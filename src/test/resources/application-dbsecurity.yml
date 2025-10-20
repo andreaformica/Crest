@@ -1,0 +1,14 @@
+# ===============================
+# = PROFILES /
+#             datasources
+#             ...
+# ===============================
+crest:
+  dumpdir: /tmp
+  schemaname: none
+  security: active
+  synchro: none
+  webstaticdir: /tmp
+  dbfile: /tmp/crestdbh2web
+  apiname: /crestapi
+  authenticationtype: none

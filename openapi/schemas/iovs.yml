@@ -46,19 +46,25 @@ components:
             type: number
     IovSetDto:
       description: An Set containing IovDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/IovDto'
       allOf:
         - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/IovDto'
     IovPayloadSetDto:
       description: An Set containing IovPayloadDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/IovPayloadDto'
       allOf:
         - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/IovPayloadDto'

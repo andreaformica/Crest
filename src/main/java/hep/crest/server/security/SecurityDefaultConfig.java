@@ -2,6 +2,7 @@ package hep.crest.server.security;
 
 import hep.crest.server.config.CrestProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod; // <-- Import this
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +24,7 @@ import org.springframework.security.web.SecurityFilterChain;
  * @author formica
  *
  */
-@Profile({"!keycloak"})
+@Profile({"!keycloak & !dbsecurity"})
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -61,8 +62,9 @@ public class SecurityDefaultConfig {
      */
 
     @Bean
+    @Order(1)  // Higher priority than default (which is usually Order(100))
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        log.info("Security configuration with profile: {} ", cprops.getSecurity());
+        log.info("Default security configuration with profile: {} ", cprops.getSecurity());
         if ("weak".equals(cprops.getSecurity())) {
             log.info("Allow only GET requests....");
             http.authorizeHttpRequests(authorize -> authorize

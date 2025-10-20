@@ -19,6 +19,15 @@ components:
           type: string
         synchronization:
           type: string
+          enum:
+            - ALL
+            - SV
+            - UPD
+        status:
+          type: string
+          enum:
+            - LOCKED
+            - UNLOCKED
         description:
           type: string
         lastValidatedTime:
@@ -35,19 +44,25 @@ components:
           format: date-time
     TagSetDto:
       description: An Set containing TagDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/TagDto'
       allOf:
         - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/TagDto'
     TagSummarySetDto:
       description: An Set containing TagSummaryDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/TagSummaryDto'
       allOf:
         - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/TagSummaryDto'

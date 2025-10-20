@@ -4,7 +4,9 @@
 package hep.crest.server.aspects;
 
 import hep.crest.server.config.CrestProperties;
+import hep.crest.server.data.pojo.CrestRoles;
 import hep.crest.server.data.pojo.Tag;
+import hep.crest.server.data.repositories.CrestRolesRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -15,6 +17,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import jakarta.ws.rs.NotAuthorizedException;
+
+import java.util.List;
 
 /**
  * Aspect to be used for security.
@@ -36,16 +40,22 @@ public class TagSecurityAspect {
      * The user info.
      */
     private UserInfo userinfo;
+    /**
+     * The crest roles.
+     */
+    private CrestRolesRepository rolesRepository;
 
     /**
      * Ctor for injection.
      * @param cprops
      * @param userinfo
+     * @param rolesRepository
      */
     @Autowired
-    TagSecurityAspect(CrestProperties cprops, UserInfo userinfo) {
+    TagSecurityAspect(CrestProperties cprops, UserInfo userinfo, CrestRolesRepository rolesRepository) {
         this.cprops = cprops;
         this.userinfo = userinfo;
+        this.rolesRepository = rolesRepository;
     }
 
     /**
@@ -70,9 +80,22 @@ public class TagSecurityAspect {
             // Check the authentication.
             final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             String clientid = userinfo.getUserId(auth);
-            String role = entity.getName().split("-")[0].toLowerCase();
-            Boolean hasrole = userinfo.isUserInRole(auth, role);
-            if (hasrole || entity.getName().startsWith("TEST")) {
+            String uppercaseTag = entity.getName().toUpperCase();
+            List<CrestRoles> roles = rolesRepository.findMatchingTagPatterns(uppercaseTag);
+            log.debug("Roles found for tag {} [match={}]: {}", entity, uppercaseTag, roles);
+            // Loop over CrestRoles and check if the user has the role corresponding to the
+            // role/tagPattern. If at least one role is found then proceed.
+            boolean hasRole = Boolean.FALSE;
+            for (CrestRoles crestRole : roles) {
+                log.info("Role matching {} for tag {}", crestRole.getRole(), entity);
+                String role = crestRole.getRole();
+                if (userinfo.isUserInRole(auth, role)) {
+                    log.debug("User {} has role {} for tag {}", clientid, role, entity);
+                    hasRole = Boolean.TRUE;
+                    break;
+                }
+            }
+            if (hasRole || entity.getName().startsWith("TEST")) {
                 retVal = pjp.proceed();
             }
             else {

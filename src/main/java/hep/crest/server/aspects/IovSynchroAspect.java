@@ -4,11 +4,13 @@
 package hep.crest.server.aspects;
 
 import hep.crest.server.config.CrestProperties;
+import hep.crest.server.data.pojo.CrestRoles;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Tag;
-import hep.crest.server.data.pojo.TagSynchroEnum;
+import hep.crest.server.data.repositories.CrestRolesRepository;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.TagService;
+import hep.crest.server.swagger.model.TagDto;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -23,6 +25,7 @@ import jakarta.ws.rs.NotAuthorizedException;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * This class is an aspect: to see where it is called you should look to the annotation.
@@ -51,6 +54,10 @@ public class IovSynchroAspect {
      * Service.
      */
     private IovService iovService;
+    /**
+     * The crest roles.
+     */
+    private CrestRolesRepository rolesRepository;
 
     /**
      * Ctor using injection.
@@ -58,15 +65,17 @@ public class IovSynchroAspect {
      * @param userinfo
      * @param tagService
      * @param iovService
-     *
+     * @param rolesRepository
      */
     @Autowired
     IovSynchroAspect(CrestProperties cprops, UserInfo userinfo,
-                            TagService tagService, IovService iovService) {
+                            TagService tagService, IovService iovService,
+                     CrestRolesRepository rolesRepository) {
         this.cprops = cprops;
         this.userinfo = userinfo;
         this.tagService = tagService;
         this.iovService = iovService;
+        this.rolesRepository = rolesRepository;
     }
 
     /**
@@ -91,16 +100,31 @@ public class IovSynchroAspect {
         else {
             // Check the authentication.
             final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String role = entity.getTag().getName().split("-")[0].toLowerCase();
-            Boolean hasrole = userinfo.isUserInRole(auth, role);
-            if (hasrole.equals(Boolean.TRUE) || entity.getTag().getName().startsWith("TEST")) {
+            String clientid = userinfo.getUserId(auth);
+            String uppercaseTag = entity.getTag().getName().toUpperCase();
+            List<CrestRoles> roles = rolesRepository.findMatchingTagPatterns(uppercaseTag);
+            log.debug("Roles found for tag {} [match={}]: {}", entity, uppercaseTag, roles);
+            // Loop over CrestRoles and check if the user has the role corresponding to the
+            // role/tagPattern. If at least one role is found then proceed.
+            boolean hasRole = Boolean.FALSE;
+            for (CrestRoles crestRole : roles) {
+                log.info("Role matching {} for tag {}", crestRole.getRole(), entity);
+                String role = crestRole.getRole();
+                if (userinfo.isUserInRole(auth, role)) {
+                    log.debug("User {} has role {} for tag {}", clientid, role, entity);
+                    hasRole = Boolean.TRUE;
+                    break;
+                }
+            }
+            // Check if the user has the role for the tag.
+            if (hasRole || entity.getTag().getName().startsWith("TEST")) {
                 log.info("User is allowed to write IOVs into tag {}", entity.getTag().getName());
                 allowedOperation = true;
             }
         }
-        Boolean acceptTime = false;
+        boolean acceptTime = false;
         // Get synchro property
-        if ("none".equals(cprops.getSynchro())) {
+        if (TagDto.SynchronizationEnum.ALL.toString().equals(cprops.getSynchro())) {
             log.warn("synchronization checks are disabled in this configuration....");
             acceptTime = true;
         }
@@ -108,6 +132,7 @@ public class IovSynchroAspect {
             // Synchronization aspect is enabled.
             Tag tagentity = null;
             tagentity = tagService.findOne(entity.getTag().getName());
+            log.debug("Tag found: {}", tagentity);
             // Get synchro type from tag.
             acceptTime = evaluateCondition(tagentity, entity);
         }
@@ -116,6 +141,7 @@ public class IovSynchroAspect {
         if (acceptTime && allowedOperation) {
             // Check if iov exists: if so just update the insertion time.
             Iov s = overrideIov(entity);
+            log.info("Proceeding with insertion of iov: {}", s);
             // Proceed if allowed.
             retVal = pjp.proceed(new Object[] {s});
         }
@@ -139,12 +165,19 @@ public class IovSynchroAspect {
         final String synchro = tagentity.getSynchronization();
         Boolean acceptTime = Boolean.FALSE;
         Iov latest = iovService.latest(tagentity.getName());
+        if (latest == null) {
+            log.debug("No iov found for tag {}", tagentity.getName());
+            return Boolean.TRUE;
+        }
+        log.debug("Evaluate condition for tag {} with synchro type {} and latest iov {}",
+                tagentity.getName(), synchro, latest);
         //
-        switch (TagSynchroEnum.valueOf(synchro)) {
+        switch (TagDto.SynchronizationEnum.valueOf(synchro)) {
             case SV:
+                log.warn("This logic is not fully implemented. For the moment allows to append "
+                    + "IOV. In future it should check the time [now] or the run [now]");
                 log.warn("Can only append IOVs....");
-                if (latest == null
-                        || latest.getId().getSince().compareTo(entity.getId().getSince()) <= 0) {
+                if (latest.getId().getSince().compareTo(entity.getId().getSince()) <= 0) {
                     // Latest is before the new one.
                     log.info("IOV in insert has correct time respect to last IOV : {} > {}",
                             entity, latest);
@@ -157,15 +190,17 @@ public class IovSynchroAspect {
                     acceptTime = false;
                 }
                 break;
-            case UPDATE:
-                log.warn("Can append data in case the since is after the end time of the tag");
+            case UPD:
+                log.warn("The logic for UPD synchro is not implemented yet....");
+                log.warn("It will require access to external services to check the last run.");
+                log.warn("For now: append data in case the since is after the end time of the tag");
                 BigInteger endofval = tagentity.getEndOfValidity();
                 if (endofval == null || endofval.compareTo(entity.getId().getSince()) <= 0) {
                     log.info("The since is after end of validity of the Tag");
                     acceptTime = true;
                 }
                 break;
-            case NONE:
+            case ALL:
                 log.warn("Can insert data in any case because it is an open tag");
                 acceptTime = true;
                 break;

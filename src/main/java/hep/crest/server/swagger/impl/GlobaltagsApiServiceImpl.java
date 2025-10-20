@@ -105,7 +105,7 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
         final GlobalTag entity = mapper.toEntity(body);
         final GlobalTag saved = globaltagService.insertGlobalTag(entity);
         final GlobalTagDto dto = mapper.toDto(saved);
-        // Send the created status.
+        // Send the created status. Code 201.
         return Response.created(context.getUriInfo().getRequestUri()).entity(dto).build();
     }
 
@@ -240,5 +240,16 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
         }
         setdto.filter(filters);
         return Response.status(rstatus).entity(setdto).build();
+    }
+
+    @Override
+    public Response setGlobalTagLock(String name, String status, SecurityContext securityContext)
+            throws NotFoundException {
+        log.info("Lock global tag {} with status {}", name, status);
+        // Lock a global tag.
+        final GlobalTag entity = globaltagService.lockGlobalTag(name, status);
+        final GlobalTagDto dto = mapper.toDto(entity);
+        // Send the created status.
+        return Response.ok().entity(dto).build();
     }
 }

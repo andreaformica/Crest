@@ -26,6 +26,7 @@ public abstract class TagsApiService {
     public abstract Response findTag(String name,SecurityContext securityContext) throws NotFoundException;
     public abstract Response findTagMeta(String name,SecurityContext securityContext) throws NotFoundException;
     public abstract Response listTags(String name,String timeType,String objectType,String description,Integer page,Integer size,String sort,SecurityContext securityContext) throws NotFoundException;
+    public abstract Response setTagLock(String name,String status,SecurityContext securityContext) throws NotFoundException;
     public abstract Response updateTag(String name,GenericMap genericMap,SecurityContext securityContext) throws NotFoundException;
     public abstract Response updateTagMeta(String name,GenericMap genericMap,SecurityContext securityContext) throws NotFoundException;
 }

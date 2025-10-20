@@ -2,6 +2,7 @@ package hep.crest.server.swagger.impl;
 
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.converters.GlobalTagMapMapper;
+import hep.crest.server.data.pojo.GlobalTag;
 import hep.crest.server.data.pojo.GlobalTagMap;
 import hep.crest.server.services.GlobalTagMapService;
 import hep.crest.server.swagger.api.GlobaltagmapsApiService;
@@ -124,8 +125,13 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
         }
         List<GlobalTagMapDto> dtolist = edh.entityToDtoList(entitylist, GlobalTagMapDto.class,
                 GlobalTagMapMapper.class);
+        // If the list is empty, return an empty set.
+        int totalpages = 1;
+        if (dtolist.isEmpty()) {
+            totalpages = 0;
+        }
         RespPage respPage = new RespPage().size(dtolist.size())
-                .totalElements((long)dtolist.size()).totalPages(1)
+                .totalElements((long)dtolist.size()).totalPages(totalpages)
                 .number(0);
         final CrestBaseResponse setdto = new GlobalTagMapSetDto().resources(dtolist).filter(filters)
                 .size((long) dtolist.size())
@@ -150,7 +156,7 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
         if (mrecord != null) {
             filters.put("record", mrecord);
         }
-        Iterable<GlobalTagMap> entitylist = null;
+        List<GlobalTagMap> entitylist = null;
         // If there is no header then set it to Trace mode. Implies that you search tags
         // associated with a global tag. The input name will be considered as a
         // GlobalTag name.

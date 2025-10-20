@@ -1,5 +1,6 @@
 package hep.crest.server.converters;
 
+import hep.crest.server.swagger.model.TagDto;
 import org.mapstruct.Named;
 import org.springframework.stereotype.Component;
 
@@ -144,4 +145,49 @@ public class CustomMapper {
         return string != null ? string.getBytes(StandardCharsets.UTF_8) : null;
     }
 
+    /**
+     * Convert a String to a TagDto.StatusEnum.
+     * @param status
+     * @return TagDto.StatusEnum
+     */
+    @Named("stringToStatusEnum")
+    public TagDto.StatusEnum stringToStatusEnum(String status) {
+        if (status == null) {
+            return TagDto.StatusEnum.UNLOCKED;
+        }
+        return TagDto.StatusEnum.fromValue(status);
+    }
+
+    /**
+     * Convert a TagDto.StatusEnum to a String.
+     * @param status
+     * @return String
+     */
+    @Named("statusEnumToString")
+    public String statusEnumToString(TagDto.StatusEnum status) {
+        return status.name();
+    }
+
+    /**
+     * Convert a String to a TagDto.SynchronizationEnum.
+     * @param synchro
+     * @return SynchronizationEnum
+     */
+    @Named("stringToSynchroEnum")
+    public TagDto.SynchronizationEnum stringToSynchroEnum(String synchro) {
+        if (synchro == null) {
+            return TagDto.SynchronizationEnum.ALL;
+        }
+        return TagDto.SynchronizationEnum.fromValue(synchro);
+    }
+
+    /**
+     * Convert a TagDto.SynchronizationEnum to a String.
+     * @param synchro
+     * @return String
+     */
+    @Named("synchroEnumToString")
+    public String synchroEnumToString(TagDto.SynchronizationEnum synchro) {
+        return synchro.name();
+    }
 }

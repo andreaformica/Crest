@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.3.4'
+	id 'org.springframework.boot' version '3.4.3'
 	id 'io.spring.dependency-management' version '1.1.6'
 	id("org.openapi.generator") version "7.8.0"
 	id 'jacoco'
@@ -9,7 +9,7 @@ plugins {
 }
 
 group = 'hep.crest'
-version = '5.0.0'
+version = '6.1.0'
 
 java {
 	toolchain {
@@ -108,57 +108,11 @@ task openApiBundle {
 	// with e.g: npm install -g @apidevtools/swagger-cli
 	inputs.files(fileTree(dir: swaggerSpecDirectory, include: '**/*.yml'))
 	outputs.file("$swaggerBundleDirectory/crestAtlasApi_all.yml".toString())
-	outputs.file("$swaggerBundleDirectory/admin_api.yml".toString())
-	outputs.file("$swaggerBundleDirectory/globaltags_api.yml".toString())
-	outputs.file("$swaggerBundleDirectory/tags_api.yml".toString())
-/// not for CMS
-	outputs.file("$swaggerBundleDirectory/tagsmeta_api.yml".toString())
-	outputs.file("$swaggerBundleDirectory/globaltagmaps_api.yml".toString())
-	outputs.file("$swaggerBundleDirectory/iovs_api.yml".toString())
-	outputs.file("$swaggerBundleDirectory/payloads_api.yml".toString())
-	outputs.file("$swaggerBundleDirectory/monitoring_api.yml".toString())
-	outputs.file("$swaggerBundleDirectory/runinfo_api.yml".toString())
 
 	doLast {
 		exec {
 			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/crestApi_all.yml".toString(), "$swaggerSpecDirectory/crestAtlasApi_all.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/admin_api.yml".toString(), "$swaggerSpecDirectory/admin_api.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/globaltags_api.yml".toString(), "$swaggerSpecDirectory/globaltags_api.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/tags_api.yml".toString(), "$swaggerSpecDirectory/tags_api.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/tagsmeta_api.yml".toString(), "$swaggerSpecDirectory/tagsmeta_api.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/globaltagmaps_api.yml".toString(), "$swaggerSpecDirectory/globaltagmaps_api.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/iovs_api.yml".toString(), "$swaggerSpecDirectory/iovs_api.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/payloads_api.yml".toString(), "$swaggerSpecDirectory/payloads_api.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/runinfo_api.yml".toString(), "$swaggerSpecDirectory/runinfo_api.yml".toString()
-		}
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'swagger-cli', 'bundle', '-t', 'yaml', '-o', "$swaggerBundleDirectory/monitoring_api.yml".toString(), "$swaggerSpecDirectory/monitoring_api.yml".toString()
+			commandLine 'redocly', 'bundle', '-o', "$swaggerBundleDirectory/crestApi_all.yml".toString(), "$swaggerSpecDirectory/crestAtlasApi_all.yml".toString()
 		}
 	}
 }
@@ -183,7 +137,7 @@ task buildCrestPythonClient(type: org.openapitools.generator.gradle.plugin.tasks
 	outputDir = "$rootDir/pycrest".toString()
 	packageName = "hep.crest.client"
 	configOptions = [
-			packageVersion: "5.0.0",
+			packageVersion: "6.1.0",
 			projectName: "hep-crest-client"]
 
 }
@@ -233,7 +187,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
 	// Jackson libraries
-	implementation "com.fasterxml.jackson.jakarta.rs:jackson-jakarta-rs-json-provider:2.17.2"
+	implementation "com.fasterxml.jackson.jakarta.rs:jackson-jakarta-rs-json-provider:2.18.3"
 	implementation group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '3.1.0'
 	// Keycloak
 	// implementation 'org.keycloak:keycloak-spring-boot-starter:22.0.1'
@@ -246,10 +200,15 @@ dependencies {
 	// Swagger
 	implementation group: 'io.swagger.core.v3', name: 'swagger-annotations', version: '2.2.7'
 	implementation group: 'io.swagger.core.v3', name: 'swagger-models', version: '2.2.7'
+	implementation 'org.apache.commons:commons-text:1.10.0'
 
-	runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
+    // Caching
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+
+	implementation 'com.oracle.database.jdbc:ojdbc11'
 	runtimeOnly 'org.postgresql:postgresql'
 	runtimeOnly 'com.h2database:h2'  // Add H2 database dependency
+	runtimeOnly 'net.logstash.logback:logstash-logback-encoder:7.4'
 
 	testImplementation "org.mockito:mockito-inline:+"
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -268,8 +227,8 @@ tasks.named('test') {
 sourceSets {
 	main {
 		java {
-			srcDirs = ['src/main/java', 'src/gen/java']
-			// srcDirs = ['src/main/java', 'src/gen/java', 'plugins/nats/java']
+			// srcDirs = ['src/main/java', 'src/gen/java']
+			srcDirs = ['src/main/java', 'src/gen/java', 'plugins/timeseries/java', 'plugins/tzero/java']
 		}
 	}
 	// println main.output.classesDir

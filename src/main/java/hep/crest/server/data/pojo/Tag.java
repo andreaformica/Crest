@@ -2,6 +2,7 @@ package hep.crest.server.data.pojo;
 // Generated Aug 2, 2016 3:50:25 PM by Hibernate Tools 3.2.2.GA
 
 import hep.crest.server.config.DatabasePropertyConfigurator;
+import hep.crest.server.swagger.model.TagDto;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -62,7 +63,15 @@ public class Tag implements java.io.Serializable {
      * The synchronization.
      */
     @Column(name = "SYNCHRONIZATION", nullable = false, length = 20)
-    private String synchronization = TagSynchroEnum.NONE.type();
+    private String synchronization = TagDto.SynchronizationEnum.ALL.toString();
+    /**
+     * The status.
+     * If locked then the tag is modifiable only following the constraints of synchronization.
+     * A locked tag cannot be deleted.
+     */
+    @EqualsAndHashCode.Exclude
+    @Column(name = "STATUS", nullable = false, length = 10)
+    private String status = TagDto.StatusEnum.UNLOCKED.toString();
     /**
      * The description.
      */
@@ -113,6 +122,12 @@ public class Tag implements java.io.Serializable {
             this.insertionTime = now;
             this.modificationTime = now;
         }
+        try {
+            TagDto.StatusEnum.fromValue(this.status);
+        }
+        catch (Exception e) {
+            this.status = TagDto.StatusEnum.UNLOCKED.toString();
+        }
     }
 
     /**
@@ -122,7 +137,6 @@ public class Tag implements java.io.Serializable {
      */
     @PreUpdate
     public void preUpdate() {
-        final Timestamp now = Timestamp.from(Instant.now());
-        this.modificationTime = now;
+        this.modificationTime = Timestamp.from(Instant.now());
     }
 }

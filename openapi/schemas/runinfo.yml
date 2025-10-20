@@ -24,19 +24,25 @@ components:
           type: number
     RunLumiSetDto:
       description: An RunLumiSet containing RunLumiInfoDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/RunLumiInfoDto'
       allOf:
         - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/RunLumiInfoDto'
     RunInfoSetDto:
       description: An RunInfoSet containing RunInfoDto objects.
-      properties:
-        resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/RunInfoDto'
       allOf:
         - $ref: 'common.yml#/components/schemas/CrestBaseResponse'
+        - type: object
+          required:
+            - resources
+          properties:
+            resources:
+              type: array
+              items:
+                $ref: '#/components/schemas/RunInfoDto'

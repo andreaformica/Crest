@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.validation.constraints.*;
 import jakarta.validation.Valid;
 
@@ -63,7 +64,7 @@ public class GlobalTagSetDto extends CrestBaseResponse  {
    * @return resources
    **/
   @JsonProperty(value = "resources")
-  @Valid 
+  @NotNull @Valid 
   public List<@Valid GlobalTagDto> getResources() {
     return resources;
   }

@@ -117,6 +117,12 @@ public class MapperTest {
             GenericMapper<D, T> mapper = applicationContext.getBean(mapperClass);
             Object item = pojoType.getDeclaredConstructor().newInstance();
             fillRandom(item, pojoType);
+            // Check if pojoType is a TagDto, then set the status and synchronization
+            if (pojoType.equals(Tag.class)) {
+                Tag t = (Tag) item;
+                t.setStatus(TagDto.StatusEnum.LOCKED.toString());
+                t.setSynchronization(TagDto.SynchronizationEnum.SV.toString());
+            }
             log.info("Generated item    = {}", item);
             Object dto = mapper.toDto((T) item);
             log.info("Converted to dto  = {}", dto);
@@ -225,5 +231,16 @@ public class MapperTest {
         assertThat(ex).isNotNull();
         ex = SqlRequests.getExistsHashQuery("test");
         assertThat(ex).isNotNull();
+    }
+
+    @Test
+    public void testTagsEnum() {
+        Tag tag = new Tag();
+        tag.setName("test");
+        tag.setStatus(TagDto.StatusEnum.LOCKED.toString());
+        assertThat(tag.getStatus()).isEqualTo(TagDto.StatusEnum.LOCKED.toString());
+        tag.setSynchronization(TagDto.SynchronizationEnum.SV.toString());
+        assertThat(tag.getSynchronization()).isEqualTo(TagDto.SynchronizationEnum.SV.toString());
+        log.info("testTagsEnum: Tag is {}", tag);
     }
 }

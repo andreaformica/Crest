@@ -56,13 +56,15 @@ public class FoldersApiServiceImpl extends FoldersApiService {
     /**
      * Ctor with injected service.
      * @param folderService the service.
+     * @param mapper the mapper.
      * @param edh the EntityDtoHelper
      * @param context the context.
      */
     @Autowired
-    public FoldersApiServiceImpl(FolderService folderService,
+    public FoldersApiServiceImpl(FolderService folderService, FolderMapper mapper,
                                  EntityDtoHelper edh, JAXRSContext context) {
         this.folderService = folderService;
+        this.mapper = mapper;
         this.edh = edh;
         this.context = context;
     }

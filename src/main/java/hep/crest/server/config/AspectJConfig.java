@@ -11,7 +11,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
  *
  */
 @Configuration
-@ComponentScan("hep.crest.server")
+@ComponentScan(basePackages = {"hep.crest.server", "hep.crest.server.timeseries"})
 @EnableAspectJAutoProxy
 public class AspectJConfig {
 

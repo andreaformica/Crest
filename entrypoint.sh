@@ -30,6 +30,23 @@ convert_certificate () {
   fi
 }
 
+verify_files() {
+  echo "Checking for files: should be the one provided by the helm chart"
+  ls -altr
+  if [ -e config/application.properties ] ; then
+    echo "Use $PWD/config/application.properties"
+  fi
+  if [ -e ./logback.xml ]; then
+    echo "Use logback from : $PWD"
+  fi
+  if [ -e ./tnsnames.ora ]; then
+    echo "Use local tnsnames : $PWD/tnsnames.ora"
+  fi
+  if [ -e /etc/tnsnames.ora ]; then
+    echo "Use tnsnames from etc : /etc/tnsnames.ora"
+  fi
+}
+
 print_application_properties () {
   if [ -e config/application.properties ] ; then
     cat config/application.properties
@@ -73,7 +90,7 @@ fi
 cd $DIR
 ## Check if tnsnames is available
 echo "Check tnsnames"
-if [ -e /etc/tnsnames.ora ]; then
+if [ -e /etc/tnsnames.ora ] || [ -e ./tnsnames.ora ]; then
    echo "Use local tnsnames version"
 else
    echo "get tnsnames from service-oracle-tnsnames.web.cern.ch...disabled for now"
@@ -91,7 +108,11 @@ echo "use opt : "
 cat $joptfile
 if [ -e $joptfile ]; then
    export JAVA_OPTS=
-   while read line; do JAVA_OPTS="$JAVA_OPTS -D$line"; done < $joptfile
+   while read line; do
+    if [ x"$line" != x"" ]; then
+      JAVA_OPTS="$JAVA_OPTS -D$line";
+    fi
+   done < $joptfile
 fi
 ## Set the directory with the JAR file
 if [ -e ${DIR}/crest.jar ]; then
@@ -105,16 +126,17 @@ fi
 
 echo "Initialization..."
 convert_certificate
+verify_files
 print_application_properties
 
 app_properties=${SPRING_TMPDIR}/application.properties
 mkfifo -m 600 "${app_properties}"
 print_application_properties >> ${app_properties} &
 
-echo "$USER is starting server with JAVA_OPTS : $JAVA_OPTS from user directory $PWD, config from $SPRING_TMPDIR"
+echo "$USER is starting server with JAVA_OPTS : $JAVA_OPTS \n - execution directory $PWD \n - config from $SPRING_TMPDIR"
 
 if [ x"$1" = x"" ]; then
-    echo "execute command ${prj_dir}/crest.jar"
+    echo "execute command ${prj_dir}/crest.jar iwth previous java options"
     exec java $JAVA_OPTS -jar ${prj_dir}/crest.jar --spring.config.location=optional:classpath:/,optional:classpath:/config/,file:${app_properties} 2>>/tmp/err.log
 else
     sh -c "$@"

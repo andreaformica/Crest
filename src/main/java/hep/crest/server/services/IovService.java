@@ -212,10 +212,16 @@ public class IovService {
         String sort = "id.since:DESC,id.insertionTime:DESC";
         Pageable preq = prh.createPageRequest(0, 1, sort);
         Page<Iov> lastiovlist = iovRepository.findByIdTagName(tagname, preq);
-        if (lastiovlist == null || lastiovlist.getSize() == 0) {
-            throw new CdbNotFoundException("Cannot find last iov for tag " + tagname);
+        if (lastiovlist == null || lastiovlist.getTotalElements() == 0) {
+            return null;
         }
-        return lastiovlist.toList().get(0);
+        if (lastiovlist.getSize() > 1) {
+            log.warn("Found more than one iov for tag {}", tagname);
+        }
+        if (lastiovlist.getSize() == 1 && lastiovlist.getTotalElements() >= 1) {
+            return lastiovlist.toList().get(0);
+        }
+        return null;
     }
 
     /**
