@@ -12,7 +12,7 @@ spring:
     security:
       strategy: MODE_INHERITABLETHREADLOCAL
     jersey:
-      application-path: api
+      application-path: api-v6.0
       servlet:
         load-on-startup: 1
       multipart:
