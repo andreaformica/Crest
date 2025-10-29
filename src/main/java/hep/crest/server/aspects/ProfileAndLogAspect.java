@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package hep.crest.server.aspects;
 
@@ -10,9 +10,8 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.CodeSignature;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
+import net.logstash.logback.marker.Markers;
 
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @version %I%, %G%
@@ -43,37 +42,53 @@ public class ProfileAndLogAspect {
         Class[] paramTypes = codeSignature.getParameterTypes();
         log.debug("Parameters {} and types {}", parameters, paramTypes);
 
-        Map<String, Object> esParams = new HashMap<>();
+        // Build markers dynamically for available parameters
+        net.logstash.logback.marker.LogstashMarker marker = null;
+
         for (int i = 0; i < parameters.length; i++) {
             if (parameters[i].equals("securityContext")
-                || parameters[i].equals("info")
-                || parameters[i].equals("filesBodypart")
-                || paramTypes[i].getName().contains("List")) {
+                    || parameters[i].equals("info")
+                    || parameters[i].equals("filesBodypart")
+                    || paramTypes[i].getName().contains("List")) {
                 continue;
             }
             if (args[i] == null) {
                 continue;
             }
-            log.debug("Set parameter {} of type {} with value {}", parameters[i], paramTypes[i], args[i]);
-            esParams.put(parameters[i], args[i]);
+            log.debug("Set parameter {} of type {} with value {}", parameters[i], paramTypes[i],
+                    args[i]);
+
+            // Add parameter to markers
+            if (marker == null) {
+                marker = Markers.append(parameters[i], args[i]);
+            }
+            else {
+                marker = marker.and(Markers.append(parameters[i], args[i]));
+            }
         }
+
         final Object proceed = joinPoint.proceed();
         final long executionTime = System.currentTimeMillis() - start;
-        // Set MDC context data
-        MDC.put("crest_execution_time", String.valueOf(executionTime));
+
+        // Add execution metadata to markers
+        if (marker == null) {
+            marker = Markers.append("executionTime", executionTime);
+        }
+        else {
+            marker = marker.and(Markers.append("executionTime", executionTime));
+        }
+
+        marker = marker.and(Markers.append("crest_execution_time", String.valueOf(executionTime)))
+                .and(Markers.append("token", "crest"))
+                .and(Markers.append("crest_method", joinPoint.getSignature().getName()))
+                .and(Markers.append("crest_profile", joinPoint.toShortString()));
+
+        // Set MDC context data for backward compatibility
         MDC.put("token", "crest");
-        if (esParams.containsKey("hash")) {
-            MDC.put("hash", esParams.get("hash").toString());
-        }
-        if (esParams.containsKey("tagname")) {
-            MDC.put("name", esParams.get("tagname").toString());
-        }
-        if (esParams.containsKey("name")) {
-            MDC.put("name", esParams.get("name").toString());
-        }
         MDC.put("crest_method", joinPoint.getSignature().getName());
-        esParams.put("crest_profile", joinPoint.toShortString());
-        log.info("{}", esParams);
+
+        log.info(marker, "Method execution completed: {}", joinPoint.getSignature().getName());
+
         MDC.clear();
         return proceed;
     }
