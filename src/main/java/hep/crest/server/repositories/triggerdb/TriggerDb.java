@@ -43,7 +43,7 @@ public class TriggerDb implements ITriggerDb {
             "CONF_DATA_RUN4", "ATLAS_CONF_TRIGGER_RUN4",
             "CONF_MC_RUN4", "ATLAS_CONF_TRIGGER_RUN4_MC",
             "CONF_REPR_RUN4", "ATLAS_CONF_TRIGGER_RUN4_REPR",
-            "CONF_DATA_RUN2", "ATLAS_CONF_TRIGGER_RUN2",
+            "CONF_DATA_RUN2", "ATLAS_CONF_TRIGGER_RUN2_NF",
             "COND_DEV_LS3", "ATLAS_CONF_TRIGGER_LS3_DEV",
             "COND_DEV_L0", "ATLAS_CONF_TRIGGER_LS3_L0"
     );
