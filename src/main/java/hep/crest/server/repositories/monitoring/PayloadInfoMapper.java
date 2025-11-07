@@ -24,6 +24,8 @@ public class PayloadInfoMapper implements RowMapper<PayloadTagInfoDto> {
         // Fill the dto
         bi.setTagname(rs.getString("tag_name"));
         bi.setNiovs(rs.getInt("niovs"));
+        bi.setMinsince(rs.getLong("minsince"));
+        bi.setMaxsince(rs.getLong("maxsince"));
         bi.setTotvolume(rs.getFloat("tot_volume"));
         bi.setAvgvolume(rs.getFloat("avg_volume"));
         return bi;

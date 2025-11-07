@@ -7,6 +7,12 @@ components:
           type: string
         niovs:
           type: integer
+        minsince:
+          type: integer
+          format: int64
+        maxsince:
+          type: integer
+          format: int64
         totvolume:
           type: number
           format: float

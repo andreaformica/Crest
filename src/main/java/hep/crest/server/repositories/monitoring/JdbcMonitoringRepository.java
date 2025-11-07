@@ -46,10 +46,13 @@ public class JdbcMonitoringRepository extends DataGeneral implements IMonitoring
         try {
             // Create the sql string using a query defined in a package.
             // This should word on any DB.
-            sql = "select iv.tag_name, count(iv.tag_name) as niovs, sum(pl.data_size) as tot_volume, avg(pl"
-                  + ".data_size) as avg_volume FROM " + getCrestTableNames().getPayloadTableName() + " pl, "
-                  + getCrestTableNames().getIovTableName() + " iv "
-                  + " WHERE iv.TAG_NAME like ? AND iv.PAYLOAD_HASH=pl.HASH group by iv.TAG_NAME order by iv.TAG_NAME";
+            sql = "select iv.tag_name, count(iv.tag_name) as niovs, min(iv.since) as minsince, "
+                + "max(iv.since) as maxsince,"
+                + "sum(pl.data_size) as tot_volume, avg(pl.data_size) as avg_volume FROM "
+                + getCrestTableNames().getPayloadTableName() + " pl, "
+                + getCrestTableNames().getIovTableName() + " iv "
+                + " WHERE iv.TAG_NAME like ? AND iv.PAYLOAD_HASH=pl.HASH group by iv.TAG_NAME "
+                    + "order by iv.TAG_NAME";
             log.debug("Execute query {} using {}", sql, tagpattern);
             return jdbcTemplate.query(sql, new PayloadInfoMapper(), tagpattern);
         }
