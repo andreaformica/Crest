@@ -65,7 +65,7 @@ build_container_job:
 
 build-sonar:
   stage: build-sonar
-  image: gradle:8.10.0-jdk23-jammy
+  image: registry.cern.ch/docker.io/eclipse-temurin:23-alpine
   cache:
     policy: pull-push
     key: "sonar-cache-$CI_COMMIT_REF_SLUG"
@@ -73,7 +73,7 @@ build-sonar:
       - "${SONAR_USER_HOME}/cache"
       - sonar-scanner/
 
-  script: gradle sonar
+  script: ./gradlew sonar
   allow_failure: true
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
