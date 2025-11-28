@@ -1,7 +1,10 @@
+
 variables:
     IMAGE: crest21-service
     VERSION: '6.2'
     GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
 
 # Make the gradle wrapper executable. This essentially downloads a copy of
 # Gradle to build the project with.
@@ -21,7 +24,7 @@ include:
 stages:
  - package_application
  #- build
- - sonar_application
+ - build-sonar
  - push
 
 package_cern_application:
@@ -60,6 +63,22 @@ build_container_job:
     PUSH_IMAGE: "true"
     DOCKER_FILE_NAME: "Dockerfile"
 
+build-sonar:
+  stage: build-sonar
+  image: gradle:8.10.0-jdk17-jammy
+  cache:
+    policy: pull-push
+    key: "sonar-cache-$CI_COMMIT_REF_SLUG"
+    paths:
+      - "${SONAR_USER_HOME}/cache"
+      - sonar-scanner/
+
+  script: gradle sonar
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
+    - if: $CI_COMMIT_BRANCH == 'develop'
 
 push_helm:
   extends: .deploy_helm

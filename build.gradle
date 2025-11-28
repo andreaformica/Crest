@@ -5,9 +5,16 @@ plugins {
 	id("org.openapi.generator") version "7.8.0"
 	id 'jacoco'
 	id 'checkstyle'
-	id "org.sonarqube" version "6.0.1.5171"
+    id "org.sonarqube" version "6.2.0.5505"
 }
 
+sonar {
+    properties {
+        property "sonar.projectKey", "crest"
+        property "sonar.projectName", "crest"
+        property "sonar.qualitygate.wait", true
+    }
+}
 group = 'hep.crest'
 version = '6.2.0'
 
