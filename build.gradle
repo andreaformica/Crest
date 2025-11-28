@@ -8,15 +8,6 @@ plugins {
     id "org.sonarqube" version "6.2.0.5505"
 }
 
-sonar {
-    properties {
-        property "sonar.projectKey", "crest"
-        property "sonar.projectName", "crest"
-        property "sonar.qualitygate.wait", true
-        property "sonar.coverage.jacoco.xmlReportPaths", layout.buildDirectory.dir("/reports/jacoco/test/jacocoTestReport.xml")
-        property "sonar.junit.reportPaths", layout.buildDirectory.dir("/test-results/test")
-    }
-}
 group = 'hep.crest'
 version = '6.2.0'
 
@@ -87,6 +78,16 @@ jacocoTestReport {
 		csv.required = false
 		html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
 	}
+}
+
+sonar {
+    properties {
+        property "sonar.projectKey", "crest"
+        property "sonar.projectName", "crest"
+        property "sonar.qualitygate.wait", true
+        property "sonar.coverage.jacoco.xmlReportPaths", layout.buildDirectory.dir("/reports/jacoco/test/jacocoTestReport.xml")
+        property "sonar.junit.reportPaths", layout.buildDirectory.dir("/test-results/test")
+    }
 }
 
 repositories {
