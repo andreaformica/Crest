@@ -65,7 +65,7 @@ build_container_job:
 
 build-sonar:
   stage: build-sonar
-  image: gradle:8.10.0-jdk17-jammy
+  image: gradle:8.10.0-jdk23-jammy
   cache:
     policy: pull-push
     key: "sonar-cache-$CI_COMMIT_REF_SLUG"
