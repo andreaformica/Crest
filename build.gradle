@@ -45,8 +45,17 @@ configurations.all {
 	exclude group: 'org.slf4j', module: 'slf4j-simple'
 }
 
+checkstyle {
+    toolVersion = '10.12.0'
+    configFile = file('config/checkstyle/checkstyle.xml')
+}
+
 checkstyleMain {
-	setExcludes(new HashSet(['**/hep/crest/data/**/Q*java',
+    reports {
+        xml.required = true
+        xml.outputLocation = file('build/reports/checkstyle/main.xml')
+    }
+    setExcludes(new HashSet(['**/hep/crest/data/**/Q*java',
 							 '**/src/gen/**',
 							 '**/hep/crest/data/repositories/externals/*',
 							 '**/hep/crest/server/swagger/**',
@@ -225,6 +234,13 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.withType(Checkstyle) {
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }
 
 sourceSets {
