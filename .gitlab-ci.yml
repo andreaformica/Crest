@@ -45,7 +45,6 @@ package_cern_application:
       - ${GRADLE_USER_HOME}/notifications/
       - ${GRADLE_USER_HOME}/wrapper/
   script:
-    - chmod +x gradlew
     - export GRADLE_USER_HOME=/cache/.gradle
     - ./gradlew clean build jacocoTestReport
   allow_failure: false
