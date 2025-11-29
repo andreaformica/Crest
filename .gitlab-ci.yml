@@ -21,7 +21,6 @@ include:
 
 stages:
  - package_application
- #- build
  - build-sonar
  - push
 
