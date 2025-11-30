@@ -121,8 +121,8 @@ public class JsonStreamProcessor {
             String fieldName = parser.currentName();
 
             if ("resources".equals(fieldName)) {
-                nstored = processResourcesArray(parser, objectType, version, compressionType, tag
-                        , dtoList, memory);
+                nstored = processResourcesArray(parser, objectType, version,
+                        compressionType, tag, dtoList, memory);
             }
             else if ("size".equals(fieldName)) {
                 parser.nextToken();

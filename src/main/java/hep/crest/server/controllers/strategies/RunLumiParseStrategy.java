@@ -9,8 +9,16 @@ import java.math.BigInteger;
  */
 @Slf4j
 public class RunLumiParseStrategy implements TimeParseStrategy {
+    /**
+     * Page request helper to get COOL run-lumi IOV.
+     */
     private final PageRequestHelper pageRequestHelper;
 
+    /**
+     * Constructor injecting PageRequestHelper.
+     *
+     * @param pageRequestHelper the page request helper
+     */
     public RunLumiParseStrategy(PageRequestHelper pageRequestHelper) {
         this.pageRequestHelper = pageRequestHelper;
     }

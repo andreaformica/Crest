@@ -9,12 +9,26 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class TimeParseStrategyFactory {
+    /**
+     * Page request helper to get COOL run-lumi IOV.
+     */
     private final PageRequestHelper pageRequestHelper;
 
+    /**
+     * Constructor injecting PageRequestHelper.
+     *
+     * @param pageRequestHelper the page request helper
+     */
     public TimeParseStrategyFactory(PageRequestHelper pageRequestHelper) {
         this.pageRequestHelper = pageRequestHelper;
     }
 
+    /**
+     * Get the appropriate time parse strategy based on the input format.
+     *
+     * @param inputFormat the input time unit format
+     * @return the corresponding TimeParseStrategy
+     */
     public TimeParseStrategy getStrategy(ArgTimeUnit inputFormat) {
         if (inputFormat == null) {
             inputFormat = ArgTimeUnit.MS;

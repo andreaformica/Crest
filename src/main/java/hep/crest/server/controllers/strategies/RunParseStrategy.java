@@ -8,6 +8,9 @@ import java.math.BigInteger;
  */
 @Slf4j
 public class RunParseStrategy implements TimeParseStrategy {
+    /**
+     * Bit mask for COOL IOV run number shift.
+     */
     private static final int COOLIOV_RUN_MASK = 32;
 
     @Override
