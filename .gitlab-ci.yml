@@ -52,6 +52,9 @@ package_cern_application:
       - ./build/reports/jacoco/test/jacocoTestReport.xml
       - ./build/reports/checkstyle/main.xml
     expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
 
 # Can be used to test packaging helm chart, before merging to master for instance
 #build_helm:
@@ -62,8 +65,6 @@ package_cern_application:
 
 
 build_container_job:
-  rules:
-    - if: $DO_DOCKER_IMAGE == "yes" && $CI_PIPELINE_SOURCE != 'merge_request_event' && $SITE == "cern"
   environment: cern
   stage: push
   extends: .build_kaniko
@@ -72,12 +73,18 @@ build_container_job:
     CONTEXT_DIR: ""
     PUSH_IMAGE: "true"
     DOCKER_FILE_NAME: "Dockerfile"
+  rules:
+    - if: $DO_DOCKER_IMAGE == "yes" && $CI_PIPELINE_SOURCE != 'merge_request_event' && $SITE == "cern"
+    - if: $CI_COMMIT_BRANCH == 'master'
 
 build-sonar:
   stage: build-sonar
   image:
     name: sonarsource/sonar-scanner-cli:11
     entrypoint: [""]
+  needs:
+    - job: package_cern_application
+      artifacts: true
   variables:
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
     GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
@@ -86,11 +93,10 @@ build-sonar:
     key: "sonar-cache-$CI_COMMIT_REF_SLUG"
     paths:
       - "${SONAR_USER_HOME}/cache"
-      - sonar-scanner/
   script:
     - sonar-scanner -X
       -Dsonar.host.url="${SONAR_HOST_URL}"
-      -Dproject.settings=sonar-project.properties
+      -Dproject.settings=${CI_PROJECT_DIR}/sonar-project.properties
       -Dsonar.projectKey="${CI_PROJECT_NAME}"
       -Dsonar.projectName="${CI_PROJECT_NAME}"
       -Dsonar.token="${SONAR_TOKEN}"
@@ -107,4 +113,7 @@ push_helm:
   variables:
     REGISTRY_CHART_PATH: registry.cern.ch/crest/charts
     PUSH_CHART: "true"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
 

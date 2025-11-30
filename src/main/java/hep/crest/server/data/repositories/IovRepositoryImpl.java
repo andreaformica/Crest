@@ -21,6 +21,7 @@ import org.springframework.data.jpa.repository.support.Querydsl;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+
 import java.util.List;
 
 /**
@@ -37,98 +38,185 @@ public class IovRepositoryImpl implements IovRepositoryCustom {
     @PersistenceContext
     private EntityManager entityManager;
 
+
     @Override
     public Page<Iov> findIovList(IovQueryArgs queryArgs, Pageable preq) throws CdbNotFoundException {
-        JPQLQuery<Iov> query = new JPAQuery<>(entityManager);
+        log.debug("Build query from args: {}", queryArgs);
 
         final BooleanBuilder where = new BooleanBuilder();
         final BooleanBuilder subwhere = new BooleanBuilder();
 
-        log.debug("Build query from args: {}", queryArgs);
+        buildBaseConditions(queryArgs, where, subwhere);
+        buildModeSpecificConditions(queryArgs, where, subwhere);
+
+        log.info("Launch query for iovs....");
+        JPQLQuery<Iov> query = buildQuery(where);
+
+        return executePaginatedQuery(query, preq);
+    }
+
+    /**
+     * Build base where conditions from query arguments.
+     *
+     * @param queryArgs the query arguments
+     * @param where     the main where clause
+     * @param subwhere  the subquery where clause
+     */
+    private void buildBaseConditions(IovQueryArgs queryArgs, BooleanBuilder where,
+                                     BooleanBuilder subwhere) {
         if (queryArgs.hash() != null) {
             where.and(QIov.iov.payloadHash.eq(queryArgs.hash()));
             log.debug("Add where condition on hash: {}", queryArgs.hash());
         }
+
         if (queryArgs.tagName() != null) {
-            if (queryArgs.tagName().contains("%")) {
-                where.and(QIov.iov.id.tagName.like(queryArgs.tagName()));
-            }
-            else {
-                where.and(QIov.iov.id.tagName.eq(queryArgs.tagName()));
-            }
-            subwhere.and(QIov.iov.id.tagName.eq(queryArgs.tagName()));
-            log.debug("Add where condition on tagName: {}", queryArgs.tagName());
+            addTagNameCondition(queryArgs.tagName(), where, subwhere);
         }
+
         if (queryArgs.since() != null) {
-            if (!queryArgs.mode().equals(IovModeEnum.AT)) {
-                where.and(QIov.iov.id.since.goe(queryArgs.since()));
-                log.debug("Add where condition on >= since: {}", queryArgs.since());
-            }
-            else {
-                subwhere.and(QIov.iov.id.since.loe(queryArgs.since()));
-                log.debug("Add where condition on <=since for AT query: {}", queryArgs.since());
-            }
+            addSinceCondition(queryArgs, where, subwhere);
         }
+
         if (queryArgs.until() != null) {
-            if (queryArgs.mode().equals(IovModeEnum.RANGES)) {
-                /**
-                 * In the cases of a RANGE mode, we include the last SINCE.
-                 */
-                where.and(QIov.iov.id.since.loe(queryArgs.until()));
-            }
-            else {
-                /**
-                 * This method is like the Range method, but it does not include the IOV before the given since.
-                 * It will provide the same result as getRange only if the since time provided is equivalent
-                 * to the first since selected in the DB. For other cases it will not contain the first IOV.
-                 */
-                where.and(QIov.iov.id.since.lt(queryArgs.until()));
-            }
-            log.debug("Add where condition on < until: {}", queryArgs.until());
+            addUntilCondition(queryArgs, where);
         }
+
         if (queryArgs.snapshot() != null) {
             where.and(QIov.iov.id.insertionTime.loe(queryArgs.snapshot()));
             subwhere.and(QIov.iov.id.insertionTime.loe(queryArgs.snapshot()));
             log.debug("Add where condition on <= snapshot: {}", queryArgs.snapshot());
         }
+    }
 
-        if (queryArgs.mode().equals(IovModeEnum.AT)) {
-            /**
-             * In the cases of a AT mode, the SINCE before the provided one should be chosen.
-             */
-            log.warn("Adding where condition on MAX of since");
-            JPQLQuery<Iov> subquery = new JPAQuery<>(entityManager);
-            where.and(QIov.iov.id.since.eq(
-                    subquery.select(QIov.iov.id.since.max())
-                            .from(QIov.iov).where(subwhere).fetchOne()));
+    /**
+     * Add tag name condition to where clause.
+     *
+     * @param tagName  the tag name
+     * @param where    the main where clause
+     * @param subwhere the subquery where clause
+     */
+    private void addTagNameCondition(String tagName, BooleanBuilder where,
+                                     BooleanBuilder subwhere) {
+        if (tagName.contains("%")) {
+            where.and(QIov.iov.id.tagName.like(tagName));
         }
-        else if (queryArgs.mode().equals(IovModeEnum.RANGES)) {
-            /**
-             * In the cases of a RANGE mode, we include the SINCE before the provided one.
-             */
-            log.warn("Adding where condition on MAX of since");
-            JPQLQuery<Iov> subquery = new JPAQuery<>(entityManager);
-            where.and(QIov.iov.id.since.goe(
-                    subquery.select(QIov.iov.id.since.max())
-                            .from(QIov.iov).where(subwhere).fetchOne()));
+        else {
+            where.and(QIov.iov.id.tagName.eq(tagName));
+        }
+        subwhere.and(QIov.iov.id.tagName.eq(tagName));
+        log.debug("Add where condition on tagName: {}", tagName);
+    }
 
+    /**
+     * Add since condition to where clause.
+     *
+     * @param queryArgs the query arguments
+     * @param where     the main where clause
+     * @param subwhere  the subquery where clause
+     */
+    private void addSinceCondition(IovQueryArgs queryArgs, BooleanBuilder where,
+                                   BooleanBuilder subwhere) {
+        if (!queryArgs.mode().equals(IovModeEnum.AT)) {
+            where.and(QIov.iov.id.since.goe(queryArgs.since()));
+            log.debug("Add where condition on >= since: {}", queryArgs.since());
         }
-        // Build the query.
-        log.info("Launch query for iovs....");
+        else {
+            subwhere.and(QIov.iov.id.since.loe(queryArgs.since()));
+            log.debug("Add where condition on <=since for AT query: {}", queryArgs.since());
+        }
+    }
+
+    /**
+     * Add until condition to where clause based on mode.
+     *
+     * @param queryArgs the query arguments
+     * @param where     the main where clause
+     */
+    private void addUntilCondition(IovQueryArgs queryArgs, BooleanBuilder where) {
+        if (queryArgs.mode().equals(IovModeEnum.RANGES)) {
+            where.and(QIov.iov.id.since.loe(queryArgs.until()));
+        }
+        else {
+            where.and(QIov.iov.id.since.lt(queryArgs.until()));
+        }
+        log.debug("Add where condition on < until: {}", queryArgs.until());
+    }
+
+    /**
+     * Build mode\-specific where conditions (AT or RANGES mode).
+     *
+     * @param queryArgs the query arguments
+     * @param where     the main where clause
+     * @param subwhere  the subquery where clause
+     */
+    private void buildModeSpecificConditions(IovQueryArgs queryArgs, BooleanBuilder where,
+                                             BooleanBuilder subwhere) {
+        IovModeEnum mode = queryArgs.mode();
+
+        if (mode.equals(IovModeEnum.AT)) {
+            addAtModeCondition(where, subwhere);
+        }
+        else if (mode.equals(IovModeEnum.RANGES)) {
+            addRangesModeCondition(where, subwhere);
+        }
+    }
+
+    /**
+     * Add AT mode specific condition using max since subquery.
+     *
+     * @param where    the main where clause
+     * @param subwhere the subquery where clause
+     */
+    private void addAtModeCondition(BooleanBuilder where, BooleanBuilder subwhere) {
+        log.warn("Adding where condition on MAX of since");
+        JPQLQuery<Iov> subquery = new JPAQuery<>(entityManager);
+        where.and(QIov.iov.id.since.eq(
+                subquery.select(QIov.iov.id.since.max())
+                        .from(QIov.iov).where(subwhere).fetchOne()));
+    }
+
+    /**
+     * Add RANGES mode specific condition using max since subquery.
+     *
+     * @param where    the main where clause
+     * @param subwhere the subquery where clause
+     */
+    private void addRangesModeCondition(BooleanBuilder where, BooleanBuilder subwhere) {
+        log.warn("Adding where condition on MAX of since");
+        JPQLQuery<Iov> subquery = new JPAQuery<>(entityManager);
+        where.and(QIov.iov.id.since.goe(
+                subquery.select(QIov.iov.id.since.max())
+                        .from(QIov.iov).where(subwhere).fetchOne()));
+    }
+
+    /**
+     * Build the base JPQL query.
+     *
+     * @param where the where clause
+     * @return the JPQLQuery
+     */
+    private JPQLQuery<Iov> buildQuery(BooleanBuilder where) {
         QIov iov = QIov.iov;
-        // Here we did remove "distinct()" because it does not work with multiple columns.
-        query = query.select(iov)
-                .from(iov)
-                .where(where);
-
+        JPQLQuery<Iov> query = new JPAQuery<>(entityManager);
+        query = query.select(iov).from(iov).where(where);
         log.debug("created JPQL query: {}", query.toString());
+        return query;
+    }
 
-        PathBuilder<Iov> builder = (new PathBuilderFactory()).create(Iov.class);
+    /**
+     * Execute the query with pagination.
+     *
+     * @param query the query to execute
+     * @param preq  the pagination request
+     * @return Page of Iov results
+     */
+    private Page<Iov> executePaginatedQuery(JPQLQuery<Iov> query, Pageable preq) {
+        PathBuilder<Iov> builder = new PathBuilderFactory().create(Iov.class);
         Querydsl querydsl = new Querydsl(entityManager, builder);
         long totalElements = query.fetchCount();
         List<Iov> rows = querydsl.applyPagination(preq, query).fetch();
-
         return new PageImpl<>(rows, preq, totalElements);
     }
+
 
 }
