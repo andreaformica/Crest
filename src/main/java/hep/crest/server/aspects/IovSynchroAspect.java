@@ -11,6 +11,7 @@ import hep.crest.server.data.repositories.CrestRolesRepository;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.TagService;
 import hep.crest.server.swagger.model.TagDto;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -61,6 +62,7 @@ public class IovSynchroAspect {
 
     /**
      * Ctor using injection.
+     *
      * @param cprops
      * @param userinfo
      * @param tagService
@@ -69,7 +71,7 @@ public class IovSynchroAspect {
      */
     @Autowired
     IovSynchroAspect(CrestProperties cprops, UserInfo userinfo,
-                            TagService tagService, IovService iovService,
+                     TagService tagService, IovService iovService,
                      CrestRolesRepository rolesRepository) {
         this.cprops = cprops;
         this.userinfo = userinfo;
@@ -90,67 +92,75 @@ public class IovSynchroAspect {
             + " || execution(* hep.crest.server.services.IovService.storeIov(*)) && args(entity)")
     public Object checkSynchro(ProceedingJoinPoint pjp, Iov entity) throws Throwable {
         log.debug("Iov insertion should verify the tag synchronization type : {}", entity);
-        Object retVal = null;
-        Boolean allowedOperation = false;
-        // If there is no or weak security activated then set allowed to true.
-        if ("none".equals(cprops.getSecurity()) || "weak".equals(cprops.getSecurity())) {
-            log.warn("security checks are disabled in this configuration....");
-            allowedOperation = true;
-        }
-        else {
-            // Check the authentication.
-            final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String clientid = userinfo.getUserId(auth);
-            String uppercaseTag = entity.getTag().getName().toUpperCase();
-            List<CrestRoles> roles = rolesRepository.findMatchingTagPatterns(uppercaseTag);
-            log.debug("Roles found for tag {} [match={}]: {}", entity, uppercaseTag, roles);
-            // Loop over CrestRoles and check if the user has the role corresponding to the
-            // role/tagPattern. If at least one role is found then proceed.
-            boolean hasRole = Boolean.FALSE;
-            for (CrestRoles crestRole : roles) {
-                log.info("Role matching {} for tag {}", crestRole.getRole(), entity);
-                String role = crestRole.getRole();
-                if (userinfo.isUserInRole(auth, role)) {
-                    log.debug("User {} has role {} for tag {}", clientid, role, entity);
-                    hasRole = Boolean.TRUE;
-                    break;
-                }
-            }
-            // Check if the user has the role for the tag.
-            if (hasRole || entity.getTag().getName().startsWith("TEST")) {
-                log.info("User is allowed to write IOVs into tag {}", entity.getTag().getName());
-                allowedOperation = true;
-            }
-        }
-        boolean acceptTime = false;
-        // Get synchro property
-        if (TagDto.SynchronizationEnum.ALL.toString().equals(cprops.getSynchro())) {
-            log.warn("synchronization checks are disabled in this configuration....");
-            acceptTime = true;
-        }
-        else if (Boolean.TRUE.equals(allowedOperation)) {
-            // Synchronization aspect is enabled.
-            Tag tagentity = null;
-            tagentity = tagService.findOne(entity.getTag().getName());
-            log.debug("Tag found: {}", tagentity);
-            // Get synchro type from tag.
-            acceptTime = evaluateCondition(tagentity, entity);
-        }
-        // Proceed if the time is compatible with the tag definition,
-        // and if the user is allowed to write.
+
+        Boolean allowedOperation = checkUserAuthorization(entity);
+        boolean acceptTime = checkSynchronizationCondition(entity, allowedOperation);
+
         if (acceptTime && allowedOperation) {
-            // Check if iov exists: if so just update the insertion time.
             Iov s = overrideIov(entity);
             log.info("Proceeding with insertion of iov: {}", s);
-            // Proceed if allowed.
-            retVal = pjp.proceed(new Object[] {s});
+            return pjp.proceed(new Object[]{s});
         }
-        else {
-            log.warn("Not authorized, either you cannot write in this tag or synchro type is "
-                    + "wrong: auth={} synchro={}", allowedOperation, acceptTime);
-            throw new NotAuthorizedException("You cannot write iov {}", entity);
+
+        log.warn("Not authorized, either you cannot write in this tag or synchro type is "
+                + "wrong: auth={} synchro={}", allowedOperation, acceptTime);
+        throw new NotAuthorizedException("You cannot write iov {}", entity);
+    }
+
+    /**
+     * Check if user is authorized to perform the operation.
+     *
+     * @param entity the iov
+     * @return true if user is authorized, false otherwise
+     * @throws NotAuthorizedException if authentication fails
+     */
+    private Boolean checkUserAuthorization(Iov entity) {
+        if ("none".equals(cprops.getSecurity()) || "weak".equals(cprops.getSecurity())) {
+            log.warn("security checks are disabled in this configuration....");
+            return true;
         }
-        return retVal;
+
+        final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String clientid = userinfo.getUserId(auth);
+        String uppercaseTag = entity.getTag().getName().toUpperCase();
+        List<CrestRoles> roles = rolesRepository.findMatchingTagPatterns(uppercaseTag);
+        log.debug("Roles found for tag {} [match={}]: {}", entity, uppercaseTag, roles);
+
+        boolean hasRole = roles.stream()
+                .anyMatch(crestRole -> {
+                    log.info("Client {}: role matching {} for tag {}", clientid,
+                            crestRole.getRole(), entity);
+                    return userinfo.isUserInRole(auth, crestRole.getRole());
+                });
+
+        if (hasRole || entity.getTag().getName().startsWith("TEST")) {
+            log.info("User is allowed to write IOVs into tag {}", entity.getTag().getName());
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if synchronization condition is met.
+     *
+     * @param entity           the iov
+     * @param allowedOperation true if user is authorized
+     * @return true if synchronization condition is met, false otherwise
+     */
+    private boolean checkSynchronizationCondition(Iov entity, @NonNull Boolean allowedOperation) {
+        if (TagDto.SynchronizationEnum.ALL.toString().equals(cprops.getSynchro())) {
+            log.warn("synchronization checks are disabled in this configuration....");
+            return true;
+        }
+
+        if (!allowedOperation) {
+            return false;
+        }
+
+        Tag tagentity = tagService.findOne(entity.getTag().getName());
+        log.debug("Tag found: {}", tagentity);
+        return evaluateCondition(tagentity, entity);
     }
 
     /**
@@ -175,7 +185,7 @@ public class IovSynchroAspect {
         switch (TagDto.SynchronizationEnum.valueOf(synchro)) {
             case SV:
                 log.warn("This logic is not fully implemented. For the moment allows to append "
-                    + "IOV. In future it should check the time [now] or the run [now]");
+                        + "IOV. In future it should check the time [now] or the run [now]");
                 log.warn("Can only append IOVs....");
                 if (latest.getId().getSince().compareTo(entity.getId().getSince()) <= 0) {
                     // Latest is before the new one.
