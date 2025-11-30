@@ -21,11 +21,6 @@ public class MemoryMonitor {
     private long peakMemory = 0;
 
     /**
-     * Memory threshold for processing.
-     */
-    private static final long MEMORY_THRESHOLD_MB = 512; // Adjust based on your system
-
-    /**
      * Logs the current memory usage and peak memory usage at a specific phase.
      *
      * @param phase The phase of the application (e.g., "Initialization", "Processing").
