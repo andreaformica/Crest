@@ -52,6 +52,9 @@ package_cern_application:
       - ./build/reports/jacoco/test/jacocoTestReport.xml
       - ./build/reports/checkstyle/main.xml
     expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
 
 # Can be used to test packaging helm chart, before merging to master for instance
 #build_helm:
