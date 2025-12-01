@@ -4,6 +4,8 @@
 package hep.crest.server.data.repositories.externals;
 
 /**
+ * Utility class for SQL requests.
+ *
  * @author formica
  *
  */
@@ -41,8 +43,8 @@ public final class SqlRequests {
      * @return String
      */
     public static String getStreamerInfoQuery(String tablename) {
-        return "select STREAMER_INFO "
-               + " from " + tablename + WHERE_HASH;
+        return "select STREAMER_INFO from "
+               + tablename + WHERE_HASH;
     }
 
     /**
@@ -50,8 +52,7 @@ public final class SqlRequests {
      * @return String
      */
     public static String getDataQuery(String tablename) {
-        return "select DATA "
-               + " from " + tablename + WHERE_HASH;
+        return "select DATA from " + tablename + WHERE_HASH;
     }
 
     /**
@@ -70,8 +71,7 @@ public final class SqlRequests {
      * @return String
      */
     public static String getInfoDataQuery(String tablename) {
-        return "select STREAMER_INFO "
-               + " from " + tablename + WHERE_HASH;
+        return "select STREAMER_INFO from " + tablename + WHERE_HASH;
     }
 
     /**
