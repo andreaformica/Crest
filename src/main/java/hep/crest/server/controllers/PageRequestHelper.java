@@ -102,7 +102,7 @@ public class PageRequestHelper {
                 direc = Direction.DESC;
             }
             // Take care of SQL injection.
-            final String field = sortmatcher.group(1).trim().replaceAll("\\s+", "");;
+            final String field = sortmatcher.group(1).trim().replaceAll("\\s+", "");
             log.debug("Creating new order if field is valid: {} {}", direc, field);
             if (!isValidFieldName(field)) {
                 throw new CdbBadRequestException(
