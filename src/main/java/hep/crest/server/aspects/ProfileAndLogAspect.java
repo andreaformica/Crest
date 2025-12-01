@@ -67,7 +67,7 @@ public class ProfileAndLogAspect {
      * @return LogstashMarker with all parameters or null
      */
     private net.logstash.logback.marker.LogstashMarker buildParameterMarkers(
-            String[] parameters, Class[] paramTypes, Object[] args) {
+            String[] parameters, Class<?>[] paramTypes, Object[] args) {
         net.logstash.logback.marker.LogstashMarker marker = null;
 
         for (int i = 0; i < parameters.length; i++) {
@@ -94,7 +94,7 @@ public class ProfileAndLogAspect {
      * @param value     the parameter value
      * @return true if parameter should be included, false otherwise
      */
-    private boolean shouldIncludeParameter(String paramName, Class paramType, Object value) {
+    private boolean shouldIncludeParameter(String paramName, Class<?> paramType, Object value) {
         if (value == null) {
             return false;
         }

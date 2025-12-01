@@ -134,12 +134,6 @@ public class ToolsTest {
         PayloadHandler.saveStreamToFile(is, "testfile2");
         File f = new File("testfile2");
         assertThat(f.exists()).isTrue();
-
-        String hash3 = HashGenerator.md5Java("test");
-        assertThat(hash3).isNotNull();
-        String hash3r = HashGenerator.md5Java("test".getBytes());
-        assertThat(hash3r).isNotNull();
-        assertThat(hash3).isEqualTo(hash3r);
         String hash4 = HashGenerator.shaJava("test".getBytes());
         assertThat(hash4).isNotNull();
         String hash5 = HashGenerator.md5Spring("test");

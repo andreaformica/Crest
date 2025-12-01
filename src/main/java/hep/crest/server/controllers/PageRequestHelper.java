@@ -38,7 +38,7 @@ public class PageRequestHelper {
     /**
      * The sort pattern.
      */
-    private static final String SORT_PATTERN = "([a-zA-Z0-9_\\-\\.]+?)(:)(ASC|DESC),";
+    private static final String SORT_PATTERN = "([a-zA-Z0-9\\.]+?)(:)(ASC|DESC),";
 
     /**
      * Maximum page size.
@@ -48,6 +48,10 @@ public class PageRequestHelper {
      * Cool Max data in COOL format.
      */
     public static final long COOL_MAX_DATE = 9223372036854775807L;
+    /**
+     * Max sort field name length.
+     */
+    private static final int MAX_FIELD_NAME_LENGTH = 20;
     /**
      * Cool Max run in COOL format.
      */
@@ -97,8 +101,13 @@ public class PageRequestHelper {
             if ("DESC".equals(sortmatcher.group(3))) {
                 direc = Direction.DESC;
             }
-            final String field = sortmatcher.group(1);
-            log.debug("Creating new order: {} {}", direc, field);
+            // Take care of SQL injection.
+            final String field = sortmatcher.group(1).trim().replaceAll("\\s+", "");
+            log.debug("Creating new order if field is valid: {} {}", direc, field);
+            if (!isValidFieldName(field)) {
+                throw new CdbBadRequestException(
+                        "Invalid field name for sorting: " + field);
+            }
             orderlist.add(new Order(direc, field));
         }
         log.debug("Created list of sorting orders of size {}", orderlist.size());
@@ -111,6 +120,39 @@ public class PageRequestHelper {
         }
         final Sort msort = Sort.by(orders);
         return PageRequest.of(page, size, msort);
+    }
+
+    /**
+     * Perform basic validation of field name. This should avoid SQL injection.
+     * @param field the field name
+     * @return boolean
+     */
+    private boolean isValidFieldName(String field) {
+        if (field == null || field.isEmpty() || field.length() > MAX_FIELD_NAME_LENGTH) {
+            return false;
+        }
+        for (int i = 0; i < field.length(); i++) {
+            char c = field.charAt(i);
+            if (!(Character.isLetterOrDigit(c) || c == '_' || c == '.' || c == '-')) {
+                return false;
+            }
+        }
+
+        // Additional blacklist checks for common SQLi / suspicious tokens (case-insensitive)
+        String low = field.toLowerCase();
+        String[] forbidden = {
+                "--", ";", "/*", "*/", "'", "\"", "`",
+                " or ", " and ", " union ", " select ", " insert ", " update ",
+                " delete ", " drop ", " create ", " exec ", " xp_", "information_schema",
+                "benchmark(", "sleep("
+        };
+        // Check for forbidden substrings
+        for (String token : forbidden) {
+            if (low.contains(token)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

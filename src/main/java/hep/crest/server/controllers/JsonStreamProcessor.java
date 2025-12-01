@@ -122,7 +122,7 @@ public class JsonStreamProcessor {
 
             if ("resources".equals(fieldName)) {
                 nstored = processResourcesArray(parser, objectType, version,
-                        compressionType, tag, dtoList, memory);
+                        compressionType, tag, memory);
             }
             else if ("size".equals(fieldName)) {
                 parser.nextToken();
@@ -147,14 +147,13 @@ public class JsonStreamProcessor {
      * @param version         the version
      * @param compressionType the compression type
      * @param tag             the tag
-     * @param dtoList         the list to store DTOs
      * @param memory          the memory monitor
      * @return number of items stored
      * @throws IOException              if parsing fails
      * @throws NoSuchAlgorithmException if algorithm fails
      */
     private int processResourcesArray(JsonParser parser, String objectType, String version,
-                                      String compressionType, String tag, List<StoreDto> dtoList,
+                                      String compressionType, String tag,
                                       MemoryMonitor memory)
             throws IOException, NoSuchAlgorithmException {
         parser.nextToken(); // Move to START_ARRAY
