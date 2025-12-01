@@ -4,8 +4,6 @@ import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbBadRequestException;
 import lombok.Getter;
 
-import java.util.Objects;
-
 /**
  * GlobalTagWorkflowEnum class.
  */
@@ -38,7 +36,6 @@ public enum GlobalTagWorkflowEnum {
      * -- GETTER --
      *
      * @return the code
-
      */
     private final String code;
 
@@ -53,6 +50,7 @@ public enum GlobalTagWorkflowEnum {
 
     /**
      * Create a type from a code.
+     *
      * @param code the code.
      * @return the type.
      * @throws AbstractCdbServiceException if the code is unknown.
@@ -63,7 +61,8 @@ public enum GlobalTagWorkflowEnum {
         }
         try {
             return valueOf(code);
-        } catch (IllegalArgumentException e) {
+        }
+        catch (IllegalArgumentException e) {
             throw new CdbBadRequestException("Unknown type code: " + code);
         }
     }
