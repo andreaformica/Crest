@@ -6,6 +6,7 @@ import hep.crest.server.converters.CustomMapper;
 import hep.crest.server.converters.DateFormatterHandler;
 import hep.crest.server.converters.HashGenerator;
 import hep.crest.server.converters.PayloadHandler;
+import hep.crest.server.data.pojo.TagTimeTypeEnum;
 import hep.crest.server.data.utils.RunIovConverter;
 import hep.crest.server.serializers.ArgTimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,14 @@ public class ToolsTest {
         assertThat(ArgTimeUnit.valueOf("CUSTOM")).isEqualTo(ArgTimeUnit.CUSTOM);
         assertThat(ArgTimeUnit.valueOf("ISO")).isEqualTo(ArgTimeUnit.ISO);
     }
+
+    @Test
+    public void testTagTimeType() {
+        assertThat(TagTimeTypeEnum.fromCode("run")).isEqualTo(TagTimeTypeEnum.RUN);
+        assertThat(TagTimeTypeEnum.fromCode("run-lumi")).isEqualTo(TagTimeTypeEnum.RUNLUMI);
+        assertThat(TagTimeTypeEnum.fromCode("time")).isEqualTo(TagTimeTypeEnum.TIME);
+    }
+
 
     @Test
     public void testPageRequestHelper() {
