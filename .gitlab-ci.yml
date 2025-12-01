@@ -55,6 +55,7 @@ package_cern_application:
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     - if: $CI_COMMIT_BRANCH == 'master'
+    - if: $CI_COMMIT_BRANCH == 'develop'
 
 # Can be used to test packaging helm chart, before merging to master for instance
 #build_helm:
@@ -113,7 +114,14 @@ push_helm:
   variables:
     REGISTRY_CHART_PATH: registry.cern.ch/crest/charts
     PUSH_CHART: "true"
+  before_script:
+    - git fetch origin master
+    - |
+      if ! git branch --contains "$CI_COMMIT_SHA" | grep -q 'master'; then
+        echo "Tag $CI_COMMIT_TAG does not point to master, skipping push_helm"
+        exit 0
+      fi
   rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
+    - if: $CI_COMMIT_TAG
+      when: on_success
 
