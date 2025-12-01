@@ -22,6 +22,7 @@ include:
 stages:
  - package_application
  - build-sonar
+ - build-docker
  - push
 
 package_cern_application:
@@ -67,16 +68,19 @@ package_cern_application:
 
 build_container_job:
   environment: cern
-  stage: push
+  stage: build-docker
   extends: .build_kaniko
+  needs:
+    - job: package_cern_application
+      artifacts: true
   variables:
     REGISTRY_IMAGE_PATH : "registry.cern.ch/crest/$IMAGE:$VERSION"
     CONTEXT_DIR: ""
     PUSH_IMAGE: "true"
     DOCKER_FILE_NAME: "Dockerfile"
   rules:
-    - if: $DO_DOCKER_IMAGE == "yes" && $CI_PIPELINE_SOURCE != 'merge_request_event' && $SITE == "cern"
-    - if: $CI_COMMIT_BRANCH == 'master'
+    - if: $DO_DOCKER_IMAGE == "yes" && $SITE == "cern" && $CI_COMMIT_BRANCH == 'master'
+    - when: never
 
 build-sonar:
   stage: build-sonar
