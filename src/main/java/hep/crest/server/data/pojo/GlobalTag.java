@@ -2,6 +2,7 @@ package hep.crest.server.data.pojo;
 // Generated Aug 2, 2016 3:50:25 PM by Hibernate Tools 3.2.2.GA
 
 import hep.crest.server.config.DatabasePropertyConfigurator;
+import hep.crest.server.validation.NoWildcards;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -48,6 +49,7 @@ public class GlobalTag implements java.io.Serializable {
      */
     @Id
     @Column(name = "NAME", unique = true, nullable = false, length = 100)
+    @NoWildcards(message = "GlobalTag name can only contain alphanumeric characters, hyphens, and underscores")
     private String name;
     /**
      * The validity.
