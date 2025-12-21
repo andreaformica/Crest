@@ -627,4 +627,39 @@ public class TestCrestTags {
 
     }
 
+    @Test
+    public void testCreateGlobalTag_WrongName() {
+        log.info("=======> testCreateGlobalTag_WrongName ");
+        String gtagname = "A-CRESTTAG%-01"; // Contains % which is not allowed
+        GlobalTagDto dto = (GlobalTagDto) rnd.generate(GlobalTagDto.class);
+        dto.name(gtagname);
+        dto.type("T");
+        log.info("Store global tag : {} ", dto);
+        final ResponseEntity<Object> response = testRestTemplate
+                .postForEntity("/crestapi/globaltags", dto, Object.class);
+        log.info("Received response: {}", response);
+
+        // Assert that the request fails due to validation error
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        log.info("Successfully rejected GlobalTag with invalid name containing '%'");
+    }
+
+
+    @Test
+    public void testCreateTag_WrongName() {
+        log.info("=======> testCreateTag_WrongName ");
+        String tagname = "B-*CRESTTAG-01"; // Contains % which is not allowed
+        TagDto dto = (TagDto) rnd.generate(TagDto.class);
+        dto.name(tagname);
+        dto.status(TagDto.StatusEnum.UNLOCKED);
+        dto.synchronization(TagDto.SynchronizationEnum.ALL);
+        log.info("Store tag : {} ", dto);
+        final ResponseEntity<Object> response = testRestTemplate
+                .postForEntity("/crestapi/tags", dto, Object.class);
+        log.info("Received response: {}", response);
+
+        // Assert that the request fails due to validation error
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        log.info("Successfully rejected Tag with invalid name containing '*'");
+    }
 }
