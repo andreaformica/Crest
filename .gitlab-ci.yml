@@ -18,10 +18,12 @@ include:
   - project : 'atlas-devops/ci-templates'
     file : 'helm/helm.yml'
     ref: main
-
+  - project: "atlas-devops/ci-templates"
+    ref: main
+    file: "sonarqube/sonarqube.yml"
 stages:
  - package_application
- - build-sonar
+ - sonar
  - build-docker
  - push
 
@@ -80,35 +82,8 @@ build_container_job:
     - if: $DO_DOCKER_IMAGE == "yes" && $SITE == "cern" && $CI_COMMIT_BRANCH == 'master'
     - when: never
 
-build-sonar:
-  stage: build-sonar
-  image:
-    name: sonarsource/sonar-scanner-cli:11
-    entrypoint: [""]
-  needs:
-    - job: package_cern_application
-      artifacts: true
-  variables:
-    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
-    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
-  cache:
-    policy: pull-push
-    key: "sonar-cache-$CI_COMMIT_REF_SLUG"
-    paths:
-      - "${SONAR_USER_HOME}/cache"
-  script:
-    - sonar-scanner -X
-      -Dsonar.host.url="${SONAR_HOST_URL}"
-      -Dproject.settings=${CI_PROJECT_DIR}/sonar-project.properties
-      -Dsonar.projectKey="${CI_PROJECT_NAME}"
-      -Dsonar.projectName="${CI_PROJECT_NAME}"
-      -Dsonar.token="${SONAR_TOKEN}"
-      -Dsonar.qualitygate.timeout=300
-  allow_failure: true
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
-    - if: $CI_COMMIT_BRANCH == 'develop'
+sonarqube:
+  extends: .sonarqube
 
 push_helm:
   extends: .deploy_helm
