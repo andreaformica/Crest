@@ -93,7 +93,7 @@ public class IovSynchroAspect {
     public Object checkSynchro(ProceedingJoinPoint pjp, Iov entity) throws Throwable {
         log.debug("Iov insertion should verify the tag synchronization type : {}", entity);
 
-        Boolean allowedOperation = checkUserAuthorization(entity);
+        boolean allowedOperation = checkUserAuthorization(entity);
         boolean acceptTime = checkSynchronizationCondition(entity, allowedOperation);
 
         if (acceptTime && allowedOperation) {

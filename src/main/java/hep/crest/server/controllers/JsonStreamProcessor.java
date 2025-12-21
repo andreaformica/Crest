@@ -240,7 +240,10 @@ public class JsonStreamProcessor {
                 factory.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
                 factory.configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true);
             }
-            catch (Exception ignored) {
+            catch (Exception e1) {
+                // Ignore if not supported, just log
+                log.warn("Could not set advanced JsonFactory configurations: {}",
+                        e1.getMessage());
             }
         }
         return factory;

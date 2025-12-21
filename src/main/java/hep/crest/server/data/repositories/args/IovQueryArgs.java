@@ -47,7 +47,7 @@ public class IovQueryArgs implements Serializable {
      * @return Boolean (True means the argument are wrong).
      */
     public boolean checkArgsNull(String method) {
-        Boolean status = Boolean.TRUE;
+        boolean status = Boolean.TRUE;
         if (method != null && !method.equalsIgnoreCase("MONITOR") && (
                 tagName == null || tagName.contains("%"))) {
             return status;
