@@ -54,6 +54,12 @@ public class ExceptionsTests {
                 null);
         assertThat(badr.getResponseStatus()).isEqualTo(Response.Status.NOT_ACCEPTABLE);
         assertThat(badr.getMessage()).contains("Encoding");
+
+        PayloadEncodingException pyld = new PayloadEncodingException("Some error in payload");
+        assertThat(pyld.getType()).isEqualTo("ENCODING_ERROR");
+
+        PayloadEncodingException pyldthrow = new PayloadEncodingException(new RuntimeException("root cause"));
+        assertThat(pyldthrow.getType()).isEqualTo("ENCODING_ERROR");
     }
 
     @Test
