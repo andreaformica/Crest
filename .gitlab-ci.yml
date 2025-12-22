@@ -1,7 +1,7 @@
 
 variables:
     IMAGE: crest21-service
-    VERSION: '6.2'
+    VERSION: "6.2.1"
     GRADLE_OPTS: "-Dorg.gradle.daemon=false"
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
     GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task

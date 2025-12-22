@@ -10,7 +10,7 @@ plugins {
 }
 
 group = 'hep.crest'
-version = '6.2.0'
+version = "6.2.1"
 
 java {
 	toolchain {
