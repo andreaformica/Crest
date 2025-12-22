@@ -2,9 +2,12 @@ package hep.crest.server;
 
 
 import hep.crest.server.caching.CachingProperties;
+import hep.crest.server.data.pojo.Iov;
+import hep.crest.server.data.pojo.IovId;
 import hep.crest.server.data.pojo.Payload;
 import hep.crest.server.data.pojo.PayloadInfoData;
 import hep.crest.server.data.pojo.Tag;
+import hep.crest.server.data.repositories.IovRepository;
 import hep.crest.server.data.repositories.PayloadInfoDataRepository;
 import hep.crest.server.data.repositories.PayloadRepository;
 import hep.crest.server.exceptions.CdbInternalException;
@@ -20,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,6 +49,9 @@ public class ServiceTests {
 
     @Autowired
     private PayloadInfoDataRepository payloadInfoDataRepository;
+
+    @Autowired
+    private IovRepository iovRepository;
 
     @Autowired
     private CachingProperties cprops;
@@ -200,5 +207,130 @@ public class ServiceTests {
 
         // Verify it's gone
         assertThat(payloadRepository.findById(testHash)).isEmpty();
+    }
+
+    @Test
+    public void testRemovePayloadWithIovInAnotherTag() throws Exception {
+        log.info("=======> testRemovePayloadWithIovInAnotherTag");
+
+        // Create two tags
+        String tag1Name = "ServiceTests-Tag-Remove-1-" + System.currentTimeMillis();
+        String tag2Name = "ServiceTests-Tag-Remove-2-" + System.currentTimeMillis();
+
+        Tag tag1 = new Tag();
+        tag1.setName(tag1Name);
+        tag1.setDescription("Test tag 1 for remove payload test");
+        tag1.setTimeType("time");
+        tag1.setObjectType("test");
+        tag1.setSynchronization("all");
+        tagService.insertTag(tag1);
+
+        Tag tag2 = new Tag();
+        tag2.setName(tag2Name);
+        tag2.setDescription("Test tag 2 for remove payload test");
+        tag2.setTimeType("time");
+        tag2.setObjectType("test");
+        tag2.setSynchronization("all");
+        tagService.insertTag(tag2);
+
+        // Create a payload
+        String testHash = "test-shared-hash-" + System.currentTimeMillis();
+
+        Payload payload = new Payload();
+        payload.setHash(testHash);
+        payload.setObjectType("test");
+        payload.setVersion("1.0");
+        payload.setCompressionType("none");
+        payload.setSize(100);
+        payloadRepository.save(payload);
+
+        // Create IOV in tag1 with this hash
+        Iov iov1 = new Iov();
+        IovId iovId1 = new IovId();
+        iovId1.setTagName(tag1Name);
+        iovId1.setSince(BigInteger.valueOf(1000L));
+        iov1.setId(iovId1);
+        iov1.setTag(tag1);
+        iov1.setPayloadHash(testHash);
+        iovService.insertIov(iov1);
+
+        // Create IOV in tag2 with the SAME hash
+        Iov iov2 = new Iov();
+        IovId iovId2 = new IovId();
+        iovId2.setTagName(tag2Name);
+        iovId2.setSince(BigInteger.valueOf(2000L));
+        iov2.setId(iovId2);
+        iov2.setTag(tag2);
+        iov2.setPayloadHash(testHash);
+        iovService.insertIov(iov2);
+
+        log.info("Created payload {} with IOVs in tags {} and {}", testHash, tag1Name, tag2Name);
+
+        // Try to remove payload for tag1 - should NOT remove because tag2 still uses it
+        String result = payloadService.removePayload(tag1Name, testHash, false);
+
+        log.info("Remove payload result (should be hash, not 'removed'): {}", result);
+
+        // The payload should NOT be removed - result should be the hash, not "removed"
+        assertThat(result).isEqualTo(testHash);
+
+        // Verify payload still exists
+        assertThat(payloadRepository.findById(testHash)).isPresent();
+        log.info("Payload {} still exists as expected (used by another tag)", testHash);
+    }
+
+    @Test
+    public void testRemovePayloadWithIovInSameTagOnly() throws Exception {
+        log.info("=======> testRemovePayloadWithIovInSameTagOnly");
+
+        // Create a tag
+        String tagName = "ServiceTests-Tag-Remove-Same-" + System.currentTimeMillis();
+
+        Tag tag = new Tag();
+        tag.setName(tagName);
+        tag.setDescription("Test tag for remove payload test");
+        tag.setTimeType("time");
+        tag.setObjectType("test");
+        tag.setSynchronization("all");
+        tagService.insertTag(tag);
+
+        // Create a payload
+        String testHash = "test-single-tag-hash-" + System.currentTimeMillis();
+
+        Payload payload = new Payload();
+        payload.setHash(testHash);
+        payload.setObjectType("test");
+        payload.setVersion("1.0");
+        payload.setCompressionType("none");
+        payload.setSize(100);
+        payloadRepository.save(payload);
+
+        // Create IOV in the same tag with this hash
+        Iov iov = new Iov();
+        IovId iovId = new IovId();
+        iovId.setTagName(tagName);
+        iovId.setSince(BigInteger.valueOf(1000L));
+        iov.setId(iovId);
+        iov.setTag(tag);
+        iov.setPayloadHash(testHash);
+        iovService.insertIov(iov);
+
+        log.info("Created payload {} with IOV in tag {}", testHash, tagName);
+
+        // First remove the IOV using the repository
+        iovRepository.deleteByTagNameAndHash(tagName, testHash);
+        log.info("Removed IOV from tag {}", tagName);
+
+        // Now remove payload for this tag - should succeed because no other tag uses it
+        String result = payloadService.removePayload(tagName, testHash, false);
+
+        log.info("Remove payload result (should be 'removed'): {}", result);
+
+        // The payload should be removed
+        assertThat(result).isEqualTo("removed");
+
+        // Verify payload is gone
+        assertThat(payloadRepository.findById(testHash)).isEmpty();
+        log.info("Payload {} removed successfully", testHash);
     }
 }
