@@ -196,7 +196,8 @@ public class TestCrestGlobalTag {
         }
 
         final ResponseEntity<String> resp2 = this.testRestTemplate
-                .exchange("/crestapi/globaltags?name=A-TEST-GT%", HttpMethod.GET, null,
+                .exchange("/crestapi/globaltags?name=A-TEST-GT%&sort=name:DESC", HttpMethod.GET,
+                        null,
                         String.class);
         {
             log.info("Retrieved global tag list " + resp2.getBody());
@@ -321,6 +322,95 @@ public class TestCrestGlobalTag {
         log.info("Delete global tag after removing mapping response: {}", deleteResp2.getBody());
         // Accept both OK (if mappings were removed) or CONFLICT (if mappings still exist)
         assertThat(deleteResp2.getStatusCode()).isIn(HttpStatus.OK, HttpStatus.CONFLICT);
+    }
+
+    @Test
+    public void testG_getGlobalTagByNameFetchTagsWithRecordAndLabel() throws Exception {
+        log.info("=======> testG_getGlobalTagByNameFetchTagsWithRecordAndLabel ");
+
+        // Create a global tag
+        initialize("A-TEST-GT-FETCH");
+
+        // Create tags to associate with the global tag
+        hep.crest.server.swagger.model.TagDto tagDto1 =
+                (hep.crest.server.swagger.model.TagDto) rnd.generate(
+                        hep.crest.server.swagger.model.TagDto.class);
+        tagDto1.name("A-TEST-TAG-FETCH-1");
+        tagDto1.synchronization(hep.crest.server.swagger.model.TagDto.SynchronizationEnum.ALL);
+        tagDto1.status(hep.crest.server.swagger.model.TagDto.StatusEnum.UNLOCKED);
+        final ResponseEntity<String> tagResp1 = this.testRestTemplate
+                .postForEntity("/crestapi/tags", tagDto1, String.class);
+        log.info("Create tag 1 response: {}", tagResp1.getBody());
+        assertThat(tagResp1.getStatusCode()).isIn(HttpStatus.CREATED, HttpStatus.CONFLICT);
+
+        hep.crest.server.swagger.model.TagDto tagDto2 =
+                (hep.crest.server.swagger.model.TagDto) rnd.generate(
+                        hep.crest.server.swagger.model.TagDto.class);
+        tagDto2.name("A-TEST-TAG-FETCH-2");
+        tagDto2.synchronization(hep.crest.server.swagger.model.TagDto.SynchronizationEnum.ALL);
+        tagDto2.status(hep.crest.server.swagger.model.TagDto.StatusEnum.UNLOCKED);
+        final ResponseEntity<String> tagResp2 = this.testRestTemplate
+                .postForEntity("/crestapi/tags", tagDto2, String.class);
+        log.info("Create tag 2 response: {}", tagResp2.getBody());
+        assertThat(tagResp2.getStatusCode()).isIn(HttpStatus.CREATED, HttpStatus.CONFLICT);
+
+        // Create mappings with different record and label values
+        hep.crest.server.swagger.model.GlobalTagMapDto mapDto1 =
+                new hep.crest.server.swagger.model.GlobalTagMapDto();
+        mapDto1.globalTagName("A-TEST-GT-FETCH");
+        mapDto1.tagName("A-TEST-TAG-FETCH-1");
+        mapDto1.record("record-A");
+        mapDto1.label("label-X");
+        final ResponseEntity<String> mapResp1 = this.testRestTemplate
+                .postForEntity("/crestapi/globaltagmaps", mapDto1, String.class);
+        log.info("Create mapping 1 response: {}", mapResp1.getBody());
+        assertThat(mapResp1.getStatusCode()).isIn(HttpStatus.CREATED, HttpStatus.CONFLICT);
+
+        hep.crest.server.swagger.model.GlobalTagMapDto mapDto2 =
+                new hep.crest.server.swagger.model.GlobalTagMapDto();
+        mapDto2.globalTagName("A-TEST-GT-FETCH");
+        mapDto2.tagName("A-TEST-TAG-FETCH-2");
+        mapDto2.record("record-B");
+        mapDto2.label("label-Y");
+        final ResponseEntity<String> mapResp2 = this.testRestTemplate
+                .postForEntity("/crestapi/globaltagmaps", mapDto2, String.class);
+        log.info("Create mapping 2 response: {}", mapResp2.getBody());
+        assertThat(mapResp2.getStatusCode()).isIn(HttpStatus.CREATED, HttpStatus.CONFLICT);
+
+        // Test fetching tags with specific record filter
+        final ResponseEntity<String> fetchByRecord = this.testRestTemplate.exchange(
+                "/crestapi/globaltags/A-TEST-GT-FETCH/tags?record=record-A",
+                HttpMethod.GET, null, String.class);
+        log.info("Fetch by record response: {}", fetchByRecord.getBody());
+        assertThat(fetchByRecord.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        // Test fetching tags with specific label filter
+        final ResponseEntity<String> fetchByLabel = this.testRestTemplate.exchange(
+                "/crestapi/globaltags/A-TEST-GT-FETCH/tags?label=label-Y",
+                HttpMethod.GET, null, String.class);
+        log.info("Fetch by label response: {}", fetchByLabel.getBody());
+        assertThat(fetchByLabel.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        // Test fetching tags with both record and label filters
+        final ResponseEntity<String> fetchByBoth = this.testRestTemplate.exchange(
+                "/crestapi/globaltags/A-TEST-GT-FETCH/tags?record=record-A&label=label-X",
+                HttpMethod.GET, null, String.class);
+        log.info("Fetch by record and label response: {}", fetchByBoth.getBody());
+        assertThat(fetchByBoth.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        // Test fetching tags with "none" values (should return all tags)
+        final ResponseEntity<String> fetchWithNone = this.testRestTemplate.exchange(
+                "/crestapi/globaltags/A-TEST-GT-FETCH/tags?record=none&label=none",
+                HttpMethod.GET, null, String.class);
+        log.info("Fetch with none values response: {}", fetchWithNone.getBody());
+        assertThat(fetchWithNone.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        // Test fetching all tags without filters
+        final ResponseEntity<String> fetchAll = this.testRestTemplate.exchange(
+                "/crestapi/globaltags/A-TEST-GT-FETCH/tags",
+                HttpMethod.GET, null, String.class);
+        log.info("Fetch all tags response: {}", fetchAll.getBody());
+        assertThat(fetchAll.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
 }
