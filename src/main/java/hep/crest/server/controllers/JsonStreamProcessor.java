@@ -224,7 +224,7 @@ public class JsonStreamProcessor {
             factory.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
             factory.setStreamReadConstraints(
                     StreamReadConstraints.builder()
-                            .maxStringLength(300_000_000) // 100MB
+                            .maxStringLength(300_000_000) // 300MB
                             .maxNestingDepth(2000)
                             .build()
             );

@@ -16,7 +16,7 @@ spring:
       servlet:
         load-on-startup: 1
       multipart:
-        max-file-size: 100MB
+        max-file-size: 1GB
         max-request-size: 1GB
     datasource:
       main:
