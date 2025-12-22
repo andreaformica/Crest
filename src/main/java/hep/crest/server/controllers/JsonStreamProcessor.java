@@ -255,7 +255,7 @@ public class JsonStreamProcessor {
         try {
             // 2. Validate parser state
             if (!parser.hasCurrentToken() || parser.currentToken() != JsonToken.START_OBJECT) {
-                throw new IOException("Invalid parser state. Expected START_OBJECT, found: "
+                throw new JsonParseException(parser, "Invalid parser state. Expected START_OBJECT, found: "
                         + (parser.hasCurrentToken() ? parser.currentToken() : "NO_TOKEN"));
             }
 
@@ -268,7 +268,7 @@ public class JsonStreamProcessor {
             memory.logFinalUsage();
         }
         catch (JsonParseException e) {
-            throw new IOException("JSON parsing failed : ", e);
+            throw new IOException("JSON parsing failed: " + e.getMessage(), e);
         }
     }
 }
