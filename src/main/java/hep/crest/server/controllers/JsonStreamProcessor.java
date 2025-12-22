@@ -92,7 +92,6 @@ public class JsonStreamProcessor {
             if (token == JsonToken.START_OBJECT) {
                 break;
             }
-            log.trace("Skipping token: {}", token);
         }
     }
 
@@ -213,35 +212,26 @@ public class JsonStreamProcessor {
     /**
      * Helper method to configure JsonFactory.
      * This method sets size limits and other configurations.
+     * Package-private for testability.
      *
      * @param factory JsonFactory to configure
      * @return Configured JsonFactory
      */
-    private JsonFactory configureJsonFactory(JsonFactory factory) {
+    protected JsonFactory configureJsonFactory(JsonFactory factory) {
         // For Jackson 2.18+ (with StreamReadConstraints)
         try {
             factory.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
             factory.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
             factory.setStreamReadConstraints(
                     StreamReadConstraints.builder()
-                            .maxStringLength(300_000_000) // 100MB
+                            .maxStringLength(300_000_000) // 300MB
                             .maxNestingDepth(2000)
                             .build()
             );
         }
         catch (Exception e) {
-            // Fallback for older Jackson versions
-            factory.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
-            factory.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
-
-            // Alternative size limits for older versions
-            try {
-                factory.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
-                factory.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
-                factory.configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true);
-            }
-            catch (Exception ignored) {
-            }
+            log.error("Cannot configure JsonFactory: ", e);
+            throw new CdbInternalException("Cannot configure JsonFactory", e);
         }
         return factory;
     }
@@ -266,7 +256,7 @@ public class JsonStreamProcessor {
         try {
             // 2. Validate parser state
             if (!parser.hasCurrentToken() || parser.currentToken() != JsonToken.START_OBJECT) {
-                throw new IOException("Invalid parser state. Expected START_OBJECT, found: "
+                throw new JsonParseException(parser, "Invalid parser state. Expected START_OBJECT, found: "
                         + (parser.hasCurrentToken() ? parser.currentToken() : "NO_TOKEN"));
             }
 
@@ -279,7 +269,7 @@ public class JsonStreamProcessor {
             memory.logFinalUsage();
         }
         catch (JsonParseException e) {
-            throw new IOException("JSON parsing failed : ", e);
+            throw new IOException("JSON parsing failed: " + e.getMessage(), e);
         }
     }
 }

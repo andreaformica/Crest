@@ -10,12 +10,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.CacheControl;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 import java.time.OffsetDateTime;
+import java.util.stream.Collectors;
 
 /**
  * Exception handler.
@@ -82,6 +85,21 @@ public class JerseyExceptionHandler implements ExceptionMapper<Exception> {
                     .message(e.getMessage());
             // Set the response and the cachecontrol.
             return Response.status(e.getResponseStatus()).cacheControl(cc).entity(resp).build();
+        }
+        // If exception is a ConstraintViolationException (Bean Validation)
+        if (exception instanceof ConstraintViolationException e) {
+            log.debug("Instance of ConstraintViolationException...generate HTTPResponse for validation error");
+            // Bean Validation exceptions
+            String validationMessages = e.getConstraintViolations().stream()
+                    .map(ConstraintViolation::getMessage)
+                    .collect(Collectors.joining("; "));
+            HTTPResponse resp = new HTTPResponse().timestamp(OffsetDateTime.now())
+                    .code(Response.Status.BAD_REQUEST.getStatusCode())
+                    .error(Response.Status.BAD_REQUEST.getReasonPhrase())
+                    .type("VALIDATION_ERROR")
+                    .message("Validation failed: " + validationMessages);
+            // Set the response and the cachecontrol.
+            return Response.status(Response.Status.BAD_REQUEST).cacheControl(cc).entity(resp).build();
         }
         // If exception is a DataIntegrityViolationException exception
         if (exception instanceof DataIntegrityViolationException) {

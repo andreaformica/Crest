@@ -40,6 +40,21 @@ public class SecurityConfig {
      * Properties.
      */
     private CrestProperties cprops;
+    /**
+     * Define list of roles as static strings.
+     */
+    /**
+     * Admin role.
+     */
+    private static final String ROLE_CREST_ADMIN = "crest-admin";
+    /**
+     * Expert role.
+     */
+    private static final String ROLE_CREST_EXPERT = "crest-expert";
+    /**
+     * Trigger role.
+     */
+    private static final String ROLE_CREST_TRIGGER = "crest-trigger";
 
     /**
      * Ctor with injected properties.
@@ -60,14 +75,14 @@ public class SecurityConfig {
             log.info("Security is active for this server....");
             http.csrf(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(auth ->
-                            auth.requestMatchers("/admin/**").hasRole("crest-admin")
-                            .requestMatchers("/folders/**").hasRole("crest-admin")
-                            .requestMatchers("/globaltags/**").hasRole("crest-expert")
-                            .requestMatchers("/globaltagmaps/**").hasRole("crest-expert")
-                            .requestMatchers("/runinfo/**").hasRole("crest-trigger")
-                            .requestMatchers("/tags/**").hasRole("crest-expert")
-                            .requestMatchers("/iovs/**").hasRole("crest-expert")
-                            .requestMatchers("/payloads/**").hasRole("crest-expert")
+                            auth.requestMatchers("/admin/**").hasRole(ROLE_CREST_ADMIN)
+                            .requestMatchers("/folders/**").hasRole(ROLE_CREST_ADMIN)
+                            .requestMatchers("/globaltags/**").hasRole(ROLE_CREST_EXPERT)
+                            .requestMatchers("/globaltagmaps/**").hasRole(ROLE_CREST_EXPERT)
+                            .requestMatchers("/runinfo/**").hasRole(ROLE_CREST_TRIGGER)
+                            .requestMatchers("/tags/**").hasRole(ROLE_CREST_EXPERT)
+                            .requestMatchers("/iovs/**").hasRole(ROLE_CREST_EXPERT)
+                            .requestMatchers("/payloads/**").hasRole(ROLE_CREST_EXPERT)
                             .requestMatchers(HttpMethod.GET, "/**").permitAll()
                             .anyRequest().authenticated()
                     )

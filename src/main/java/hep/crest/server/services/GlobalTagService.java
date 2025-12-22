@@ -1,6 +1,3 @@
-/**
- *
- */
 package hep.crest.server.services;
 
 import hep.crest.server.controllers.PageRequestHelper;
@@ -19,8 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +29,7 @@ import java.util.Optional;
  */
 @Service
 @Slf4j
+@Validated
 public class GlobalTagService {
     /**
      * Repository.
@@ -127,7 +127,7 @@ public class GlobalTagService {
      * @throws AbstractCdbServiceException If an Exception occurred because pojo exists
      */
     @Transactional
-    public GlobalTag insertGlobalTag(GlobalTag entity) throws ConflictException {
+    public GlobalTag insertGlobalTag(@Valid GlobalTag entity) throws ConflictException {
         log.debug("Create GlobalTag from {}", entity);
         final Optional<GlobalTag> tmpgt = globalTagRepository.findById(entity.getName());
         if (tmpgt.isPresent()) {
@@ -146,12 +146,11 @@ public class GlobalTagService {
      * @throws AbstractCdbServiceException If object was not found
      */
     @Transactional
-    public GlobalTag updateGlobalTag(GlobalTag entity) throws AbstractCdbServiceException {
+    public GlobalTag updateGlobalTag(@Valid GlobalTag entity) throws AbstractCdbServiceException {
         log.debug("Update GlobalTag from {}", entity);
-        final GlobalTag toupd =
-                globalTagRepository.findById(entity.getName()).orElseThrow(
-                        () -> new CdbNotFoundException(
-                                "GlobalTag does not exists for name " + entity.getName()));
+        GlobalTag toupd = globalTagRepository.findById(entity.getName())
+                .orElseThrow(() -> new CdbNotFoundException(
+                        "Cannot update global tag " + entity.getName() + ": not found"));
         char type = entity.getType();
         GlobalTagTypeEnum.fromCode(type);
         toupd.setDescription(entity.getDescription()).setRelease(entity.getRelease())

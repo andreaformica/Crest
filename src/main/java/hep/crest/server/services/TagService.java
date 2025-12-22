@@ -18,6 +18,7 @@ import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.ConflictException;
 import hep.crest.server.swagger.model.TagDto;
+import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import hep.crest.server.config.CacheConfig;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * @author rsipos
@@ -47,6 +49,7 @@ import hep.crest.server.config.CacheConfig;
 @Service
 @Slf4j
 @Getter
+@Validated
 public class TagService {
     /**
      * Repository.
@@ -211,7 +214,7 @@ public class TagService {
      * @throws ConflictException If an Exception occurred because pojo exists
      */
     @Transactional
-    public Tag insertTag(Tag entity) throws ConflictException {
+    public Tag insertTag(@Valid Tag entity) throws ConflictException {
         log.debug("Create Tag from {}", entity);
         final Optional<Tag> tmpt = tagRepository.findById(entity.getName());
         if (tmpt.isPresent()) {
@@ -233,7 +236,7 @@ public class TagService {
      */
     @CacheEvict(value = CacheConfig.TAG_CACHE, key = "#entity.getName()")
     @Transactional
-    public Tag updateTag(Tag entity) throws AbstractCdbServiceException {
+    public Tag updateTag(@Valid Tag entity) throws AbstractCdbServiceException {
         log.debug("Update tag from dto {}", entity);
         try {
             final Tag toupd = tagRepository.findById(entity.getName()).orElseThrow(

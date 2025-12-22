@@ -3,6 +3,7 @@ package hep.crest.server.data.pojo;
 
 import hep.crest.server.config.DatabasePropertyConfigurator;
 import hep.crest.server.swagger.model.TagDto;
+import hep.crest.server.validation.NoWildcards;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -48,6 +49,7 @@ public class Tag implements java.io.Serializable {
      */
     @Id
     @Column(name = "NAME", unique = true, nullable = false, length = 255)
+    @NoWildcards(message = "Tag name can only contain alphanumeric characters, hyphens, and underscores")
     private String name;
     /**
      * The time type.

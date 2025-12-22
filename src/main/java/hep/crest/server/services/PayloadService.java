@@ -524,6 +524,13 @@ public class PayloadService {
                                    String compressionType, String tag)
             throws AbstractCdbServiceException, NoSuchAlgorithmException, IOException {
         log.debug("Create iov and payload for time {}", dto.getSince());
+        // Validate required fields
+        if (dto.getStreamerInfo() == null) {
+            throw new CdbBadRequestException("streamerInfo is required and cannot be null");
+        }
+        if (dto.getData() == null) {
+            throw new CdbBadRequestException("data is required and cannot be null");
+        }
         // Here we generate objectType and version. We should probably allow for input
         // arguments.
         // Start filling the payload data.
