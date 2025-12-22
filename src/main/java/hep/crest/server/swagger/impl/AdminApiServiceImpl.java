@@ -126,36 +126,26 @@ public class AdminApiServiceImpl extends AdminApiService {
     @Override
     public Response updateGlobalTag(String name, GlobalTagDto body, SecurityContext securityContext) {
         log.info("AdminRestController processing request for updating global tag {} using {}", name, body);
-        // Update the global tag identified by name. Set the type to N (normal).
+        // Update the global tag identified by name.
         String te = body.getType();
         GlobalTagTypeEnum typeEnum = (te != null) ?
-                GlobalTagTypeEnum.fromCode(te.toString().charAt(0)) : GlobalTagTypeEnum.NONE;
+                GlobalTagTypeEnum.fromCode(te.charAt(0)) : GlobalTagTypeEnum.NONE;
         final char type = typeEnum.getCode();
 
-        // Find the global tag corresponding to input name.
-        final GlobalTag entity = globalTagService.findOne(name);
+        // Prepare the entity with values from the DTO.
+        // The service will retrieve the existing entity and update it.
+        GlobalTag entity = new GlobalTag();
+        entity.setName(name);
+        entity.setDescription(body.getDescription());
+        entity.setRelease(body.getRelease());
+        entity.setWorkflow(body.getWorkflow());
+        entity.setScenario(body.getScenario());
+        entity.setSnapshotTime(body.getSnapshotTime() != null ?
+                java.util.Date.from(body.getSnapshotTime().toInstant()) : null);
+        entity.setValidity(body.getValidity() != null ?
+                java.math.BigDecimal.valueOf(body.getValidity()) : null);
+        entity.setType(type);
 
-        // Compare fields to set them from the input body object provided by the client.
-        if (!entity.getDescription().equals(body.getDescription())) {
-            // change description.
-            entity.setDescription(body.getDescription());
-        }
-        if (!entity.getRelease().equals(body.getRelease())) {
-            // change release.
-            entity.setRelease(body.getRelease());
-        }
-        if (!entity.getWorkflow().equals(body.getWorkflow())) {
-            // change workflow.
-            entity.setWorkflow(body.getWorkflow());
-        }
-        if (!entity.getScenario().equals(body.getScenario())) {
-            // change scenario.
-            entity.setScenario(body.getScenario());
-        }
-        if (entity.getType() != type) {
-            // change type.
-            entity.setType(type);
-        }
         // Update the global tag.
         final GlobalTag saved = globalTagService.updateGlobalTag(entity);
         final GlobalTagDto dto = mapper.toDto(saved);

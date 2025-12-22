@@ -148,10 +148,9 @@ public class GlobalTagService {
     @Transactional
     public GlobalTag updateGlobalTag(@Valid GlobalTag entity) throws AbstractCdbServiceException {
         log.debug("Update GlobalTag from {}", entity);
-        final GlobalTag toupd =
-                globalTagRepository.findById(entity.getName()).orElseThrow(
-                        () -> new CdbNotFoundException(
-                                "GlobalTag does not exists for name " + entity.getName()));
+        GlobalTag toupd = globalTagRepository.findById(entity.getName())
+                .orElseThrow(() -> new CdbNotFoundException(
+                        "Cannot update global tag " + entity.getName() + ": not found"));
         char type = entity.getType();
         GlobalTagTypeEnum.fromCode(type);
         toupd.setDescription(entity.getDescription()).setRelease(entity.getRelease())
