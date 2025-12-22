@@ -1,8 +1,10 @@
 package hep.crest.server.controllers;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hep.crest.server.exceptions.CdbInternalException;
 import hep.crest.server.services.IovService;
 import hep.crest.server.services.PayloadService;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +18,9 @@ import org.springframework.test.context.ContextConfiguration;
 
 import java.io.IOException;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -167,6 +171,46 @@ public class TestJsonStreamProcessorProcessData {
         ).isInstanceOf(IOException.class)
          .hasMessageContaining("JSON parsing failed")
          .hasMessageContaining("VALUE_STRING");
+    }
+
+    /**
+     * Test that configureJsonFactory throws CdbInternalException when configuration fails.
+     */
+    @Test
+    public void testConfigureJsonFactoryThrowsException() {
+        log.info("=======> testConfigureJsonFactoryThrowsException ");
+
+        // Create a mock JsonFactory that throws an exception when configured
+        JsonFactory mockFactory = mock(JsonFactory.class);
+        when(mockFactory.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false))
+                .thenThrow(new RuntimeException("Configuration failed"));
+
+        JsonStreamProcessor processor = new JsonStreamProcessor(payloadService, iovService, mapper);
+
+        // Expect CdbInternalException when configureJsonFactory fails
+        assertThatThrownBy(() ->
+            processor.configureJsonFactory(mockFactory)
+        ).isInstanceOf(CdbInternalException.class)
+         .hasMessageContaining("Cannot configure JsonFactory");
+    }
+
+    /**
+     * Test that configureJsonFactory succeeds with a valid JsonFactory.
+     */
+    @Test
+    public void testConfigureJsonFactorySuccess() {
+        log.info("=======> testConfigureJsonFactorySuccess ");
+
+        // Use a real JsonFactory
+        JsonFactory realFactory = new JsonFactory();
+
+        JsonStreamProcessor processor = new JsonStreamProcessor(payloadService, iovService, mapper);
+
+        // Should not throw and return the configured factory
+        JsonFactory result = processor.configureJsonFactory(realFactory);
+
+        assertThat(result).isNotNull();
+        assertThat(result).isSameAs(realFactory);
     }
 }
 

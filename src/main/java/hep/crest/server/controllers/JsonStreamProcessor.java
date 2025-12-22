@@ -212,11 +212,12 @@ public class JsonStreamProcessor {
     /**
      * Helper method to configure JsonFactory.
      * This method sets size limits and other configurations.
+     * Package-private for testability.
      *
      * @param factory JsonFactory to configure
      * @return Configured JsonFactory
      */
-    private JsonFactory configureJsonFactory(JsonFactory factory) {
+    protected JsonFactory configureJsonFactory(JsonFactory factory) {
         // For Jackson 2.18+ (with StreamReadConstraints)
         try {
             factory.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
