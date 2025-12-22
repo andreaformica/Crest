@@ -1,5 +1,7 @@
 package hep.crest.server;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hep.crest.server.controllers.JsonStreamProcessor;
 import hep.crest.server.exceptions.CdbBadRequestException;
@@ -24,10 +26,14 @@ import org.springframework.test.context.ContextConfiguration;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -423,6 +429,117 @@ public class TestJsonStreamProcessor {
         ByteArrayInputStream byteArrayInputStream =
                 new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         return new BufferedInputStream(byteArrayInputStream);
+    }
+
+    /**
+     * Test that processData throws IOException when parser has no current token.
+     * We use a testable subclass to access the protected method.
+     */
+    @Test
+    public void testProcessDataWithNoCurrentToken() {
+        log.info("=======> testProcessDataWithNoCurrentToken ");
+
+        // Create a mock JsonParser that has no current token
+        JsonParser mockParser = mock(JsonParser.class);
+        when(mockParser.hasCurrentToken()).thenReturn(false);
+
+        // Create a testable subclass to access the protected method
+        TestableJsonStreamProcessor testableProcessor = new TestableJsonStreamProcessor(
+                payloadService, iovService, mapper);
+
+        // Expect IOException wrapped due to invalid parser state
+        assertThatThrownBy(() ->
+            testableProcessor.callProcessData(mockParser, "testType", "1.0", "none", TEST_TAG_NAME)
+        ).isInstanceOf(IOException.class)
+         .hasMessageContaining("Invalid parser state")
+         .hasMessageContaining("NO_TOKEN");
+    }
+
+    /**
+     * Test that processData throws IOException when parser token is not START_OBJECT.
+     */
+    @Test
+    public void testProcessDataWithWrongTokenType() {
+        log.info("=======> testProcessDataWithWrongTokenType ");
+
+        // Create a mock JsonParser that has a wrong token type
+        JsonParser mockParser = mock(JsonParser.class);
+        when(mockParser.hasCurrentToken()).thenReturn(true);
+        when(mockParser.currentToken()).thenReturn(JsonToken.START_ARRAY);
+
+        TestableJsonStreamProcessor testableProcessor = new TestableJsonStreamProcessor(
+                payloadService, iovService, mapper);
+
+        // Expect IOException due to wrong token type
+        assertThatThrownBy(() ->
+            testableProcessor.callProcessData(mockParser, "testType", "1.0", "none", TEST_TAG_NAME)
+        ).isInstanceOf(IOException.class)
+         .hasMessageContaining("Invalid parser state")
+         .hasMessageContaining("Expected START_OBJECT")
+         .hasMessageContaining("START_ARRAY");
+    }
+
+    /**
+     * Test that processData throws IOException when parser token is VALUE_NULL.
+     */
+    @Test
+    public void testProcessDataWithNullToken() {
+        log.info("=======> testProcessDataWithNullToken ");
+
+        JsonParser mockParser = mock(JsonParser.class);
+        when(mockParser.hasCurrentToken()).thenReturn(true);
+        when(mockParser.currentToken()).thenReturn(JsonToken.VALUE_NULL);
+
+        TestableJsonStreamProcessor testableProcessor = new TestableJsonStreamProcessor(
+                payloadService, iovService, mapper);
+
+        assertThatThrownBy(() ->
+            testableProcessor.callProcessData(mockParser, "testType", "1.0", "none", TEST_TAG_NAME)
+        ).isInstanceOf(IOException.class)
+         .hasMessageContaining("Invalid parser state")
+         .hasMessageContaining("VALUE_NULL");
+    }
+
+    /**
+     * Test that processData throws IOException when parser token is END_OBJECT.
+     */
+    @Test
+    public void testProcessDataWithEndObjectToken() {
+        log.info("=======> testProcessDataWithEndObjectToken ");
+
+        JsonParser mockParser = mock(JsonParser.class);
+        when(mockParser.hasCurrentToken()).thenReturn(true);
+        when(mockParser.currentToken()).thenReturn(JsonToken.END_OBJECT);
+
+        TestableJsonStreamProcessor testableProcessor = new TestableJsonStreamProcessor(
+                payloadService, iovService, mapper);
+
+        assertThatThrownBy(() ->
+            testableProcessor.callProcessData(mockParser, "testType", "1.0", "none", TEST_TAG_NAME)
+        ).isInstanceOf(IOException.class)
+         .hasMessageContaining("Invalid parser state")
+         .hasMessageContaining("END_OBJECT");
+    }
+
+    /**
+     * Testable subclass that exposes the protected processData method for testing.
+     */
+    private static class TestableJsonStreamProcessor extends JsonStreamProcessor {
+
+        public TestableJsonStreamProcessor(PayloadService payloadService,
+                                           IovService iovService,
+                                           ObjectMapper mapper) {
+            super(payloadService, iovService, mapper);
+        }
+
+        /**
+         * Public method to call the protected processData for testing.
+         */
+        public void callProcessData(JsonParser parser, String objectType, String version,
+                                    String compressionType, String tag)
+                throws NoSuchAlgorithmException, IOException {
+            processData(parser, objectType, version, compressionType, tag);
+        }
     }
 }
 

@@ -92,7 +92,6 @@ public class JsonStreamProcessor {
             if (token == JsonToken.START_OBJECT) {
                 break;
             }
-            log.trace("Skipping token: {}", token);
         }
     }
 
@@ -230,21 +229,8 @@ public class JsonStreamProcessor {
             );
         }
         catch (Exception e) {
-            // Fallback for older Jackson versions
-            factory.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
-            factory.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
-
-            // Alternative size limits for older versions
-            try {
-                factory.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
-                factory.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
-                factory.configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true);
-            }
-            catch (Exception e1) {
-                // Ignore if not supported, just log
-                log.warn("Could not set advanced JsonFactory configurations: {}",
-                        e1.getMessage());
-            }
+            log.error("Cannot configure JsonFactory: ", e);
+            throw new CdbInternalException("Cannot configure JsonFactory", e);
         }
         return factory;
     }
