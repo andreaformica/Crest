@@ -111,20 +111,43 @@ ext {
 	swaggerJaxrsTemplateDirectory = "$swaggerDirectory/templates/JavaJaxRs".toString()
 }
 
-task openApiBundle {
-	// Bundle the openapi spec files together, to mitigate a bug with the main openapi generator
-	// Bug: https://github.com/OpenAPITools/openapi-generator/issues/1976
-	// For this to work, the swagger-cli (from the javascript world) needs to be installed
-	// with e.g: npm install -g @apidevtools/swagger-cli
-	inputs.files(fileTree(dir: swaggerSpecDirectory, include: '**/*.yml'))
-	outputs.file("$swaggerBundleDirectory/crestAtlasApi_all.yml".toString())
+abstract class OpenApiBundleTask extends DefaultTask {
+    @Inject
+    abstract ExecOperations getExecOperations()
 
-	doLast {
-		exec {
-			workingDir swaggerSpecDirectory
-			commandLine 'redocly', 'bundle', '-o', "$swaggerBundleDirectory/crestApi_all.yml".toString(), "$swaggerSpecDirectory/crestAtlasApi_all.yml".toString()
-		}
-	}
+    @Input
+    String swaggerSpecDirectory
+
+    @Input
+    String swaggerBundleDirectory
+
+    @TaskAction
+    void bundle() {
+        // Find redocly in common locations or use PATH
+        def redoclyPath = ['/opt/homebrew/bin/redocly', '/usr/local/bin/redocly', 'redocly'].find { path ->
+            if (path == 'redocly') return true // fallback to PATH
+            new File(path).exists()
+        }
+        execOperations.exec {
+            workingDir swaggerSpecDirectory
+            // Include common paths for npm global binaries
+            environment 'PATH', "/opt/homebrew/bin:/usr/local/bin:${System.getenv('PATH')}"
+            commandLine redoclyPath, 'bundle', '-o', "${swaggerBundleDirectory}/crestApi_all.yml".toString(), "${swaggerSpecDirectory}/crestAtlasApi_all.yml".toString()
+        }
+    }
+}
+
+tasks.register('openApiBundle', OpenApiBundleTask) {
+    // Bundle the openapi spec files together, to mitigate a bug with the main openapi generator
+    // Bug: https://github.com/OpenAPITools/openapi-generator/issues/1976
+    // For this to work, the redocly CLI needs to be installed
+    // with e.g: npm install -g @redocly/cli
+    def specDir = project.ext.swaggerSpecDirectory
+    def bundleDir = project.ext.swaggerBundleDirectory
+    inputs.files(fileTree(dir: specDir, include: '**/*.yml'))
+    outputs.file("${bundleDir}/crestAtlasApi_all.yml".toString())
+    it.swaggerSpecDirectory = specDir
+    it.swaggerBundleDirectory = bundleDir
 }
 
 openApiGenerate {
