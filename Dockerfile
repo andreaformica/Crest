@@ -1,5 +1,8 @@
 # CrestDB
-FROM registry.cern.ch/docker.io/eclipse-temurin:23-alpine
+FROM registry.cern.ch/docker.io/eclipse-temurin:25-alpine-3.23
+# OLD: FROM registry.cern.ch/docker.io/eclipse-temurin:23-alpine
+#FROM eclipse-temurin:25-alpine-3.23
+## docker pull eclipse-temurin:25-alpine-3.23
 LABEL maintainer="Andrea Formica"
 
 ARG CREST_USER_ID=1001
@@ -10,8 +13,8 @@ ENV USR=crestsvc \
     TZ=GMT
 
 # Predefine paths (easier to modify)
-ENV HOME=/home/${USR} \
-    crest_dir=${HOME}/crest \
+ENV HOME=/home/${USR}
+ENV crest_dir=${HOME}/crest \
     data_dir=${HOME}/data \
     config_dir=${HOME}/config
 
