@@ -79,7 +79,8 @@ public class CachingPolicyService {
      * @return CacheControl
      */
     public CacheControl getIovsCacheControlForUntil(Long snapshot, BigDecimal until) {
-        Integer maxage = CachingProperties.DEFAULT_CACHE_TIME;
+        // FOR HLT test we need : CachingProperties.DEFAULT_CACHE_TIME;
+        Integer maxage = cprops.getIovsMaxage();
         if (!until.equals(CrestProperties.INFINITY)) {
             if (snapshot != 0L) {
                 maxage = cprops.getIovsSnapshotMaxage();
