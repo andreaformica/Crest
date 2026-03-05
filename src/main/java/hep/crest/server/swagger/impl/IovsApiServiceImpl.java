@@ -247,6 +247,13 @@ public class IovsApiServiceImpl extends IovsApiService {
         if (args.checkArgsNull(method)) {
             throw new CdbBadRequestException("Arguments not compatible with method " + method);
         }
+        // Verify if tag exists, and if it was modified since last request.
+        final Tag tagentity = tagService.findOne(tagname);
+        Response resp = checkLastModified(tagentity);
+        if (resp != null) {
+            return resp;
+        }
+
         // Create filters
         GenericMap filters = new GenericMap();
         filters.put("tagName", tagname);
@@ -310,6 +317,25 @@ public class IovsApiServiceImpl extends IovsApiService {
     }
 
     /**
+     * Check if the tag was modified since last request, and if not, return a 304 response.
+     * @param tagentity
+     * @return Response if the tag was not modified, null otherwise.
+     */
+    Response checkLastModified(Tag tagentity) {
+        HttpHeaders headers = context.getHttpHeaders();
+        Request request = context.getRequest();
+        // Use cache service to detect if a tag was modified.
+        final ResponseBuilder builder = cachesvc.verifyLastModified(request, tagentity);
+        if (builder != null) {
+            // Get request headers: this is just to dump the If-Modified-Since
+            final String ifmodsince = headers.getHeaderString("If-Modified-Since");
+            log.debug("The output data are not modified since " + ifmodsince);
+            return builder.build();
+        }
+        return null;
+    }
+
+    /**
      * Custom query to return groups.
      *
      * @param tagname
@@ -318,16 +344,9 @@ public class IovsApiServiceImpl extends IovsApiService {
      */
     protected Response selectGroups(String tagname, Long snapshot, Long groupsize) {
         final Tag tagentity = tagService.findOne(tagname);
-        HttpHeaders headers = context.getHttpHeaders();
-        Request request = context.getRequest();
-        // Apply caching on iov groups selections.
-        // Use cache service to detect if a tag was modified.
-        final ResponseBuilder builder = cachesvc.verifyLastModified(request, tagentity);
-        if (builder != null) {
-            // Get request headers: this is just to dump the If-Modified-Since
-            final String ifmodsince = headers.getHeaderString("If-Modified-Since");
-            log.debug("The output data are not modified since " + ifmodsince);
-            return builder.build();
+        Response resp = checkLastModified(tagentity);
+        if (resp != null) {
+            return resp;
         }
         // Get the time type to apply different group selections.
         // This are typical values representative for COOL types (NANO_SEC).
