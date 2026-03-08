@@ -249,6 +249,7 @@ public class IovsApiServiceImpl extends IovsApiService {
         }
         // Verify if tag exists, and if it was modified since last request.
         final Tag tagentity = tagService.findOne(tagname);
+
         Response resp = checkLastModified(tagentity);
         if (resp != null) {
             return resp;
@@ -283,7 +284,9 @@ public class IovsApiServiceImpl extends IovsApiService {
         final CrestBaseResponse saveddto = buildEntityResponse(dtolist, filters);
         saveddto.page(respPage);
         // Send a response and status 200.
-        return Response.status(rstatus).entity(saveddto).cacheControl(cc).build();
+        return Response.status(rstatus).entity(saveddto)
+                .lastModified(tagentity.getModificationTime())
+                .cacheControl(cc).build();
     }
 
 
@@ -324,6 +327,9 @@ public class IovsApiServiceImpl extends IovsApiService {
     Response checkLastModified(Tag tagentity) {
         HttpHeaders headers = context.getHttpHeaders();
         Request request = context.getRequest();
+        log.info("Check if tag {} was modified since last request", tagentity.getName());
+        log.info("Received If-Modified-Since header: {}",
+                headers.getHeaderString("If-Modified-Since"));
         // Use cache service to detect if a tag was modified.
         final ResponseBuilder builder = cachesvc.verifyLastModified(request, tagentity);
         if (builder != null) {
