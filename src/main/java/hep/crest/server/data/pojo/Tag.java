@@ -125,6 +125,7 @@ public class Tag implements java.io.Serializable {
             this.modificationTime = now;
         }
         try {
+            // Guarantees that the synchronization and status values are valid before saving.
             TagDto.StatusEnum.fromValue(this.status);
         }
         catch (Exception e) {

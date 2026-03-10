@@ -1,5 +1,6 @@
 package hep.crest.server.swagger.impl;
 
+import hep.crest.server.caching.CachingProperties;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.converters.GlobalTagMapMapper;
 import hep.crest.server.data.pojo.GlobalTag;
@@ -53,17 +54,25 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
     private JAXRSContext context;
 
     /**
+     * Caching properties.
+     */
+    private CachingProperties cprops;
+
+    /**
      * Ctor with injected service.
      * @param globaltagmapService the global tag map service.
+     * @param cprops          the caching properties.
      * @param mapper the global tag map mapper.
      * @param edh the entity dto helper.
      * @param context the jaxrs context.
      */
     @Autowired
     public GlobaltagmapsApiServiceImpl(GlobalTagMapService globaltagmapService,
+                                       CachingProperties cprops,
                                        GlobalTagMapMapper mapper,
                                        EntityDtoHelper edh, JAXRSContext context) {
         this.globaltagmapService = globaltagmapService;
+        this.cprops = cprops;
         this.mapper = mapper;
         this.edh = edh;
         this.context = context;
@@ -104,7 +113,7 @@ public class GlobaltagmapsApiServiceImpl extends GlobaltagmapsApiService {
         }
         // Set cache control to 5 minutes.
         CacheControl cc = new CacheControl();
-        cc.setMaxAge(600);
+        cc.setMaxAge(cprops.getTagmap());
         Iterable<GlobalTagMap> entitylist = null;
         // If there is no header then set it to Trace mode. Implies that you search tags
         // associated with a global tag. The input name will be considered as a

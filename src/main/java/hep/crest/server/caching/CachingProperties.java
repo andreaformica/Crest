@@ -56,6 +56,14 @@ public class CachingProperties {
      * The group size for run based folders.
      */
     private Integer runtypeGroupsize = 10;
+    /**
+     * The caching for GlobalTag map trace.
+     */
+    private Integer tagmap = 300;
+    /**
+     * The caching for Tag.
+     */
+    private Integer tag = 3600;
 
     /**
      * Log the loaded caching properties at startup.

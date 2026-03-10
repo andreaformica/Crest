@@ -1,5 +1,6 @@
 package hep.crest.server.swagger.impl;
 
+import hep.crest.server.caching.CachingProperties;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.converters.GlobalTagMapper;
@@ -60,6 +61,11 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
     private GlobalTagMapper mapper;
 
     /**
+     * Caching properties.
+     */
+    private CachingProperties cprops;
+
+    /**
      * Context
      */
     private JAXRSContext context;
@@ -71,16 +77,19 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
      * @param prh              the PageRequestHelper
      * @param edh              the EntityDtoHelper
      * @param mapper           the global tag mapper.
+     * @param cprops          the caching properties.
      * @param context          the context.
      */
     @Autowired
     public GlobaltagsApiServiceImpl(GlobalTagService globaltagService, PageRequestHelper prh,
                                     EntityDtoHelper edh, GlobalTagMapper mapper,
+                                    CachingProperties cprops,
                                     JAXRSContext context) {
         this.globaltagService = globaltagService;
         this.prh = prh;
         this.edh = edh;
         this.mapper = mapper;
+        this.cprops = cprops;
         this.context = context;
     }
 
@@ -138,7 +147,7 @@ public class GlobaltagsApiServiceImpl extends GlobaltagsApiService {
                 .format("GlobalTagSetDto");
         // Set cache control to 5 minutes.
         CacheControl cc = new CacheControl();
-        cc.setMaxAge(600);
+        cc.setMaxAge(cprops.getTagmap());
         return Response.ok().entity(setdto).cacheControl(cc).build();
     }
 
