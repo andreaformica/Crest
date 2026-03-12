@@ -29,15 +29,23 @@ public class CachingPolicyService {
     /**
      * Properties.
      */
-    private CachingProperties cprops;
+    private final CachingProperties cprops;
+    /**
+     * Cache invalidation service.
+     */
+    private final CacheInvalidationService cacheInvalidationService;
 
     /**
      * Ctor for injection.
      * @param cprops
+     * @param cacheInvalidationService
      */
     @Autowired
-    public CachingPolicyService(CachingProperties cprops) {
+    public CachingPolicyService(
+            CachingProperties cprops,
+            CacheInvalidationService cacheInvalidationService) {
         this.cprops = cprops;
+        this.cacheInvalidationService = cacheInvalidationService;
     }
 
     /**
@@ -142,6 +150,15 @@ public class CachingPolicyService {
             return builder.build();
         }
         return null;
+    }
+
+    /**
+     * Invalidate cache for a given tag name. This will purge varnish.
+     * @param tagName
+     */
+    public void invalidateCacheForTag(String tagName) {
+        log.info("Invalidate cache for tag {}", tagName);
+        cacheInvalidationService.invalidateTag(tagName);
     }
 
 }
