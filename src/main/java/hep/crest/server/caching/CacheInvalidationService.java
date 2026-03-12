@@ -130,7 +130,7 @@ public class CacheInvalidationService {
             for (InetAddress addr : addresses) {
                 endpoints.add(addr.getHostAddress() + ":" + varnishPort);
             }
-            log.debug("Resolved {} endpoints from headless service {}: {}",
+            log.info("Resolved {} endpoints from headless service {}: {}",
                     endpoints.size(), headlessService, endpoints);
         }
         catch (Exception e) {
@@ -156,7 +156,7 @@ public class CacheInvalidationService {
             return;
         }
 
-        log.debug("Invalidating cache for tag: {} on {} Varnish instance(s)", tagName,
+        log.info("Invalidating cache for tag: {} on {} Varnish instance(s)", tagName,
                 endpoints.size());
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -191,7 +191,7 @@ public class CacheInvalidationService {
 
         List<String> endpoints = resolveEndpoints();
         if (endpoints.isEmpty()) {
-            log.debug("No Varnish endpoints available, skipping BAN for tag: {}", tagName);
+            log.warn("No Varnish endpoints available, skipping BAN for tag: {}", tagName);
             return;
         }
 
@@ -229,7 +229,7 @@ public class CacheInvalidationService {
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.discarding())
                 .thenAccept(response -> {
                     if (response.statusCode() == 200) {
-                        log.debug("PURGE successful for {} on {}", path, endpoint);
+                        log.info("PURGE successful for {} on {}", path, endpoint);
                     }
                     else {
                         log.warn("PURGE returned {} for {} on {}", response.statusCode(), path,
@@ -259,7 +259,7 @@ public class CacheInvalidationService {
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.discarding())
                 .thenAccept(response -> {
                     if (response.statusCode() == 200) {
-                        log.debug("BAN successful for tag {} on {}", tagName, endpoint);
+                        log.info("BAN successful for tag {} on {}", tagName, endpoint);
                     }
                     else {
                         log.warn("BAN returned {} for tag {} on {}", response.statusCode(),
