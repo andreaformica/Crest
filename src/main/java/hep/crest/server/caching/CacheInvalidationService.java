@@ -55,6 +55,14 @@ public class CacheInvalidationService {
     private boolean enabled;
 
     /**
+     * The Host header to use for PURGE/BAN requests.
+     * This must match the Host header used by clients accessing the cache.
+     * Example: "atlas-crest-dev.cern.ch"
+     */
+    @Value("${varnish.host.header:}")
+    private String hostHeader;
+
+    /**
      * Resolved list of Varnish endpoints. Populated at startup from
      * configuration or dynamic discovery.
      */
@@ -220,11 +228,17 @@ public class CacheInvalidationService {
      * @return CompletableFuture that completes when the request is done
      */
     private CompletableFuture<Void> sendPurgeAsync(String endpoint, String path) {
-        HttpRequest request = HttpRequest.newBuilder()
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create("http://" + endpoint + path))
                 .method("PURGE", HttpRequest.BodyPublishers.noBody())
-                .timeout(Duration.ofMillis(timeoutMs))
-                .build();
+                .timeout(Duration.ofMillis(timeoutMs));
+
+        // Add Host header if configured (required for Varnish to match cached objects)
+        if (hostHeader != null && !hostHeader.isBlank()) {
+            requestBuilder.header("Host", hostHeader);
+        }
+
+        HttpRequest request = requestBuilder.build();
 
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.discarding())
                 .thenAccept(response -> {
@@ -249,12 +263,18 @@ public class CacheInvalidationService {
      * @return CompletableFuture that completes when the request is done
      */
     private CompletableFuture<Void> sendBanAsync(String endpoint, String tagName) {
-        HttpRequest request = HttpRequest.newBuilder()
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create("http://" + endpoint + "/"))
                 .method("BAN", HttpRequest.BodyPublishers.noBody())
                 .header("X-Ban-Tag", tagName)
-                .timeout(Duration.ofMillis(timeoutMs))
-                .build();
+                .timeout(Duration.ofMillis(timeoutMs));
+
+        // Add Host header if configured (required for Varnish to match cached objects)
+        if (hostHeader != null && !hostHeader.isBlank()) {
+            requestBuilder.header("Host", hostHeader);
+        }
+
+        HttpRequest request = requestBuilder.build();
 
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.discarding())
                 .thenAccept(response -> {
