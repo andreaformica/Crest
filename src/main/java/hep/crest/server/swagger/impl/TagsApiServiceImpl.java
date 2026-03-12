@@ -173,6 +173,9 @@ public class TagsApiServiceImpl extends TagsApiService {
         final Tag saved = tagService.updateTag(entity);
         TagDto dto = tagmapper.toDto(saved);
         log.info("Updated tag {}", dto);
+        // Invalidate cache for this tag.
+        cachesvc.invalidateCacheForTag(saved.getName());
+
         return Response.ok(context.getUriInfo().getRequestUri()).entity(dto).build();
     }
 
