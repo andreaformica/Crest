@@ -2,6 +2,9 @@ package hep.crest.server.caching;
 
 import hep.crest.server.config.CrestProperties;
 import hep.crest.server.data.pojo.Tag;
+import hep.crest.server.swagger.impl.JAXRSContext;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +39,7 @@ public class CachingPolicyService {
     public CachingPolicyService(CachingProperties cprops) {
         this.cprops = cprops;
     }
+
     /**
      * @param snapshot
      *            the Long
@@ -79,7 +83,11 @@ public class CachingPolicyService {
      * @return CacheControl
      */
     public CacheControl getIovsCacheControlForUntil(Long snapshot, BigDecimal until) {
-        // FOR HLT test we need : CachingProperties.DEFAULT_CACHE_TIME;
+        // FOR HLT test we need to set the DEFAULT_CACHE_TIME to 0 for the IOVs.
+        // This is because the HLT test will use a fixed until time INF.
+        //
+        // cache time = 60 s will be enough to avoid caching the response.
+        // Default cache time for IOV is 600s.
         Integer maxage = cprops.getIovsMaxage();
         if (!until.equals(CrestProperties.INFINITY)) {
             if (snapshot != 0L) {
@@ -111,6 +119,29 @@ public class CachingPolicyService {
                                                                             // metadata
         }
         return builder;
+    }
+
+    /**
+     * Check if the tag was modified since last request, and if not, return a 304 response.
+     * @param tagentity
+     * @param context
+     * @return Response if the tag was not modified, null otherwise.
+     */
+    public Response checkLastModified(Tag tagentity, JAXRSContext context) {
+        HttpHeaders headers = context.getHttpHeaders();
+        Request request = context.getRequest();
+        log.info("Check if tag {} was modified since last request", tagentity.getName());
+        log.info("Received If-Modified-Since header: {}",
+                headers.getHeaderString("If-Modified-Since"));
+        // Use cache service to detect if a tag was modified.
+        final ResponseBuilder builder = this.verifyLastModified(request, tagentity);
+        if (builder != null) {
+            // Get request headers: this is just to dump the If-Modified-Since
+            final String ifmodsince = headers.getHeaderString("If-Modified-Since");
+            log.debug("The output data are not modified since " + ifmodsince);
+            return builder.build();
+        }
+        return null;
     }
 
 }

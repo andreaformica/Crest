@@ -33,6 +33,8 @@ import jakarta.ws.rs.core.SecurityContext;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -187,6 +189,12 @@ public class TagsApiServiceImpl extends TagsApiService {
         filters.put("name", name);
         final Tag entity = tagService.findOne(name);
         TagDto dto = tagmapper.toDto(entity);
+        // Check if resource was modified since last request.
+        Response resp = cachesvc.checkLastModified(entity, context);
+        if (resp != null) {
+            return resp;
+        }
+
         // Response page
         RespPage respPage = new RespPage().size(1)
                 .totalElements(1L).totalPages(1)
@@ -196,7 +204,7 @@ public class TagsApiServiceImpl extends TagsApiService {
                 .filter(filters).page(respPage).datatype("tags").format("TagSetDto");
         log.info("Retrieved tag {}: {}", name, dto);
         final CacheControl cc = cachesvc.getDefaultsCacheControl();
-        cc.setMaxAge(3600); // 1 hour caching for this resource.
+        cc.setMaxAge(cachesvc.getCprops().getTag()); // 1 hour caching for this resource.
         return Response.ok().entity(respdto).cacheControl(cc).build();
     }
 
@@ -303,6 +311,13 @@ public class TagsApiServiceImpl extends TagsApiService {
     @ProfileAndLog
     public Response findTagMeta(String name, SecurityContext securityContext) throws NotFoundException {
         log.info("Search tag metadata for name " + name);
+        // Verify if tag exists and get it for caching policy.
+        Tag tagEntity = tagService.findOne(name);
+        // Check if resource was modified since last request.
+        Response resp = cachesvc.checkLastModified(tagEntity, context);
+        if (resp != null) {
+            return resp;
+        }
         final TagMeta entity = tagMetaService.find(name);
         final TagMetaDto dto = tagmetamapper.toDto(entity);
         RespPage respPage = new RespPage().size(1)
@@ -323,7 +338,7 @@ public class TagsApiServiceImpl extends TagsApiService {
         log.info("Retrieved tag meta data {}: {}", name, dto);
 
         final CacheControl cc = cachesvc.getDefaultsCacheControl();
-        cc.setMaxAge(3600); // 1 hour caching for this resource.
+        cc.setMaxAge(cachesvc.getCprops().getTag()); // 1 hour caching for this resource.
         return Response.ok().entity(respdto).cacheControl(cc).build();
     }
 
@@ -338,6 +353,7 @@ public class TagsApiServiceImpl extends TagsApiService {
             throws NotFoundException {
         log.info("TagRestController processing request for updating a tag meta information for "
                  + "name {}", name);
+        Tag tagEntity = tagService.findOne(name);
         TagMeta entity = tagMetaService.find(name);
         for (Map.Entry<String, String> entry : body.entrySet()) {
             String key = entry.getKey();
@@ -358,6 +374,11 @@ public class TagsApiServiceImpl extends TagsApiService {
         }
         final TagMeta saved = tagMetaService.updateTagMeta(entity);
         final TagMetaDto dto = tagmetamapper.toDto(saved);
+        // Change the modification time in the tag. This is needed because we consider
+        // modication to tag meta data as a modification to the tag itself for caching policy.
+        tagEntity.setModificationTime(Date.from(Instant.now()));
+        tagService.updateTag(tagEntity);
+
         log.info("Updated tag meta data {}", dto);
         return Response.ok(context.getUriInfo().getRequestUri()).entity(dto).build();
     }
