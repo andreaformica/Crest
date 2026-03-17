@@ -90,6 +90,20 @@ public class Tag implements java.io.Serializable {
     @Column(name = "END_OF_VALIDITY", nullable = false, precision = 22, scale = 0)
     private BigInteger endOfValidity = BigInteger.ZERO;
     /**
+     * The cache length in seconds. Default is -1 (use system default).
+     */
+    @Column(name = "CACHE_LENGTH", nullable = false)
+    private Long cacheLength = -1L;
+    /**
+     * The workflow type. Allowed values: ALL, HLT, BLK, ES.
+     */
+    @Column(name = "WORKFLOW", nullable = false, length = 10)
+    @jakarta.validation.constraints.Pattern(
+            regexp = "^(ALL|HLT|BLK|ES)$",
+            message = "Workflow must be one of: ALL, HLT, BLK, ES"
+    )
+    private String workflow = "ALL";
+    /**
      * The insertion time.
      */
     @Temporal(TemporalType.TIMESTAMP)

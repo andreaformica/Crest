@@ -31,6 +31,8 @@ public interface TagMapper extends GenericMapper<TagDto, Tag> {
     @Mapping(source = "status", target = "status", qualifiedByName = "stringToStatusEnum")
     @Mapping(source = "synchronization", target = "synchronization", qualifiedByName =
             "stringToSynchroEnum")
+    @Mapping(source = "cacheLength", target = "cacheLength", defaultValue = "-1")
+    @Mapping(source = "workflow", target = "workflow", defaultValue = "ALL")
     TagDto toDto(Tag source);
 
     /**
@@ -44,5 +46,7 @@ public interface TagMapper extends GenericMapper<TagDto, Tag> {
     @Mapping(source = "status", target = "status", qualifiedByName = "statusEnumToString")
     @Mapping(source = "synchronization", target = "synchronization", qualifiedByName =
             "synchroEnumToString")
+    @Mapping(target = "cacheLength", source = "cacheLength", defaultValue = "-1")
+    @Mapping(target = "workflow", source = "workflow", defaultValue = "ALL")
     Tag toEntity(TagDto source);
 }

@@ -36,6 +36,20 @@ components:
         endOfValidity:
           type: integer
           format: int64
+        cacheLength:
+          type: integer
+          format: int64
+          default: -1
+          description: Cache length in seconds. Default is -1 (use system default).
+        workflow:
+          type: string
+          enum:
+            - ALL
+            - HLT
+            - BLK
+            - ES
+          default: ALL
+          description: Workflow type. Default is ALL.
         insertionTime:
           type: string
           format: date-time
