@@ -75,6 +75,7 @@ public class TestCrestTags {
         dto.status(TagDto.StatusEnum.UNLOCKED);
         dto.synchronization(TagDto.SynchronizationEnum.ALL);
         dto.workflow(TagDto.WorkflowEnum.ALL);
+        dto.cacheLength(-1);
         log.info("Store tag : {} ", dto);
         final ResponseEntity<TagDto> response = testRestTemplate
                 .postForEntity("/crestapi/tags", dto, TagDto.class);

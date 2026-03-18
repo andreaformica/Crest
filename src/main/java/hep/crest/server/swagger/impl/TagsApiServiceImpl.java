@@ -166,6 +166,9 @@ public class TagsApiServiceImpl extends TagsApiService {
             else if (Objects.equals(key, "payloadSpec")) {
                 entity.setObjectType(entry.getValue());
             }
+            else if (Objects.equals(key, "cacheLength")) {
+                entity.setCacheLength(Integer.valueOf(entry.getValue()));
+            }
             else {
                 log.warn("Ignored key {} in updateTag: field does not exists", key);
             }
