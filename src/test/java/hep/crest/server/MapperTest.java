@@ -122,6 +122,7 @@ public class MapperTest {
                 Tag t = (Tag) item;
                 t.setStatus(TagDto.StatusEnum.LOCKED.toString());
                 t.setSynchronization(TagDto.SynchronizationEnum.SV.toString());
+                t.setWorkflow(TagDto.WorkflowEnum.BLK.toString());
             }
             log.info("Generated item    = {}", item);
             Object dto = mapper.toDto((T) item);

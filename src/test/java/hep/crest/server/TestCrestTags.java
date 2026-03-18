@@ -74,6 +74,7 @@ public class TestCrestTags {
         dto.name(gtname);
         dto.status(TagDto.StatusEnum.UNLOCKED);
         dto.synchronization(TagDto.SynchronizationEnum.ALL);
+        dto.workflow(TagDto.WorkflowEnum.ALL);
         log.info("Store tag : {} ", dto);
         final ResponseEntity<TagDto> response = testRestTemplate
                 .postForEntity("/crestapi/tags", dto, TagDto.class);
@@ -173,6 +174,20 @@ public class TestCrestTags {
             assertThat(responseBody).isNotNull();
             assertThat(responseBody.getResources()).isNotNull();
             assertThat(responseBody.getResources().size()).isEqualTo(0);
+        }
+        urltag = "/crestapi/tags/" + tagname;
+        final ResponseEntity<TagSetDto> resptagdto = this.testRestTemplate
+                .exchange(urltag, HttpMethod.GET, null,
+                        TagSetDto.class);
+        {
+            log.info("Retrieved tag set " + resptagdto.getBody());
+            final TagSetDto resptagset = resptagdto.getBody();
+            assertThat(resptagset).isNotNull();
+            final TagDto responseBody = resptagset.getResources().get(0);
+            assertThat(resptags.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(responseBody).isNotNull();
+            assertThat(responseBody.getCacheLength()).isNegative();
+            assertThat(responseBody.getWorkflow()).isEqualTo(TagDto.WorkflowEnum.ALL);
         }
 
         String url = "/crestapi/globaltags/A-TEST-GT-50/tags";

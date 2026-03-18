@@ -93,7 +93,7 @@ public class Tag implements java.io.Serializable {
      * The cache length in seconds. Default is -1 (use system default).
      */
     @Column(name = "CACHE_LENGTH", nullable = false)
-    private Long cacheLength = -1L;
+    private Integer cacheLength = -1;
     /**
      * The workflow type. Allowed values: ALL, HLT, BLK, ES.
      */

@@ -38,7 +38,7 @@ components:
           format: int64
         cacheLength:
           type: integer
-          format: int64
+          format: int32
           default: -1
           description: Cache length in seconds. Default is -1 (use system default).
         workflow:
