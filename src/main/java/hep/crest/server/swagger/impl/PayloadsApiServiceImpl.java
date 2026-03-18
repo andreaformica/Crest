@@ -253,12 +253,20 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
         if (!entity.getObjectName().equalsIgnoreCase("none")) {
             fname = entity.getObjectName();
         }
-        // Set the content type in the response, and the file name as well.
-        return Response.ok(streamingOutput) /// MediaType.APPLICATION_JSON_TYPE)
+        // Get compression type for Content-Encoding header
+        final String compression = entity.getCompressionType();
+        // Build the response with appropriate headers
+        Response.ResponseBuilder responseBuilder = Response.ok(streamingOutput)
                 .header("Content-type", rettype)
                 .header("Content-Disposition", "Inline; filename=\"" + fname + "\"")
-                .cacheControl(cc)
-                .build();
+                .cacheControl(cc);
+        // Add Content-Encoding header if payload is gzip compressed
+        if (compression != null
+            && (compression.equalsIgnoreCase("gzip") || compression.equalsIgnoreCase("gz"))) {
+            responseBuilder.header("Content-Encoding", "gzip");
+        }
+        // Set the content type in the response, and the file name as well.
+        return responseBuilder.build();
     }
 
     @Override
@@ -661,6 +669,9 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 break;
             case "gz":
                 mediaType = new MediaType(APPLICATION_MEDIA, "gzip");
+                break;
+            case "msgpack":
+                mediaType = new MediaType(APPLICATION_MEDIA, "msgpack");
                 break;
             case "pdf":
                 mediaType = new MediaType(APPLICATION_MEDIA, "pdf");
