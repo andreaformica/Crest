@@ -313,6 +313,10 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             if (version == null) {
                 version = "default";
             }
+            // Add compression type.
+            if (compressionType == null) {
+                compressionType = "none";
+            }
             // Set default for payload format.
             if (xCrestPayloadFormat == null && filesBodypart != null) {
                 xCrestPayloadFormat = "FILE";
@@ -331,10 +335,11 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
                 // Only the payload format FILE is allowed here.
                 // This was created to eventually merge with other methods later on.
                 log.debug("Store payloads from uploaded files");
-                outdto = storeData(storeset, tag, objectType, version, filesBodypart);
+                outdto = storeData(storeset, tag, objectType, compressionType, version,
+                        filesBodypart);
             }
             else if ("JSON".equalsIgnoreCase(xCrestPayloadFormat)) {
-                outdto = storeData(storeset, tag, objectType, version, null);
+                outdto = storeData(storeset, tag, objectType, compressionType, version, null);
             }
             else {
                 throw new CdbBadRequestException("Bad header parameter: " + xCrestPayloadFormat);
@@ -428,6 +433,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      * @param dtoset         the StoreSetDto
      * @param tag            the String
      * @param objectType     the object type
+     * @param compressionType the compression type
      * @param version        the version
      * @param filesbodyparts the List<FormDataBodyPart>
      * @return StoreSetDto
@@ -437,6 +443,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
      */
     protected StoreSetDto storeData(StoreSetDto dtoset,
                                     String tag, String objectType,
+                                    String compressionType,
                                     String version,
                                     List<FormDataBodyPart> filesbodyparts)
             throws IOException, AbstractCdbServiceException {
@@ -455,7 +462,7 @@ public class PayloadsApiServiceImpl extends PayloadsApiService {
             // arguments.
             Payload entity =
                     new Payload().setObjectType(objectType).setHash("none").setVersion(version);
-            entity.setCompressionType("none");
+            entity.setCompressionType(compressionType);
             entity.setSize(0);
             // Initialize the iov entity from the DTO.
             Iov iov = new Iov();
