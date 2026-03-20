@@ -254,7 +254,6 @@ public class IovsApiServiceImpl extends IovsApiService {
         if (resp != null) {
             return resp;
         }
-
         // Create filters
         GenericMap filters = new GenericMap();
         filters.put("tagName", tagname);
@@ -280,6 +279,10 @@ public class IovsApiServiceImpl extends IovsApiService {
                 IovMapper.class);
         Response.Status rstatus = Response.Status.OK;
         final CacheControl cc = cachesvc.getIovsCacheControlForUntil(0L, CrestProperties.INFINITY);
+        // Check if a specific cache length is available for this tag.
+        if (tagentity.getCacheLength() > 0) {
+            cc.setMaxAge(tagentity.getCacheLength().intValue());
+        }
         // Prepare the response.
         final CrestBaseResponse saveddto = buildEntityResponse(dtolist, filters);
         saveddto.page(respPage);

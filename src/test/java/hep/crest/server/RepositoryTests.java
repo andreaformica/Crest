@@ -8,6 +8,7 @@ import hep.crest.server.data.pojo.TagMeta;
 import hep.crest.server.data.repositories.IovRepository;
 import hep.crest.server.data.repositories.TagMetaRepository;
 import hep.crest.server.data.repositories.TagRepository;
+import hep.crest.server.swagger.model.TagDto;
 import hep.crest.server.utils.RandomGenerator;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -49,6 +50,7 @@ public class RepositoryTests {
         final Instant now = Instant.now();
         log.info("====> testTags: ");
         final Tag mtag = (Tag) rndgen.generate(Tag.class);
+        mtag.setWorkflow(TagDto.WorkflowEnum.BLK.toString());
         log.info("...created tag via random gen: {}", mtag);
         mtag.setInsertionTime(null);
         mtag.setModificationTime(null);
