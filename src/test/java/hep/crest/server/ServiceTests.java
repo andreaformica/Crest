@@ -216,9 +216,8 @@ public class ServiceTests {
         // Create two tags
         String tag1Name = "ServiceTests-Tag-Remove-1-" + System.currentTimeMillis();
         String tag2Name = "ServiceTests-Tag-Remove-2-" + System.currentTimeMillis();
-        long idtag = 1L;
+
         Tag tag1 = new Tag();
-        tag1.setTagId(idtag++);
         tag1.setName(tag1Name);
         tag1.setDescription("Test tag 1 for remove payload test");
         tag1.setTimeType("time");
@@ -227,7 +226,6 @@ public class ServiceTests {
         tagService.insertTag(tag1);
 
         Tag tag2 = new Tag();
-        tag2.setTagId(idtag);
         tag2.setName(tag2Name);
         tag2.setDescription("Test tag 2 for remove payload test");
         tag2.setTimeType("time");
@@ -287,10 +285,8 @@ public class ServiceTests {
 
         // Create a tag
         String tagName = "ServiceTests-Tag-Remove-Same-" + System.currentTimeMillis();
-        long idtag = 9L;
 
         Tag tag = new Tag();
-        tag.setTagId(idtag);
         tag.setName(tagName);
         tag.setDescription("Test tag for remove payload test");
         tag.setTimeType("time");
