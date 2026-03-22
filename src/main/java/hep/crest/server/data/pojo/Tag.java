@@ -56,6 +56,7 @@ public class Tag implements java.io.Serializable {
             DatabasePropertyConfigurator.SCHEMA_NAME + ".TAG_SEQUENCE",
             allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tag_seq")
+    @EqualsAndHashCode.Exclude
     @Column(name = "TAG_ID", unique = true, nullable = false)
     private Long tagId;
     /**
@@ -105,11 +106,13 @@ public class Tag implements java.io.Serializable {
     /**
      * The cache length in seconds. Default is -1 (use system default).
      */
+    @EqualsAndHashCode.Exclude
     @Column(name = "CACHE_LENGTH", nullable = false)
     private Integer cacheLength = -1;
     /**
      * The workflow type. Allowed values: ALL, HLT, BLK, ES.
      */
+    @EqualsAndHashCode.Exclude
     @Column(name = "WORKFLOW", nullable = false, length = 10)
     @jakarta.validation.constraints.Pattern(
             regexp = "^(ALL|HLT|BLK|ES)$",

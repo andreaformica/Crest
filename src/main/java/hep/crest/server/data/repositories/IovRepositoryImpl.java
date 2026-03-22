@@ -21,7 +21,6 @@ import org.springframework.data.jpa.repository.support.Querydsl;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-
 import java.util.List;
 
 /**
@@ -98,12 +97,12 @@ public class IovRepositoryImpl implements IovRepositoryCustom {
     private void addTagNameCondition(String tagName, BooleanBuilder where,
                                      BooleanBuilder subwhere) {
         if (tagName.contains("%")) {
-            where.and(QIov.iov.id.tagName.like(tagName));
+            where.and(QIov.iov.tag.name.like(tagName));
         }
         else {
-            where.and(QIov.iov.id.tagName.eq(tagName));
+            where.and(QIov.iov.tag.name.eq(tagName));
         }
-        subwhere.and(QIov.iov.id.tagName.eq(tagName));
+        subwhere.and(QIov.iov.tag.name.eq(tagName));
         log.debug("Add where condition on tagName: {}", tagName);
     }
 
@@ -198,7 +197,8 @@ public class IovRepositoryImpl implements IovRepositoryCustom {
     private JPQLQuery<Iov> buildQuery(BooleanBuilder where) {
         QIov iov = QIov.iov;
         JPQLQuery<Iov> query = new JPAQuery<>(entityManager);
-        query = query.select(iov).from(iov).where(where);
+        // Use join fetch to eagerly load the Tag and avoid LazyInitializationException
+        query = query.select(iov).from(iov).join(iov.tag).fetchJoin().where(where);
         log.debug("created JPQL query: {}", query.toString());
         return query;
     }
@@ -217,6 +217,5 @@ public class IovRepositoryImpl implements IovRepositoryCustom {
         List<Iov> rows = querydsl.applyPagination(preq, query).fetch();
         return new PageImpl<>(rows, preq, totalElements);
     }
-
 
 }

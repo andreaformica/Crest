@@ -393,6 +393,16 @@ public class TestCrestTags {
                 log.info("Retrieved iovs snapshot 10 GROUPS " + respgroup.getBody());
                 assertThat(respgroup.getStatusCode()).isEqualTo(HttpStatus.OK);
             }
+            // Select groups
+            String urliovsr = "/crestapi/iovs?tagname=COPY-TAG&since=0&until=1000000"
+                    + "&method=RANGE";
+            final ResponseEntity<String> respiovsr = this.testRestTemplate
+                    .exchange(urliovsr, HttpMethod.GET, null,
+                            String.class);
+            {
+                log.info("Retrieved iovs snapshot RANGE " + respiovsr.getBody());
+                assertThat(respiovsr.getStatusCode()).isEqualTo(HttpStatus.OK);
+            }
 
             // Select iovs and payloads meta
             String urlmeta = "/crestapi/iovs/infos?tagname=COPY-TAG&since=0&until=10000000";

@@ -81,12 +81,12 @@ public interface IovRepository
                   @Param("instime") Date instime);
 
     /**
-     * Retrieve all iovs for a given hash. Used when deleting.
+     * Count iovs for a given hash. Used when deleting to avoid loading entities.
      *
-     * @param hash
-     * @return List of Iovs
+     * @param hash the payload hash
+     * @return count of IOVs referencing this hash
      */
-    List<Iov> findByPayloadHash(@Param("hash") String hash);
+    long countByPayloadHash(@Param("hash") String hash);
 
     /**
      * Check existence of IOV by unique fields.

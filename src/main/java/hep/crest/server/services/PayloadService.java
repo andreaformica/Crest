@@ -152,7 +152,7 @@ public class PayloadService {
     }
 
     /**
-     * @param tag  the String tag name
+     * @param tag  the String tag name (used for logging purposes)
      * @param hash the String payload hash
      * @param flushtransaction the boolean flag
      * @return String
@@ -164,37 +164,28 @@ public class PayloadService {
         if (opt.isEmpty()) {
             throw new CdbNotFoundException("Cannot find payload for hash " + hash);
         }
-        Boolean canremove = Boolean.TRUE;
-        List<Iov> iovwithhash = iovRepository.findByPayloadHash(hash);
-        Integer niovs = (iovwithhash != null) ? iovwithhash.size() : 0;
-        log.trace("Found list of {} IOVs for hash {}", niovs, hash);
-        Tag tagEntity = iovService.checkTag(tag);
+        // Check if any IOVs still reference this payload hash.
+        // Use count query to avoid loading IOV entities which have Tag references
+        // that may cause TransientObjectException if the Tag was deleted.
+        long niovs = iovRepository.countByPayloadHash(hash);
+        log.trace("Found {} IOVs for hash {} in tag {}", niovs, hash, tag);
+        
         if (niovs >= 1) {
-            log.trace("The hash {} is associated to more than one iov...remove only if tag name "
-                      + "is the same", hash);
-            for (Iov iov : iovwithhash) {
-                if (tagEntity.getTagId().equals(iov.getId().getTagId())) {
-                    canremove = Boolean.FALSE;
-                    break;
-                }
-            }
+            // Payload is still referenced by other IOVs, cannot remove
+            log.trace("The hash {} is still associated to {} iov(s), skipping removal", hash, niovs);
+            return hash;
         }
-        // Before removing this payload we should still check that all IOVs for the tag were
-        // removed, or we get an exception...
-        // In the statement above we are flagging to FALSE the canremove so that we avoid
-        // to delete the payload in case an IOV is found.
-        if (Boolean.TRUE.equals(canremove)) {
-            log.trace("Remove payload for hash {} in tag {}", hash, tag);
-            payloadRepository.deleteById(hash);
-            payloadDataRepository.deleteData(hash);
-            payloadDataRepository.deleteById(hash);
-            payloadInfoDataRepository.deleteById(hash);
-            if (flushtransaction) {
-                flush();
-            }
-            return "removed";
+        
+        // No IOVs reference this payload, safe to remove
+        log.trace("Remove payload for hash {} (previously in tag {})", hash, tag);
+        payloadRepository.deleteById(hash);
+        payloadDataRepository.deleteData(hash);
+        payloadDataRepository.deleteById(hash);
+        payloadInfoDataRepository.deleteById(hash);
+        if (flushtransaction) {
+            flush();
         }
-        return hash;
+        return "removed";
     }
 
     /**
@@ -225,7 +216,7 @@ public class PayloadService {
      * @param tagname
      * @return Future
      */
-    @Transactional
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
     @Async
     public CompletableFuture<Void> removeCacheBuffer(String tagname) {
         AtomicInteger counter = new AtomicInteger();

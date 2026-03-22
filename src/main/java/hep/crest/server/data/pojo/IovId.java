@@ -30,6 +30,7 @@ public class IovId implements java.io.Serializable {
      * The tag name.
      * This column should reference an existing Tag.
      */
+    @EqualsAndHashCode.Exclude
     @Column(name = "TAG_ID", nullable = false, length = 255)
     private Long tagId;
     /**

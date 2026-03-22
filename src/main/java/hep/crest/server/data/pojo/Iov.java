@@ -45,7 +45,7 @@ public class Iov implements java.io.Serializable {
      */
     @EmbeddedId
     @AttributeOverride(name = "tagId",
-            column = @Column(name = "TAG_NAME", nullable = false))
+            column = @Column(name = "TAG_ID", nullable = false))
     @AttributeOverride(name = "since",
             column = @Column(name = "SINCE", nullable = false, precision = 38, scale = 0))
     @AttributeOverride(name = "insertionTime",

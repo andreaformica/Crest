@@ -16,6 +16,7 @@
  **/
 package hep.crest.server.data.repositories;
 
+import hep.crest.server.data.pojo.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -48,10 +49,10 @@ public class IovGroupsImpl extends DataGeneral implements IovGroupsCustom {
 
 
     @Override
-    public List<BigInteger> selectSnapshotGroups(String tagname, Date snap, Long groupsize) {
+    public List<BigInteger> selectSnapshotGroups(Tag entity, Date snap, Long groupsize) {
         log.info(
                 "Select Iov Snapshot Groups for tag {} with group size {} and snapshot time {} using JDBCTEMPLATE",
-                tagname, groupsize, snap);
+                entity, groupsize, snap);
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
         final String tablename = getCrestTableNames().getIovTableName();
         // Set the default group frequency at 100. This can be changed via groupsize argument.
@@ -68,12 +69,14 @@ public class IovGroupsImpl extends DataGeneral implements IovGroupsCustom {
         // groupsize.
         final String sql = "with tag_iov as ("
                                  + " select iv.SINCE, rownum as rid from " + tablename + " iv "
-                                 + "   where iv.TAG_NAME=? " + snaptime + " ) "
+                                 + "   where iv.TAG_ID=? " + snaptime + " ) "
                                  + "select ti.SINCE from tag_iov ti where mod(rid, ?) = 1 "
                                  + "ORDER BY SINCE";
         log.debug("Execute selectSnapshotGroups query {}", sql);
 
-        List<BigDecimal> sinceList = jdbcTemplate.queryForList(sql, BigDecimal.class, tagname, snap, groupfreq);
+        List<BigDecimal> sinceList = jdbcTemplate.queryForList(sql, BigDecimal.class,
+                entity.getTagId(),
+                snap, groupfreq);
         BigDecimal a = sinceList.get(0);
         log.info("Return elements like {} ", a);
         return sinceList.stream().map(BigDecimal::toBigInteger)

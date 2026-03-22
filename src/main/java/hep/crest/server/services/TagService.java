@@ -18,6 +18,8 @@ import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.ConflictException;
 import hep.crest.server.swagger.model.TagDto;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -95,6 +97,12 @@ public class TagService {
      * Repository.
      */
     private GlobalTagMapRepository globalTagMapRepository;
+
+    /**
+     * Entity manager for clearing persistence context.
+     */
+    @PersistenceContext
+    private EntityManager entityManager;
 
 
     /**
@@ -307,6 +315,12 @@ public class TagService {
                 pageIndex++;
                 // Continue using the same page (page 0), as removed items won't appear again
             } while (!iovsPage.isEmpty()); // Break if there are no more IOVs to process
+            // Clear the persistence context to detach any orphaned entity references
+            // This prevents TransientObjectException when the tag is deleted
+            entityManager.clear();
+            // Re-fetch the tag entity since we cleared the persistence context
+            tagEntity = tagRepository.findById(tagId).orElseThrow(
+                    () -> new CdbNotFoundException("Tag does not exists for id " + tagId));
             // Payload are now removed
             log.debug("Payloads have been scheduled for removal");
             // Launch async task to remove payloads

@@ -115,6 +115,7 @@ public class IovsApiServiceImpl extends IovsApiService {
         this.prh = prh;
         this.edh = edh;
         this.mapper = mapper;
+        this.customMapper = customMapper;
         this.context = context;
     }
 

@@ -120,7 +120,8 @@ public class IovService {
     public List<BigInteger> selectGroupsByTagNameAndSnapshotTime(String tagname, Date snapshot,
                                                                  Long groupsize) {
         log.debug("Search for iovs groups by tag name {} and snapshot time {}", tagname, snapshot);
-        List<BigInteger> minsincelist = iovGroupsCustom.selectSnapshotGroups(tagname, snapshot,
+        Tag entity = checkTag(tagname);
+        List<BigInteger> minsincelist = iovGroupsCustom.selectSnapshotGroups(entity, snapshot,
                 groupsize);
         if (minsincelist == null) {
             minsincelist = new ArrayList<>();
@@ -179,7 +180,9 @@ public class IovService {
         if (snapshot == null || snapshot.getTime() == 0) {
             snapshot = Date.from(Instant.now()); // Use now for the snapshot
         }
-        entities = iMonitoringRepository.getRangeIovPayloadInfo(tagname, since, until, snapshot);
+        Tag entity = checkTag(tagname);
+        entities = iMonitoringRepository.getRangeIovPayloadInfo(
+                entity.getTagId(), since, until, snapshot);
 
         if (entities == null) {
             log.warn("Cannot find iovpayloads for tag {} using ranges {} {} and snapshot {}",
