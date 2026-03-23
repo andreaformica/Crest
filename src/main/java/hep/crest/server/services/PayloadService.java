@@ -3,9 +3,12 @@
  */
 package hep.crest.server.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hep.crest.server.config.CrestProperties;
 import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.converters.HashGenerator;
+import hep.crest.server.converters.PayloadHandler;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.IovId;
 import hep.crest.server.data.pojo.Payload;
@@ -22,6 +25,7 @@ import hep.crest.server.exceptions.CdbBadRequestException;
 import hep.crest.server.exceptions.CdbInternalException;
 import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.ConflictException;
+import hep.crest.server.exceptions.PayloadEncodingException;
 import hep.crest.server.repositories.triggerdb.ITriggerDb;
 import hep.crest.server.repositories.triggerdb.UrlComponents;
 import hep.crest.server.swagger.model.StoreDto;
@@ -29,6 +33,8 @@ import hep.crest.server.swagger.model.StoreSetDto;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.glassfish.jersey.media.multipart.BodyPartEntity;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -37,7 +43,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,8 +53,12 @@ import java.math.BigInteger;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -99,37 +111,46 @@ public class PayloadService {
      */
     private ObjectMapper jsonMapper;
     /**
+     * Properties.
+     */
+    private CrestProperties crestProperties;
+    /**
      * Constant for triggerdb.
      */
     private static final String TRIGGERDB = "triggerdb";
+    /**
+     * Set separator.
+     */
+    private static final String SLASH = File.pathSeparator.equals(":") ? "/" : File.pathSeparator;
 
     /**
      * Ctor with injection.
      * @param iovService
-     * @param payloadRepository
      * @param payloadDataRepository
      * @param payloadInfoDataRepository
      * @param triggerDbService
      * @param jsonMapper
      * @param cachePayloadBuffer
+     * @param crestProperties
      */
     @Autowired
     public PayloadService(IovService iovService,
-                          PayloadRepository payloadRepository,
                           PayloadDataRepository payloadDataRepository,
                           PayloadInfoDataRepository payloadInfoDataRepository,
                           ITriggerDb triggerDbService,
                           @Qualifier("jacksonMapper") ObjectMapper jsonMapper,
-                          IPayloadBuffer cachePayloadBuffer) {
+                          IPayloadBuffer cachePayloadBuffer,
+                          CrestProperties crestProperties) {
         this.iovService = iovService;
         this.iovRepository = iovService.getIovRepository();
         this.prh = iovService.getPrh();
-        this.payloadRepository = payloadRepository;
+        this.payloadRepository = iovService.getPayloadRepository();
         this.payloadDataRepository = payloadDataRepository;
         this.payloadInfoDataRepository = payloadInfoDataRepository;
         this.triggerDbService = triggerDbService;
         this.jsonMapper = jsonMapper;
         this.cachePayloadBuffer = cachePayloadBuffer;
+        this.crestProperties = crestProperties;
     }
 
 
@@ -560,6 +581,185 @@ public class PayloadService {
         outDto.data("payload_length: " + paylodContent.length);
         outDto.streamerInfo("none");
         return outDto;
+    }
+
+    /**
+     * Store iovs and payload files.
+     *
+     * @param dtoset         the StoreSetDto
+     * @param tag            the String
+     * @param objectType     the object type
+     * @param compressionType the compression type
+     * @param version        the version
+     * @param filesbodyparts the List<FormDataBodyPart>
+     * @return StoreSetDto
+     * @throws PayloadEncodingException    If an Exception occurred
+     * @throws IOException                 If an Exception occurred
+     * @throws AbstractCdbServiceException if an exception occurred in insertion.
+     */
+    public StoreSetDto storeData(StoreSetDto dtoset,
+                                    String tag, String objectType,
+                                    String compressionType,
+                                    String version,
+                                    List<FormDataBodyPart> filesbodyparts)
+            throws IOException, AbstractCdbServiceException {
+        final List<StoreDto> iovlist = dtoset.getResources();
+        // Loop over iovs found in the Set.
+        List<StorableData> storableDataList = new ArrayList<>();
+        for (final StoreDto piovDto : iovlist) {
+            String filename = null;
+            log.info("Store data from dto in tag {} at {}", tag, piovDto.getSince());
+            final Map<String, String> sinfomap = new HashMap<>();
+            sinfomap.put("format", dtoset.getDatatype());
+            sinfomap.put("insertionDate", new Date().toString());
+            sinfomap.put("streamerInfo", piovDto.getStreamerInfo());
+
+            // Here we generate objectType and version. We should probably allow for input
+            // arguments.
+            Payload entity =
+                    new Payload().setObjectType(objectType).setHash("none").setVersion(version);
+            entity.setCompressionType(compressionType);
+            entity.setSize(0);
+            // Initialize the iov entity from the DTO.
+            Tag tagentity = iovService.checkTag(tag);
+            Iov iov = new Iov();
+            IovId iovId = new IovId();
+            iovId.setSince(BigInteger.valueOf(piovDto.getSince())).setTagId(tagentity.getTagId());
+            iov.setId(iovId).setTag(tagentity);
+            // Initialize the payload entity from the DTO.
+            StorableData data;
+            if (filesbodyparts == null) {
+                // There are no attached files, so the data field should represent the payload
+                byte[] paylodContent = piovDto.getData().getBytes(StandardCharsets.UTF_8);
+                log.debug("Use the data string, it represents the payload : length is {}",
+                        paylodContent.length);
+                entity.setSize(paylodContent.length);
+                String outFilename = generateUploadFilename("inline", tag, iov.getId().getSince());
+                log.info("Dump data in file {} to compute the hash", outFilename);
+                final String hash = getHash(
+                        new ByteArrayInputStream(paylodContent), outFilename);
+                final Map<String, Object> retmap = new HashMap<>();
+                retmap.put("uploadedFile", outFilename);
+                data = buildStorable(iov, entity, sinfomap, hash);
+                data.streamsMap(retmap);
+            }
+            else {
+                // If there are attached files, then the payload will be loaded from filename.
+                log.debug("Use attached file : {}", piovDto.getData());
+                final Map<String, Object> retmap = getDocumentStream(piovDto, filesbodyparts);
+                filename = (String) retmap.get("file");
+                String outFilename = generateUploadFilename(filename, tag, iov.getId().getSince());
+                final String hash = getHash((InputStream) retmap.get("stream"), outFilename);
+                retmap.put("uploadedFile", outFilename);
+                sinfomap.put("filename", filename);
+                entity.setObjectName(filename);
+                data = buildStorable(iov, entity, sinfomap, hash);
+                data.streamsMap(retmap);
+            }
+            storableDataList.add(data);
+        }
+        // Store all data
+        log.debug("Save IOV and Payload from list of data of size {}", storableDataList.size());
+        return saveAll(storableDataList);
+    }
+
+    /**
+     * Build a StorableData object.
+     *
+     * @param iov
+     * @param entity
+     * @param sinfomap
+     * @param hash
+     * @return StorableData
+     * @throws JsonProcessingException
+     */
+    protected StorableData buildStorable(Iov iov, Payload entity, Map<String, String> sinfomap,
+                                         String hash) throws JsonProcessingException {
+        PayloadData content = new PayloadData();
+        PayloadInfoData sinfodata = new PayloadInfoData();
+        StorableData data = new StorableData();
+        // Set the hash into the iov and entity.
+        iov.setPayloadHash(hash);
+        entity.setHash(hash);
+        content.setHash(hash);
+        // Fill the streamer info map.
+        sinfodata.hash(hash).streamerInfo(jsonMapper.writeValueAsBytes(sinfomap));
+        // Fill the StorableData object.
+        data.iov(iov).payload(entity).payloadData(content).payloadInfoData(sinfodata);
+        return data;
+    }
+
+    /**
+     * Generate the filename for the upload.
+     *
+     * @param fileName
+     * @param tag
+     * @param since
+     * @return String
+     */
+    protected String generateUploadFilename(String fileName, String tag, BigInteger since) {
+        String fdetailsname = fileName;
+        if (fdetailsname == null || fdetailsname.isEmpty()) {
+            // Generate a fake filename.
+            fdetailsname = ".blob";
+        }
+        else {
+            // Get the filename from the input request.
+            final Path p = Paths.get(fdetailsname);
+            fdetailsname = "_" + p.getFileName().toString();
+        }
+        // Create a temporary file name from tag name and time of validity.
+        return crestProperties.getDumpdir() + SLASH + tag + "_" + since
+               + fdetailsname;
+    }
+
+    /**
+     * @param fileInputStream the InputStream
+     * @param filename        the String
+     * @return String. The computed hash from the byte stream.
+     * @throws PayloadEncodingException If an Exception occurred
+     * @throws IOException              If an Exception occurred
+     */
+    protected String getHash(InputStream fileInputStream, String filename)
+            throws PayloadEncodingException, IOException {
+
+        try (BufferedInputStream bis = new BufferedInputStream(fileInputStream)) {
+            if (filename.equals("none")) {
+                return PayloadHandler.getHashFromStream(bis);
+            }
+            return PayloadHandler.saveToFileGetHash(bis, filename);
+        }
+    }
+
+    /**
+     * @param mddto     the StoreDto
+     * @param bodyParts the List<FormDataBodyPart>
+     * @return Map<String, Object>
+     * @throws PayloadEncodingException If an Exception occurred
+     */
+    protected Map<String, Object> getDocumentStream(StoreDto mddto,
+                                                    List<FormDataBodyPart> bodyParts)
+            throws PayloadEncodingException {
+        log.debug("Extracting document BLOB for file {}", mddto.getData());
+        final Map<String, Object> retmap = new HashMap<>();
+        String dtofname = mddto.getData();
+        if (dtofname.startsWith("file://")) {
+            dtofname = mddto.getData().split("://")[1];
+        }
+        for (int i = 0; i < bodyParts.size(); i++) {
+            final BodyPartEntity test = (BodyPartEntity) bodyParts.get(i).getEntity();
+            final String fileName = bodyParts.get(i).getContentDisposition().getFileName();
+            log.debug("Search for file {} in input store set", fileName);
+            if (dtofname.contains(fileName)) {
+                retmap.put("file", fileName);
+                retmap.put("stream", test.getInputStream());
+            }
+        }
+        if (retmap.isEmpty()) {
+            throw new PayloadEncodingException(
+                    "Cannot find file content in form data. File name = " + mddto.getData());
+        }
+        return retmap;
     }
 
 }
