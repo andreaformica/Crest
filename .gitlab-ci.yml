@@ -5,6 +5,7 @@ variables:
     GRADLE_OPTS: "-Dorg.gradle.daemon=false"
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
     GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+    ALLOW_DOCKER_BUILD: "no"  # Set to "yes" to allow Docker builds from non-master branches
 
 # Make the gradle wrapper executable. This essentially downloads a copy of
 # Gradle to build the project with.
@@ -79,6 +80,9 @@ build_container_job:
     PUSH_IMAGE: "true"
     DOCKER_FILE_NAME: "Dockerfile"
   rules:
+    # Allow building from any branch when explicitly enabled via ALLOW_DOCKER_BUILD variable
+    - if: $DO_DOCKER_IMAGE == "yes" && $SITE == "cern" && $ALLOW_DOCKER_BUILD == "yes"
+    # Original rule: allow building from master branch
     - if: $DO_DOCKER_IMAGE == "yes" && $SITE == "cern" && $CI_COMMIT_BRANCH == 'master'
     - when: never
 
