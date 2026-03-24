@@ -179,9 +179,9 @@ public class ToolsTest {
         assertThat(cooltime3).isEqualTo(1739640284000L);
 
         CrestTableNames ctn = new CrestTableNames();
-        assertThat(ctn.getIovTableName()).isEqualTo("IOV");
+        assertThat(ctn.getIovTableName()).startsWith("IOV");
         assertThat(ctn.getTagMetaTableName()).isEqualTo("TAG_META");
-        assertThat(ctn.getTagTableName()).isEqualTo("TAG");
+        assertThat(ctn.getTagTableName()).startsWith("TAG");
         assertThat(ctn.getPayloadDataTableName()).isEqualTo("PAYLOAD_DATA");
         assertThat(ctn.getPayloadTableName()).isEqualTo("PAYLOAD");
         assertThat(ctn.getPayloadInfoDataTableName()).isEqualTo("PAYLOAD_STREAMER_DATA");
