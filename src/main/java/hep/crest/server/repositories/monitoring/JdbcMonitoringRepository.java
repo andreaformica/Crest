@@ -78,7 +78,7 @@ public class JdbcMonitoringRepository extends DataGeneral implements IMonitoring
         final String sql = "select tv.NAME as TAG_NAME, COUNT(tv.NAME) as NIOVS from "
                 + getCrestTableNames().getTagTableName() + " tv, "
                 + getCrestTableNames().getIovTableName() + " iv "
-                           + " where tv.NAME like ? AND iv.TAG_ID=tv.TAG_ID GROUP BY tv.TAG_ID";
+                + " where tv.NAME like ? AND iv.TAG_ID=tv.TAG_ID GROUP BY tv.TAG_ID, tv.NAME";
         return jdbcTemplate.query(sql, (rs, num) -> {
             final TagSummaryDto entity = new TagSummaryDto();
             entity.setTagname(rs.getString("TAG_NAME"));
