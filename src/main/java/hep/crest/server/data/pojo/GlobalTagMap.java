@@ -48,10 +48,11 @@ public class GlobalTagMap implements java.io.Serializable {
      * Reference to Tag entity object involved in the mapping.
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "TAG_NAME", nullable = false)
+    @JoinColumn(name = "TAG_NAME", nullable = false, referencedColumnName = "NAME")
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Tag tag;
+
     /**
      * The Global Tag.
      * Reference to the global tag object involved in the mapping.

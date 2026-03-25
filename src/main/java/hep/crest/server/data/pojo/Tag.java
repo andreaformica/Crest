@@ -53,7 +53,7 @@ public class Tag implements java.io.Serializable {
      */
     @Id
     @SequenceGenerator(name = "tag_seq", sequenceName =
-            DatabasePropertyConfigurator.SCHEMA_NAME + ".TAG_SEQUENCE",
+            DatabasePropertyConfigurator.SCHEMA_NAME + ".TAGID_SEQUENCE",
             allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tag_seq")
     @EqualsAndHashCode.Exclude
