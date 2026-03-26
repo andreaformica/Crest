@@ -10,25 +10,29 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import jakarta.transaction.Transactional;
-import java.util.Optional;
+import org.springframework.data.jpa.repository.Modifying;
 
 /**
  * Repository for tagmeta information.
  *
  * @author formica
- * This repository is for the moment empty.
+ * CrudRepository already provides findById() which uses the @Id field (tagName)
  */
 @Repository
 public interface TagMetaRepository
         extends PagingAndSortingRepository<TagMeta, String>,
         CrudRepository<TagMeta, String> {
 
+
     /**
-     * @param name
-     *            the String
-     * @return Optional<TagMeta>
+     * Delete tag meta by tag name.
+     *
+     * @param tagName
+     *            the tag name
+     * @return the number of removed rows
      */
     @Transactional
-    Optional<TagMeta> findByTagName(@Param("name") String name);
+    @Modifying
+    int deleteByTagName(@Param("tagName") String tagName);
 
 }

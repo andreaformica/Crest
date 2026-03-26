@@ -287,7 +287,7 @@ public class TagService {
         try {
             // Remove meta information associated with the tag.
             log.debug("Removing meta info on tag {}", name);
-            Optional<TagMeta> opt = tagMetaRepository.findByTagName(name);
+            Optional<TagMeta> opt = tagMetaRepository.findById(name);
             if (opt.isPresent()) {
                 tagMetaService.removeTagMeta(name);
             }
