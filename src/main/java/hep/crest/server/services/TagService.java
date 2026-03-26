@@ -7,11 +7,9 @@ import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.data.pojo.GlobalTagMap;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Tag;
-import hep.crest.server.data.pojo.TagMeta;
 import hep.crest.server.data.repositories.GlobalTagMapRepository;
 import hep.crest.server.data.repositories.IovGroupsCustom;
 import hep.crest.server.data.repositories.IovRepository;
-import hep.crest.server.data.repositories.TagMetaRepository;
 import hep.crest.server.data.repositories.TagRepository;
 import hep.crest.server.data.repositories.args.TagQueryArgs;
 import hep.crest.server.exceptions.AbstractCdbServiceException;
@@ -77,11 +75,6 @@ public class TagService {
     /**
      * Repository.
      */
-    private TagMetaRepository tagMetaRepository;
-
-    /**
-     * Repository.
-     */
     private IovGroupsCustom iovGroupsCustom;
 
     /**
@@ -127,7 +120,6 @@ public class TagService {
         this.iovGroupsCustom = iovService.getIovGroupsCustom();
         this.payloadService = payloadService;
         this.tagMetaService = tagMetaService;
-        this.tagMetaRepository = tagMetaService.getTagmetaRepository();
         this.globalTagMapRepository = globalTagMapRepository;
     }
 
@@ -283,21 +275,18 @@ public class TagService {
     @CacheEvict(value = CacheConfig.TAG_CACHE, key = "#name")
     @Transactional
     public void removeTag(String name) throws AbstractCdbServiceException {
-        log.debug("Remove tag {} after checking if IOVs are present", name);
+        log.info("Removing tag {} after checking if IOVs are present", name);
         try {
             // Remove meta information associated with the tag.
-            log.debug("Removing meta info on tag {}", name);
-            Optional<TagMeta> opt = tagMetaRepository.findById(name);
-            if (opt.isPresent()) {
-                tagMetaService.removeTagMeta(name);
-            }
+            log.info("Remove meta info on tag {}", name);
+            tagMetaService.removeTagMeta(name);
             // Check if the tag exists
             Tag tagEntity = tagRepository.findByName(name).orElseThrow(
                     () -> new CdbNotFoundException("Tag does not exists for name " + name));
             Long tagId = tagEntity.getTagId();
             // Check if the tag is associated to a global tag
             // Start removing IOVs
-            log.debug("Removing tag {}", name);
+            log.info("Removing IOVs for Tag {}", name);
             // Verify the IOV content size
             int pageSize = 2000; // Batch size for deletion
             Pageable pageable = PageRequest.of(0, pageSize);
@@ -327,7 +316,7 @@ public class TagService {
             payloadService.removeCacheBuffer(name);
             // Remove the tag
             tagRepository.deleteById(tagEntity.getTagId());
-            log.debug("Removed entity: {}", name);
+            log.info("Removed Tag entity: {}", name);
             // Do not wait for the future to complete
         }
         catch (AbstractCdbServiceException e) {

@@ -171,13 +171,13 @@ public class TagMetaService {
      * @throws AbstractCdbServiceException the cdb service exception
      */
     @CacheEvict(value = CacheConfig.TAG_META_CACHE, key = "#name")
-    @Transactional
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void removeTagMeta(String name) {
         log.debug("Remove tag meta info for {}", name);
         int nrows = tagmetaRepository.deleteByTagName(name);
         if (nrows > 1) {
             log.warn("Removed {} rows for tag meta info with name {}", nrows, name);
         }
-        log.debug("Removed tag meta info for: {}", name);
+        log.info("Removed tag meta info for: {}", name);
     }
 }

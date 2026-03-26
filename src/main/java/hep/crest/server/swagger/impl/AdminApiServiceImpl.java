@@ -96,6 +96,7 @@ public class AdminApiServiceImpl extends AdminApiService {
                     + name
                     + ": it is locked");
         }
+        log.info("Tag {} is unlocked, check for associations with global tags.", name);
         // Get the list of global tags that are associated to this tag.
         Iterable<GlobalTagMap> associatedGlobalTags = globalTagMapService.getTagMapByTagName(name);
         if (associatedGlobalTags.iterator().hasNext()) {
@@ -108,6 +109,7 @@ public class AdminApiServiceImpl extends AdminApiService {
         }
         // We remove the tag. Here we could also test for locking status of the tag or similar.
         try {
+            log.info("Removing Tag {}.", name);
             tagService.removeTag(name);
             log.info("Tag {} removed.", name);
             return Response.ok().build();
