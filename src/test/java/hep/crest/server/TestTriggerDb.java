@@ -1,8 +1,8 @@
 package hep.crest.server;
 
-import hep.crest.server.repositories.triggerdb.ITriggerDb;
-import hep.crest.server.repositories.triggerdb.TriggerDb;
-import hep.crest.server.repositories.triggerdb.UrlComponents;
+import hep.crest.server.triggerdb.repositories.ITriggerDb;
+import hep.crest.server.triggerdb.repositories.TriggerDb;
+import hep.crest.server.triggerdb.repositories.UrlComponents;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

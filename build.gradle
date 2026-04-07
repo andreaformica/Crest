@@ -10,7 +10,7 @@ plugins {
 }
 
 group = 'hep.crest'
-version = "6.4.0"
+version = "6.3.3"
 
 java {
 	toolchain {
@@ -270,8 +270,7 @@ sourceSets {
 	main {
 		java {
 			// srcDirs = ['src/main/java', 'src/gen/java']
-            //srcDirs = ['src/main/java', 'src/gen/java', 'plugins/timeseries/java', 'plugins/tzero/java']
-            srcDirs = ['src/main/java', 'src/gen/java', 'plugins/tzero/java']
+			srcDirs = ['src/main/java', 'src/gen/java', 'plugins/timeseries/java', 'plugins/tzero/java', 'plugins/trigger/java']
 		}
 	}
 	// println main.output.classesDir

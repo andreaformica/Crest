@@ -2,8 +2,8 @@ package hep.crest.server.config;
 
 import hep.crest.server.data.repositories.IovGroupsCustom;
 import hep.crest.server.data.repositories.IovGroupsImpl;
-import hep.crest.server.repositories.triggerdb.ITriggerDb;
-import hep.crest.server.repositories.triggerdb.NoTriggerDb;
+import hep.crest.server.triggerdb.repositories.ITriggerDb;
+import hep.crest.server.triggerdb.repositories.NoTriggerDb;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -114,6 +114,7 @@ public class RepositoryConfig {
         bean.setCrestTableNames(crestTableNames);
         return bean;
     }
+
 
     /**
      * Create a repository to handle request to trigger DB that should fail.
