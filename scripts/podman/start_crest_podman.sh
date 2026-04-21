@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # --- Start a local CREST server on lxplus (podman or JAR) ---
 #
+# Author: yuriy.volkotrub@cern.ch
+#
 # Starts CREST with H2 in-memory database — no Oracle privileges needed.
 # Uses Andrea Formica's official container image (recommended).
 #
