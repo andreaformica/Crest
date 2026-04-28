@@ -61,6 +61,8 @@ public class SecurityDbConfig {
             http.csrf(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(auth ->
                             auth.requestMatchers(HttpMethod.GET, "/**").permitAll()
+                                    .requestMatchers(HttpMethod.PUT, "/**/lock")
+                                    .hasAnyRole("MANAGER", "ADMIN")
                                     .requestMatchers("/admin/**").hasRole("ADMIN")
                                     .requestMatchers("/folders/**").hasRole("ADMIN")
                                     .anyRequest().authenticated()
