@@ -6,9 +6,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,6 +18,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Test class for CacheInvalidationService.
@@ -122,7 +125,7 @@ public class TestCacheValidationService {
 
         // Verify BAN request was sent with correct header
         assertThat(receivedRequests).hasSize(1);
-        assertThat(receivedRequests.get(0)).isEqualTo("BAN / X-Ban-Tag=" + tagName);
+        assertThat(receivedRequests.getFirst()).isEqualTo("BAN / X-Ban-Tag=" + tagName);
 
         log.info("Successfully verified BAN request for tag: {}", tagName);
     }
@@ -313,5 +316,182 @@ public class TestCacheValidationService {
         assertThat(receivedRequests).isEmpty();
 
         log.info("Successfully verified empty endpoints configuration");
+    }
+
+    /**
+     * Test resolveHeadlessService with successful DNS resolution.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testResolveHeadlessServiceSuccess() throws Exception {
+        log.info("=======> testResolveHeadlessServiceSuccess");
+
+        // Create mock InetAddress objects
+        InetAddress[] mockAddresses = new InetAddress[3];
+        mockAddresses[0] = InetAddress.getByName("10.0.0.1");
+        mockAddresses[1] = InetAddress.getByName("10.0.0.2");
+        mockAddresses[2] = InetAddress.getByName("10.0.0.3");
+
+        try (MockedStatic<InetAddress> mockedInetAddress = mockStatic(InetAddress.class)) {
+            mockedInetAddress.when(() -> InetAddress.getAllByName("varnish-headless"))
+                    .thenReturn(mockAddresses);
+
+            CacheInvalidationService testService = new CacheInvalidationService();
+            ReflectionTestUtils.setField(testService, "enabled", true);
+            ReflectionTestUtils.setField(testService, "varnishEndpoints", "");
+            ReflectionTestUtils.setField(testService, "headlessService", "varnish-headless");
+            ReflectionTestUtils.setField(testService, "varnishPort", 9090);
+            ReflectionTestUtils.setField(testService, "timeoutMs", 5000);
+            testService.init();
+
+            // Access the private resolveEndpoints method via reflection
+            List<String> resolved = (List<String>) ReflectionTestUtils.invokeMethod(
+                    testService, "resolveHeadlessService");
+
+            assertThat(resolved).hasSize(3);
+            assertThat(resolved).containsExactly(
+                    "10.0.0.1:9090",
+                    "10.0.0.2:9090",
+                    "10.0.0.3:9090"
+            );
+
+            log.info("Successfully resolved headless service with {} endpoints", resolved.size());
+        }
+    }
+
+    /**
+     * Test resolveHeadlessService with single pod.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testResolveHeadlessServiceSinglePod() throws Exception {
+        log.info("=======> testResolveHeadlessServiceSinglePod");
+
+        InetAddress[] mockAddresses = new InetAddress[1];
+        mockAddresses[0] = InetAddress.getByName("10.0.0.5");
+
+        try (MockedStatic<InetAddress> mockedInetAddress = mockStatic(InetAddress.class)) {
+            mockedInetAddress.when(() -> InetAddress.getAllByName("varnish-single"))
+                    .thenReturn(mockAddresses);
+
+            CacheInvalidationService testService = new CacheInvalidationService();
+            ReflectionTestUtils.setField(testService, "enabled", true);
+            ReflectionTestUtils.setField(testService, "varnishEndpoints", "");
+            ReflectionTestUtils.setField(testService, "headlessService", "varnish-single");
+            ReflectionTestUtils.setField(testService, "varnishPort", 8080);
+            ReflectionTestUtils.setField(testService, "timeoutMs", 5000);
+            testService.init();
+
+            List<String> resolved = (List<String>) ReflectionTestUtils.invokeMethod(
+                    testService, "resolveHeadlessService");
+
+            assertThat(resolved).hasSize(1);
+            assertThat(resolved.getFirst()).isEqualTo("10.0.0.5:8080");
+
+            log.info("Successfully resolved single pod with custom port");
+        }
+    }
+
+    /**
+     * Test resolveHeadlessService with DNS resolution failure.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testResolveHeadlessServiceDNSFailure() {
+        log.info("=======> testResolveHeadlessServiceDNSFailure");
+
+        try (MockedStatic<InetAddress> mockedInetAddress = mockStatic(InetAddress.class)) {
+            mockedInetAddress.when(() -> InetAddress.getAllByName("non-existent-service"))
+                    .thenThrow(new java.net.UnknownHostException("Service not found"));
+
+            CacheInvalidationService testService = new CacheInvalidationService();
+            ReflectionTestUtils.setField(testService, "enabled", true);
+            ReflectionTestUtils.setField(testService, "varnishEndpoints", "");
+            ReflectionTestUtils.setField(testService, "headlessService", "non-existent-service");
+            ReflectionTestUtils.setField(testService, "varnishPort", 9090);
+            ReflectionTestUtils.setField(testService, "timeoutMs", 5000);
+            testService.init();
+
+            // Should return empty list, not throw exception
+            List<String> resolved = (List<String>) ReflectionTestUtils.invokeMethod(
+                    testService, "resolveHeadlessService");
+
+            assertThat(resolved).isEmpty();
+
+            log.info("Successfully handled DNS resolution failure");
+        }
+    }
+
+    /**
+     * Test resolveHeadlessService with IPv6 addresses.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testResolveHeadlessServiceIPv6() throws Exception {
+        log.info("=======> testResolveHeadlessServiceIPv6");
+
+        InetAddress[] mockAddresses = new InetAddress[2];
+        mockAddresses[0] = InetAddress.getByName("2001:db8::1");
+        mockAddresses[1] = InetAddress.getByName("2001:db8::2");
+
+        try (MockedStatic<InetAddress> mockedInetAddress = mockStatic(InetAddress.class)) {
+            mockedInetAddress.when(() -> InetAddress.getAllByName("varnish-ipv6"))
+                    .thenReturn(mockAddresses);
+
+            CacheInvalidationService testService = new CacheInvalidationService();
+            ReflectionTestUtils.setField(testService, "enabled", true);
+            ReflectionTestUtils.setField(testService, "varnishEndpoints", "");
+            ReflectionTestUtils.setField(testService, "headlessService", "varnish-ipv6");
+            ReflectionTestUtils.setField(testService, "varnishPort", 9090);
+            ReflectionTestUtils.setField(testService, "timeoutMs", 5000);
+            testService.init();
+
+            List<String> resolved = (List<String>) ReflectionTestUtils.invokeMethod(
+                    testService, "resolveHeadlessService");
+
+            assertThat(resolved).hasSize(2);
+            // IPv6 addresses are expanded by InetAddress.getByName, so we check for the port suffix
+            assertThat(resolved.get(0)).endsWith(":9090").contains("2001:db8");
+            assertThat(resolved.get(1)).endsWith(":9090").contains("2001:db8");
+
+            log.info("Successfully resolved IPv6 addresses");
+        }
+    }
+
+    /**
+     * Test resolveHeadlessService with many pods.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testResolveHeadlessServiceManyPods() throws Exception {
+        log.info("=======> testResolveHeadlessServiceManyPods");
+
+        InetAddress[] mockAddresses = new InetAddress[10];
+        for (int i = 0; i < 10; i++) {
+            mockAddresses[i] = InetAddress.getByName("10.0.0." + (i + 1));
+        }
+
+        try (MockedStatic<InetAddress> mockedInetAddress = mockStatic(InetAddress.class)) {
+            mockedInetAddress.when(() -> InetAddress.getAllByName("varnish-cluster"))
+                    .thenReturn(mockAddresses);
+
+            CacheInvalidationService testService = new CacheInvalidationService();
+            ReflectionTestUtils.setField(testService, "enabled", true);
+            ReflectionTestUtils.setField(testService, "varnishEndpoints", "");
+            ReflectionTestUtils.setField(testService, "headlessService", "varnish-cluster");
+            ReflectionTestUtils.setField(testService, "varnishPort", 9090);
+            ReflectionTestUtils.setField(testService, "timeoutMs", 5000);
+            testService.init();
+
+            List<String> resolved = (List<String>) ReflectionTestUtils.invokeMethod(
+                    testService, "resolveHeadlessService");
+
+            assertThat(resolved).hasSize(10);
+            for (int i = 0; i < 10; i++) {
+                assertThat(resolved.get(i)).isEqualTo("10.0.0." + (i + 1) + ":9090");
+            }
+
+            log.info("Successfully resolved all {} pods in cluster", resolved.size());
+        }
     }
 }

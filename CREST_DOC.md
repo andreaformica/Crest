@@ -28,50 +28,57 @@ CREST service is a RESTful API for the storage and retrieval of IOVs (Interval o
 The data model is illustrated in the following diagram:
 
 ```mermaid
-classDiagram
-    GlobalTag --* Maps
-    Tag --* Maps
-    Tag --* Iov
-    Iov *--|> Payload
-    class GlobalTag{
-        +String name
-        +String workflow
-    } 
-    class Tag{
-        +String name
-        +Long endTime
-    } 
-    class Iov{
-        +Long since
-        +String tagName
-        +Timestamp insertionTime
-        +String payloadHash
-    } 
-    class Maps{
-        +String globalTagName
-        +String tagName
-        +String label
-        +String record
-    } 
-    class Payload{
-        +String hash
-        +binary data
-        +String objectType
-    } 
-```
-
-The entity relationship in the relational DB is represented in the following diagram:
-
-```mermaid
+---
+config:
+  theme: 'base'
+  look: classic
+  themeVariables:
+    fontSize: '20px'
+---
 erDiagram
-    GlobalTag ||..|{ GlobalTagMaps : maps
-    GlobalTagMaps }|..|| Tag: maps
-    Tag ||..|| Meta: description
-    Tag ||..o{ Iov : links
-    Iov }|--|| Payload : has
-    Payload ||..|| Data : contains
-    Payload ||..|| Streamer : contains 
+
+    GLOBAL_TAG {
+        string name PK
+        string description
+        timestamp insertion_time
+    }
+
+    TAG {
+        int tag_id PK
+        string name UK
+        string time_type
+        string object_type
+        timestamp insertion_time
+    }
+
+    GLOBAL_TAG_MAPS {
+        string global_tag_name PK, FK
+        int tag_id PK, FK
+        string record
+    }
+
+    IOV {
+        int tag_id PK, FK
+        long since PK
+        string payload_hash FK
+        timestamp insertion_time
+    }
+
+    PAYLOAD {
+        string hash PK
+        string object_type
+        blob data
+        timestamp insertion_time
+    }
+
+    GLOBAL_TAG ||--o{ GLOBAL_TAG_MAPS : contains
+    TAG        ||--o{ GLOBAL_TAG_MAPS : mapped_to
+
+    TAG        ||--o{ IOV : has
+
+    PAYLOAD    ||--o{ IOV : referenced_by
 ```
+
 ## Data Model overview
 1. `TAG` : a tag is a virtual container of metadata (the `IOVs`), and is defined via the following properties
     * `name` : a string identifying the tag in a unique way
