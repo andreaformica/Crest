@@ -209,6 +209,10 @@ public class GlobalTagMapService {
         for (GlobalTagMap map : mapList) {
             if (GlobalTagTypeEnum.fromCode(gtype) == GlobalTagTypeEnum.LOCKED) {
                 Tag tag = map.getTag();
+                if (tag.getStatus().equals(TagDto.StatusEnum.LOCKED.toString())) {
+                    log.warn("Tag {} is already locked, no update needed", tag.getName());
+                    continue;
+                }
                 tag.setStatus(TagDto.StatusEnum.LOCKED.toString());
                 String sync = tag.getSynchronization();
                 if (sync == null || sync.isEmpty() || sync.equals("ALL")) {
