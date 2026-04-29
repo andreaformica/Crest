@@ -28,6 +28,7 @@ spring:
       hibernate.jdbc.lob.non_contextual_creation: true
       hibernate.jdbc.use_streams_for_binary: false
       hibernate.connection.autocommit: false
+      hibernate.physical_naming_strategy: hep.crest.server.config.DynamicPhysicalNamingStrategy
 #      hibernate.default_schema: public
 crest:
   security: none
