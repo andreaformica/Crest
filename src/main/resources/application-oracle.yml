@@ -37,6 +37,7 @@ spring:
         hibernate.show_sql: false
         hibernate.hbm2ddl.auto: ${jpa.mode}
         hibernate.default_schema: ${crest.db.schema}
+        hibernate.physical_naming_strategy: hep.crest.server.config.DynamicPhysicalNamingStrategy
 
 server:
     port: ${crest.server.port}

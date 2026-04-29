@@ -35,6 +35,7 @@ spring:
         hibernate.jdbc.fetch_size: 100
         hibernate.hbm2ddl.auto: update
         hibernate.show_sql: false
+        hibernate.physical_naming_strategy: hep.crest.server.config.DynamicPhysicalNamingStrategy
 info:
   app:
     name: Crest Application
