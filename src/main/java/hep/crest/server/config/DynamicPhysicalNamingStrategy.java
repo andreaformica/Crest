@@ -36,12 +36,10 @@ public class DynamicPhysicalNamingStrategy implements PhysicalNamingStrategy {
         }
 
         // Check if this is the RunLumiInfo table that needs dynamic name resolution
-        if ("RUN_INFO_VIEW".equals(name.getText())) {
-            if (crestProperties != null) {
-                String dynamicTableName = crestProperties.getRunluminfoTable();
-                log.info("Resolving table RUN_INFO_VIEW to dynamic table: {}", dynamicTableName);
-                return Identifier.toIdentifier(dynamicTableName);
-            }
+        if ("RUN_INFO_VIEW".equals(name.getText()) && crestProperties != null) {
+            String dynamicTableName = crestProperties.getRunluminfoTable();
+            log.info("Resolving table RUN_INFO_VIEW to dynamic table: {}", dynamicTableName);
+            return Identifier.toIdentifier(dynamicTableName);
         }
 
         // Return the original identifier for all other tables

@@ -50,6 +50,13 @@ verify_files() {
 print_application_properties () {
   if [ -e config/application.properties ] ; then
     cat config/application.properties
+  else
+    # No application.properties file found, add default properties
+    if [ -n "$CREST_SERVER_PORT" ]; then
+      echo "crest.server.port=$CREST_SERVER_PORT"
+    else
+      echo "crest.server.port=8080"
+    fi
   fi
   if [ -e /run/secrets/crest-phys-cond ] ; then
     echo "crest.db.password=$(cat /run/secrets/crest-phys-cond)"
