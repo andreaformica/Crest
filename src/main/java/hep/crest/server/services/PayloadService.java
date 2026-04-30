@@ -26,8 +26,8 @@ import hep.crest.server.exceptions.CdbInternalException;
 import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.ConflictException;
 import hep.crest.server.exceptions.PayloadEncodingException;
-import hep.crest.server.repositories.triggerdb.ITriggerDb;
-import hep.crest.server.repositories.triggerdb.UrlComponents;
+import hep.crest.server.triggerdb.repositories.ITriggerDb;
+import hep.crest.server.triggerdb.repositories.UrlComponents;
 import hep.crest.server.swagger.model.StoreDto;
 import hep.crest.server.swagger.model.StoreSetDto;
 import lombok.Data;
@@ -490,11 +490,11 @@ public class PayloadService {
                 throw new ConflictException(msg);
             }
             catch (final IOException e) {
-                log.error("Payload insertion IO problem for hash {}: {}", entity.getHash(), e);
+                log.error("Payload insertion IO problem for hash {}: {}", entity.getHash(), e.getMessage());
                 throw new CdbInternalException("Cannot read payload file " + uploadedFile);
             }
             catch (final RuntimeException e) {
-                log.error("Payload insertion RT problem for hash {}: {}", entity.getHash(), e);
+                log.error("Payload insertion RT problem for hash {}: {}", entity.getHash(), e.getMessage());
                 throw new CdbInternalException("Runtime exception for " + uploadedFile);
             }
             finally {
