@@ -51,6 +51,7 @@ print_application_properties () {
   if [ -e config/application.properties ] ; then
     cat config/application.properties
   else
+    echo "crest.server.security=none"
     # No application.properties file found, add default properties
     if [ -n "$CREST_SERVER_PORT" ]; then
       echo "crest.server.port=$CREST_SERVER_PORT"
