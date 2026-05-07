@@ -81,9 +81,13 @@ build_container_job:
     DOCKER_FILE_NAME: "Dockerfile"
   rules:
     # Allow building from any branch when explicitly enabled via ALLOW_DOCKER_BUILD variable
-    - if: $DO_DOCKER_IMAGE == "yes" && $SITE == "cern" && $ALLOW_DOCKER_BUILD == "yes"
+    # check if the branch starts with "release" and in that case allow for manual trigger of docker build, 
+    # otherwise only allow for master branch
+    - if: $DO_DOCKER_IMAGE == "yes" && $SITE == "cern" && $CI_COMMIT_BRANCH ==~ /^release/
+      when: manual
     # Original rule: allow building from master branch
     - if: $DO_DOCKER_IMAGE == "yes" && $SITE == "cern" && $CI_COMMIT_BRANCH == 'master'
+      when: on_success
     - when: never
 
 sonarqube:
