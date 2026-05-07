@@ -5,6 +5,7 @@ import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategy;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 /**
@@ -23,6 +24,12 @@ public class DynamicPhysicalNamingStrategy implements PhysicalNamingStrategy {
     private CrestProperties crestProperties;
 
     /**
+     * Spring Environment to read application properties.
+     */
+    @Autowired(required = false)
+    private Environment environment;
+
+    /**
      * Convert a table name to its physical equivalent.
      *
      * @param name    the logical table name
@@ -36,14 +43,59 @@ public class DynamicPhysicalNamingStrategy implements PhysicalNamingStrategy {
         }
 
         // Check if this is the RunLumiInfo table that needs dynamic name resolution
-        if ("RUN_INFO_VIEW".equals(name.getText()) && crestProperties != null) {
-            String dynamicTableName = crestProperties.getRunluminfoTable();
+        if ("RUN_INFO_VIEW".equals(name.getText())) {
+            String dynamicTableName = resolveTableName();
             log.info("Resolving table RUN_INFO_VIEW to dynamic table: {}", dynamicTableName);
             return Identifier.toIdentifier(dynamicTableName);
         }
 
         // Return the original identifier for all other tables
         return name;
+    }
+
+    /**
+     * Resolve the table name using multiple fallback strategies.
+     * Tries in order: CrestProperties bean, Spring Environment, system property, environment variable, default.
+     * 
+     * @return the resolved table name
+     */
+    private String resolveTableName() {
+        // Strategy 1: Try Spring CrestProperties bean (most reliable)
+        if (crestProperties != null) {
+            String table = crestProperties.getRunluminfoTable();
+            if (table != null && !table.isEmpty()) {
+                log.debug("Resolved table name from CrestProperties: {}", table);
+                return table;
+            }
+        }
+
+        // Strategy 2: Try Spring Environment (from application.properties)
+        // This works at method call time, so application.properties are available
+        if (environment != null) {
+            String table = environment.getProperty("crest.runlumiinfo-table");
+            if (table != null && !table.isEmpty()) {
+                log.debug("Resolved table name from Spring Environment: {}", table);
+                return table;
+            }
+        }
+
+        // Strategy 3: Try JVM system property (-Dcrest.runlumiinfo-table=...)
+        String systemProperty = System.getProperty("crest.runlumiinfo-table");
+        if (systemProperty != null && !systemProperty.isEmpty()) {
+            log.debug("Resolved table name from system property: {}", systemProperty);
+            return systemProperty;
+        }
+
+        // Strategy 4: Try environment variable (CREST_RUNLUMIINFO_TABLE)
+        String envVariable = System.getenv("CREST_RUNLUMIINFO_TABLE");
+        if (envVariable != null && !envVariable.isEmpty()) {
+            log.debug("Resolved table name from environment variable: {}", envVariable);
+            return envVariable;
+        }
+
+        // Strategy 5: Default fallback
+        log.debug("Using default table name: RUN_INFO_VIEW");
+        return "RUN_INFO_VIEW";
     }
 
     /**
