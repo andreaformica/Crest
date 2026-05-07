@@ -82,7 +82,7 @@ build_container_job:
     # Allow building from any branch when explicitly enabled via DO_DOCKER_IMAGE variable
     # check if the branch starts with "release" and in that case allow for manual trigger of docker build, 
     # otherwise only allow for master branch
-    - if: $DO_DOCKER_IMAGE == "yes" && $SITE == "cern" && $CI_COMMIT_BRANCH ==~ /^release/
+    - if: $DO_DOCKER_IMAGE == "yes" && $SITE == "cern" && $CI_COMMIT_BRANCH =~ /^release/
       when: manual
     # Original rule: allow building from master branch
     - if: $DO_DOCKER_IMAGE == "yes" && $SITE == "cern" && $CI_COMMIT_BRANCH == 'master'
