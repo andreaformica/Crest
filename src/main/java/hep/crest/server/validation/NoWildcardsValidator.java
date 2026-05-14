@@ -22,11 +22,12 @@ public class NoWildcardsValidator implements ConstraintValidator<NoWildcards, St
             return true;
         }
 
-        // Check if the string contains only alphanumeric, hyphen, or underscore
-        // Pattern: ^[a-zA-Z0-9_-]+$
+        // Check if the string contains only alphanumeric, hyphen, underscore, or dot
+        // Pattern: ^[a-zA-Z0-9_.-]+$
+        // Allows: letters, digits, hyphens (-), underscores (_), and dots (.)
         for (int i = 0; i < value.length(); i++) {
             char c = value.charAt(i);
-            if (!Character.isLetterOrDigit(c) && c != '-' && c != '_') {
+            if (!Character.isLetterOrDigit(c) && c != '-' && c != '_' && c != '.') {
                 return false;
             }
         }

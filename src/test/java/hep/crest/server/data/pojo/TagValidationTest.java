@@ -108,7 +108,7 @@ class TagValidationTest {
         assertThat(violations).hasSize(1);
         ConstraintViolation<Tag> violation = violations.iterator().next();
         assertThat(violation.getPropertyPath().toString()).isEqualTo("name");
-        assertThat(violation.getMessage()).isEqualTo("Tag name can only contain alphanumeric characters, hyphens, and underscores");
+        assertThat(violation.getMessage()).isEqualTo("Tag name can only contain alphanumeric characters, hyphens, dots, and underscores");
     }
 
     @Test
@@ -131,8 +131,8 @@ class TagValidationTest {
     }
 
     @Test
-    void testTagName_withDot_shouldFailValidation() {
-        // given - dots are no longer allowed
+    void testTagName_withDot_shouldPassValidation() {
+        // given - dots are now allowed for hierarchical naming (e.g., DETECTOR.PIXEL.IBL)
         Tag tag = new Tag()
                 .setName("tag.name")
                 .setTimeType("time")
@@ -146,8 +146,7 @@ class TagValidationTest {
         Set<ConstraintViolation<Tag>> violations = validator.validate(tag);
 
         // then
-        assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getPropertyPath().toString()).isEqualTo("name");
+        assertThat(violations).isEmpty();
     }
 
     @Test

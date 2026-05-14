@@ -80,15 +80,15 @@ class NoWildcardsValidatorTest {
     }
 
     @Test
-    void testIsValid_withDot_shouldReturnFalse() {
-        // given - dots are no longer allowed
-        String invalidName = "tag.name";
+    void testIsValid_withDot_shouldReturnTrue() {
+        // given - dots are now allowed for hierarchical naming (e.g., DETECTOR.PIXEL.IBL)
+        String validName = "tag.name";
 
         // when
-        boolean result = validator.isValid(invalidName, null);
+        boolean result = validator.isValid(validName, null);
 
         // then
-        assertThat(result).isFalse();
+        assertThat(result).isTrue();
     }
 
     @Test

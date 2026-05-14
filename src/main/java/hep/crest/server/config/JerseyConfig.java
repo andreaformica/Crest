@@ -53,6 +53,9 @@ public class JerseyConfig extends ResourceConfig {
         super.register(JerseyExceptionHandler.class);
 
         super.property(ServletProperties.FILTER_FORWARD_ON_404, true);
+        // Disable formatted path encoding to properly handle dots in path parameters (e.g., tag names like AA.BB)
+        // Without this, Jersey treats dots as file extensions and truncates the path parameter
+        super.property("jersey.config.server.disableFormattedPathEncoding", true);
     }
 
     /**

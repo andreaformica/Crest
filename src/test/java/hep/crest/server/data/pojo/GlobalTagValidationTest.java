@@ -102,7 +102,7 @@ class GlobalTagValidationTest {
         assertThat(violations).hasSize(1);
         ConstraintViolation<GlobalTag> violation = violations.iterator().next();
         assertThat(violation.getPropertyPath().toString()).isEqualTo("name");
-        assertThat(violation.getMessage()).isEqualTo("GlobalTag name can only contain alphanumeric characters, hyphens, and underscores");
+        assertThat(violation.getMessage()).isEqualTo("GlobalTag name can only contain alphanumeric characters, hyphens, dots, and underscores");
     }
 
     @Test
@@ -124,8 +124,8 @@ class GlobalTagValidationTest {
     }
 
     @Test
-    void testGlobalTagName_withDot_shouldFailValidation() {
-        // given - dots are no longer allowed
+    void testGlobalTagName_withDot_shouldPassValidation() {
+        // given - dots are now allowed for hierarchical naming
         GlobalTag globalTag = new GlobalTag()
                 .setName("global.tag")
                 .setValidity(BigDecimal.valueOf(1000))
@@ -138,8 +138,7 @@ class GlobalTagValidationTest {
         Set<ConstraintViolation<GlobalTag>> violations = validator.validate(globalTag);
 
         // then
-        assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getPropertyPath().toString()).isEqualTo("name");
+        assertThat(violations).isEmpty();
     }
 
     @Test

@@ -10,7 +10,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Validation annotation to ensure a string contains only alphanumeric characters, hyphens, and underscores.
+ * Validation annotation to ensure a string contains only alphanumeric characters, hyphens, dots, and underscores.
  */
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
@@ -22,7 +22,7 @@ public @interface NoWildcards {
      * Default message when validation fails.
      * @return the error message
      */
-    String message() default "Field can only contain alphanumeric characters, hyphens, and underscores";
+    String message() default "Field can only contain alphanumeric characters, hyphens, dots, and underscores";
 
     /**
      * Validation groups.

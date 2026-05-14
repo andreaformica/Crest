@@ -63,7 +63,7 @@ public class Tag implements java.io.Serializable {
      * The tag name.
      */
     @Column(name = "NAME", unique = true, nullable = false, length = 255)
-    @NoWildcards(message = "Tag name can only contain alphanumeric characters, hyphens, and underscores")
+    @NoWildcards(message = "Tag name can only contain alphanumeric characters, hyphens, dots, and underscores")
     private String name;
     /**
      * The time type.

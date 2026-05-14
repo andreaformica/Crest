@@ -49,7 +49,8 @@ public class GlobalTag implements java.io.Serializable {
      */
     @Id
     @Column(name = "NAME", unique = true, nullable = false, length = 100)
-    @NoWildcards(message = "GlobalTag name can only contain alphanumeric characters, hyphens, and underscores")
+    @NoWildcards(message = "GlobalTag name can only contain alphanumeric characters, "
+            + "hyphens, dots, and underscores")
     private String name;
     /**
      * The validity.
