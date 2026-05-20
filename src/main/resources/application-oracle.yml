@@ -9,8 +9,12 @@ spring:
       multipart:
         max-file-size: 200MB
         max-request-size: 400MB
+        # Enable disk-based storage for large uploads (instead of memory)
+        location: ${java.io.tmpdir}/crest-multipart
     jersey:
       application-path: ${crest.api.name}
+      # Configure Jersey for streaming multipart
+      type: servlet
     datasource:
       main:
         jdbcUrl: ${crest.db.url}
