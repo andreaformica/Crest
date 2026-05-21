@@ -71,6 +71,26 @@ tasks.withType(Checkstyle) {
 	}
 }
 
+// Configure test task to accept system properties (needed for @EnabledIfSystemProperty in JUnit tests)
+test {
+	// Pass Gradle properties to the test JVM as system properties
+	// This allows -Pspring.test.largefiles=true to work with @EnabledIfSystemProperty
+	
+	// Set system properties before tests run
+	project.properties.each { key, value ->
+		if (key.startsWith("spring.test.")) {
+			systemProperty key, value
+			println "Setting system property: $key=$value"
+		}
+	}
+	
+	// Also check for environment variable
+	if (System.getenv("SPRING_TEST_LARGEFILES") == "true") {
+		systemProperty "spring.test.largefiles", "true"
+		println "Setting system property from environment: spring.test.largefiles=true"
+	}
+}
+
 jacocoTestReport {
     dependsOn test
 	afterEvaluate {

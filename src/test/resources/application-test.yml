@@ -15,9 +15,22 @@ crest:
 server:
   servlet.path: /
   connection-timeout: 60s
+ # Set maximum request body size to 400MB (default is 10MB)
+  # This applies to both Tomcat and Undertow
+  tomcat:
+    max-http-post-size: 419430400  # 400MB in bytes
+  undertow:
+    max-http-post-size: 419430400  # 400MB in bytes
+
+
 spring:
   security:
       strategy: MODE_INHERITABLETHREADLOCAL
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 400MB
+      location: ${java.io.tmpdir}/crest-multipart
   jersey:
       application-path: /crestapi
   datasource:

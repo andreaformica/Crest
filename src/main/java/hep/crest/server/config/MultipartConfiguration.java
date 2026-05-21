@@ -35,8 +35,10 @@ public class MultipartConfiguration {
     public ConfigurableServletWebServerFactory servletWebServerFactory() {
         UndertowServletWebServerFactory factory = new UndertowServletWebServerFactory();
         
-        // Configure Undertow's multipart settings
+        // Configure deployment info for multipart handling
         factory.addDeploymentInfoCustomizers(deploymentInfo -> {
+            log.info("Configuring deployment info for multipart uploads...");
+            
             // Use temporary directory for multipart uploads
             File tempDir = new File(System.getProperty("java.io.tmpdir"), "crest-multipart");
             if (!tempDir.exists()) {
@@ -48,7 +50,7 @@ public class MultipartConfiguration {
             deploymentInfo.setTempDir(tempDir);
             
             log.info("Configured Undertow for streaming multipart uploads");
-            log.info("  Max request size: 400MB (configured via spring.servlet.multipart)");
+            log.info("  Max request size: 400MB (configured via spring.servlet.multipart.max-request-size)");
             log.info("  Temp directory: {}", tempDir.getAbsolutePath());
             log.info("  Streaming enabled via jersey-multipart-config.properties");
         });
