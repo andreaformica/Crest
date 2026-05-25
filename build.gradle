@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.5.16'
+	id 'org.springframework.boot' version '3.5.7'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id("org.openapi.generator") version "7.8.0"
 	id 'jacoco'
@@ -10,7 +10,7 @@ plugins {
 }
 
 group = 'hep.crest'
-version = "6.4.1"
+version = "6.3.5"
 
 java {
 	toolchain {
@@ -68,26 +68,6 @@ tasks.withType(Checkstyle) {
 	reports {
 		xml.required = false
 		html.required = true
-	}
-}
-
-// Configure test task to accept system properties (needed for @EnabledIfSystemProperty in JUnit tests)
-test {
-	// Pass Gradle properties to the test JVM as system properties
-	// This allows -Pspring.test.largefiles=true to work with @EnabledIfSystemProperty
-	
-	// Set system properties before tests run
-	project.properties.each { key, value ->
-		if (key.startsWith("spring.test.")) {
-			systemProperty key, value
-			println "Setting system property: $key=$value"
-		}
-	}
-	
-	// Also check for environment variable
-	if (System.getenv("SPRING_TEST_LARGEFILES") == "true") {
-		systemProperty "spring.test.largefiles", "true"
-		println "Setting system property from environment: spring.test.largefiles=true"
 	}
 }
 
@@ -290,7 +270,7 @@ sourceSets {
 	main {
 		java {
 			// srcDirs = ['src/main/java', 'src/gen/java']
-			srcDirs = ['src/main/java', 'src/gen/java', 'plugins/tzero/java', 'plugins/trigger/java']
+			srcDirs = ['src/main/java', 'src/gen/java', 'plugins/timeseries/java', 'plugins/tzero/java']
 		}
 	}
 	// println main.output.classesDir
