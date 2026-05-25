@@ -63,6 +63,7 @@ public class TriggerDb implements ITriggerDb {
                   + " and SMT.SMT_ID=?"
     );
 
+
     /**
      * Schema map.
      */
