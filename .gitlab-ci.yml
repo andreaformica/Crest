@@ -79,8 +79,8 @@ build_container_job:
     PUSH_IMAGE: "true"
     DOCKER_FILE_NAME: "Dockerfile"
   rules:
-    - if: $DO_DOCKER_IMAGE == "yes" && $SITE == "cern" && $CI_COMMIT_BRANCH == 'master'
-    - when: never
+    - when: always
+
 
 sonarqube:
   extends: .sonarqube
