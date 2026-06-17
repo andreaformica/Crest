@@ -1,8 +1,8 @@
 caching:
-    iovsgroups-maxage: 60
+    iovsgroups-maxage: ${crest.caching.iovmaxage}
     iovsgroups-snapshot-maxage: 3600
-    iovs-maxage: 60
+    iovs-maxage: ${crest.caching.iovmaxage}
     iovs-snapshot-maxage: 3600
     payloads-maxage: 2592000    # expressed in seconds: 3600*24*30
     timetype-groupsize: 1000
-    runtype-groupsize: 100
+    runtype-groupsize: 1000
