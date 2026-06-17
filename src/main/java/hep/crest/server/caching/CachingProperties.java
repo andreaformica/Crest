@@ -25,17 +25,17 @@ public class CachingProperties {
     /**
      * The iov group max age.
      */
-    private Integer iovsgroupsMaxage = 120; // number of seconds
+    private Integer iovsgroupsMaxage = 60; // number of seconds
 
     /**
      * The iov group snapshot max age.
      */
-    private Integer iovsgroupsSnapshotMaxage = 600; // number of seconds
+    private Integer iovsgroupsSnapshotMaxage = 60; // number of seconds
 
     /**
      * The iov max age.
      */
-    private Integer iovsMaxage = 600; // number of seconds
+    private Integer iovsMaxage = 60; // number of seconds
 
     /**
      * The iov snapshot max age.
