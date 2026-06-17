@@ -1,7 +1,7 @@
 caching:
-    iovsgroups-maxage: 600
+    iovsgroups-maxage: 60
     iovsgroups-snapshot-maxage: 3600
-    iovs-maxage: 600
+    iovs-maxage: 60
     iovs-snapshot-maxage: 3600
     payloads-maxage: 2592000    # expressed in seconds: 3600*24*30
     timetype-groupsize: 1000
