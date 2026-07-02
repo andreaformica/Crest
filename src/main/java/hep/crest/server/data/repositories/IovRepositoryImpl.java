@@ -13,14 +13,14 @@ import hep.crest.server.data.pojo.QIov;
 import hep.crest.server.data.repositories.args.IovModeEnum;
 import hep.crest.server.data.repositories.args.IovQueryArgs;
 import hep.crest.server.exceptions.CdbNotFoundException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.Querydsl;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.util.List;
 
 /**
@@ -115,7 +115,8 @@ public class IovRepositoryImpl implements IovRepositoryCustom {
      */
     private void addSinceCondition(IovQueryArgs queryArgs, BooleanBuilder where,
                                    BooleanBuilder subwhere) {
-        if (!queryArgs.mode().equals(IovModeEnum.AT)) {
+        if (!queryArgs.mode().equals(IovModeEnum.AT)
+                && !queryArgs.mode().equals(IovModeEnum.RANGES)) {
             where.and(QIov.iov.id.since.goe(queryArgs.since()));
             log.debug("Add where condition on >= since: {}", queryArgs.since());
         }
@@ -169,9 +170,16 @@ public class IovRepositoryImpl implements IovRepositoryCustom {
     private void addAtModeCondition(BooleanBuilder where, BooleanBuilder subwhere) {
         log.warn("Adding where condition on MAX of since");
         JPQLQuery<Iov> subquery = new JPAQuery<>(entityManager);
-        where.and(QIov.iov.id.since.eq(
-                subquery.select(QIov.iov.id.since.max())
-                        .from(QIov.iov).where(subwhere).fetchOne()));
+        java.math.BigInteger maxSince = subquery.select(QIov.iov.id.since.max())
+                .from(QIov.iov).where(subwhere).fetchOne();
+
+        if (maxSince != null) {
+            where.and(QIov.iov.id.since.eq(maxSince));
+        }
+        else {
+            // No IOV found before the given since, ensure no results are returned
+            where.and(QIov.iov.id.since.isNull());
+        }
     }
 
     /**
@@ -183,9 +191,16 @@ public class IovRepositoryImpl implements IovRepositoryCustom {
     private void addRangesModeCondition(BooleanBuilder where, BooleanBuilder subwhere) {
         log.warn("Adding where condition on MAX of since");
         JPQLQuery<Iov> subquery = new JPAQuery<>(entityManager);
-        where.and(QIov.iov.id.since.goe(
-                subquery.select(QIov.iov.id.since.max())
-                        .from(QIov.iov).where(subwhere).fetchOne()));
+        java.math.BigInteger maxSince = subquery.select(QIov.iov.id.since.max())
+                .from(QIov.iov).where(subwhere).fetchOne();
+
+        if (maxSince != null) {
+            where.and(QIov.iov.id.since.goe(maxSince));
+        }
+        else {
+            // No IOV found before the given since, ensure no results are returned
+            where.and(QIov.iov.id.since.isNull());
+        }
     }
 
     /**
