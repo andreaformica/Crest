@@ -225,8 +225,8 @@ public class IovsApiServiceImpl extends IovsApiService {
         if (tagname == null || tagname.contains("%")) {
             throw new CdbBadRequestException("Cannot search iovs with tag " + tagname);
         }
-        log.debug("Use input time format: {}", timeformat);
-        log.debug("Use iov query mode: {}", xCrestQuery);
+        log.info("Use input time format: {}", timeformat);
+        log.info("Use iov query mode: {}", xCrestQuery);
         ArgTimeUnit inputformat = ArgTimeUnit.valueOf(timeformat);
         ArgTimeUnit outformat = ArgTimeUnit.valueOf(xCrestSince);
         IovModeEnum queryMode = IovModeEnum.valueOf(xCrestQuery);

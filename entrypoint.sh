@@ -117,9 +117,12 @@ cat $joptfile
 if [ -e $joptfile ]; then
    export JAVA_OPTS=
    while read line; do
-    if [ x"$line" != x"" ]; then
-      JAVA_OPTS="$JAVA_OPTS -D$line";
-    fi
+    # Skip empty lines and lines starting with #
+    case "$line" in
+      \#*) continue ;;
+      "") continue ;;
+    esac
+    JAVA_OPTS="$JAVA_OPTS -D$line";
    done < $joptfile
 fi
 ## Set the directory with the JAR file
