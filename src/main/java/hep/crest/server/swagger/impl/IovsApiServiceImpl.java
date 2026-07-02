@@ -278,10 +278,12 @@ public class IovsApiServiceImpl extends IovsApiService {
         final List<IovDto> dtolist = edh.entityToDtoList(entitypage.toList(), IovDto.class,
                 IovMapper.class);
         Response.Status rstatus = Response.Status.OK;
+        // Set the cache control for the response. This is a max-age parameter in the header.
         final CacheControl cc = cachesvc.getIovsCacheControlForUntil(0L, CrestProperties.INFINITY);
         // Check if a specific cache length is available for this tag.
+        // In this case override the default max-age with the tag specific one.
         if (tagentity.getCacheLength() > 0) {
-            cc.setMaxAge(tagentity.getCacheLength().intValue());
+            cc.setMaxAge(tagentity.getCacheLength());
         }
         // Prepare the response.
         final CrestBaseResponse saveddto = buildEntityResponse(dtolist, filters);
