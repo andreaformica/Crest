@@ -157,7 +157,7 @@ public class IovRepositoryImpl implements IovRepositoryCustom {
             addAtModeCondition(where, subwhere);
         }
         else if (mode.equals(IovModeEnum.RANGES)) {
-            addRangesModeCondition(where, subwhere);
+            addRangesModeCondition(queryArgs, where, subwhere);
         }
     }
 
@@ -185,10 +185,12 @@ public class IovRepositoryImpl implements IovRepositoryCustom {
     /**
      * Add RANGES mode specific condition using max since subquery.
      *
+     * @param queryArgs the query arguments
      * @param where    the main where clause
      * @param subwhere the subquery where clause
      */
-    private void addRangesModeCondition(BooleanBuilder where, BooleanBuilder subwhere) {
+    private void addRangesModeCondition(IovQueryArgs queryArgs, BooleanBuilder where,
+                                        BooleanBuilder subwhere) {
         log.warn("Adding where condition on MAX of since");
         JPQLQuery<Iov> subquery = new JPAQuery<>(entityManager);
         java.math.BigInteger maxSince = subquery.select(QIov.iov.id.since.max())
@@ -199,7 +201,8 @@ public class IovRepositoryImpl implements IovRepositoryCustom {
         }
         else {
             // No IOV found before the given since, ensure no results are returned
-            where.and(QIov.iov.id.since.isNull());
+            log.warn("no IOV is found, just skip the additional condition on since");
+            where.and(QIov.iov.id.since.goe(queryArgs.since()));
         }
     }
 
