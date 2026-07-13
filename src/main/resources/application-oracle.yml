@@ -7,12 +7,8 @@
 spring:
     servlet:
       multipart:
-        max-file-size: 3GB
-        max-request-size: 3GB
-        enabled: true
-        file-size-threshold: 40MB
-        # Enable disk-based storage for large uploads (instead of memory)
-        location: ${java.io.tmpdir}/crest-multipart
+        # Disable Spring's multipart handling - let Jersey handle it
+        enabled: false
     jersey:
       application-path: ${crest.api.name}
       # Configure Jersey for streaming multipart
