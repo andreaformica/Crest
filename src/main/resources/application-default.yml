@@ -11,13 +11,17 @@ server:
 spring:
     security:
       strategy: MODE_INHERITABLETHREADLOCAL
+    servlet:
+      multipart:
+        max-file-size: 3GB
+        max-request-size: 3GB
+        enabled: true
+        file-size-threshold: 40MB
+        location: ${java.io.tmpdir}/crest-multipart
     jersey:
       application-path: api-v6.0
       servlet:
         load-on-startup: 1
-      multipart:
-        max-file-size: 1GB
-        max-request-size: 1GB
     datasource:
       main:
         jdbcUrl: jdbc:h2:${crest.dbfile};DB_CLOSE_ON_EXIT=FALSE

@@ -1,6 +1,7 @@
 package hep.crest.server.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
@@ -24,6 +25,19 @@ import java.io.File;
 @Configuration
 @Slf4j
 public class MultipartConfiguration {
+
+    /**
+     * Maximum file size for multipart uploads, read from application properties.
+     * Defaults to 10MB if not specified.
+     */
+    @Value("${spring.servlet.multipart.max-file-size:10MB}")
+    private String maxFileSize;
+
+    /**
+     * Maximum request size.
+     */
+    @Value("${spring.servlet.multipart.max-request-size:10MB}")
+    private String maxRequestSize;
 
     /**
      * Configure Undertow to handle multipart with streaming.
@@ -50,7 +64,9 @@ public class MultipartConfiguration {
             deploymentInfo.setTempDir(tempDir);
             
             log.info("Configured Undertow for streaming multipart uploads");
-            log.info("  Max request size: 400MB (configured via spring.servlet.multipart.max-request-size)");
+            log.info("  Max file size: {} (spring.servlet.multipart.max-file-size)", maxFileSize);
+            log.info("  Max request size: {} (spring.servlet.multipart.max-request-size)",
+                    maxRequestSize);
             log.info("  Temp directory: {}", tempDir.getAbsolutePath());
             log.info("  Streaming enabled via jersey-multipart-config.properties");
         });
