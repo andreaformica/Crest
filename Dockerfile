@@ -25,7 +25,7 @@ RUN adduser -u $CREST_USER_ID -G root -h $HOME -D $USR && \
     # Create all required directories in one RUN
     mkdir -p ${crest_dir} ${config_dir} \
              ${data_dir}/web ${data_dir}/dump ${data_dir}/logs && \
-    chown -R $USR:$CREST_USER_ID $HOME && \
+    chown -R $USR:$CREST_GROUP_ID $HOME && \
     chmod -R g+rwx $HOME
 
 # ===== Application Setup =====
@@ -35,13 +35,13 @@ COPY entrypoint.sh $HOME/
 
 # ===== Permissions & Runtime Config =====
 RUN chmod +x $HOME/entrypoint.sh && \
-    chown $USR:$CREST_USER_ID $HOME/entrypoint.sh
+    chown $USR:$CREST_GROUP_ID $HOME/entrypoint.sh
 
 ### we export only 1 directories....
 VOLUME "${data_dir}"
 EXPOSE 8080
 ### we set the user and the workdir....
-USER $CREST_USER_ID
+USER $USR
 WORKDIR /home/${USR}
 
 ENTRYPOINT  [ "./entrypoint.sh" ]
