@@ -54,7 +54,7 @@ public class JdbcMonitoringRepository extends DataGeneral implements IMonitoring
                     + getCrestTableNames().getIovTableName() + " iv, "
                     + getCrestTableNames().getTagTableName() + " tv "
                 + " WHERE tv.NAME like ? AND tv.tag_id=iv.tag_id AND iv.PAYLOAD_HASH=pl.HASH "
-                    + "group by tv.TAG_ID "
+                    + "group by tv.TAG_ID, tv.NAME "
                     + "order by tv.NAME";
             log.debug("Execute query {} using {}", sql, tagpattern);
             return jdbcTemplate.query(sql, new PayloadInfoMapper(), tagpattern);
