@@ -96,7 +96,7 @@ public class CachingPolicyService {
         //
         // cache time = 60 s will be enough to avoid caching the response.
         // Default cache time for IOV is 600s.
-        Integer maxage = CachingProperties.DEFAULT_CACHE_TIME;
+        Integer maxage = cprops.getIovsMaxage();
         if (!until.equals(CrestProperties.INFINITY)) {
             if (snapshot != 0L) {
                 maxage = cprops.getIovsSnapshotMaxage();
