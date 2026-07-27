@@ -105,12 +105,12 @@ public class TagService {
     /**
      * Ctors with injected services.
      *
-     * @param tagRepository
-     * @param cacheManager
-     * @param iovService
-     * @param payloadService
-     * @param tagMetaService
-     * @param globalTagMapRepository
+     * @param tagRepository the TagRepository
+     * @param cacheManager the CacheManager
+     * @param iovService the IovService
+     * @param payloadService the PayloadService
+     * @param tagMetaService the TagMetaService
+     * @param globalTagMapRepository the GlobalTagMapRepository
      */
     @Autowired
     TagService(TagRepository tagRepository, CacheManager cacheManager, IovService iovService,
@@ -155,7 +155,7 @@ public class TagService {
     /**
      * Cache eviction method.
      *
-     * @param name
+     * @param name the Tag name
      */
     protected void cacheEviction(String name) {
         Cache cache = cacheManager.getCache(CacheConfig.TAG_CACHE);
@@ -196,8 +196,8 @@ public class TagService {
     /**
      * Select Tags.
      *
-     * @param args
-     * @param preq
+     * @param args the TagQueryArgs
+     * @param preq the Pageable
      * @return Page of Tag
      */
     public Page<Tag> selectTagList(TagQueryArgs args, Pageable preq) {
@@ -333,9 +333,9 @@ public class TagService {
     /**
      * Update the end of validity of a tag.
      *
-     * @param name
-     * @param endtime
-     * @throws AbstractCdbServiceException
+     * @param name the tag name
+     * @param endtime the new end of validity time
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     @CacheEvict(value = CacheConfig.TAG_CACHE, key = "#name")
     public void updateModificationTime(String name, BigDecimal endtime) {
@@ -361,10 +361,10 @@ public class TagService {
     /**
      * Lock a tag.
      *
-     * @param name
-     * @param status
+     * @param name the tag name
+     * @param status the new status (LOCKED or UNLOCKED)
      * @return Tag
-     * @throws AbstractCdbServiceException
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     @CacheEvict(value = CacheConfig.TAG_CACHE, key = "#name")
     @Transactional
