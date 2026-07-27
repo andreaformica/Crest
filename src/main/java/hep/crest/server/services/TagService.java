@@ -141,12 +141,12 @@ public class TagService {
                 return cached;
             }
             Tag entity = tagRepository.findByName(name).orElseThrow(() -> new CdbNotFoundException(
-                    "Tag not found: " + name));
+                    TAG_NOT_FOUND + name));
             cacheTag(entity);
             return entity;
         }
         catch (CdbNotFoundException e) {
-            log.error("Tag not found: {}", name);
+            log.error(TAG_NOT_FOUND + " {}", name);
             cacheEviction(name);
             throw e;
         }
