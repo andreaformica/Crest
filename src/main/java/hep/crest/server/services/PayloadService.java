@@ -122,6 +122,10 @@ public class PayloadService {
      * Set separator.
      */
     private static final String SLASH = File.pathSeparator.equals(":") ? "/" : File.pathSeparator;
+    /**
+     * Uploaded file string.
+     */
+    private static final String UPLOADED_FILE = "uploadedFile";
 
     /**
      * Ctor with injection.
@@ -459,8 +463,8 @@ public class PayloadService {
             PayloadInfoData streamer = data.payloadInfoData();
             Map<String, Object> info = data.streamsMap();
             // Get the name of the file where the data were temporarily stored.
-            String uploadedFile = (String) info.get("uploadedFile");
-            log.debug("Read stream from uploaded file : {}", uploadedFile);
+            String uploadedFile = (String) info.get(UPLOADED_FILE);
+            log.debug("Read stream from file : {}", uploadedFile);
             // Access file, set the length and open an input stream
             try (InputStream is = new FileInputStream(uploadedFile);
                  FileChannel tempchan = FileChannel.open(Paths.get(uploadedFile))) {
@@ -639,7 +643,7 @@ public class PayloadService {
                 final String hash = getHash(
                         new ByteArrayInputStream(paylodContent), outFilename);
                 final Map<String, Object> retmap = new HashMap<>();
-                retmap.put("uploadedFile", outFilename);
+                retmap.put(UPLOADED_FILE, outFilename);
                 data = buildStorable(iov, entity, sinfomap, hash);
                 data.streamsMap(retmap);
             }
@@ -650,7 +654,7 @@ public class PayloadService {
                 filename = (String) retmap.get("file");
                 String outFilename = generateUploadFilename(filename, tag, iov.getId().getSince());
                 final String hash = getHash((InputStream) retmap.get("stream"), outFilename);
-                retmap.put("uploadedFile", outFilename);
+                retmap.put(UPLOADED_FILE, outFilename);
                 sinfomap.put("filename", filename);
                 entity.setObjectName(filename);
                 data = buildStorable(iov, entity, sinfomap, hash);

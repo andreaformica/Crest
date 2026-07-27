@@ -61,7 +61,8 @@ public class JdbcMonitoringRepository extends DataGeneral implements IMonitoring
         }
         catch (final EmptyResultDataAccessException e) {
             // No result, log the error.
-            log.error("Cannot find tag information for pattern {}: {}", tagpattern, e);
+            log.error("Cannot find tag information for pattern {}: {}",
+                    tagpattern, e.toString());
         }
         return new ArrayList<>();
     }
@@ -71,7 +72,6 @@ public class JdbcMonitoringRepository extends DataGeneral implements IMonitoring
         log.info("Select count(TAG_NAME) Iov for tag matching pattern {} using JDBCTEMPLATE",
                 tagname);
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-        final String tablename = getCrestTableNames().getIovTableName();
         // sql : count iovs in a tag
         // select TAG_NAME, COUNT(TAG_NAME) as NIOVS from IOV
         // where TAG_NAME like ? GROUP BY TAG_NAME

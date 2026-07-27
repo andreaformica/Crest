@@ -1,16 +1,14 @@
 package hep.crest.server.converters;
 
 import hep.crest.server.data.pojo.Iov;
+import hep.crest.server.data.pojo.IovId;
 import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.data.repositories.TagRepository;
+import hep.crest.server.swagger.model.IovDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import hep.crest.server.swagger.model.IovDto;
-import hep.crest.server.data.pojo.IovId;
-
 import java.math.BigInteger;
-import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.Optional;
 
@@ -58,8 +56,7 @@ public class CustomIovMapper {
         }
         Date insertionTime = null;
         if (dto.getInsertionTime() != null) {
-            insertionTime = Date.from(((OffsetDateTime)
-                    dto.getInsertionTime()).toInstant());
+            insertionTime = Date.from(dto.getInsertionTime().toInstant());
         }
         IovId iovId = new IovId()
                 .setTagId(tag.getTagId())

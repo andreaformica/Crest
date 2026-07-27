@@ -90,6 +90,10 @@ public class TagService {
      * Repository.
      */
     private GlobalTagMapRepository globalTagMapRepository;
+    /**
+     * Error message for tag not found.
+     */
+    private static final String TAG_NOT_FOUND = "Tag not found: ";
 
     /**
      * Entity manager for clearing persistence context.
@@ -241,7 +245,7 @@ public class TagService {
         try {
             final Tag toupd = tagRepository.findByName(entity.getName()).orElseThrow(
                     () -> new CdbNotFoundException(
-                            "Tag does not exists for name " + entity.getName()));
+                            TAG_NOT_FOUND + entity.getName()));
             String status = entity.getStatus();
             // Try to convert the status to the enum. If it fails, it will throw an exception.
             TagDto.StatusEnum.fromValue(status);
@@ -282,7 +286,7 @@ public class TagService {
             tagMetaService.removeTagMeta(name);
             // Check if the tag exists
             Tag tagEntity = tagRepository.findByName(name).orElseThrow(
-                    () -> new CdbNotFoundException("Tag does not exists for name " + name));
+                    () -> new CdbNotFoundException(TAG_NOT_FOUND + name));
             Long tagId = tagEntity.getTagId();
             // Check if the tag is associated to a global tag
             // Start removing IOVs
@@ -309,7 +313,7 @@ public class TagService {
             entityManager.clear();
             // Re-fetch the tag entity since we cleared the persistence context
             tagEntity = tagRepository.findById(tagId).orElseThrow(
-                    () -> new CdbNotFoundException("Tag does not exists for id " + tagId));
+                    () -> new CdbNotFoundException(TAG_NOT_FOUND + tagId));
             // Payload are now removed
             log.debug("Payloads have been scheduled for removal");
             // Launch async task to remove payloads
@@ -338,7 +342,7 @@ public class TagService {
         // Change the end time in the tag.
         try {
             Tag tagEntity = tagRepository.findByName(name).orElseThrow(
-                    () -> new CdbNotFoundException("Tag does not exists for name " + name));
+                    () -> new CdbNotFoundException(TAG_NOT_FOUND + name));
             tagEntity.setEndOfValidity(
                     (endtime != null) ? endtime.toBigInteger() : BigInteger.ZERO);
             // Update the modification time.
