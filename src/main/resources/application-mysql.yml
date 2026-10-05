@@ -29,6 +29,7 @@ spring:
         hibernate.connection.autocommit: false
         hibernate.default_schema: crestdb
         hibernate.globally_quoted_identifiers: true
+        hibernate.physical_naming_strategy: hep.crest.server.config.DynamicPhysicalNamingStrategy
 server:
     port: 8080 
 crest:

@@ -3,6 +3,8 @@
  */
 package hep.crest.server.data.repositories;
 
+import hep.crest.server.data.pojo.Tag;
+
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
@@ -15,12 +17,12 @@ import java.util.List;
 public interface IovGroupsCustom {
 
     /**
-     * @param tagname   the String
+     * @param tag   the Tag
      * @param snap      the Date
      * @param groupsize the Long
      * @return List<BigInteger>
      */
-    List<BigInteger> selectSnapshotGroups(String tagname, Date snap, Long groupsize);
+    List<BigInteger> selectSnapshotGroups(Tag tag, Date snap, Long groupsize);
 
     /**
      * @param tagname the String

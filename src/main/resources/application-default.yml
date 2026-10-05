@@ -6,21 +6,18 @@
 # schemaname : ATLAS_PHYS_COND or none
 # security options: reco (no POST allowed), weak (no authentication needed), active (GET and POST requires roles)
 server:
-    port: 8080
+    port: ${crest.server.port}
     connection-timeout: 120s
 spring:
-    data.redis:
-      host: ${crest.redis.host}
-      port: ${crest.redis.port}
     security:
-      strategy: MODE_INHERITABLETHREADLOCAL
+    servlet:
+      multipart:
+        # Disable Spring's multipart handling - let Jersey handle it
+        enabled: false
     jersey:
-      application-path: ${crest.apiname}
+      application-path: api-v6.0
       servlet:
         load-on-startup: 1
-      multipart:
-        max-file-size: 100MB
-        max-request-size: 1GB
     datasource:
       main:
         jdbcUrl: jdbc:h2:${crest.dbfile};DB_CLOSE_ON_EXIT=FALSE
@@ -43,6 +40,8 @@ spring:
         hibernate.dialect: org.hibernate.dialect.H2Dialect
         hibernate.jdbc.fetch_size: 100
         hibernate.hbm2ddl.auto: update
+        hibernate.show_sql: true
+        hibernate.physical_naming_strategy: hep.crest.server.config.DynamicPhysicalNamingStrategy
 info:
   app:
     name: Crest Application
@@ -51,11 +50,10 @@ info:
 crest:
   dumpdir: /tmp
   schemaname: none
-  security: none
+  security: ${crest.server.security}
   synchro: none
   webstaticdir: /tmp
   dbfile: /tmp/crestdbh2
-  apiname: /api
   authenticationtype: none
 
     

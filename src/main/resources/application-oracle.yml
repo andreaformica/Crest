@@ -7,10 +7,12 @@
 spring:
     servlet:
       multipart:
-        max-file-size: 200MB
-        max-request-size: 400MB
+        # Disable Spring's multipart handling - let Jersey handle it
+        enabled: false
     jersey:
       application-path: ${crest.api.name}
+      # Configure Jersey for streaming multipart
+      type: servlet
     datasource:
       main:
         jdbcUrl: ${crest.db.url}
@@ -37,6 +39,7 @@ spring:
         hibernate.show_sql: false
         hibernate.hbm2ddl.auto: ${jpa.mode}
         hibernate.default_schema: ${crest.db.schema}
+        hibernate.physical_naming_strategy: hep.crest.server.config.DynamicPhysicalNamingStrategy
 
 server:
     port: ${crest.server.port}

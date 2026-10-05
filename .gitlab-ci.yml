@@ -1,14 +1,15 @@
+
 variables:
     IMAGE: crest21-service
-    VERSION: '6.2'
+    VERSION: "6.4.1-master" # temporary version for testing, should be replaced by a proper versioning scheme
     GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
 
 # Make the gradle wrapper executable. This essentially downloads a copy of
 # Gradle to build the project with.
 # https://docs.gradle.org/current/userguide/gradle_wrapper.html
 # It is expected that any modern gradle project has a wrapper
-before_script:
-  - chmod +x gradlew
 
 include:
   - project : 'ci-tools/container-image-ci-templates'
@@ -17,11 +18,13 @@ include:
   - project : 'atlas-devops/ci-templates'
     file : 'helm/helm.yml'
     ref: main
-
+  - project: "atlas-devops/ci-templates"
+    ref: main
+    file: "sonarqube/sonarqube.yml"
 stages:
  - package_application
- #- build
- - sonar_application
+ - sonar
+ - build-docker
  - push
 
 package_cern_application:
@@ -33,12 +36,27 @@ package_cern_application:
   variables:
     REDIS_HOST: redis
     REDIS_PORT: 6379
+  cache:
+    key:
+      files:
+        - ${GRADLE_USER_HOME}/wrapper/gradle-wrapper.properties
+    paths:
+      - ${GRADLE_USER_HOME}/caches/
+      - ${GRADLE_USER_HOME}/notifications/
+      - ${GRADLE_USER_HOME}/wrapper/
   script:
-   - ./gradlew clean build
+    - export GRADLE_USER_HOME=/cache/.gradle
+    - ./gradlew -gradle-user-home ${GRADLE_USER_HOME} clean build jacocoTestReport
   allow_failure: false
   artifacts:
-   paths:
-   - ./build/libs/crest.jar
+    paths:
+      - ./build/libs/crest.jar
+      - ./build/classes
+      - ./build/reports/jacoco/test/jacocoTestReport.xml
+      - ./build/reports/checkstyle/main.xml
+    expire_in: 1 week
+  rules:
+    - when: always
 
 # Can be used to test packaging helm chart, before merging to master for instance
 #build_helm:
@@ -49,17 +67,23 @@ package_cern_application:
 
 
 build_container_job:
-  rules:
-    - if: $DO_DOCKER_IMAGE == "yes" && $CI_PIPELINE_SOURCE != 'merge_request_event' && $SITE == "cern"
   environment: cern
-  stage: push
+  stage: build-docker
   extends: .build_kaniko
+  needs:
+    - job: package_cern_application
+      artifacts: true
   variables:
     REGISTRY_IMAGE_PATH : "registry.cern.ch/crest/$IMAGE:$VERSION"
     CONTEXT_DIR: ""
     PUSH_IMAGE: "true"
     DOCKER_FILE_NAME: "Dockerfile"
+  rules:
+    - if: $DO_DOCKER_IMAGE == "yes" && $SITE == "cern" && $CI_COMMIT_BRANCH == 'master'
+    - when: never
 
+sonarqube:
+  extends: .sonarqube
 
 push_helm:
   extends: .deploy_helm
@@ -67,4 +91,15 @@ push_helm:
   variables:
     REGISTRY_CHART_PATH: registry.cern.ch/crest/charts
     PUSH_CHART: "true"
+  before_script:
+    - git fetch origin master
+    - |
+      if ! git branch --contains "$CI_COMMIT_SHA" | grep -q 'master'; then
+        echo "Tag $CI_COMMIT_TAG does not point to master, skipping push_helm"
+        exit 0
+      fi
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: on_success
+    - when: never
 

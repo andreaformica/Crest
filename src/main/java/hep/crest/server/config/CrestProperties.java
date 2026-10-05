@@ -45,6 +45,11 @@ public class CrestProperties {
     private String authenticationtype = "basic";
 
     /**
+     * The table name for RunLumiInfo (RUN_INFO_VIEW or RUN_LUMI_INFO).
+     */
+    private String runluminfoTable = "RUN_INFO_VIEW";
+
+    /**
      * The COOL infinity.
      */
     public static final BigDecimal INFINITY = new BigDecimal("253402297199000000000");
@@ -152,5 +157,20 @@ public class CrestProperties {
      */
     public void setApiname(String apiname) {
         this.apiname = apiname;
+    }
+
+    /**
+     * @return the runlumiinfo table name
+     */
+    public String getRunluminfoTable() {
+        return runluminfoTable;
+    }
+
+    /**
+     * @param runluminfoTable
+     *            the runlumiinfo table name to set
+     */
+    public void setRunluminfoTable(String runluminfoTable) {
+        this.runluminfoTable = runluminfoTable;
     }
 }

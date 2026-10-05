@@ -4,6 +4,8 @@
 package hep.crest.server.data.repositories.externals;
 
 /**
+ * Utility class for SQL requests.
+ *
  * @author formica
  *
  */
@@ -41,8 +43,8 @@ public final class SqlRequests {
      * @return String
      */
     public static String getStreamerInfoQuery(String tablename) {
-        return "select STREAMER_INFO "
-               + " from " + tablename + WHERE_HASH;
+        return "select STREAMER_INFO from "
+               + tablename + WHERE_HASH;
     }
 
     /**
@@ -50,8 +52,7 @@ public final class SqlRequests {
      * @return String
      */
     public static String getDataQuery(String tablename) {
-        return "select DATA "
-               + " from " + tablename + WHERE_HASH;
+        return "select DATA from " + tablename + WHERE_HASH;
     }
 
     /**
@@ -70,8 +71,7 @@ public final class SqlRequests {
      * @return String
      */
     public static String getInfoDataQuery(String tablename) {
-        return "select STREAMER_INFO "
-               + " from " + tablename + WHERE_HASH;
+        return "select STREAMER_INFO from " + tablename + WHERE_HASH;
     }
 
     /**
@@ -109,15 +109,18 @@ public final class SqlRequests {
      * @param payloadtablename
      * @return String
      */
-    public static String getRangeIovPayloadQuery(String iovtablename, String payloadtablename) {
-        return "select iv.TAG_NAME, iv.SINCE, iv.INSERTION_TIME, iv.PAYLOAD_HASH, "
-               + " pyld.VERSION, pyld.OBJECT_TYPE, pyld.OBJECT_NAME, "
-               + " pyld.DATA_SIZE from " + iovtablename + " iv "
-               + " LEFT JOIN " + payloadtablename + " pyld " + " ON iv.PAYLOAD_HASH=pyld.HASH "
-               + " where iv.TAG_NAME=? AND iv.SINCE>=COALESCE(" + "  (SELECT max(iov2.SINCE) FROM "
-               + iovtablename + " iov2 "
-               + " WHERE iov2.TAG_NAME=? AND iov2.SINCE<=? AND iov2.INSERTION_TIME<=? ),0)"
-               + " AND iv.SINCE<=? AND iv.INSERTION_TIME<=? "
-               + " ORDER BY iv.SINCE ASC, iv.INSERTION_TIME DESC";
+    public static String getRangeIovPayloadQuery(String iovtablename,
+                                                 String payloadtablename) {
+
+        return "select iv.TAG_ID, iv.SINCE, iv.INSERTION_TIME, iv.PAYLOAD_HASH, "
+                + " pyld.VERSION, pyld.OBJECT_TYPE, pyld.OBJECT_NAME, "
+                + " pyld.DATA_SIZE from " + iovtablename + " iv "
+                + " LEFT JOIN " + payloadtablename + " pyld " + " ON iv.PAYLOAD_HASH=pyld.HASH "
+                + " where iv.TAG_ID=? AND iv.SINCE>=COALESCE(" + "  (SELECT max(iov2.SINCE) FROM "
+                + iovtablename + " iov2 "
+                + " WHERE iov2.TAG_ID=? AND iov2.SINCE<=? AND iov2.INSERTION_TIME<=? ),0)"
+                + " AND iv.SINCE<=? AND iv.INSERTION_TIME<=? "
+                + " ORDER BY iv.SINCE ASC, iv.INSERTION_TIME DESC";
+
     }
 }

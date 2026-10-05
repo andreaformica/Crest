@@ -122,6 +122,7 @@ public class MapperTest {
                 Tag t = (Tag) item;
                 t.setStatus(TagDto.StatusEnum.LOCKED.toString());
                 t.setSynchronization(TagDto.SynchronizationEnum.SV.toString());
+                t.setWorkflow(TagDto.WorkflowEnum.BLK.toString());
             }
             log.info("Generated item    = {}", item);
             Object dto = mapper.toDto((T) item);
@@ -242,5 +243,28 @@ public class MapperTest {
         tag.setSynchronization(TagDto.SynchronizationEnum.SV.toString());
         assertThat(tag.getSynchronization()).isEqualTo(TagDto.SynchronizationEnum.SV.toString());
         log.info("testTagsEnum: Tag is {}", tag);
+    }
+
+    @Test
+    public void testBinaryFloat() {
+        // I want to test that the conversion of a binary float to a BigDecimal works correctly in the ResultsetConverterMap
+        // I will create a binary float value and convert it to a BigDecimal using the same method as in the ResultsetConverterMap, and check that the value is correct
+        // 3.1415927
+        float float_value = 3.0902069f;
+        BigDecimal bd = new BigDecimal(Float.toString(float_value));
+        log.info("testBinaryFloat: float_value = {}, BigDecimal = {}", float_value, bd);
+        assertThat(bd.floatValue()).isEqualTo(float_value);
+
+        // Now consider the number above as a string, and convert it to a BigDecimal, and check that the value is correct
+        String float_string = "3.0902069";
+        BigDecimal bd2 = new BigDecimal(float_string);
+        log.info("testBinaryFloat: float_string = {}, BigDecimal = {}", float_string, bd2);
+        assertThat(bd2.floatValue()).isEqualTo(float_value);
+
+        // Now print the binary representation of the float value, and check that it is correct
+        int intBits = Float.floatToIntBits(float_value);
+        log.info("testBinaryFloat: float_value = {}, intBits = {}", float_value, intBits);
+        assertThat(intBits).isEqualTo(0x4045C5F3);
+
     }
 }

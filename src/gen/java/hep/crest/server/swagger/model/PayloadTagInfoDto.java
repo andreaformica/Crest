@@ -39,6 +39,8 @@ import jakarta.validation.Valid;
 @JsonPropertyOrder({
   PayloadTagInfoDto.JSON_PROPERTY_TAGNAME,
   PayloadTagInfoDto.JSON_PROPERTY_NIOVS,
+  PayloadTagInfoDto.JSON_PROPERTY_MINSINCE,
+  PayloadTagInfoDto.JSON_PROPERTY_MAXSINCE,
   PayloadTagInfoDto.JSON_PROPERTY_TOTVOLUME,
   PayloadTagInfoDto.JSON_PROPERTY_AVGVOLUME
 })
@@ -51,6 +53,14 @@ public class PayloadTagInfoDto   {
   public static final String JSON_PROPERTY_NIOVS = "niovs";
   @JsonProperty(JSON_PROPERTY_NIOVS)
   private Integer niovs;
+
+  public static final String JSON_PROPERTY_MINSINCE = "minsince";
+  @JsonProperty(JSON_PROPERTY_MINSINCE)
+  private Long minsince;
+
+  public static final String JSON_PROPERTY_MAXSINCE = "maxsince";
+  @JsonProperty(JSON_PROPERTY_MAXSINCE)
+  private Long maxsince;
 
   public static final String JSON_PROPERTY_TOTVOLUME = "totvolume";
   @JsonProperty(JSON_PROPERTY_TOTVOLUME)
@@ -96,6 +106,44 @@ public class PayloadTagInfoDto   {
 
   public void setNiovs(Integer niovs) {
     this.niovs = niovs;
+  }
+
+  public PayloadTagInfoDto minsince(Long minsince) {
+    this.minsince = minsince;
+    return this;
+  }
+
+  /**
+   * Get minsince
+   * @return minsince
+   **/
+  @JsonProperty(value = "minsince")
+  
+  public Long getMinsince() {
+    return minsince;
+  }
+
+  public void setMinsince(Long minsince) {
+    this.minsince = minsince;
+  }
+
+  public PayloadTagInfoDto maxsince(Long maxsince) {
+    this.maxsince = maxsince;
+    return this;
+  }
+
+  /**
+   * Get maxsince
+   * @return maxsince
+   **/
+  @JsonProperty(value = "maxsince")
+  
+  public Long getMaxsince() {
+    return maxsince;
+  }
+
+  public void setMaxsince(Long maxsince) {
+    this.maxsince = maxsince;
   }
 
   public PayloadTagInfoDto totvolume(Float totvolume) {
@@ -148,13 +196,15 @@ public class PayloadTagInfoDto   {
     PayloadTagInfoDto payloadTagInfoDto = (PayloadTagInfoDto) o;
     return Objects.equals(tagname, payloadTagInfoDto.tagname) &&
         Objects.equals(niovs, payloadTagInfoDto.niovs) &&
+        Objects.equals(minsince, payloadTagInfoDto.minsince) &&
+        Objects.equals(maxsince, payloadTagInfoDto.maxsince) &&
         Objects.equals(totvolume, payloadTagInfoDto.totvolume) &&
         Objects.equals(avgvolume, payloadTagInfoDto.avgvolume);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(tagname, niovs, totvolume, avgvolume);
+    return Objects.hash(tagname, niovs, minsince, maxsince, totvolume, avgvolume);
   }
 
   @Override
@@ -164,6 +214,8 @@ public class PayloadTagInfoDto   {
     
     sb.append("    tagname: ").append(toIndentedString(tagname)).append("\n");
     sb.append("    niovs: ").append(toIndentedString(niovs)).append("\n");
+    sb.append("    minsince: ").append(toIndentedString(minsince)).append("\n");
+    sb.append("    maxsince: ").append(toIndentedString(maxsince)).append("\n");
     sb.append("    totvolume: ").append(toIndentedString(totvolume)).append("\n");
     sb.append("    avgvolume: ").append(toIndentedString(avgvolume)).append("\n");
     sb.append("}");

@@ -1,4 +1,4 @@
-package hep.crest.server.repositories.triggerdb;
+package hep.crest.server.triggerdb.repositories;
 
 import lombok.Data;
 

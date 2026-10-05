@@ -63,7 +63,7 @@ public class TagMetaService {
             if (cached != null) {
                 return cached;
             }
-            TagMeta entity = tagmetaRepository.findByTagName(name).orElseThrow(
+            TagMeta entity = tagmetaRepository.findById(name).orElseThrow(
                     () -> new CdbNotFoundException("Cannot find meta info for tag " + name));
             cacheTagMeta(entity);
             return entity;
@@ -126,7 +126,7 @@ public class TagMetaService {
     public TagMeta insertTagMeta(TagMeta entity) {
         log.debug("Create tag meta data from entity {}", entity);
         final String name = entity.getTagName();
-        Optional<TagMeta> opt = tagmetaRepository.findByTagName(name);
+        Optional<TagMeta> opt = tagmetaRepository.findById(name);
         if (opt.isPresent()) {
             log.debug("Cannot store tag meta {} : resource already exists.. ", name);
             throw new ConflictException(
@@ -149,7 +149,7 @@ public class TagMetaService {
     @Transactional
     public TagMeta updateTagMeta(TagMeta entity) {
         log.debug("Update tag meta from entity {}", entity);
-        Optional<TagMeta> opt = tagmetaRepository.findByTagName(entity.getTagName());
+        Optional<TagMeta> opt = tagmetaRepository.findById(entity.getTagName());
         if (opt.isEmpty()) {
             throw new CdbNotFoundException("Cannot find meta info for " + entity.getTagName());
         }
@@ -171,14 +171,13 @@ public class TagMetaService {
      * @throws AbstractCdbServiceException the cdb service exception
      */
     @CacheEvict(value = CacheConfig.TAG_META_CACHE, key = "#name")
-    @Transactional
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void removeTagMeta(String name) {
         log.debug("Remove tag meta info for {}", name);
-        Optional<TagMeta> opt = tagmetaRepository.findByTagName(name);
-        if (opt.isEmpty()) {
-            throw new CdbNotFoundException("Cannot find tag meta for tag name " + name);
+        int nrows = tagmetaRepository.deleteByTagName(name);
+        if (nrows > 1) {
+            log.warn("Removed {} rows for tag meta info with name {}", nrows, name);
         }
-        tagmetaRepository.delete(opt.get());
-        log.debug("Removed tag meta info for: {}", name);
+        log.info("Removed tag meta info for: {}", name);
     }
 }

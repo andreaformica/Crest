@@ -14,11 +14,11 @@ import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.ConflictException;
 import hep.crest.server.swagger.model.TagDto;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -50,6 +50,7 @@ public class GlobalTagMapService {
 
     /**
      * Ctor with injection.
+     *
      * @param globalTagMapRepository
      * @param globalTagRepository
      * @param tagService
@@ -103,7 +104,7 @@ public class GlobalTagMapService {
             throw new CdbNotFoundException("GlobalTag does not exists for name " + gtname);
         }
         String tagname = entity.getTag().getName();
-        final Optional<Tag> tg = tagRepository.findById(tagname);
+        final Optional<Tag> tg = tagRepository.findByName(tagname);
         if (!tg.isPresent()) {
             log.warn("Tag {} does not exists.", tagname);
             throw new CdbNotFoundException("Tag does not exists for name " + tagname);
@@ -125,10 +126,10 @@ public class GlobalTagMapService {
      * @return the iterable
      */
     public List<GlobalTagMap> findMapsByGlobalTagLabelTag(String globaltag, String label,
-                                                              String tag,
-                                                              String mrecord) {
+                                                          String tag,
+                                                          String mrecord) {
         log.debug("Search for GlobalTagMap entries by Global, Label, Tag and eventually filter by"
-                  + " record : {} {} {} {}",
+                        + " record : {} {} {} {}",
                 globaltag, label, tag, mrecord);
         if (tag == null || tag.isEmpty() || tag.equals("none")) {
             tag = "%";
@@ -136,7 +137,7 @@ public class GlobalTagMapService {
         tag = tag.replace("*", "%");
         List<GlobalTagMap> maplist =
                 globalTagMapRepository.findByGlobalTagNameAndLabelAndTagNameLike(globaltag, label,
-                tag);
+                        tag);
         if (mrecord != null && !mrecord.isEmpty()) {
             return StreamSupport.stream(maplist.spliterator(), false)
                     .filter(c -> c.getId().getTagRecord().equals(mrecord))
@@ -174,16 +175,18 @@ public class GlobalTagMapService {
                 throw new ConflictException("GlobalTag is locked, cannot delete mapping");
             }
             Tag tag = globalTagMap.getTag();
+            TagDto.StatusEnum tagStatus = TagDto.StatusEnum.valueOf(tag.getStatus());
             if (tag.getStatus().equals(TagDto.StatusEnum.LOCKED.toString())) {
-                log.warn("Tag {} is locked, cannot delete mapping {}",
-                        tag.getName(), globalTagMap);
-                throw new ConflictException("Tag is locked, cannot delete mapping");
+                log.warn("Tag {} is locked, but we are removing mapping from {}", tag.getName(),
+                        globalTagMap);
             }
-            log.info("Delete GlobalTagMap entry {}: {} {}", globalTagMap, globalTag, tag);
+            log.warn("Tag {} is {}, deleting mapping {} !", tag.getName(), tagStatus,
+                    globalTagMap);
             GlobalTagMap delentity = this.deleteMap(globalTagMap);
             if (delentity != null) {
                 deletedlist.add(delentity);
             }
+
         }
         return deletedlist;
     }
@@ -209,6 +212,10 @@ public class GlobalTagMapService {
         for (GlobalTagMap map : mapList) {
             if (GlobalTagTypeEnum.fromCode(gtype) == GlobalTagTypeEnum.LOCKED) {
                 Tag tag = map.getTag();
+                if (tag.getStatus().equals(TagDto.StatusEnum.LOCKED.toString())) {
+                    log.warn("Tag {} is already locked, no update needed", tag.getName());
+                    continue;
+                }
                 tag.setStatus(TagDto.StatusEnum.LOCKED.toString());
                 String sync = tag.getSynchronization();
                 if (sync == null || sync.isEmpty() || sync.equals("ALL")) {
@@ -235,7 +242,7 @@ public class GlobalTagMapService {
     public Tag updateTagStatus(String tagname, String status) throws AbstractCdbServiceException {
         log.debug("Update Tag status for {} to {}", tagname, status);
         List<GlobalTagMap> tagMaps = this.getTagMapByTagName(tagname);
-        Tag tag = tagRepository.findById(tagname).orElseThrow(
+        Tag tag = tagRepository.findByName(tagname).orElseThrow(
                 () -> new CdbNotFoundException("Tag does not exists for name " + tagname));
         for (GlobalTagMap map : tagMaps) {
             char gtypechar = map.getGlobalTag().getType();
@@ -243,7 +250,6 @@ public class GlobalTagMapService {
                 log.warn("Tag {} is associated to a locked global tag {}, cannot change status to"
                                 + " {}",
                         tagname, map.getGlobalTag().getName(), status);
-                throw new ConflictException("Tag is locked, cannot change status to " + status);
             }
         }
         // No constraints found, update the tag.

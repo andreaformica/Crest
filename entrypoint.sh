@@ -50,6 +50,14 @@ verify_files() {
 print_application_properties () {
   if [ -e config/application.properties ] ; then
     cat config/application.properties
+  else
+    echo "crest.server.security=none"
+    # No application.properties file found, add default properties
+    if [ -n "$CREST_SERVER_PORT" ]; then
+      echo "crest.server.port=$CREST_SERVER_PORT"
+    else
+      echo "crest.server.port=8080"
+    fi
   fi
   if [ -e /run/secrets/crest-phys-cond ] ; then
     echo "crest.db.password=$(cat /run/secrets/crest-phys-cond)"
@@ -109,9 +117,12 @@ cat $joptfile
 if [ -e $joptfile ]; then
    export JAVA_OPTS=
    while read line; do
-    if [ x"$line" != x"" ]; then
-      JAVA_OPTS="$JAVA_OPTS -D$line";
-    fi
+    # Skip empty lines and lines starting with #
+    case "$line" in
+      \#*) continue ;;
+      "") continue ;;
+    esac
+    JAVA_OPTS="$JAVA_OPTS -D$line";
    done < $joptfile
 fi
 ## Set the directory with the JAR file

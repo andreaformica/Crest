@@ -46,16 +46,23 @@ public class JdbcMonitoringRepository extends DataGeneral implements IMonitoring
         try {
             // Create the sql string using a query defined in a package.
             // This should word on any DB.
-            sql = "select iv.tag_name, count(iv.tag_name) as niovs, sum(pl.data_size) as tot_volume, avg(pl"
-                  + ".data_size) as avg_volume FROM " + getCrestTableNames().getPayloadTableName() + " pl, "
-                  + getCrestTableNames().getIovTableName() + " iv "
-                  + " WHERE iv.TAG_NAME like ? AND iv.PAYLOAD_HASH=pl.HASH group by iv.TAG_NAME order by iv.TAG_NAME";
+            sql = "select tv.name as tag_name, count(iv.tag_id) as niovs, min(iv.since) as "
+                    + "minsince, "
+                + "max(iv.since) as maxsince,"
+                + "sum(pl.data_size) as tot_volume, avg(pl.data_size) as avg_volume FROM "
+                + getCrestTableNames().getPayloadTableName() + " pl, "
+                    + getCrestTableNames().getIovTableName() + " iv, "
+                    + getCrestTableNames().getTagTableName() + " tv "
+                + " WHERE tv.NAME like ? AND tv.tag_id=iv.tag_id AND iv.PAYLOAD_HASH=pl.HASH "
+                    + "group by tv.TAG_ID, tv.NAME "
+                    + "order by tv.NAME";
             log.debug("Execute query {} using {}", sql, tagpattern);
             return jdbcTemplate.query(sql, new PayloadInfoMapper(), tagpattern);
         }
         catch (final EmptyResultDataAccessException e) {
             // No result, log the error.
-            log.error("Cannot find tag information for pattern {}: {}", tagpattern, e);
+            log.error("Cannot find tag information for pattern {}: {}",
+                    tagpattern, e.toString());
         }
         return new ArrayList<>();
     }
@@ -65,12 +72,13 @@ public class JdbcMonitoringRepository extends DataGeneral implements IMonitoring
         log.info("Select count(TAG_NAME) Iov for tag matching pattern {} using JDBCTEMPLATE",
                 tagname);
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
-        final String tablename = getCrestTableNames().getIovTableName();
         // sql : count iovs in a tag
         // select TAG_NAME, COUNT(TAG_NAME) as NIOVS from IOV
         // where TAG_NAME like ? GROUP BY TAG_NAME
-        final String sql = "select TAG_NAME, COUNT(TAG_NAME) as NIOVS from " + tablename
-                           + " where TAG_NAME like ? GROUP BY TAG_NAME";
+        final String sql = "select tv.NAME as TAG_NAME, COUNT(tv.NAME) as NIOVS from "
+                + getCrestTableNames().getTagTableName() + " tv, "
+                + getCrestTableNames().getIovTableName() + " iv "
+                + " where tv.NAME like ? AND iv.TAG_ID=tv.TAG_ID GROUP BY tv.TAG_ID, tv.NAME";
         return jdbcTemplate.query(sql, (rs, num) -> {
             final TagSummaryDto entity = new TagSummaryDto();
             entity.setTagname(rs.getString("TAG_NAME"));
@@ -80,14 +88,19 @@ public class JdbcMonitoringRepository extends DataGeneral implements IMonitoring
     }
 
     @Override
-    public List<IovPayloadDto> getRangeIovPayloadInfo(String name, BigInteger since,
+    public List<IovPayloadDto> getRangeIovPayloadInfo(Long tagId, BigInteger since,
                                                       BigInteger until, Date snapshot) {
-        log.debug("Select Iov and Payload meta info for tag  {} using JDBCTEMPLATE", name);
+        log.debug("Select Iov and Payload meta info for tag  {} using JDBCTEMPLATE", tagId);
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(getDs());
         // Get sql query.
-        final String sql = SqlRequests.getRangeIovPayloadQuery(getCrestTableNames().getIovTableName(),
+        final String sql = SqlRequests.getRangeIovPayloadQuery(
+                getCrestTableNames().getIovTableName(),
                 getCrestTableNames().getPayloadTableName());
+        // Get the tag ID.
+        log.info("Execute query {} using parameters: tagId {}, since {}, until {}, snapshot {}",
+                sql, tagId, since, until, snapshot);
         // Execute request.
+        // Parameters: TAG_NAME, SINCE (subquery), INSERTION_TIME (subquery), SINCE (main), INSERTION_TIME (main)
         return jdbcTemplate.query(sql, (rs, num) -> {
             final IovPayloadDto entity = new IovPayloadDto();
             Instant inst = Instant.ofEpochMilli(rs.getTimestamp("INSERTION_TIME").getTime());
@@ -100,7 +113,7 @@ public class JdbcMonitoringRepository extends DataGeneral implements IMonitoring
             entity.setSize(rs.getInt("DATA_SIZE"));
             log.debug("create entity {}", entity);
             return entity;
-        }, name, name, since, snapshot, until, snapshot);
+        }, tagId, tagId, since, snapshot, until, snapshot);
     }
 
     /**

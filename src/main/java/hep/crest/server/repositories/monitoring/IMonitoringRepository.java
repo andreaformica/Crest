@@ -35,12 +35,12 @@ public interface IMonitoringRepository {
     /**
      * Get a list of iovs and payload meta information without retrieving the data.
      *
-     * @param name
+     * @param tagId
      * @param since
      * @param until
      * @param snapshot
      * @return List of IovPayloadDto
      */
-    List<IovPayloadDto> getRangeIovPayloadInfo(String name, BigInteger since,
+    List<IovPayloadDto> getRangeIovPayloadInfo(Long tagId, BigInteger since,
                                                BigInteger until, Date snapshot);
 }

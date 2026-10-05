@@ -36,6 +36,14 @@ public class SecurityDbConfig {
      * Properties.
      */
     private CrestProperties cprops;
+    /**
+     * ROLE ADMIN.
+     */
+    public static final String ROLE_ADMIN = "ADMIN";
+    /**
+     * ROLE MANAGER.
+     */
+    public static final String ROLE_MANAGER = "MANAGER";
 
     /**
      * Constructor with injected properties.
@@ -61,8 +69,10 @@ public class SecurityDbConfig {
             http.csrf(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(auth ->
                             auth.requestMatchers(HttpMethod.GET, "/**").permitAll()
-                                    .requestMatchers("/admin/**").hasRole("ADMIN")
-                                    .requestMatchers("/folders/**").hasRole("ADMIN")
+                                    .requestMatchers(HttpMethod.PUT, "/**/lock")
+                                    .hasAnyRole(ROLE_MANAGER, ROLE_ADMIN)
+                                    .requestMatchers("/admin/**").hasRole(ROLE_ADMIN)
+                                    .requestMatchers("/folders/**").hasRole(ROLE_ADMIN)
                                     .anyRequest().authenticated()
                     )
                     .httpBasic(withDefaults()) // Optionally add basic auth

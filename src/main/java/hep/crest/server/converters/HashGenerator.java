@@ -23,10 +23,6 @@ import java.security.NoSuchAlgorithmException;
 public final class HashGenerator {
 
     /**
-     * MD5.
-     */
-    private static final String MD5 = "MD5";
-    /**
      * SHA.
      */
     private static final String SHA = "SHA-256";
@@ -36,49 +32,6 @@ public final class HashGenerator {
      */
     private HashGenerator() {
         // Hide the default ctor.
-    }
-
-    /**
-     * Java program to generate MD5 hash or digest for String. In this example * we
-     * will see 3 ways to create MD5 hash or digest using standard Java API, *
-     * Spring framework and open source library, Apache commons codec utilities.*
-     * Generally MD5 has are represented as Hex String so each of this function *
-     * will return MD5 hash in hex format.
-     *
-     * @author Javin Paul
-     *
-     * @param message
-     *            The message string from which to generate md5.
-     * @return The MD5 representation of the message string.
-     * @throws PayloadEncodingException If an Exception occurred
-     **/
-    public static String md5Java(String message) throws PayloadEncodingException {
-        return md5Java(message.getBytes(StandardCharsets.UTF_8));
-    }
-
-    /**
-     * @param message
-     *            The message byte[] from which to generate md5.
-     * @return The MD5 representation of the message string.
-     * @throws PayloadEncodingException If an Exception occurred
-     */
-    public static String md5Java(byte[] message) throws PayloadEncodingException {
-        String digest = null;
-        try {
-            final MessageDigest md = MessageDigest.getInstance(MD5);
-            final byte[] hash = md.digest(message);
-            // converting byte array to Hexadecimal String
-            final StringBuilder sb = new StringBuilder(2 * hash.length);
-            for (final byte b : hash) {
-                sb.append(String.format("%02x", b & 0xff));
-            }
-            digest = sb.toString();
-            log.trace("md5Java generated hash: {}", digest);
-        }
-        catch (final NoSuchAlgorithmException ex) {
-            throw new PayloadEncodingException("md5java encoding error:", ex);
-        }
-        return digest;
     }
 
     /**

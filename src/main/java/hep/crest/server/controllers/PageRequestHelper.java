@@ -4,6 +4,8 @@
 package hep.crest.server.controllers;
 
 import hep.crest.server.config.CrestProperties;
+import hep.crest.server.controllers.strategies.TimeParseStrategy;
+import hep.crest.server.controllers.strategies.TimeParseStrategyFactory;
 import hep.crest.server.exceptions.CdbBadRequestException;
 import hep.crest.server.serializers.ArgTimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -15,9 +17,6 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -28,8 +27,8 @@ import java.util.regex.Pattern;
  * requests. It generated then list of criterias and ordering statement. Those
  * will be used in SQL requests.
  *
- * @version %I%, %G%
  * @author formica
+ * @version %I%, %G%
  *
  */
 @Component
@@ -39,21 +38,20 @@ public class PageRequestHelper {
     /**
      * The sort pattern.
      */
-    private static final String SORT_PATTERN = "([a-zA-Z0-9_\\-\\.]+?)(:)(ASC|DESC),";
+    private static final String SORT_PATTERN = "([a-zA-Z0-9\\.]+?)(:)(ASC|DESC),";
 
     /**
      * Maximum page size.
      */
     private static final Integer MAX_PAGE_SIZE = 10000;
     /**
-     * ISO pattern in input.
-     */
-    private static final String ISO_PATTERN = "yyyyMMdd'T'HHmmssz";
-
-    /**
      * Cool Max data in COOL format.
      */
     public static final long COOL_MAX_DATE = 9223372036854775807L;
+    /**
+     * Max sort field name length.
+     */
+    private static final int MAX_FIELD_NAME_LENGTH = 20;
     /**
      * Cool Max run in COOL format.
      */
@@ -69,26 +67,24 @@ public class PageRequestHelper {
     /**
      *
      */
-    public static final BigInteger LUMIMASK = new BigInteger("00000000FFFFFFFF", 16);
-    /**
-     *
-     */
     public static final BigDecimal TO_NANO_SECONDS = new BigDecimal(1000000L);
+    /**
+     * The strategy pattern for parsing time arguments.
+     */
+    private TimeParseStrategyFactory strategyFactory;
 
     /**
      * Default ctor.
      */
     public PageRequestHelper() {
         super();
+        this.strategyFactory = new TimeParseStrategyFactory(this);
     }
 
     /**
-     * @param page
-     *            the Integer
-     * @param size
-     *            the Integer
-     * @param sort
-     *            the Integer
+     * @param page the Integer
+     * @param size the Integer
+     * @param sort the Integer
      * @return PageRequest
      */
     public PageRequest createPageRequest(Integer page, Integer size, String sort) {
@@ -105,8 +101,13 @@ public class PageRequestHelper {
             if ("DESC".equals(sortmatcher.group(3))) {
                 direc = Direction.DESC;
             }
-            final String field = sortmatcher.group(1);
-            log.debug("Creating new order: {} {}", direc, field);
+            // Take care of SQL injection.
+            final String field = sortmatcher.group(1).trim().replaceAll("\\s+", "");
+            log.debug("Creating new order if field is valid: {} {}", direc, field);
+            if (!isValidFieldName(field)) {
+                throw new CdbBadRequestException(
+                        "Invalid field name for sorting: " + field);
+            }
             orderlist.add(new Order(direc, field));
         }
         log.debug("Created list of sorting orders of size {}", orderlist.size());
@@ -122,113 +123,104 @@ public class PageRequestHelper {
     }
 
     /**
+     * Perform basic validation of field name. This should avoid SQL injection.
+     * @param field the field name
+     * @return boolean
+     */
+    private boolean isValidFieldName(String field) {
+        if (field == null || field.isEmpty() || field.length() > MAX_FIELD_NAME_LENGTH) {
+            return false;
+        }
+        for (int i = 0; i < field.length(); i++) {
+            char c = field.charAt(i);
+            if (!(Character.isLetterOrDigit(c) || c == '_' || c == '.' || c == '-')) {
+                return false;
+            }
+        }
+
+        // Additional blacklist checks for common SQLi / suspicious tokens (case-insensitive)
+        String low = field.toLowerCase();
+        String[] forbidden = {
+                "--", ";", "/*", "*/", "'", "\"", "`",
+                " or ", " and ", " union ", " select ", " insert ", " update ",
+                " delete ", " drop ", " create ", " exec ", " xp_", "information_schema",
+                "benchmark(", "sleep("
+        };
+        // Check for forbidden substrings
+        for (String token : forbidden) {
+            if (low.contains(token)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Return time in ArgTimeUnit since epoch, using the format provided in dateformat.
      * If the dateformat is msec or sec then it will just interpret the string as a long.
      * The value will then depend on the provided input argument.
      *
-     * @param val the time string.
-     * @param inputformat the time format (sec, msec, iso, run).
-     * @param outunit the time unit (sec or msec).
+     * @param val              the time string.
+     * @param inputformat      the time format (sec, msec, iso, run).
+     * @param outunit          the time unit (sec or msec).
      * @param customdateformat a user defined date format.
      * @return BigInteger
      */
     public BigInteger getTimeFromArg(String val, ArgTimeUnit inputformat, ArgTimeUnit outunit,
                                      String customdateformat) {
         try {
-            log.debug("Get time from args: {} {} {} {}", val, inputformat, outunit, customdateformat);
-            DateTimeFormatter dtformatter = null;
-            BigInteger tepoch = null;
+            log.debug("Get time from args: {} {} {} {}", val, inputformat, outunit,
+                    customdateformat);
+
             if (val == null) {
-                return tepoch;
+                return null;
             }
-            if (inputformat == null) {
-                inputformat = ArgTimeUnit.MS;
-            }
+
             if (val.equalsIgnoreCase("INF")) {
-                // Until time is INF.
                 log.warn("The time will be set to INF : {}", CrestProperties.INFINITY);
                 return CrestProperties.INFINITY.toBigInteger();
             }
-            boolean iscoolformat = Boolean.FALSE;
-            log.trace("Getting time from arg {}, {}, {}, {}", val, inputformat, outunit, customdateformat);
-            switch (inputformat) {
-                // Tepoch will always be millisec since 1970 at the end of this block.
-                case MS:
-                    log.trace("Use MS to parse {}", val);
-                    tepoch = BigInteger.valueOf(Long.parseLong(val));
-                    break;
-                case SEC:
-                    log.trace("Use SEC to parse {} (*1000 to get epoch)", val);
-                    tepoch = BigInteger.valueOf(Long.parseLong(val) * 1000L);
-                    break;
-                case RUN:
-                    log.trace("Use run...{}", val);
-                    tepoch = BigInteger.valueOf(Long.parseLong(val));
-                    tepoch = tepoch.shiftLeft(COOLIOV_RUN_MASK);
-                    iscoolformat = Boolean.TRUE;
-                    break;
-                case RUN_LUMI:
-                    log.trace("Use run-lumi...{}", val);
-                    String[] rl = val.split("-");
-                    tepoch = getCoolRunLumi(rl[0], rl[1]);
-                    iscoolformat = Boolean.TRUE;
-                    break;
-                case ISO:
-                    log.trace("Use ISO pattern {} to parse {}", ISO_PATTERN, val);
-                    dtformatter = DateTimeFormatter.ofPattern(ISO_PATTERN);
-                    ZonedDateTime zdtInstanceAtOffset = ZonedDateTime.parse(val, dtformatter);
-                    ZonedDateTime zdtInstanceAtUTC = zdtInstanceAtOffset
-                            .withZoneSameInstant(ZoneOffset.UTC);
-                    tepoch = BigInteger.valueOf(zdtInstanceAtUTC.toInstant().toEpochMilli());
-                    log.trace("Parsed date using -iso- format {}; time from epoch is {}", zdtInstanceAtUTC, tepoch);
-                    break;
-                case CUSTOM:
-                    log.debug("Use CUSTOM pattern {} to parse {}", customdateformat, val);
-                    if (customdateformat == null) {
-                        customdateformat = ISO_PATTERN;
-                    }
-                    dtformatter = DateTimeFormatter.ofPattern(customdateformat);
-                    ZonedDateTime customzdtInstanceAtOffset = ZonedDateTime.parse(val, dtformatter);
-                    ZonedDateTime customzdtInstanceAtUTC = customzdtInstanceAtOffset
-                            .withZoneSameInstant(ZoneOffset.UTC);
-                    tepoch = BigInteger.valueOf(customzdtInstanceAtUTC.toInstant().toEpochMilli());
-                    log.trace("Parsed date using custom format {} - {}; time from epoch is {}", customdateformat,
-                            customzdtInstanceAtUTC, tepoch);
-                    break;
-                case NUMBER:
-                    log.debug("Use number to parse {}", val);
-                    tepoch = new BigInteger(val);
-                    iscoolformat = Boolean.TRUE;
-                    break;
-                default:
-                    // cannot arrive here.
-                    log.error("Cannot process argument time parsing");
-                    break;
-            }
-            // Assume we return milli seconds.
-            log.trace("Time arg parsing will return {} ", tepoch);
-            if (tepoch == null) {
-                return tepoch;
-            }
-            if (outunit != null && outunit.equals(ArgTimeUnit.SEC)) {
-                // Here we return seconds since Epoch.
-                return tepoch.divide(BigInteger.valueOf(1000L));
-            }
-            else if (outunit != null && outunit.equals(ArgTimeUnit.COOL) && !iscoolformat) {
-                return tepoch.multiply(TO_NANO_SECONDS.toBigInteger());
-            }
-            return tepoch;
+
+            TimeParseStrategy strategy = strategyFactory.getStrategy(inputformat);
+            BigInteger tepoch = strategy.parse(val, customdateformat);
+
+            return convertOutputUnit(tepoch, outunit, inputformat);
         }
         catch (RuntimeException e) {
             throw new CdbBadRequestException("Error while parsing time", e);
         }
     }
 
+
     /**
-     * @param arun
-     *            The run number as a String.
-     * @param lb
-     *            The lumi block as a String.
+     * Convert parsed time to requested output unit.
+     *
+     * @param tepoch      the time in milliseconds
+     * @param outunit     the output unit
+     * @param inputformat the input format
+     * @return converted time value
+     */
+    private BigInteger convertOutputUnit(BigInteger tepoch, ArgTimeUnit outunit,
+                                         ArgTimeUnit inputformat) {
+        if (tepoch == null) {
+            return null;
+        }
+
+        boolean isCoolFormat = inputformat == ArgTimeUnit.RUN || inputformat == ArgTimeUnit.RUN_LUMI
+                || inputformat == ArgTimeUnit.NUMBER;
+
+        if (outunit != null && outunit.equals(ArgTimeUnit.SEC)) {
+            return tepoch.divide(BigInteger.valueOf(1000L));
+        }
+        else if (outunit != null && outunit.equals(ArgTimeUnit.COOL) && !isCoolFormat) {
+            return tepoch.multiply(TO_NANO_SECONDS.toBigInteger());
+        }
+        return tepoch;
+    }
+
+    /**
+     * @param arun The run number as a String.
+     * @param lb   The lumi block as a String.
      * @return The COOL time.
      */
     public BigInteger getCoolRunLumi(final String arun, final String lb) {
@@ -254,10 +246,8 @@ public class PageRequestHelper {
     }
 
     /**
-     * @param arun
-     *            The run in long.
-     * @param lb
-     *            The lb in long.
+     * @param arun The run in long.
+     * @param lb   The lb in long.
      * @return The COOL time.
      */
     public BigInteger getCoolRunLumi(final Long arun, final Long lb) {

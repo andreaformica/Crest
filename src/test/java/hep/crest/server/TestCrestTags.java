@@ -38,6 +38,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -72,8 +75,10 @@ public class TestCrestTags {
     public void initializeTag(String gtname) {
         TagDto dto = (TagDto) rnd.generate(TagDto.class);
         dto.name(gtname);
-        dto.synchronization(TagDto.SynchronizationEnum.ALL);
         dto.status(TagDto.StatusEnum.UNLOCKED);
+        dto.synchronization(TagDto.SynchronizationEnum.ALL);
+        dto.workflow(TagDto.WorkflowEnum.ALL);
+        dto.cacheLength(-1);
         log.info("Store tag : {} ", dto);
         final ResponseEntity<TagDto> response = testRestTemplate
                 .postForEntity("/crestapi/tags", dto, TagDto.class);
@@ -173,6 +178,20 @@ public class TestCrestTags {
             assertThat(responseBody).isNotNull();
             assertThat(responseBody.getResources()).isNotNull();
             assertThat(responseBody.getResources().size()).isEqualTo(0);
+        }
+        urltag = "/crestapi/tags/" + tagname;
+        final ResponseEntity<TagSetDto> resptagdto = this.testRestTemplate
+                .exchange(urltag, HttpMethod.GET, null,
+                        TagSetDto.class);
+        {
+            log.info("Retrieved tag set " + resptagdto.getBody());
+            final TagSetDto resptagset = resptagdto.getBody();
+            assertThat(resptagset).isNotNull();
+            final TagDto responseBody = resptagset.getResources().get(0);
+            assertThat(resptags.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(responseBody).isNotNull();
+            assertThat(responseBody.getCacheLength()).isNegative();
+            assertThat(responseBody.getWorkflow()).isEqualTo(TagDto.WorkflowEnum.ALL);
         }
 
         String url = "/crestapi/globaltags/A-TEST-GT-50/tags";
@@ -287,6 +306,7 @@ public class TestCrestTags {
         sdto1.since(10000L);
         sdto1.streamerInfo("ANOTHER_BATCH_FAKE_STREAMER_INFO");
         storeSetDto.addresourcesItem(sdto1);
+        storeSetDto.size(2L);
         // Store the payloads into the tag
         try {
             final ResponseEntity<String> response2 = uploadPayload(tagname, storeSetDto, "ascii", "none",
@@ -376,6 +396,16 @@ public class TestCrestTags {
                 log.info("Retrieved iovs snapshot 10 GROUPS " + respgroup.getBody());
                 assertThat(respgroup.getStatusCode()).isEqualTo(HttpStatus.OK);
             }
+            // Select groups
+            String urliovsr = "/crestapi/iovs?tagname=COPY-TAG&since=0&until=1000000"
+                    + "&method=RANGE";
+            final ResponseEntity<String> respiovsr = this.testRestTemplate
+                    .exchange(urliovsr, HttpMethod.GET, null,
+                            String.class);
+            {
+                log.info("Retrieved iovs snapshot RANGE " + respiovsr.getBody());
+                assertThat(respiovsr.getStatusCode()).isEqualTo(HttpStatus.OK);
+            }
 
             // Select iovs and payloads meta
             String urlmeta = "/crestapi/iovs/infos?tagname=COPY-TAG&since=0&until=10000000";
@@ -441,7 +471,7 @@ public class TestCrestTags {
     public void updateTag(String tagname) {
         String url = "/crestapi/tags/" + tagname;
         GenericMap dto = new GenericMap();
-        dto.put("synchronization", TagDto.SynchronizationEnum.SV.toString());
+        dto.put("synchronization", TagDto.SynchronizationEnum.ALL.toString());
         dto.put("description", "A new description");
         dto.put("payloadSpec", "ascii2");
         testRestTemplate.put(url, dto);
@@ -455,7 +485,7 @@ public class TestCrestTags {
 
         url = "/crestapi/tags/notfound";
         dto = new GenericMap();
-        dto.put("synchronization", TagDto.SynchronizationEnum.SV.toString());
+        dto.put("synchronization", TagDto.SynchronizationEnum.ALL.toString());
         dto.put("description", "A new description");
         dto.put("payloadSpec", "ascii2");
         testRestTemplate.put(url, dto);
@@ -626,4 +656,140 @@ public class TestCrestTags {
 
     }
 
+    @Test
+    public void testCreateGlobalTag_WrongName() {
+        log.info("=======> testCreateGlobalTag_WrongName ");
+        String gtagname = "A-CRESTTAG%-01"; // Contains % which is not allowed
+        GlobalTagDto dto = (GlobalTagDto) rnd.generate(GlobalTagDto.class);
+        dto.name(gtagname);
+        dto.type("T");
+        log.info("Store global tag : {} ", dto);
+        final ResponseEntity<Object> response = testRestTemplate
+                .postForEntity("/crestapi/globaltags", dto, Object.class);
+        log.info("Received response: {}", response);
+
+        // Assert that the request fails due to validation error
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        log.info("Successfully rejected GlobalTag with invalid name containing '%'");
+    }
+
+
+    @Test
+    public void testCreateTag_WrongName() {
+        log.info("=======> testCreateTag_WrongName ");
+        String tagname = "B-*CRESTTAG-01"; // Contains % which is not allowed
+        TagDto dto = (TagDto) rnd.generate(TagDto.class);
+        dto.name(tagname);
+        dto.status(TagDto.StatusEnum.UNLOCKED);
+        dto.synchronization(TagDto.SynchronizationEnum.ALL);
+        log.info("Store tag : {} ", dto);
+        final ResponseEntity<Object> response = testRestTemplate
+                .postForEntity("/crestapi/tags", dto, Object.class);
+        log.info("Received response: {}", response);
+
+        // Assert that the request fails due to validation error
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        log.info("Successfully rejected Tag with invalid name containing '*'");
+    }
+
+    @Test
+    public void testTagsWithDots() {
+        log.info("=======> testTagsWithDots - Testing tags with dots and special characters");
+
+        // Test case 1: Simple dot notation (AA.BB)
+        String tagname1 = "AA.BB";
+        createTagWithDots(tagname1);
+        testRetrieveTag(tagname1);
+
+        // Test case 2: Multiple dots (DETECTOR.PIXEL.IBL)
+        String tagname2 = "DETECTOR.PIXEL.IBL";
+        createTagWithDots(tagname2);
+        testRetrieveTag(tagname2);
+
+        // Test case 3: Dots with hyphens (CREST-TAG.V1)
+        String tagname3 = "CREST-TAG.V1";
+        createTagWithDots(tagname3);
+        testRetrieveTag(tagname3);
+
+        // Test case 4: Multiple dots and hyphens (TEST-DETECTOR.MUON.INNER-01)
+        String tagname4 = "TEST-DETECTOR.MUON.INNER-01";
+        createTagWithDots(tagname4);
+        testRetrieveTag(tagname4);
+
+        // Test case 5: Verify all tags can be retrieved and queried
+        verifyTagsExist(tagname1, tagname2, tagname3, tagname4);
+
+        log.info("=======> testTagsWithDots - All tests passed!");
+    }
+
+    /**
+     * Helper method to create a tag with dots in the name via REST API
+     * @param tagname the tag name to create
+     */
+    private void createTagWithDots(String tagname) {
+        log.info("Creating tag with dots: {}", tagname);
+        TagDto dto = (TagDto) rnd.generate(TagDto.class);
+        dto.name(tagname);
+        dto.status(TagDto.StatusEnum.UNLOCKED);
+        dto.synchronization(TagDto.SynchronizationEnum.ALL);
+        dto.workflow(TagDto.WorkflowEnum.ALL);
+        dto.cacheLength(-1);
+        log.info("Store tag: {}", dto);
+        // Use Object.class to capture the full response (success or error)
+        final ResponseEntity<Object> response = testRestTemplate
+                .postForEntity("/crestapi/tags", dto, Object.class);
+        log.info("Create tag response status: {}", response.getStatusCode());
+        log.info("Create tag response body: {}", response.getBody());
+
+        // If creation failed, log the error and fail the test
+        if (!response.getStatusCode().equals(HttpStatus.CREATED)) {
+            log.error("FAILED to create tag: {}. Response: {}", tagname, response.getBody());
+            throw new AssertionError("Tag creation failed for: " + tagname + ". Response status: " + response.getStatusCode());
+        }
+
+        assertThat(response.getStatusCode())
+                .as("Tag " + tagname + " creation should return 201 CREATED")
+                .isEqualTo(HttpStatus.CREATED);
+        log.info("Successfully created tag: {}", tagname);
+    }
+
+    /**
+     * Helper method to test retrieval of a tag by name via REST API
+     * @param tagname the tag name to retrieve
+     */
+    private void testRetrieveTag(String tagname) {
+        log.info("Testing retrieval of tag: {}", tagname);
+        String url = "/crestapi/tags/" + tagname;
+        final ResponseEntity<TagSetDto> response = testRestTemplate
+                .getForEntity(url, TagSetDto.class);
+        log.info("Retrieved tag response for {}: {}", tagname, response.getStatusCode());
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        final TagSetDto tagSet = response.getBody();
+        assertThat(tagSet).isNotNull();
+        assertThat(tagSet.getResources()).isNotNull();
+        assertThat(tagSet.getResources().size()).isEqualTo(1);
+        final TagDto retrievedTag = tagSet.getResources().get(0);
+        assertThat(retrievedTag.getName()).isEqualTo(tagname);
+        log.info("Successfully retrieved tag: {}", tagname);
+    }
+
+    /**
+     * Helper method to verify multiple tags exist in the database
+     * @param tagnames the tag names to verify
+     */
+    private void verifyTagsExist(String... tagnames) {
+        log.info("Verifying {} tags exist in database", tagnames.length);
+        for (String tagname : tagnames) {
+            String url = "/crestapi/tags/" + tagname;
+            final ResponseEntity<TagSetDto> response = testRestTemplate
+                    .getForEntity(url, TagSetDto.class);
+            assertThat(response.getStatusCode())
+                    .as("Tag " + tagname + " should be found")
+                    .isEqualTo(HttpStatus.OK);
+            assertThat(response.getBody().getResources().get(0).getName())
+                    .as("Retrieved tag name should match requested name")
+                    .isEqualTo(tagname);
+            log.info("Verified tag exists: {}", tagname);
+        }
+    }
 }

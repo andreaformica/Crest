@@ -91,7 +91,7 @@ public class RunInfoService {
         }
         log.debug("Update runinfo with id {}", entity.getId());
         final RunLumiInfo saved = runinfoRepository.save(dbentry);
-        log.debug("Saved entity: {}", saved);
+        log.debug("Updated entity: {}", saved);
         return mapper.toDto(saved);
     }
 
@@ -110,7 +110,7 @@ public class RunInfoService {
         }
         log.debug("Search runinfo list using from={}, to={}", from, to);
         entitylist = runinfoRepository.findByRunNumberInclusive(from, to, preq);
-        log.trace("Retrieved list of runs {}", entitylist.getNumberOfElements());
+        log.trace("Retrieved list of runs [inclusive by run] {}", entitylist.getNumberOfElements());
         return entitylist;
     }
 
@@ -132,7 +132,8 @@ public class RunInfoService {
             preq = prh.createPageRequest(0, 1000, sort);
         }
         entitylist = runinfoRepository.findByLumiBlockInclusive(run, from, to, preq);
-        log.trace("Retrieved list of runs {}", entitylist.getNumberOfElements());
+        log.trace("Retrieved list of runs [inclusive by lumi block] {}",
+                entitylist.getNumberOfElements());
         return entitylist;
     }
 
@@ -151,7 +152,8 @@ public class RunInfoService {
         }
         entitylist = runinfoRepository.findByDateInclusive(BigInteger.valueOf(from.getTime()),
                 BigInteger.valueOf(to.getTime()), preq);
-        log.trace("Retrieved list of runs {}", entitylist.getNumberOfElements());
+        log.trace("Retrieved list of runs [inclusive by date] {}",
+                entitylist.getNumberOfElements());
         return entitylist;
     }
 }

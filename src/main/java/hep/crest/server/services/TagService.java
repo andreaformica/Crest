@@ -7,17 +7,18 @@ import hep.crest.server.controllers.PageRequestHelper;
 import hep.crest.server.data.pojo.GlobalTagMap;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Tag;
-import hep.crest.server.data.pojo.TagMeta;
 import hep.crest.server.data.repositories.GlobalTagMapRepository;
 import hep.crest.server.data.repositories.IovGroupsCustom;
 import hep.crest.server.data.repositories.IovRepository;
-import hep.crest.server.data.repositories.TagMetaRepository;
 import hep.crest.server.data.repositories.TagRepository;
 import hep.crest.server.data.repositories.args.TagQueryArgs;
 import hep.crest.server.exceptions.AbstractCdbServiceException;
 import hep.crest.server.exceptions.CdbNotFoundException;
 import hep.crest.server.exceptions.ConflictException;
 import hep.crest.server.swagger.model.TagDto;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import hep.crest.server.config.CacheConfig;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * @author rsipos
@@ -47,6 +49,7 @@ import hep.crest.server.config.CacheConfig;
 @Service
 @Slf4j
 @Getter
+@Validated
 public class TagService {
     /**
      * Repository.
@@ -72,11 +75,6 @@ public class TagService {
     /**
      * Repository.
      */
-    private TagMetaRepository tagMetaRepository;
-
-    /**
-     * Repository.
-     */
     private IovGroupsCustom iovGroupsCustom;
 
     /**
@@ -92,17 +90,27 @@ public class TagService {
      * Repository.
      */
     private GlobalTagMapRepository globalTagMapRepository;
+    /**
+     * Error message for tag not found.
+     */
+    private static final String TAG_NOT_FOUND = "Tag not found: ";
+
+    /**
+     * Entity manager for clearing persistence context.
+     */
+    @PersistenceContext
+    private EntityManager entityManager;
 
 
     /**
      * Ctors with injected services.
      *
-     * @param tagRepository
-     * @param cacheManager
-     * @param iovService
-     * @param payloadService
-     * @param tagMetaService
-     * @param globalTagMapRepository
+     * @param tagRepository the TagRepository
+     * @param cacheManager the CacheManager
+     * @param iovService the IovService
+     * @param payloadService the PayloadService
+     * @param tagMetaService the TagMetaService
+     * @param globalTagMapRepository the GlobalTagMapRepository
      */
     @Autowired
     TagService(TagRepository tagRepository, CacheManager cacheManager, IovService iovService,
@@ -116,7 +124,6 @@ public class TagService {
         this.iovGroupsCustom = iovService.getIovGroupsCustom();
         this.payloadService = payloadService;
         this.tagMetaService = tagMetaService;
-        this.tagMetaRepository = tagMetaService.getTagmetaRepository();
         this.globalTagMapRepository = globalTagMapRepository;
     }
 
@@ -133,13 +140,13 @@ public class TagService {
                 log.debug("Tag found in cache: {}", cached);
                 return cached;
             }
-            Tag entity = tagRepository.findById(name).orElseThrow(() -> new CdbNotFoundException(
-                    "Tag not found: " + name));
+            Tag entity = tagRepository.findByName(name).orElseThrow(() -> new CdbNotFoundException(
+                    TAG_NOT_FOUND + name));
             cacheTag(entity);
             return entity;
         }
         catch (CdbNotFoundException e) {
-            log.error("Tag not found: {}", name);
+            log.error(TAG_NOT_FOUND + " {}", name);
             cacheEviction(name);
             throw e;
         }
@@ -148,7 +155,7 @@ public class TagService {
     /**
      * Cache eviction method.
      *
-     * @param name
+     * @param name the Tag name
      */
     protected void cacheEviction(String name) {
         Cache cache = cacheManager.getCache(CacheConfig.TAG_CACHE);
@@ -189,8 +196,8 @@ public class TagService {
     /**
      * Select Tags.
      *
-     * @param args
-     * @param preq
+     * @param args the TagQueryArgs
+     * @param preq the Pageable
      * @return Page of Tag
      */
     public Page<Tag> selectTagList(TagQueryArgs args, Pageable preq) {
@@ -211,9 +218,9 @@ public class TagService {
      * @throws ConflictException If an Exception occurred because pojo exists
      */
     @Transactional
-    public Tag insertTag(Tag entity) throws ConflictException {
+    public Tag insertTag(@Valid Tag entity) throws ConflictException {
         log.debug("Create Tag from {}", entity);
-        final Optional<Tag> tmpt = tagRepository.findById(entity.getName());
+        final Optional<Tag> tmpt = tagRepository.findByName(entity.getName());
         if (tmpt.isPresent()) {
             log.warn("Tag {} already exists.", tmpt.get());
             throw new ConflictException(
@@ -233,12 +240,12 @@ public class TagService {
      */
     @CacheEvict(value = CacheConfig.TAG_CACHE, key = "#entity.getName()")
     @Transactional
-    public Tag updateTag(Tag entity) throws AbstractCdbServiceException {
+    public Tag updateTag(@Valid Tag entity) throws AbstractCdbServiceException {
         log.debug("Update tag from dto {}", entity);
         try {
-            final Tag toupd = tagRepository.findById(entity.getName()).orElseThrow(
+            final Tag toupd = tagRepository.findByName(entity.getName()).orElseThrow(
                     () -> new CdbNotFoundException(
-                            "Tag does not exists for name " + entity.getName()));
+                            TAG_NOT_FOUND + entity.getName()));
             String status = entity.getStatus();
             // Try to convert the status to the enum. If it fails, it will throw an exception.
             TagDto.StatusEnum.fromValue(status);
@@ -272,16 +279,18 @@ public class TagService {
     @CacheEvict(value = CacheConfig.TAG_CACHE, key = "#name")
     @Transactional
     public void removeTag(String name) throws AbstractCdbServiceException {
-        log.debug("Remove tag {} after checking if IOVs are present", name);
+        log.info("Removing tag {} after checking if IOVs are present", name);
         try {
             // Remove meta information associated with the tag.
-            log.debug("Removing meta info on tag {}", name);
-            Optional<TagMeta> opt = tagMetaRepository.findByTagName(name);
-            if (opt.isPresent()) {
-                tagMetaService.removeTagMeta(name);
-            }
+            log.info("Remove meta info on tag {}", name);
+            tagMetaService.removeTagMeta(name);
+            // Check if the tag exists
+            Tag tagEntity = tagRepository.findByName(name).orElseThrow(
+                    () -> new CdbNotFoundException(TAG_NOT_FOUND + name));
+            Long tagId = tagEntity.getTagId();
+            // Check if the tag is associated to a global tag
             // Start removing IOVs
-            log.debug("Removing tag {}", name);
+            log.info("Removing IOVs for Tag {}", name);
             // Verify the IOV content size
             int pageSize = 2000; // Batch size for deletion
             Pageable pageable = PageRequest.of(0, pageSize);
@@ -290,7 +299,7 @@ public class TagService {
             do {
                 log.debug("Processing iov page of size {} : page index {}", pageSize, pageIndex);
                 // Fetch the current page of IOVs
-                iovsPage = iovRepository.findByIdTagName(name, pageable);
+                iovsPage = iovRepository.findByIdTagId(tagEntity.getTagId(), pageable);
                 // Process the current batch of IOVs
                 List<Iov> iovList = iovsPage.getContent();
                 List<String> hashList = iovService.removeIovList(iovList);
@@ -299,13 +308,19 @@ public class TagService {
                 pageIndex++;
                 // Continue using the same page (page 0), as removed items won't appear again
             } while (!iovsPage.isEmpty()); // Break if there are no more IOVs to process
+            // Clear the persistence context to detach any orphaned entity references
+            // This prevents TransientObjectException when the tag is deleted
+            entityManager.clear();
+            // Re-fetch the tag entity since we cleared the persistence context
+            tagEntity = tagRepository.findById(tagId).orElseThrow(
+                    () -> new CdbNotFoundException(TAG_NOT_FOUND + tagId));
             // Payload are now removed
             log.debug("Payloads have been scheduled for removal");
             // Launch async task to remove payloads
             payloadService.removeCacheBuffer(name);
             // Remove the tag
-            tagRepository.deleteById(name);
-            log.debug("Removed entity: {}", name);
+            tagRepository.deleteById(tagEntity.getTagId());
+            log.info("Removed Tag entity: {}", name);
             // Do not wait for the future to complete
         }
         catch (AbstractCdbServiceException e) {
@@ -318,16 +333,16 @@ public class TagService {
     /**
      * Update the end of validity of a tag.
      *
-     * @param name
-     * @param endtime
-     * @throws AbstractCdbServiceException
+     * @param name the tag name
+     * @param endtime the new end of validity time
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     @CacheEvict(value = CacheConfig.TAG_CACHE, key = "#name")
     public void updateModificationTime(String name, BigDecimal endtime) {
         // Change the end time in the tag.
         try {
-            Tag tagEntity = tagRepository.findById(name).orElseThrow(
-                    () -> new CdbNotFoundException("Tag does not exists for name " + name));
+            Tag tagEntity = tagRepository.findByName(name).orElseThrow(
+                    () -> new CdbNotFoundException(TAG_NOT_FOUND + name));
             tagEntity.setEndOfValidity(
                     (endtime != null) ? endtime.toBigInteger() : BigInteger.ZERO);
             // Update the modification time.
@@ -346,15 +361,15 @@ public class TagService {
     /**
      * Lock a tag.
      *
-     * @param name
-     * @param status
+     * @param name the tag name
+     * @param status the new status (LOCKED or UNLOCKED)
      * @return Tag
-     * @throws AbstractCdbServiceException
+     * @throws AbstractCdbServiceException If an Exception occurred
      */
     @CacheEvict(value = CacheConfig.TAG_CACHE, key = "#name")
     @Transactional
     public Tag lockTag(String name, String status) throws AbstractCdbServiceException {
-        Tag entity = tagRepository.findById(name).orElseThrow(
+        Tag entity = tagRepository.findByName(name).orElseThrow(
                 () -> new CdbNotFoundException("Cannot find tag " + name));
         log.info("Change locking for tag {} to status {}", entity, status);
         if (entity.getStatus().equals(status)) {

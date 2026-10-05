@@ -5,6 +5,7 @@ import hep.crest.server.caching.CachingPolicyService;
 import hep.crest.server.config.CrestProperties;
 import hep.crest.server.controllers.EntityDtoHelper;
 import hep.crest.server.controllers.PageRequestHelper;
+import hep.crest.server.converters.CustomIovMapper;
 import hep.crest.server.converters.IovMapper;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.Tag;
@@ -82,6 +83,10 @@ public class IovsApiServiceImpl extends IovsApiService {
      * Mapper.
      */
     private IovMapper mapper;
+    /**
+     * Custom mapper.
+     */
+    private CustomIovMapper customMapper;
 
     /**
      * The context from the request.
@@ -96,18 +101,21 @@ public class IovsApiServiceImpl extends IovsApiService {
      * @param prh        the PageRequestHelper
      * @param edh        the EntityDtoHelper
      * @param mapper     the iov mapper.
+     * @param customMapper the custom mapper.
      * @param context    the context.
      */
     @Autowired
     public IovsApiServiceImpl(IovService iovService, TagService tagService,
                               PageRequestHelper prh, EntityDtoHelper edh,
-                              IovMapper mapper, JAXRSContext context) {
+                              IovMapper mapper, CustomIovMapper customMapper,
+                              JAXRSContext context) {
         this.iovService = iovService;
         this.tagService = tagService;
         this.cachesvc = iovService.getCachingPolicyService();
         this.prh = prh;
         this.edh = edh;
         this.mapper = mapper;
+        this.customMapper = customMapper;
         this.context = context;
     }
 
@@ -123,7 +131,7 @@ public class IovsApiServiceImpl extends IovsApiService {
         log.info("IovRestController processing request for creating an iov");
         // Create a new IOV.
         String tagname = body.getTagName();
-        Iov entity = mapper.toEntity(body);
+        Iov entity = customMapper.createIovFromDto(body);
         final Iov saved = iovService.insertIov(entity);
         // Change the modification time in the tag.
         Tag tagEntity = tagService.findOne(tagname);
@@ -168,7 +176,8 @@ public class IovsApiServiceImpl extends IovsApiService {
         for (final IovDto iovDto : iovlist) {
             log.debug("Create iov from dto {}", iovDto);
             // Create new iov.
-            Iov entity = mapper.toEntity(iovDto);
+            Iov entity = customMapper.createIovFromDto(iovDto);
+            // Insert the iov.
             final Iov saved = iovService.insertIov(entity);
             IovDto saveddto = mapper.toDto(saved);
             saveddto.tagName(tagName);
@@ -216,8 +225,8 @@ public class IovsApiServiceImpl extends IovsApiService {
         if (tagname == null || tagname.contains("%")) {
             throw new CdbBadRequestException("Cannot search iovs with tag " + tagname);
         }
-        log.debug("Use input time format: {}", timeformat);
-        log.debug("Use iov query mode: {}", xCrestQuery);
+        log.info("Use input time format: {}", timeformat);
+        log.info("Use iov query mode: {}", xCrestQuery);
         ArgTimeUnit inputformat = ArgTimeUnit.valueOf(timeformat);
         ArgTimeUnit outformat = ArgTimeUnit.valueOf(xCrestSince);
         IovModeEnum queryMode = IovModeEnum.valueOf(xCrestQuery);
@@ -247,6 +256,13 @@ public class IovsApiServiceImpl extends IovsApiService {
         if (args.checkArgsNull(method)) {
             throw new CdbBadRequestException("Arguments not compatible with method " + method);
         }
+        // Verify if tag exists, and if it was modified since last request.
+        final Tag tagentity = tagService.findOne(tagname);
+
+        Response resp = cachesvc.checkLastModified(tagentity, context);
+        if (resp != null) {
+            return resp;
+        }
         // Create filters
         GenericMap filters = new GenericMap();
         filters.put("tagName", tagname);
@@ -272,11 +288,17 @@ public class IovsApiServiceImpl extends IovsApiService {
                 IovMapper.class);
         Response.Status rstatus = Response.Status.OK;
         final CacheControl cc = cachesvc.getIovsCacheControlForUntil(0L, CrestProperties.INFINITY);
+        // Check if a specific cache length is available for this tag.
+        if (tagentity.getCacheLength() > 0) {
+            cc.setMaxAge(tagentity.getCacheLength().intValue());
+        }
         // Prepare the response.
         final CrestBaseResponse saveddto = buildEntityResponse(dtolist, filters);
         saveddto.page(respPage);
         // Send a response and status 200.
-        return Response.status(rstatus).entity(saveddto).cacheControl(cc).build();
+        return Response.status(rstatus).entity(saveddto)
+                .lastModified(tagentity.getModificationTime())
+                .cacheControl(cc).build();
     }
 
 
@@ -318,16 +340,9 @@ public class IovsApiServiceImpl extends IovsApiService {
      */
     protected Response selectGroups(String tagname, Long snapshot, Long groupsize) {
         final Tag tagentity = tagService.findOne(tagname);
-        HttpHeaders headers = context.getHttpHeaders();
-        Request request = context.getRequest();
-        // Apply caching on iov groups selections.
-        // Use cache service to detect if a tag was modified.
-        final ResponseBuilder builder = cachesvc.verifyLastModified(request, tagentity);
-        if (builder != null) {
-            // Get request headers: this is just to dump the If-Modified-Since
-            final String ifmodsince = headers.getHeaderString("If-Modified-Since");
-            log.debug("The output data are not modified since " + ifmodsince);
-            return builder.build();
+        Response resp = cachesvc.checkLastModified(tagentity, context);
+        if (resp != null) {
+            return resp;
         }
         // Get the time type to apply different group selections.
         // This are typical values representative for COOL types (NANO_SEC).

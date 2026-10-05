@@ -45,6 +45,8 @@ import jakarta.validation.Valid;
   TagDto.JSON_PROPERTY_DESCRIPTION,
   TagDto.JSON_PROPERTY_LAST_VALIDATED_TIME,
   TagDto.JSON_PROPERTY_END_OF_VALIDITY,
+  TagDto.JSON_PROPERTY_CACHE_LENGTH,
+  TagDto.JSON_PROPERTY_WORKFLOW,
   TagDto.JSON_PROPERTY_INSERTION_TIME,
   TagDto.JSON_PROPERTY_MODIFICATION_TIME
 })
@@ -145,6 +147,49 @@ public class TagDto   {
   public static final String JSON_PROPERTY_END_OF_VALIDITY = "endOfValidity";
   @JsonProperty(JSON_PROPERTY_END_OF_VALIDITY)
   private Long endOfValidity;
+
+  public static final String JSON_PROPERTY_CACHE_LENGTH = "cacheLength";
+  @JsonProperty(JSON_PROPERTY_CACHE_LENGTH)
+  private Integer cacheLength = -1;
+
+  /**
+   * Workflow type. Default is ALL.
+   */
+  public enum WorkflowEnum {
+    ALL("ALL"),
+    
+    HLT("HLT"),
+    
+    BLK("BLK"),
+    
+    ES("ES");
+
+    private String value;
+
+    WorkflowEnum(String value) {
+      this.value = value;
+    }
+
+    @Override
+    @JsonValue
+    public String toString() {
+      return String.valueOf(value);
+    }
+
+    @JsonCreator
+    public static WorkflowEnum fromValue(String value) {
+      for (WorkflowEnum b : WorkflowEnum.values()) {
+        if (b.value.equals(value)) {
+          return b;
+        }
+      }
+      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+    }
+  }
+
+  public static final String JSON_PROPERTY_WORKFLOW = "workflow";
+  @JsonProperty(JSON_PROPERTY_WORKFLOW)
+  private WorkflowEnum workflow = WorkflowEnum.ALL;
 
   public static final String JSON_PROPERTY_INSERTION_TIME = "insertionTime";
   @JsonProperty(JSON_PROPERTY_INSERTION_TIME)
@@ -306,6 +351,44 @@ public class TagDto   {
     this.endOfValidity = endOfValidity;
   }
 
+  public TagDto cacheLength(Integer cacheLength) {
+    this.cacheLength = cacheLength;
+    return this;
+  }
+
+  /**
+   * Cache length in seconds. Default is -1 (use system default).
+   * @return cacheLength
+   **/
+  @JsonProperty(value = "cacheLength")
+  
+  public Integer getCacheLength() {
+    return cacheLength;
+  }
+
+  public void setCacheLength(Integer cacheLength) {
+    this.cacheLength = cacheLength;
+  }
+
+  public TagDto workflow(WorkflowEnum workflow) {
+    this.workflow = workflow;
+    return this;
+  }
+
+  /**
+   * Workflow type. Default is ALL.
+   * @return workflow
+   **/
+  @JsonProperty(value = "workflow")
+  
+  public WorkflowEnum getWorkflow() {
+    return workflow;
+  }
+
+  public void setWorkflow(WorkflowEnum workflow) {
+    this.workflow = workflow;
+  }
+
   public TagDto insertionTime(OffsetDateTime insertionTime) {
     this.insertionTime = insertionTime;
     return this;
@@ -362,13 +445,15 @@ public class TagDto   {
         Objects.equals(description, tagDto.description) &&
         Objects.equals(lastValidatedTime, tagDto.lastValidatedTime) &&
         Objects.equals(endOfValidity, tagDto.endOfValidity) &&
+        Objects.equals(cacheLength, tagDto.cacheLength) &&
+        Objects.equals(workflow, tagDto.workflow) &&
         Objects.equals(insertionTime, tagDto.insertionTime) &&
         Objects.equals(modificationTime, tagDto.modificationTime);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, timeType, payloadSpec, synchronization, status, description, lastValidatedTime, endOfValidity, insertionTime, modificationTime);
+    return Objects.hash(name, timeType, payloadSpec, synchronization, status, description, lastValidatedTime, endOfValidity, cacheLength, workflow, insertionTime, modificationTime);
   }
 
   @Override
@@ -384,6 +469,8 @@ public class TagDto   {
     sb.append("    description: ").append(toIndentedString(description)).append("\n");
     sb.append("    lastValidatedTime: ").append(toIndentedString(lastValidatedTime)).append("\n");
     sb.append("    endOfValidity: ").append(toIndentedString(endOfValidity)).append("\n");
+    sb.append("    cacheLength: ").append(toIndentedString(cacheLength)).append("\n");
+    sb.append("    workflow: ").append(toIndentedString(workflow)).append("\n");
     sb.append("    insertionTime: ").append(toIndentedString(insertionTime)).append("\n");
     sb.append("    modificationTime: ").append(toIndentedString(modificationTime)).append("\n");
     sb.append("}");

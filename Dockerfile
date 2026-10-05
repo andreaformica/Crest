@@ -1,28 +1,32 @@
 # CrestDB
-FROM registry.cern.ch/docker.io/eclipse-temurin:23-alpine
+FROM registry.cern.ch/docker.io/eclipse-temurin:25-alpine-3.23
+# OLD: FROM registry.cern.ch/docker.io/eclipse-temurin:23-alpine
+#FROM eclipse-temurin:25-alpine-3.23
+## docker pull eclipse-temurin:25-alpine-3.23
 LABEL maintainer="Andrea Formica"
 
+# Rootless build arguments (default to 0, but can be overridden at build time)
 ARG CREST_USER_ID=1001
-ARG CREST_GROUP_ID=1001
+ARG CREST_GROUP_ID=0
 
 # ===== Environment Variables =====
 ENV USR=crestsvc \
     TZ=GMT
 
 # Predefine paths (easier to modify)
-ENV HOME=/home/${USR} \
-    crest_dir=${HOME}/crest \
+ENV HOME=/home/${USR}
+ENV crest_dir=${HOME}/crest \
     data_dir=${HOME}/data \
     config_dir=${HOME}/config
 
 # ===== User & Group Setup =====
-# Create group and user in a single layer
-RUN addgroup -g $CREST_GROUP_ID crest && \
-    adduser -u $CREST_USER_ID -G crest -h $HOME -D $USR && \
+# GID 0 (root group) already exists, skip addgroup and assign user to root group
+RUN adduser -u $CREST_USER_ID -G root -h $HOME -D $USR && \
     # Create all required directories in one RUN
     mkdir -p ${crest_dir} ${config_dir} \
              ${data_dir}/web ${data_dir}/dump ${data_dir}/logs && \
-    chown -R $USR:$CREST_GROUP_ID $HOME
+    chown -R $USR:$CREST_GROUP_ID $HOME && \
+    chmod -R g+rwx $HOME
 
 # ===== Application Setup =====
 # Add jar and entrypoint in separate layers (better caching)
@@ -37,7 +41,7 @@ RUN chmod +x $HOME/entrypoint.sh && \
 VOLUME "${data_dir}"
 EXPOSE 8080
 ### we set the user and the workdir....
-USER ${USR}
+USER $USR
 WORKDIR /home/${USR}
 
 ENTRYPOINT  [ "./entrypoint.sh" ]

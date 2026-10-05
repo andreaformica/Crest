@@ -1,7 +1,7 @@
-package hep.crest.server.config;
+package hep.crest.server.triggerdb.config;
 
-import hep.crest.server.repositories.triggerdb.ITriggerDb;
-import hep.crest.server.repositories.triggerdb.TriggerDb;
+import hep.crest.server.triggerdb.repositories.ITriggerDb;
+import hep.crest.server.triggerdb.repositories.TriggerDb;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -19,7 +19,7 @@ import javax.sql.DataSource;
  * @author formica
  */
 @Configuration
-@ComponentScan("hep.crest.server")
+@ComponentScan("hep.crest.server.triggerdb")
 @Profile("triggerdb")
 @Slf4j
 public class TriggerRepositoryConfig {

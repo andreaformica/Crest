@@ -1,6 +1,8 @@
 package hep.crest.server.caching;
 
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties("caching")
 @Data
+@Slf4j
 public class CachingProperties {
     /**
      * The default cache in seconds.
@@ -53,5 +56,26 @@ public class CachingProperties {
      * The group size for run based folders.
      */
     private Integer runtypeGroupsize = 10;
+    /**
+     * The caching for GlobalTag map trace.
+     */
+    private Integer tagmap = 300;
+    /**
+     * The caching for Tag.
+     */
+    private Integer tag = 3600;
+
+    /**
+     * Log the loaded caching properties at startup.
+     */
+    @PostConstruct
+    public void logProperties() {
+        log.info("Caching properties loaded: iovsgroupsMaxage={}, iovsgroupsSnapshotMaxage={}, "
+                + "iovsMaxage={}, iovsSnapshotMaxage={}, payloadsMaxage={}, "
+                + "timetypeGroupsize={}, runtypeGroupsize={}",
+                iovsgroupsMaxage, iovsgroupsSnapshotMaxage,
+                iovsMaxage, iovsSnapshotMaxage, payloadsMaxage,
+                timetypeGroupsize, runtypeGroupsize);
+    }
 
 }

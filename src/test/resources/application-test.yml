@@ -15,12 +15,25 @@ crest:
 server:
   servlet.path: /
   connection-timeout: 60s
+ # Set maximum request body size to 400MB (default is 10MB)
+  # This applies to both Tomcat and Undertow
+  tomcat:
+    max-http-post-size: 419430400  # 400MB in bytes
+  undertow:
+    max-http-post-size: 419430400  # 400MB in bytes
+
+
 spring:
   data.redis:
     host: redis
     port: 6379
   security:
       strategy: MODE_INHERITABLETHREADLOCAL
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 400MB
+      location: ${java.io.tmpdir}/crest-multipart
   jersey:
       application-path: /crestapi
   datasource:
@@ -46,6 +59,7 @@ spring:
         hibernate.jdbc.fetch_size: 100
         hibernate.hbm2ddl.auto: update
         hibernate.show_sql: false
+        hibernate.physical_naming_strategy: hep.crest.server.config.DynamicPhysicalNamingStrategy
 info:
   app:
     name: Crest Application

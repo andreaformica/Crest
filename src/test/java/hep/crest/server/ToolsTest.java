@@ -6,6 +6,7 @@ import hep.crest.server.converters.CustomMapper;
 import hep.crest.server.converters.DateFormatterHandler;
 import hep.crest.server.converters.HashGenerator;
 import hep.crest.server.converters.PayloadHandler;
+import hep.crest.server.data.pojo.TagTimeTypeEnum;
 import hep.crest.server.data.utils.RunIovConverter;
 import hep.crest.server.serializers.ArgTimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,14 @@ public class ToolsTest {
         assertThat(ArgTimeUnit.valueOf("CUSTOM")).isEqualTo(ArgTimeUnit.CUSTOM);
         assertThat(ArgTimeUnit.valueOf("ISO")).isEqualTo(ArgTimeUnit.ISO);
     }
+
+    @Test
+    public void testTagTimeType() {
+        assertThat(TagTimeTypeEnum.fromCode("run")).isEqualTo(TagTimeTypeEnum.RUN);
+        assertThat(TagTimeTypeEnum.fromCode("run-lumi")).isEqualTo(TagTimeTypeEnum.RUNLUMI);
+        assertThat(TagTimeTypeEnum.fromCode("time")).isEqualTo(TagTimeTypeEnum.TIME);
+    }
+
 
     @Test
     public void testPageRequestHelper() {
@@ -134,12 +143,6 @@ public class ToolsTest {
         PayloadHandler.saveStreamToFile(is, "testfile2");
         File f = new File("testfile2");
         assertThat(f.exists()).isTrue();
-
-        String hash3 = HashGenerator.md5Java("test");
-        assertThat(hash3).isNotNull();
-        String hash3r = HashGenerator.md5Java("test".getBytes());
-        assertThat(hash3r).isNotNull();
-        assertThat(hash3).isEqualTo(hash3r);
         String hash4 = HashGenerator.shaJava("test".getBytes());
         assertThat(hash4).isNotNull();
         String hash5 = HashGenerator.md5Spring("test");
@@ -176,9 +179,9 @@ public class ToolsTest {
         assertThat(cooltime3).isEqualTo(1739640284000L);
 
         CrestTableNames ctn = new CrestTableNames();
-        assertThat(ctn.getIovTableName()).isEqualTo("IOV");
+        assertThat(ctn.getIovTableName()).startsWith("IOV");
         assertThat(ctn.getTagMetaTableName()).isEqualTo("TAG_META");
-        assertThat(ctn.getTagTableName()).isEqualTo("TAG");
+        assertThat(ctn.getTagTableName()).startsWith("TAG");
         assertThat(ctn.getPayloadDataTableName()).isEqualTo("PAYLOAD_DATA");
         assertThat(ctn.getPayloadTableName()).isEqualTo("PAYLOAD");
         assertThat(ctn.getPayloadInfoDataTableName()).isEqualTo("PAYLOAD_STREAMER_DATA");

@@ -1,4 +1,4 @@
-package hep.crest.server.repositories.triggerdb;
+package hep.crest.server.triggerdb.repositories;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -15,57 +15,94 @@ import java.util.regex.Pattern;
 public class TriggerDb implements ITriggerDb {
 
     /**
+     * Keys constant for trigger L1PS.
+     */
+    private static final String K_L1PS = "L1PS";
+    /**
+     * Keys constant for trigger HLTM.
+     */
+    private static final String K_HLTM = "HLTM";
+    /**
+     * Keys constant for trigger L1M.
+     */
+    private static final String K_L1M  = "L1M";
+    /**
+     * Keys constant for trigger HLTPS.
+     */
+    private static final String K_HLTPS = "HLTPS";
+    /**
+     * Keys constant for trigger BGS.
+     */
+    private static final String K_BGS  = "BGS";
+    /**
+     * Keys constant for trigger MGS.
+     */
+    private static final String K_MGS  = "MGS";
+    /**
+     * Keys constant for trigger JO.
+     */
+    private static final String K_JO   = "JO";
+
+
+    /**
      * Query map.
      */
     private static final Map<String, String> QUERY_MAP = Map.of(
-            "L1PS", "select L1PS_DATA from %s.%s where l1ps_id=?",
-            "HLTM", "select HMT.HTM_DATA from %s.SUPER_MASTER_TABLE SMT, %s.%s HMT "
+            K_L1PS, "select L1PS_DATA from %s.%s where l1ps_id=?",
+            K_HLTM, "select HMT.HTM_DATA from %s.SUPER_MASTER_TABLE SMT, %s.%s HMT "
                     + "where HMT.HTM_ID=SMT.SMT_HLT_MENU_ID and SMT.SMT_ID=?",
-            "L1M", "select L1MT.L1TM_DATA from %s.SUPER_MASTER_TABLE SMT, %s.%s L1MT "
+            K_L1M, "select L1MT.L1TM_DATA from %s.SUPER_MASTER_TABLE SMT, %s.%s L1MT "
                    + "where L1MT.L1TM_ID=SMT.SMT_L1_MENU_ID and SMT.SMT_ID=?",
-            "HLTPS", "select HPS_DATA from %s.%s where hps_id=?",
-            "BGS", "select L1BGS_DATA from %s.%s where l1bgs_id=?",
-            "MGS", "select HMG.HMG_DATA from %s.SUPER_MASTER_TABLE SMT, %s.%s HMG "
+            K_HLTPS, "select HPS_DATA from %s.%s where hps_id=?",
+            K_BGS, "select L1BGS_DATA from %s.%s where l1bgs_id=?",
+            K_MGS, "select HMG.HMG_DATA from %s.SUPER_MASTER_TABLE SMT, %s.%s HMG "
                   + " where HMG.HMG_IN_USE=1 and SMT.SMT_HLT_MENU_ID = HMG.HMG_HLT_MENU_ID "
                   + " and SMT.SMT_ID=?",
-            "JO", "select JO.HJO_DATA from %s.SUPER_MASTER_TABLE SMT, %s.%s JO "
+            K_JO, "select JO.HJO_DATA from %s.SUPER_MASTER_TABLE SMT, %s.%s JO "
                   + " where JO.HJO_ID=SMT.SMT_HLT_JOBOPTIONS_ID "
                   + " and SMT.SMT_ID=?"
     );
+
 
     /**
      * Schema map.
      */
     private static final Map<String, String> SCHEMA_MAP = Map.of(
             "CONF_DATA_RUN3", "ATLAS_CONF_TRIGGER_RUN3",
-            "CONF_MC_RUN3", "ATLAS_CONF_TRIGGER_MC_RUN3",
-            "CONF_REPR_RUN3", "ATLAS_CONF_TRIGGER_REPR_RUN3"
+            "CONF_MC_RUN3", "ATLAS_CONF_TRIGGER_RUN3_MC",
+            "CONF_REPR_RUN3", "ATLAS_CONF_TRIGGER_RUN3_REPR",
+            "CONF_DATA_RUN4", "ATLAS_CONF_TRIGGER_RUN4",
+            "CONF_MC_RUN4", "ATLAS_CONF_TRIGGER_RUN4_MC",
+            "CONF_REPR_RUN4", "ATLAS_CONF_TRIGGER_RUN4_REPR",
+            "CONF_DATA_RUN2", "ATLAS_CONF_TRIGGER_RUN2_NF",
+            "CONF_DEV_LS3", "ATLAS_CONF_TRIGGER_LS3_DEV",
+            "CONF_DEV_L0", "ATLAS_CONF_TRIGGER_LS3_L0"
     );
 
     /**
      * Table map.
      */
     private static final Map<String, String> TABLE_MAP = Map.of(
-            "L1PS", "l1_prescale_set",
-            "HLTM", "hlt_menu",
-            "L1M", "l1_menu",
-            "HLTPS", "hlt_prescale_set",
-            "BGS", "l1_bunch_group_set",
-            "MGS", "hlt_monitoring_groups",
-            "JO", "hlt_joboptions"
+            K_L1PS, "l1_prescale_set",
+            K_HLTM, "hlt_menu",
+            K_L1M, "l1_menu",
+            K_HLTPS, "hlt_prescale_set",
+            K_BGS, "l1_bunch_group_set",
+            K_MGS, "hlt_monitoring_groups",
+            K_JO, "hlt_joboptions"
     );
 
     /**
      * Column name.
      */
     private static final Map<String, String> COLUMN_MAP = Map.of(
-            "L1PS", "L1PS_DATA",
-            "HLTM", "HTM_DATA",
-            "L1M", "L1TM_DATA",
-            "HLTPS", "HPS_DATA",
-            "BGS", "L1BGS_DATA",
-            "MGS", "HMG_DATA",
-            "JO", "HJO_DATA"
+            K_L1PS, "L1PS_DATA",
+            K_HLTM, "HTM_DATA",
+            K_L1M, "L1TM_DATA",
+            K_HLTPS, "HPS_DATA",
+            K_BGS, "L1BGS_DATA",
+            K_MGS, "HMG_DATA",
+            K_JO, "HJO_DATA"
     );
 
     /**
@@ -124,9 +161,9 @@ public class TriggerDb implements ITriggerDb {
         }
         String query = QUERY_MAP.get(components.getTable());
         switch (components.getTable()) {
-            case "L1PS":
-            case "HLTPS":
-            case "BGS":
+            case K_L1PS:
+            case K_HLTPS:
+            case K_BGS:
                 return String.format(query, schema, TABLE_MAP.get(components.getTable()));
             default:
                 return String.format(query, schema, schema, TABLE_MAP.get(components.getTable()));

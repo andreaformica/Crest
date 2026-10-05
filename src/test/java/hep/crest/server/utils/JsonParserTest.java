@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import hep.crest.server.data.pojo.Iov;
 import hep.crest.server.data.pojo.IovId;
+import hep.crest.server.data.pojo.Tag;
 import hep.crest.server.swagger.model.GenericMap;
 import hep.crest.server.swagger.model.StoreDto;
 import hep.crest.server.swagger.model.StoreSetDto;
@@ -123,13 +124,17 @@ public class JsonParserTest {
 
     public static StoreSetDto buildStoreSet(String tagname) {
         // Upload batch iovs
-        final IovId id = new IovId().setTagName(tagname)
+        Tag tag = new Tag();
+        tag.setName(tagname);
+        tag.setTagId(9999L);
+        tag.setDescription("A test tag");
+        final IovId id = new IovId().setTagId(tag.getTagId())
                 .setSince(BigInteger.valueOf(4000000L * 1000000000L)).setInsertionTime(new Date());
         final Iov miov = new Iov();
         miov.setId(id);
         miov.getId().setInsertionTime(null);
         log.info("...created iov via random gen: {}", miov);
-        final IovId id2 = new IovId().setTagName(tagname)
+        final IovId id2 = new IovId().setTagId(tag.getTagId())
                 .setSince(BigInteger.valueOf(5000000L * 1000000000L)).setInsertionTime(new Date());
         final Iov miov2 = new Iov();
         miov2.setId(id2);
